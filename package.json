@@ -1,0 +1,14 @@
+{
+  "name": "natglobe-acars-weather-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "One-button ACARS-style weather report PNG generator for METAR/TAF with nearby-airfield and offline fallback.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sharp": "^0.33.5"
+  }
+}
