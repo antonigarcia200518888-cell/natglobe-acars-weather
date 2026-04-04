@@ -149,7 +149,7 @@
 
     <div class="intro">
       Enter an ICAO code. Tap one button to fetch METAR/TAF, fall back to nearby
-      airfields, and download a print-ready PNG. If offline, the last saved report on
+      airfields, and download a print-ready PDF. If offline, the last saved report on
       this device is used.
     </div>
 
@@ -165,9 +165,9 @@
         autocorrect="off"
         spellcheck="false"
       />
-      <button id="generateBtn" class="btn primary">Generate PNG</button>
+      <button id="generateBtn" class="btn primary">Generate PDF</button>
       <button id="latestBtn" class="btn">Use Latest Saved</button>
-      <button id="openBtn" class="btn">Open PNG</button>
+      <button id="openBtn" class="btn">Open PDF</button>
     </div>
 
     <div id="statusBox" class="status-box">READY</div>
@@ -219,8 +219,8 @@ END OF REPORT</pre>
       statusBox.textContent = text;
     }
 
-    function buildDirectPngUrl(icao) {
-      return `/api/weather-v2?icao=${icao}&t=${Date.now()}`;
+    function buildDirectPdfUrl(icao) {
+      return `/api/weather-pdf?icao=${icao}&t=${Date.now()}`;
     }
 
     function saveLatest(icao, reportText) {
@@ -258,11 +258,11 @@ END OF REPORT</pre>
 
       try {
         const reportText = await fetchReportText(icao);
-        latestDirectUrl = buildDirectPngUrl(icao);
+        latestDirectUrl = buildDirectPdfUrl(icao);
 
         showReport(reportText);
         saveLatest(icao, reportText);
-        setStatus(`DONE — ${icao}_ACARS_WEATHER.png`);
+        setStatus(`DONE — ${icao}_ACARS_WEATHER.pdf`);
       } catch (err) {
         console.error(err);
         const saved = loadLatest(icao);
@@ -284,7 +284,7 @@ END OF REPORT</pre>
       if (latestDirectUrl) {
         const a = document.createElement('a');
         a.href = latestDirectUrl;
-        a.download = `${icao}_ACARS_WEATHER.png`;
+        a.download = `${icao}_ACARS_WEATHER.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -306,12 +306,12 @@ END OF REPORT</pre>
 
       showReport(saved.report);
       latestDirectUrl = null;
-      setStatus(`DONE — ${icao}_ACARS_WEATHER.png`);
+      setStatus(`DONE — ${icao}_ACARS_WEATHER.pdf`);
     });
 
     openBtn.addEventListener('click', () => {
       if (!latestDirectUrl) {
-        setStatus('NO LIVE PNG READY');
+        setStatus('NO LIVE PDF READY');
         return;
       }
       window.open(latestDirectUrl, '_blank');
