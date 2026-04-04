@@ -35,13 +35,26 @@ function haversineKm(a, b) {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
+function kmToNm(km) {
+  return km / 1.852;
+}
+
+function formatNm(km) {
+  if (km == null || Number.isNaN(km)) return null;
+  return Math.round(kmToNm(km));
+}
+
 function getNearbyAirports(icao, limit = 8) {
   const target = airports.find(a => a.icao === icao);
 
   if (target) {
     return airports
       .filter(a => a.icao !== icao)
-      .map(a => ({ ...a, distanceKm: haversineKm(target, a) }))
+      .map(a => ({
+        ...a,
+        distanceKm: haversineKm(target, a),
+        distanceNm: formatNm(haversineKm(target, a))
+      }))
       .sort((a, b) => a.distanceKm - b.distanceKm)
       .slice(0, limit);
   }
@@ -49,7 +62,11 @@ function getNearbyAirports(icao, limit = 8) {
   return airports
     .filter(a => a.icao !== icao)
     .slice(0, limit)
-    .map(a => ({ ...a, distanceKm: null }));
+    .map(a => ({
+      ...a,
+      distanceKm: null,
+      distanceNm: null
+    }));
 }
 
 async function fetchRaw(url) {
@@ -75,7 +92,13 @@ async function getTaf(icao) {
 async function getFirstAvailable(fetchFn, requestedIcao) {
   const own = await fetchFn(requestedIcao);
   if (own) {
-    return { text: own, source: requestedIcao, fallback: false };
+    return {
+      text: own,
+      source: requestedIcao,
+      fallback: false,
+      distanceKm: 0,
+      distanceNm: 0
+    };
   }
 
   const nearby = getNearbyAirports(requestedIcao, 10);
@@ -85,7 +108,9 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
       return {
         text: found,
         source: apt.icao,
-        fallback: true
+        fallback: true,
+        distanceKm: apt.distanceKm,
+        distanceNm: apt.distanceNm
       };
     }
   }
@@ -93,7 +118,9 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
   return {
     text: 'NOT AVAILABLE',
     source: null,
-    fallback: false
+    fallback: false,
+    distanceKm: null,
+    distanceNm: null
   };
 }
 
@@ -112,7 +139,9 @@ async function getWeatherWithFallback(icao) {
     metarSource: metarResult.source,
     tafSource: tafResult.source,
     metarFallback: metarResult.fallback,
-    tafFallback: tafResult.fallback
+    tafFallback: tafResult.fallback,
+    metarDistanceNm: metarResult.distanceNm,
+    tafDistanceNm: tafResult.distanceNm
   };
 }
 
@@ -143,18 +172,24 @@ function wrapText(text, maxChars = 56) {
 }
 
 function buildReportText(icao, weather) {
+  const metarSourceLine =
+    weather.metarFallback && weather.metarSource
+      ? `METAR SOURCE: ${weather.metarSource} (nearest available, ${weather.metarDistanceNm} NM)`
+      : null;
+
+  const tafSourceLine =
+    weather.tafFallback && weather.tafSource
+      ? `TAF SOURCE: ${weather.tafSource} (nearest available, ${weather.tafDistanceNm} NM)`
+      : null;
+
   return [
     'ACARS WEATHER REPORT',
     '--------------------',
     `TIME (UTC): ${new Date().toUTCString()}`,
     `AIRPORT: ${icao}`,
     `MODE: ${weather.mode}`,
-    weather.metarFallback && weather.metarSource
-      ? `METAR SOURCE: ${weather.metarSource} (nearest available)`
-      : null,
-    weather.tafFallback && weather.tafSource
-      ? `TAF SOURCE: ${weather.tafSource} (nearest available)`
-      : null,
+    metarSourceLine,
+    tafSourceLine,
     'METAR:',
     weather.metar || 'NOT AVAILABLE',
     'TAF:',
@@ -202,11 +237,19 @@ async function textToPng(report) {
   }
 
   if (report.metarFallback && report.metarSource) {
-    addText(left, `METAR SOURCE: ${report.metarSource} (nearest available)`, { bold: true, size: 18 });
+    addText(
+      left,
+      `METAR SOURCE: ${report.metarSource} (nearest available, ${report.metarDistanceNm} NM)`,
+      { bold: true, size: 18 }
+    );
   }
 
   if (report.tafFallback && report.tafSource) {
-    addText(left, `TAF SOURCE: ${report.tafSource} (nearest available)`, { bold: true, size: 18 });
+    addText(
+      left,
+      `TAF SOURCE: ${report.tafSource} (nearest available, ${report.tafDistanceNm} NM)`,
+      { bold: true, size: 18 }
+    );
   }
 
   addBlank(14);
@@ -259,7 +302,9 @@ app.get('/api/weather-v2', async (req, res) => {
       metarSource: weather.metarSource,
       tafSource: weather.tafSource,
       metarFallback: weather.metarFallback,
-      tafFallback: weather.tafFallback
+      tafFallback: weather.tafFallback,
+      metarDistanceNm: weather.metarDistanceNm,
+      tafDistanceNm: weather.tafDistanceNm
     };
 
     const png = await textToPng(report);
