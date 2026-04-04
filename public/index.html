@@ -213,38 +213,28 @@ END OF REPORT</pre>
     const statusBox = document.getElementById('statusBox');
     const previewText = document.getElementById('previewText');
 
-    let latestBlobUrl = null;
-    let latestIcao = null;
+    let latestDirectUrl = null;
 
     function setStatus(text) {
       statusBox.textContent = text;
     }
 
-    function saveLatest(icao, blob, reportText) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        localStorage.setItem(`ng_latest_png_${icao}`, reader.result);
-        localStorage.setItem(`ng_latest_report_${icao}`, reportText);
-        localStorage.setItem(`ng_last_icao`, icao);
-      };
-      reader.readAsDataURL(blob);
+    function buildDirectPngUrl(icao) {
+      return `/api/weather-v2?icao=${icao}&t=${Date.now()}`;
+    }
+
+    function saveLatest(icao, reportText) {
+      localStorage.setItem(`ng_latest_report_${icao}`, reportText);
+      localStorage.setItem(`ng_last_icao`, icao);
     }
 
     function loadLatest(icao) {
-      const png = localStorage.getItem(`ng_latest_png_${icao}`);
       const report = localStorage.getItem(`ng_latest_report_${icao}`);
-      return { png, report };
+      return { report };
     }
 
     function showReport(report) {
       previewText.textContent = report;
-    }
-
-    async function blobToText(blob) {
-      const url = URL.createObjectURL(blob);
-      latestBlobUrl = url;
-      latestIcao = icaoInput.value.trim().toUpperCase();
-      return url;
     }
 
     async function fetchReportText(icao) {
@@ -267,34 +257,19 @@ END OF REPORT</pre>
       previewText.textContent = '';
 
       try {
-        const [pngRes, reportText] = await Promise.all([
-          fetch(`/api/weather-v2?icao=${icao}&t=${Date.now()}`, { cache: 'no-store' }),
-          fetchReportText(icao)
-        ]);
-
-        if (!pngRes.ok) throw new Error(`PNG HTTP ${pngRes.status}`);
-
-        const blob = await pngRes.blob();
-        if (!blob || blob.size === 0) throw new Error('EMPTY PNG');
-
-        const url = await blobToText(blob);
+        const reportText = await fetchReportText(icao);
+        latestDirectUrl = buildDirectPngUrl(icao);
 
         showReport(reportText);
-        saveLatest(icao, blob, reportText);
+        saveLatest(icao, reportText);
         setStatus(`DONE — ${icao}_ACARS_WEATHER.png`);
-
-        generateBtn.dataset.url = url;
-        openBtn.dataset.url = url;
       } catch (err) {
         console.error(err);
         const saved = loadLatest(icao);
 
         if (saved.report) {
           showReport(saved.report);
-          if (saved.png) {
-            generateBtn.dataset.url = saved.png;
-            openBtn.dataset.url = saved.png;
-          }
+          latestDirectUrl = null;
           setStatus(`OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT`);
         } else {
           setStatus('ERROR FETCHING WEATHER');
@@ -305,11 +280,10 @@ END OF REPORT</pre>
     generateBtn.addEventListener('click', async () => {
       await generate();
 
-      const url = generateBtn.dataset.url;
       const icao = icaoInput.value.trim().toUpperCase();
-      if (url) {
+      if (latestDirectUrl) {
         const a = document.createElement('a');
-        a.href = url;
+        a.href = latestDirectUrl;
         a.download = `${icao}_ACARS_WEATHER.png`;
         document.body.appendChild(a);
         a.click();
@@ -331,18 +305,16 @@ END OF REPORT</pre>
       }
 
       showReport(saved.report);
-      generateBtn.dataset.url = saved.png || '';
-      openBtn.dataset.url = saved.png || '';
+      latestDirectUrl = null;
       setStatus(`DONE — ${icao}_ACARS_WEATHER.png`);
     });
 
     openBtn.addEventListener('click', () => {
-      const url = openBtn.dataset.url;
-      if (!url) {
-        setStatus('NO PNG READY');
+      if (!latestDirectUrl) {
+        setStatus('NO LIVE PNG READY');
         return;
       }
-      window.open(url, '_blank');
+      window.open(latestDirectUrl, '_blank');
     });
 
     (async () => {
