@@ -1,5 +1,6 @@
 import express from 'express';
 import sharp from 'sharp';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { airports } from './data/airports.js';
@@ -12,6 +13,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+
+const courierFontBase64 = fs.readFileSync(path.join(__dirname, 'cour.ttf')).toString('base64');
 
 function normalizeIcao(input) {
   return String(input || '')
@@ -50,11 +53,14 @@ function getNearbyAirports(icao, limit = 8) {
   if (target) {
     return airports
       .filter(a => a.icao !== icao)
-      .map(a => ({
-        ...a,
-        distanceKm: haversineKm(target, a),
-        distanceNm: formatNm(haversineKm(target, a))
-      }))
+      .map(a => {
+        const distanceKm = haversineKm(target, a);
+        return {
+          ...a,
+          distanceKm,
+          distanceNm: formatNm(distanceKm)
+        };
+      })
       .sort((a, b) => a.distanceKm - b.distanceKm)
       .slice(0, limit);
   }
@@ -216,7 +222,7 @@ async function textToPng(report) {
   function addText(x, text, options = {}) {
     const { bold = false, size = 23 } = options;
     parts.push(
-      `<text x="${x}" y="${y}" font-family="Courier New, Courier, monospace" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}">${escapeXml(text)}</text>`
+      `<text x="${x}" y="${y}" font-family="CourierEmbedded" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}">${escapeXml(text)}</text>`
     );
     y += lineGap;
   }
@@ -273,6 +279,14 @@ async function textToPng(report) {
 
   const svg = `
 <svg width="${pageWidth}" height="${pageHeight}" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @font-face {
+      font-family: 'CourierEmbedded';
+      src: url(data:font/ttf;base64,${courierFontBase64}) format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  </style>
   <rect width="100%" height="100%" fill="#FFFFFF"/>
   ${parts.join('\n')}
 </svg>`;
