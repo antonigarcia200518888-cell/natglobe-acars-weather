@@ -18,48 +18,48 @@
 
     body {
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
     }
 
-    .container {
-      width: 92%;
+    .app {
+      width: 90%;
       max-width: 520px;
       text-align: center;
     }
 
     .title {
       color: #c0c0c0;
-      font-size: 26px;
+      font-size: 22px;
       font-weight: bold;
+      line-height: 1.6;
       letter-spacing: 1px;
-      line-height: 1.4;
-      margin-bottom: 28px;
       text-transform: uppercase;
+      margin-bottom: 28px;
     }
 
-    .icao-input {
+    .input {
       width: 100%;
       box-sizing: border-box;
       background: #000;
       color: #fff;
       border: 1px solid #fff;
-      padding: 14px 16px;
-      font-size: 22px;
+      padding: 14px;
+      font-size: 20px;
       font-family: "Courier New", Courier, monospace;
       text-transform: uppercase;
       text-align: center;
-      outline: none;
       margin-bottom: 14px;
+      outline: none;
     }
 
-    .generate-btn {
+    .btn {
       width: 100%;
       box-sizing: border-box;
       background: #c0c0c0;
       color: #000;
       border: 1px solid #fff;
-      padding: 14px 16px;
+      padding: 14px;
       font-size: 18px;
       font-weight: bold;
       font-family: "Courier New", Courier, monospace;
@@ -69,28 +69,26 @@
     }
 
     .status {
-      min-height: 22px;
+      min-height: 20px;
       font-size: 14px;
-      margin-top: 8px;
-      margin-bottom: 16px;
       color: #fff;
       text-transform: uppercase;
+      margin: 12px 0 18px 0;
     }
 
     .actions {
       display: none;
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: 12px;
+      justify-content: center;
     }
 
     .actions a {
       flex: 1;
-      display: inline-block;
       text-decoration: none;
-      background: #000;
-      color: #fff;
       border: 1px solid #fff;
-      padding: 12px 10px;
+      color: #fff;
+      background: #000;
+      padding: 12px;
       font-size: 15px;
       font-weight: bold;
       font-family: "Courier New", Courier, monospace;
@@ -98,22 +96,16 @@
       box-sizing: border-box;
     }
 
-    .preview {
-      margin-top: 10px;
-    }
-
-    .preview img {
-      max-width: 100%;
-      height: auto;
-      background: #fff;
-      border: 1px solid #fff;
-      display: block;
-      margin: 0 auto;
+    .footer-note {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #777;
+      text-transform: uppercase;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="app">
     <div class="title">
       NATGLOBE AVIATION<br>
       ACARS WEATHER
@@ -121,7 +113,7 @@
 
     <input
       id="icao"
-      class="icao-input"
+      class="input"
       type="text"
       maxlength="4"
       value="EFHK"
@@ -131,16 +123,16 @@
       spellcheck="false"
     >
 
-    <button id="generateBtn" class="generate-btn">GENERATE WEATHER</button>
+    <button id="generateBtn" class="btn">Generate Weather</button>
 
     <div id="status" class="status"></div>
 
     <div id="actions" class="actions">
-      <a id="downloadLink" href="#" download>DOWNLOAD PNG</a>
-      <a id="openLink" href="#" target="_blank" rel="noopener">OPEN PNG</a>
+      <a id="downloadLink" href="#" download>Download PNG</a>
+      <a id="openLink" href="#" target="_blank" rel="noopener">Open PNG</a>
     </div>
 
-    <div id="preview" class="preview"></div>
+    <div class="footer-note">ACARS PRINT FORMAT</div>
   </div>
 
   <script>
@@ -162,7 +154,6 @@
     const generateBtn = document.getElementById('generateBtn');
     const statusEl = document.getElementById('status');
     const actionsEl = document.getElementById('actions');
-    const previewEl = document.getElementById('preview');
     const downloadLink = document.getElementById('downloadLink');
     const openLink = document.getElementById('openLink');
 
@@ -170,10 +161,8 @@
       statusEl.textContent = text;
     }
 
-    function showPng(icao, blob) {
+    function showLinks(icao, blob) {
       const url = URL.createObjectURL(blob);
-
-      previewEl.innerHTML = `<img src="${url}" alt="ACARS Weather PNG">`;
       downloadLink.href = url;
       downloadLink.download = `${icao}_ACARS_WEATHER.png`;
       openLink.href = url;
@@ -184,15 +173,13 @@
       const icao = icaoInput.value.trim().toUpperCase();
 
       if (!/^[A-Z]{4}$/.test(icao)) {
-        setStatus('INVALID ICAO');
+        setStatus('Invalid ICAO');
         actionsEl.style.display = 'none';
-        previewEl.innerHTML = '';
         return;
       }
 
-      setStatus('FETCHING WEATHER...');
+      setStatus('Fetching Weather...');
       actionsEl.style.display = 'none';
-      previewEl.innerHTML = '';
 
       try {
         const res = await fetch(`/api/weather-v2?icao=${icao}&t=${Date.now()}`, {
@@ -206,14 +193,14 @@
         const blob = await res.blob();
 
         if (!blob || blob.size === 0) {
-          throw new Error('EMPTY PNG');
+          throw new Error('Empty PNG');
         }
 
-        showPng(icao, blob);
-        setStatus('READY');
+        showLinks(icao, blob);
+        setStatus('Ready');
       } catch (err) {
         console.error(err);
-        setStatus('ERROR FETCHING WEATHER');
+        setStatus('Error Fetching Weather');
       }
     }
 
