@@ -1,20 +1,21 @@
 import express from 'express';
-import sharp from 'sharp';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createCanvas, registerFont } from 'canvas';
 import { airports } from './data/airports.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+registerFont(path.join(__dirname, 'cour.ttf'), {
+  family: 'CourierNewEmbedded'
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
-
-const courierFontBase64 = fs.readFileSync(path.join(__dirname, 'cour.ttf')).toString('base64');
 
 function normalizeIcao(input) {
   return String(input || '')
@@ -151,13 +152,6 @@ async function getWeatherWithFallback(icao) {
   };
 }
 
-function escapeXml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
 function wrapText(text, maxChars = 56) {
   const words = String(text || '').split(/\s+/).filter(Boolean);
   const lines = [];
@@ -204,97 +198,104 @@ function buildReportText(icao, weather) {
   ].filter(Boolean).join('\n');
 }
 
-async function textToPng(report) {
+function drawBoldText(ctx, text, x, y) {
+  ctx.fillText(text, x, y);
+  ctx.fillText(text, x + 0.6, y);
+}
+
+async function reportToPngBuffer(report) {
   const pageWidth = 1600;
-  const pageMinHeight = 900;
   const left = 70;
   const top = 60;
-  const lineGap = 28;
-  const sectionGap = 10;
+  const lineGap = 30;
+  const sectionGap = 12;
   const wrapIndent = 34;
 
   const metarLines = wrapText(report.metar, 58);
   const tafLines = wrapText(report.taf, 58);
 
+  const lines = [
+    { text: 'ACARS WEATHER REPORT', bold: true, size: 24, x: left },
+    { text: '--------------------', bold: true, size: 22, x: left },
+    { blank: 10 },
+
+    { text: `TIME (UTC): ${report.timeUtc}`, bold: true, size: 22, x: left },
+    { text: `AIRPORT: ${report.airport}`, bold: true, size: 22, x: left },
+
+    ...(report.mode !== 'LIVE'
+      ? [{ text: `MODE: ${report.mode}`, bold: true, size: 20, x: left }]
+      : []),
+
+    ...(report.metarFallback && report.metarSource
+      ? [{
+          text: `METAR SOURCE: ${report.metarSource} (nearest available, ${report.metarDistanceNm} NM)`,
+          bold: true,
+          size: 18,
+          x: left
+        }]
+      : []),
+
+    ...(report.tafFallback && report.tafSource
+      ? [{
+          text: `TAF SOURCE: ${report.tafSource} (nearest available, ${report.tafDistanceNm} NM)`,
+          bold: true,
+          size: 18,
+          x: left
+        }]
+      : []),
+
+    { blank: 14 },
+
+    { text: 'METAR:', bold: true, size: 22, x: left },
+    ...metarLines.map(line => ({ text: line, bold: false, size: 21, x: left + wrapIndent })),
+
+    { blank: 14 },
+
+    { text: 'TAF:', bold: true, size: 22, x: left },
+    ...tafLines.map(line => ({ text: line, bold: false, size: 21, x: left + wrapIndent })),
+
+    { blank: 18 },
+    { text: 'END OF REPORT', bold: true, size: 22, x: left }
+  ];
+
   let y = top;
-  const parts = [];
-
-  function addText(x, text, options = {}) {
-    const { bold = false, size = 23 } = options;
-    parts.push(
-      `<text x="${x}" y="${y}" font-family="CourierEmbedded" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}">${escapeXml(text)}</text>`
-    );
-    y += lineGap;
-  }
-
-  function addBlank(space = sectionGap) {
-    y += space;
-  }
-
-  addText(left, 'ACARS WEATHER REPORT', { bold: true, size: 24 });
-  addText(left, '--------------------', { bold: true, size: 22 });
-  addBlank(10);
-
-  addText(left, `TIME (UTC): ${report.timeUtc}`, { bold: true, size: 22 });
-  addText(left, `AIRPORT: ${report.airport}`, { bold: true, size: 22 });
-
-  if (report.mode !== 'LIVE') {
-    addText(left, `MODE: ${report.mode}`, { bold: true, size: 20 });
-  }
-
-  if (report.metarFallback && report.metarSource) {
-    addText(
-      left,
-      `METAR SOURCE: ${report.metarSource} (nearest available, ${report.metarDistanceNm} NM)`,
-      { bold: true, size: 18 }
-    );
-  }
-
-  if (report.tafFallback && report.tafSource) {
-    addText(
-      left,
-      `TAF SOURCE: ${report.tafSource} (nearest available, ${report.tafDistanceNm} NM)`,
-      { bold: true, size: 18 }
-    );
-  }
-
-  addBlank(14);
-
-  addText(left, 'METAR:', { bold: true, size: 22 });
-  metarLines.forEach((line) => {
-    addText(left + wrapIndent, line, { size: 21 });
-  });
-
-  addBlank(14);
-
-  addText(left, 'TAF:', { bold: true, size: 22 });
-  tafLines.forEach((line) => {
-    addText(left + wrapIndent, line, { size: 21 });
-  });
-
-  addBlank(18);
-  addText(left, 'END OF REPORT', { bold: true, size: 22 });
-
-  const pageHeight = Math.max(pageMinHeight, y + 60);
-
-  const svg = `
-<svg width="${pageWidth}" height="${pageHeight}" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    @font-face {
-      font-family: 'CourierEmbedded';
-      src: url(data:font/ttf;base64,${courierFontBase64}) format('truetype');
-      font-weight: normal;
-      font-style: normal;
+  for (const item of lines) {
+    if (item.blank) {
+      y += item.blank;
+    } else {
+      y += lineGap;
     }
-  </style>
-  <rect width="100%" height="100%" fill="#FFFFFF"/>
-  ${parts.join('\n')}
-</svg>`;
+  }
 
-  return sharp(Buffer.from(svg))
-    .png({ compressionLevel: 0, quality: 100 })
-    .sharpen()
-    .toBuffer();
+  const pageHeight = Math.max(900, y + 60);
+  const canvas = createCanvas(pageWidth, pageHeight);
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, pageWidth, pageHeight);
+
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#000000';
+
+  let currentY = top;
+  for (const item of lines) {
+    if (item.blank) {
+      currentY += item.blank;
+      continue;
+    }
+
+    ctx.font = `${item.size}px "CourierNewEmbedded"`;
+
+    if (item.bold) {
+      drawBoldText(ctx, item.text, item.x, currentY);
+    } else {
+      ctx.fillText(item.text, item.x, currentY);
+    }
+
+    currentY += lineGap;
+  }
+
+  return canvas.toBuffer('image/png');
 }
 
 app.get('/api/weather-v2', async (req, res) => {
@@ -321,7 +322,7 @@ app.get('/api/weather-v2', async (req, res) => {
       tafDistanceNm: weather.tafDistanceNm
     };
 
-    const png = await textToPng(report);
+    const png = await reportToPngBuffer(report);
 
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename="${icao}_ACARS_WEATHER.png"`);
