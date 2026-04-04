@@ -1,355 +1,299 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NatGlobe Aviation / ACARS Weather</title>
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <style>
-    :root {
-      --bg: #000000;
-      --fg: #f2f2f2;
-      --muted: #cfcfcf;
-      --line: #ffffff;
-      --button-bg: #d0d0d0;
-      --button-fg: #000000;
-    }
+import express from 'express';
+import sharp from 'sharp';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { airports } from './data/airports.js';
 
-    * {
-      box-sizing: border-box;
-    }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: "Courier New", Courier, monospace;
-    }
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 44px 20px;
-    }
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
-    .frame {
-      width: min(980px, 100%);
-      border: 2px solid var(--line);
-      padding: 26px 24px 22px;
-      background: #000;
-    }
+function normalizeIcao(input) {
+  return String(input || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '')
+    .slice(0, 4);
+}
 
-    .title {
-      font-size: clamp(22px, 3vw, 34px);
-      font-weight: 700;
-      letter-spacing: 1px;
-      line-height: 1.2;
-      color: var(--muted);
-      margin-bottom: 18px;
-      text-transform: uppercase;
-    }
+function haversineKm(a, b) {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLon = ((b.lon - a.lon) * Math.PI) / 180;
+  const lat1 = (a.lat * Math.PI) / 180;
+  const lat2 = (b.lat * Math.PI) / 180;
 
-    .intro {
-      color: #bdbdbd;
-      font-size: clamp(13px, 1.5vw, 18px);
-      line-height: 1.35;
-      max-width: 820px;
-      margin-bottom: 22px;
-    }
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
 
-    .controls {
-      display: grid;
-      grid-template-columns: 1.2fr 0.85fr 0.85fr 0.75fr;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
 
-    .icao,
-    .btn {
-      min-height: 58px;
-      border: 2px solid var(--line);
-      font-family: "Courier New", Courier, monospace;
-      font-size: clamp(16px, 1.9vw, 28px);
-    }
+function getNearbyAirports(icao, limit = 8) {
+  const target = airports.find(a => a.icao === icao);
 
-    .icao {
-      background: #000;
-      color: #fff;
-      padding: 10px 14px;
-      text-transform: uppercase;
-      outline: none;
-    }
+  if (target) {
+    return airports
+      .filter(a => a.icao !== icao)
+      .map(a => ({ ...a, distanceKm: haversineKm(target, a) }))
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, limit);
+  }
 
-    .btn {
-      background: #000;
-      color: #fff;
-      cursor: pointer;
-      font-weight: 700;
-      padding: 10px 12px;
-    }
+  return airports
+    .filter(a => a.icao !== icao)
+    .slice(0, limit)
+    .map(a => ({ ...a, distanceKm: null }));
+}
 
-    .btn.primary {
-      background: var(--button-bg);
-      color: var(--button-fg);
-    }
+async function fetchRaw(url) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
+  });
 
-    .status-box {
-      border: 1px solid var(--line);
-      min-height: 56px;
-      display: flex;
-      align-items: center;
-      padding: 0 14px;
-      margin-bottom: 16px;
-      color: #d7d7d7;
-      font-size: clamp(14px, 1.4vw, 22px);
-      white-space: pre-wrap;
-    }
+  if (res.status === 204) return null;
+  if (!res.ok) return null;
 
-    .preview-box {
-      border: 2px solid var(--line);
-      padding: 16px;
-      min-height: 420px;
-      margin-bottom: 16px;
-      overflow: auto;
-      background: #000;
-    }
+  const text = await res.text();
+  return String(text || '').trim() || null;
+}
 
-    .preview-text {
-      margin: 0;
-      color: #fff;
-      font-family: "Courier New", Courier, monospace;
-      font-size: clamp(15px, 1.35vw, 24px);
-      line-height: 1.35;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+async function getMetar(icao) {
+  return fetchRaw(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=raw`);
+}
 
-    .footer-tip {
-      color: #9f9f9f;
-      font-size: clamp(12px, 1.15vw, 18px);
-      line-height: 1.35;
-    }
+async function getTaf(icao) {
+  return fetchRaw(`https://aviationweather.gov/api/data/taf?ids=${icao}&format=raw`);
+}
 
-    @media (max-width: 900px) {
-      .controls {
-        grid-template-columns: 1fr;
-      }
+async function getFirstAvailable(fetchFn, requestedIcao) {
+  const own = await fetchFn(requestedIcao);
+  if (own) {
+    return { text: own, source: requestedIcao, fallback: false };
+  }
 
-      .preview-box {
-        min-height: 320px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <main class="frame">
-    <div class="title">NATGLOBE AVIATION / ACARS WEATHER</div>
-
-    <div class="intro">
-      Enter an ICAO code. Tap one button to fetch METAR/TAF, fall back to nearby
-      airfields, and download a print-ready PNG. If offline, the last saved report on
-      this device is used.
-    </div>
-
-    <div class="controls">
-      <input
-        id="icao"
-        class="icao"
-        type="text"
-        maxlength="4"
-        value="EFHK"
-        placeholder="EFHK"
-        autocapitalize="characters"
-        autocorrect="off"
-        spellcheck="false"
-      />
-      <button id="generateBtn" class="btn primary">Generate PNG</button>
-      <button id="latestBtn" class="btn">Use Latest Saved</button>
-      <button id="openBtn" class="btn">Open PNG</button>
-    </div>
-
-    <div id="statusBox" class="status-box">READY</div>
-
-    <div class="preview-box">
-      <pre id="previewText" class="preview-text">ACARS WEATHER REPORT
---------------------
-TIME (UTC):
-AIRPORT:
-
-METAR:
-
-TAF:
-
-END OF REPORT</pre>
-    </div>
-
-    <div class="footer-tip">
-      Tip on iPad: if the file opens in a new tab instead of downloading, use Share
-      → Print or Save to Files.
-    </div>
-  </main>
-
-  <script>
-    async function clearOldCaches() {
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        for (const reg of regs) {
-          await reg.unregister();
-        }
-      }
-
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map(key => caches.delete(key)));
-      }
-    }
-
-    const icaoInput = document.getElementById('icao');
-    const generateBtn = document.getElementById('generateBtn');
-    const latestBtn = document.getElementById('latestBtn');
-    const openBtn = document.getElementById('openBtn');
-    const statusBox = document.getElementById('statusBox');
-    const previewText = document.getElementById('previewText');
-
-    let latestBlobUrl = null;
-    let latestIcao = null;
-
-    function setStatus(text) {
-      statusBox.textContent = text;
-    }
-
-    function saveLatest(icao, blob, reportText) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        localStorage.setItem(`ng_latest_png_${icao}`, reader.result);
-        localStorage.setItem(`ng_latest_report_${icao}`, reportText);
-        localStorage.setItem(`ng_last_icao`, icao);
+  const nearby = getNearbyAirports(requestedIcao, 10);
+  for (const apt of nearby) {
+    const found = await fetchFn(apt.icao);
+    if (found) {
+      return {
+        text: found,
+        source: apt.icao,
+        fallback: true
       };
-      reader.readAsDataURL(blob);
+    }
+  }
+
+  return {
+    text: 'NOT AVAILABLE',
+    source: null,
+    fallback: false
+  };
+}
+
+async function getWeatherWithFallback(icao) {
+  const metarResult = await getFirstAvailable(getMetar, icao);
+  const tafResult = await getFirstAvailable(getTaf, icao);
+
+  let mode = 'LIVE';
+  if (metarResult.fallback || tafResult.fallback) mode = 'FALLBACK';
+  if (metarResult.text === 'NOT AVAILABLE' && tafResult.text === 'NOT AVAILABLE') mode = 'NO DATA';
+
+  return {
+    mode,
+    metar: metarResult.text,
+    taf: tafResult.text,
+    metarSource: metarResult.source,
+    tafSource: tafResult.source,
+    metarFallback: metarResult.fallback,
+    tafFallback: tafResult.fallback
+  };
+}
+
+function escapeXml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function wrapText(text, maxChars = 56) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = '';
+
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (test.length <= maxChars) {
+      current = test;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines.length ? lines : [''];
+}
+
+function buildReportText(icao, weather) {
+  return [
+    'ACARS WEATHER REPORT',
+    '--------------------',
+    `TIME (UTC): ${new Date().toUTCString()}`,
+    `AIRPORT: ${icao}`,
+    `MODE: ${weather.mode}`,
+    weather.metarFallback && weather.metarSource
+      ? `METAR SOURCE: ${weather.metarSource} (nearest available)`
+      : null,
+    weather.tafFallback && weather.tafSource
+      ? `TAF SOURCE: ${weather.tafSource} (nearest available)`
+      : null,
+    'METAR:',
+    weather.metar || 'NOT AVAILABLE',
+    'TAF:',
+    weather.taf || 'NOT AVAILABLE',
+    'END OF REPORT'
+  ].filter(Boolean).join('\n');
+}
+
+async function textToPng(report) {
+  const pageWidth = 1600;
+  const pageMinHeight = 900;
+  const left = 70;
+  const top = 60;
+  const lineGap = 28;
+  const sectionGap = 10;
+  const wrapIndent = 34;
+
+  const metarLines = wrapText(report.metar, 58);
+  const tafLines = wrapText(report.taf, 58);
+
+  let y = top;
+  const parts = [];
+
+  function addText(x, text, options = {}) {
+    const { bold = false, size = 23 } = options;
+    parts.push(
+      `<text x="${x}" y="${y}" font-family="Courier New, Courier, monospace" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}">${escapeXml(text)}</text>`
+    );
+    y += lineGap;
+  }
+
+  function addBlank(space = sectionGap) {
+    y += space;
+  }
+
+  addText(left, 'ACARS WEATHER REPORT', { bold: true, size: 24 });
+  addText(left, '--------------------', { bold: true, size: 22 });
+  addBlank(10);
+
+  addText(left, `TIME (UTC): ${report.timeUtc}`, { bold: true, size: 22 });
+  addText(left, `AIRPORT: ${report.airport}`, { bold: true, size: 22 });
+
+  if (report.mode !== 'LIVE') {
+    addText(left, `MODE: ${report.mode}`, { bold: true, size: 20 });
+  }
+
+  if (report.metarFallback && report.metarSource) {
+    addText(left, `METAR SOURCE: ${report.metarSource} (nearest available)`, { bold: true, size: 18 });
+  }
+
+  if (report.tafFallback && report.tafSource) {
+    addText(left, `TAF SOURCE: ${report.tafSource} (nearest available)`, { bold: true, size: 18 });
+  }
+
+  addBlank(14);
+
+  addText(left, 'METAR:', { bold: true, size: 22 });
+  metarLines.forEach((line) => {
+    addText(left + wrapIndent, line, { size: 21 });
+  });
+
+  addBlank(14);
+
+  addText(left, 'TAF:', { bold: true, size: 22 });
+  tafLines.forEach((line) => {
+    addText(left + wrapIndent, line, { size: 21 });
+  });
+
+  addBlank(18);
+  addText(left, 'END OF REPORT', { bold: true, size: 22 });
+
+  const pageHeight = Math.max(pageMinHeight, y + 60);
+
+  const svg = `
+<svg width="${pageWidth}" height="${pageHeight}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#FFFFFF"/>
+  ${parts.join('\n')}
+</svg>`;
+
+  return sharp(Buffer.from(svg))
+    .png({ compressionLevel: 0, quality: 100 })
+    .sharpen()
+    .toBuffer();
+}
+
+app.get('/api/weather-v2', async (req, res) => {
+  try {
+    const icao = normalizeIcao(req.query.icao);
+
+    if (!icao) {
+      return res.status(400).json({ error: 'Invalid ICAO' });
     }
 
-    function loadLatest(icao) {
-      const png = localStorage.getItem(`ng_latest_png_${icao}`);
-      const report = localStorage.getItem(`ng_latest_report_${icao}`);
-      return { png, report };
+    const weather = await getWeatherWithFallback(icao);
+
+    const report = {
+      airport: icao,
+      timeUtc: new Date().toUTCString(),
+      metar: weather.metar,
+      taf: weather.taf,
+      mode: weather.mode,
+      metarSource: weather.metarSource,
+      tafSource: weather.tafSource,
+      metarFallback: weather.metarFallback,
+      tafFallback: weather.tafFallback
+    };
+
+    const png = await textToPng(report);
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', `attachment; filename="${icao}_ACARS_WEATHER.png"`);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.send(png);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate weather report' });
+  }
+});
+
+app.get('/api/report-text', async (req, res) => {
+  try {
+    const icao = normalizeIcao(req.query.icao);
+
+    if (!icao) {
+      return res.status(400).send('INVALID ICAO');
     }
 
-    function showReport(report) {
-      previewText.textContent = report;
-    }
+    const weather = await getWeatherWithFallback(icao);
+    const reportText = buildReportText(icao, weather);
 
-    async function blobToText(blob) {
-      const url = URL.createObjectURL(blob);
-      latestBlobUrl = url;
-      latestIcao = icaoInput.value.trim().toUpperCase();
-      return url;
-    }
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.send(reportText);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('FAILED TO BUILD REPORT');
+  }
+});
 
-    async function fetchReportText(icao) {
-      const res = await fetch(`/api/report-text?icao=${icao}&t=${Date.now()}`, {
-        cache: 'no-store'
-      });
-      if (!res.ok) throw new Error(`TEXT HTTP ${res.status}`);
-      return await res.text();
-    }
-
-    async function generate() {
-      const icao = icaoInput.value.trim().toUpperCase();
-
-      if (!/^[A-Z]{4}$/.test(icao)) {
-        setStatus('INVALID ICAO');
-        return;
-      }
-
-      setStatus(`FETCHING — ${icao}`);
-      previewText.textContent = '';
-
-      try {
-        const [pngRes, reportText] = await Promise.all([
-          fetch(`/api/weather-v2?icao=${icao}&t=${Date.now()}`, { cache: 'no-store' }),
-          fetchReportText(icao)
-        ]);
-
-        if (!pngRes.ok) throw new Error(`PNG HTTP ${pngRes.status}`);
-
-        const blob = await pngRes.blob();
-        if (!blob || blob.size === 0) throw new Error('EMPTY PNG');
-
-        const url = await blobToText(blob);
-
-        showReport(reportText);
-        saveLatest(icao, blob, reportText);
-        setStatus(`DONE — ${icao}_ACARS_WEATHER.png`);
-
-        generateBtn.dataset.url = url;
-        openBtn.dataset.url = url;
-      } catch (err) {
-        console.error(err);
-        const saved = loadLatest(icao);
-
-        if (saved.report) {
-          showReport(saved.report);
-          if (saved.png) {
-            generateBtn.dataset.url = saved.png;
-            openBtn.dataset.url = saved.png;
-          }
-          setStatus(`OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT`);
-        } else {
-          setStatus('ERROR FETCHING WEATHER');
-        }
-      }
-    }
-
-    generateBtn.addEventListener('click', async () => {
-      await generate();
-
-      const url = generateBtn.dataset.url;
-      const icao = icaoInput.value.trim().toUpperCase();
-      if (url) {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${icao}_ACARS_WEATHER.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-    });
-
-    latestBtn.addEventListener('click', () => {
-      const icao = icaoInput.value.trim().toUpperCase() || localStorage.getItem('ng_last_icao');
-      if (!icao) {
-        setStatus('NO SAVED REPORT');
-        return;
-      }
-
-      const saved = loadLatest(icao);
-      if (!saved.report) {
-        setStatus('NO SAVED REPORT');
-        return;
-      }
-
-      showReport(saved.report);
-      generateBtn.dataset.url = saved.png || '';
-      openBtn.dataset.url = saved.png || '';
-      setStatus(`DONE — ${icao}_ACARS_WEATHER.png`);
-    });
-
-    openBtn.addEventListener('click', () => {
-      const url = openBtn.dataset.url;
-      if (!url) {
-        setStatus('NO PNG READY');
-        return;
-      }
-      window.open(url, '_blank');
-    });
-
-    (async () => {
-      await clearOldCaches();
-      const lastIcao = localStorage.getItem('ng_last_icao');
-      if (lastIcao) icaoInput.value = lastIcao;
-    })();
-  </script>
-</body>
-</html>
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
