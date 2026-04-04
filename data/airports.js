@@ -1,5 +1,6 @@
 export const airports = [
   { icao: 'EFHK', name: 'Helsinki-Vantaa', lat: 60.3172, lon: 24.9633 },
+  { icao: 'EFHV', name: 'Hyvinkaa', lat: 60.6544, lon: 24.8811 },
   { icao: 'EFTP', name: 'Tampere-Pirkkala', lat: 61.4141, lon: 23.6044 },
   { icao: 'EFUT', name: 'Utti', lat: 60.8964, lon: 26.9381 },
   { icao: 'EFJY', name: 'Jyvaskyla', lat: 62.3995, lon: 25.6783 },
