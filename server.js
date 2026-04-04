@@ -38,7 +38,6 @@ function haversineKm(a, b) {
 function getNearbyAirports(icao, limit = 8) {
   const target = airports.find(a => a.icao === icao);
 
-  // If target airport exists in airports.js, use true nearest fallback.
   if (target) {
     return airports
       .filter(a => a.icao !== icao)
@@ -47,8 +46,6 @@ function getNearbyAirports(icao, limit = 8) {
       .slice(0, limit);
   }
 
-  // If target airport is NOT in airports.js, still try fallback by scanning the known list.
-  // This is not true "nearest", but it prevents the fallback from failing completely.
   return airports
     .filter(a => a.icao !== icao)
     .slice(0, limit)
@@ -57,17 +54,14 @@ function getNearbyAirports(icao, limit = 8) {
 
 async function fetchRaw(url) {
   const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'NatGlobeAviation/1.0 ACARS Weather Tool'
-    }
+    headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
   });
 
   if (res.status === 204) return null;
   if (!res.ok) return null;
 
   const text = await res.text();
-  const cleaned = String(text || '').trim();
-  return cleaned || null;
+  return String(text || '').trim() || null;
 }
 
 async function getMetar(icao) {
@@ -78,23 +72,18 @@ async function getTaf(icao) {
   return fetchRaw(`https://aviationweather.gov/api/data/taf?ids=${icao}&format=raw`);
 }
 
-async function getFirstAvailable(productFn, requestedIcao) {
-  const own = await productFn(requestedIcao);
+async function getFirstAvailable(fetchFn, requestedIcao) {
+  const own = await fetchFn(requestedIcao);
   if (own) {
-    return {
-      text: own,
-      source: requestedIcao,
-      fallback: false
-    };
+    return { text: own, source: requestedIcao, fallback: false, distanceKm: null };
   }
 
   const nearby = getNearbyAirports(requestedIcao, 10);
-
   for (const apt of nearby) {
-    const candidate = await productFn(apt.icao);
-    if (candidate) {
+    const found = await fetchFn(apt.icao);
+    if (found) {
       return {
-        text: candidate,
+        text: found,
         source: apt.icao,
         fallback: true,
         distanceKm: apt.distanceKm
@@ -115,12 +104,8 @@ async function getWeatherWithFallback(icao) {
   const tafResult = await getFirstAvailable(getTaf, icao);
 
   let mode = 'LIVE';
-  if (metarResult.fallback || tafResult.fallback) {
-    mode = 'FALLBACK';
-  }
-  if (metarResult.text === 'NOT AVAILABLE' && tafResult.text === 'NOT AVAILABLE') {
-    mode = 'NO DATA';
-  }
+  if (metarResult.fallback || tafResult.fallback) mode = 'FALLBACK';
+  if (metarResult.text === 'NOT AVAILABLE' && tafResult.text === 'NOT AVAILABLE') mode = 'NO DATA';
 
   return {
     mode,
@@ -129,23 +114,7 @@ async function getWeatherWithFallback(icao) {
     metarSource: metarResult.source,
     tafSource: tafResult.source,
     metarFallback: metarResult.fallback,
-    tafFallback: tafResult.fallback,
-    metarDistanceKm: metarResult.distanceKm,
-    tafDistanceKm: tafResult.distanceKm
-  };
-}
-
-function buildReport({ airport, timeUtc, metar, taf, mode, metarSource, tafSource, metarFallback, tafFallback }) {
-  return {
-    airport,
-    timeUtc,
-    metar,
-    taf,
-    mode,
-    metarSource,
-    tafSource,
-    metarFallback,
-    tafFallback
+    tafFallback: tafResult.fallback
   };
 }
 
@@ -180,9 +149,7 @@ async function textToPng(report) {
   const pageMinHeight = 950;
   const left = 70;
   const top = 70;
-  const labelGap = 42;
   const lineGap = 38;
-  const sectionGap = 24;
   const metarIndent = 40;
   const tafIndent = 40;
 
@@ -193,18 +160,14 @@ async function textToPng(report) {
   const parts = [];
 
   function addText(x, text, options = {}) {
-    const {
-      bold = false,
-      size = 28
-    } = options;
-
+    const { bold = false, size = 28 } = options;
     parts.push(
       `<text x="${x}" y="${y}" font-family="Courier New, monospace" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}">${escapeXml(text)}</text>`
     );
     y += lineGap;
   }
 
-  function addBlank(space = sectionGap) {
+  function addBlank(space = 20) {
     y += space;
   }
 
@@ -215,7 +178,7 @@ async function textToPng(report) {
   addText(left, `TIME (UTC): ${report.timeUtc}`, { bold: true, size: 30 });
   addText(left, `AIRPORT: ${report.airport}`, { bold: true, size: 30 });
 
-  if (report.mode && report.mode !== 'LIVE') {
+  if (report.mode !== 'LIVE') {
     addText(left, `MODE: ${report.mode}`, { bold: true, size: 28 });
   }
 
@@ -230,16 +193,12 @@ async function textToPng(report) {
   addBlank(18);
 
   addText(left, 'METAR:', { bold: true, size: 30 });
-  for (const line of metarLines) {
-    addText(left + metarIndent, line, { bold: false, size: 28 });
-  }
+  for (const line of metarLines) addText(left + metarIndent, line, { size: 28 });
 
   addBlank(18);
 
   addText(left, 'TAF:', { bold: true, size: 30 });
-  for (const line of tafLines) {
-    addText(left + tafIndent, line, { bold: false, size: 28 });
-  }
+  for (const line of tafLines) addText(left + tafIndent, line, { size: 28 });
 
   addBlank(24);
   addText(left, 'END OF REPORT', { bold: true, size: 30 });
@@ -257,7 +216,7 @@ async function textToPng(report) {
     .toBuffer();
 }
 
-app.get('/api/weather', async (req, res) => {
+app.get('/api/weather-v2', async (req, res) => {
   try {
     const icao = normalizeIcao(req.query.icao);
 
@@ -267,7 +226,7 @@ app.get('/api/weather', async (req, res) => {
 
     const weather = await getWeatherWithFallback(icao);
 
-    const report = buildReport({
+    const report = {
       airport: icao,
       timeUtc: new Date().toUTCString(),
       metar: weather.metar,
@@ -277,12 +236,13 @@ app.get('/api/weather', async (req, res) => {
       tafSource: weather.tafSource,
       metarFallback: weather.metarFallback,
       tafFallback: weather.tafFallback
-    });
+    };
 
     const png = await textToPng(report);
 
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename="${icao}_ACARS_WEATHER.png"`);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.send(png);
   } catch (err) {
     console.error(err);
