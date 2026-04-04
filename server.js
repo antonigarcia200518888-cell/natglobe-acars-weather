@@ -78,31 +78,32 @@ async function findFirstAvailable(kind, icao, nearbyIcaos) {
     }
   }
   return { requested: icao, source: null, text: 'NOT AVAILABLE', fallback: false };
+function center(text, width = 40) {
+  const pad = Math.max(0, Math.floor((width - text.length) / 2));
+  return " ".repeat(pad) + text;
 }
 
-function buildReport({ airport, timeUtc, metar, taf, mode }) {
-  const metarSourceLine = metar.source && metar.source !== airport ? `METAR SOURCE: ${metar.source} (nearest available)` : null;
-  const tafSourceLine = taf.source && taf.source !== airport ? `TAF SOURCE: ${taf.source} (nearest available)` : null;
-
+function buildReport({ airport, timeUtc, metar, taf }) {
   return [
-    'ACARS WEATHER REPORT',
-    '--------------------',
-    `TIME (UTC): ${timeUtc}`,
-    `AIRPORT: ${airport}`,
-    `MODE: ${mode}`,
-    metarSourceLine,
-    tafSourceLine,
-    '',
-    'METAR:',
-    metar.text,
-    '',
-    'TAF:',
-    taf.text,
-    '',
-    'END OF REPORT'
-  ].filter(Boolean).join('\n');
+    center("ACARS WEATHER REPORT"),
+    center("-------------------------"),
+    "",
+    center(`TIME (UTC): ${timeUtc}`),
+    "",
+    center(`AIRPORT: ${airport}`),
+    "",
+    "",
+    center("METAR:"),
+    metar || "NOT AVAILABLE",
+    "",
+    "",
+    center("TAF:"),
+    taf || "NOT AVAILABLE",
+    "",
+    "",
+    center("END OF REPORT")
+  ].join("\n");
 }
-
 function escapeXml(str) {
   return String(str)
     .replaceAll('&', '&amp;')
@@ -118,11 +119,16 @@ async function reportToPng(text) {
   const lineHeight = 34;
   const height = 80 + lines.length * lineHeight;
   const escaped = escapeXml(lines.join('\n'));
-  const svg = `
-  <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100%" height="100%" fill="white"/>
-    <text x="40" y="60" font-family="Courier New, monospace" font-size="24" fill="black" xml:space="preserve">${escaped}</text>
-  </svg>`;
+const svg = `
+<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f2f2f2"/>
+  <text x="50%" y="60"
+    text-anchor="middle"
+    font-family="Courier New, monospace"
+    font-size="24"
+    fill="black"
+    xml:space="preserve">${escapeXml(lines.join("\n"))}</text>
+</svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
