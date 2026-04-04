@@ -4,116 +4,147 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NatGlobe ACARS Weather</title>
-
   <meta name="apple-mobile-web-app-capable" content="yes">
-
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
       background: #000;
       color: #fff;
-      font-family: "Courier New", monospace;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    body {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
     }
 
-    .box {
-      width: 90%;
-      max-width: 600px;
-      border: 1px solid #fff;
-      padding: 24px;
-      background: #000;
-    }
-
-    h1 {
-      margin: 0 0 20px 0;
+    .container {
+      width: 92%;
+      max-width: 520px;
       text-align: center;
-      font-size: 22px;
-      color: #c0c0c0;
-      letter-spacing: 1px;
     }
 
-    input {
+    .title {
+      color: #c0c0c0;
+      font-size: 26px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      line-height: 1.4;
+      margin-bottom: 28px;
+      text-transform: uppercase;
+    }
+
+    .icao-input {
       width: 100%;
-      padding: 14px;
-      font-size: 20px;
-      font-family: "Courier New", monospace;
+      box-sizing: border-box;
       background: #000;
       color: #fff;
       border: 1px solid #fff;
+      padding: 14px 16px;
+      font-size: 22px;
+      font-family: "Courier New", Courier, monospace;
       text-transform: uppercase;
-      margin-bottom: 12px;
+      text-align: center;
+      outline: none;
+      margin-bottom: 14px;
     }
 
-    button {
+    .generate-btn {
       width: 100%;
-      padding: 14px;
-      font-size: 18px;
-      font-family: "Courier New", monospace;
-      font-weight: bold;
+      box-sizing: border-box;
       background: #c0c0c0;
       color: #000;
       border: 1px solid #fff;
-      margin-bottom: 12px;
+      padding: 14px 16px;
+      font-size: 18px;
+      font-weight: bold;
+      font-family: "Courier New", Courier, monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-bottom: 14px;
+    }
+
+    .status {
+      min-height: 22px;
+      font-size: 14px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      color: #fff;
+      text-transform: uppercase;
     }
 
     .actions {
       display: none;
       gap: 10px;
-      margin-top: 10px;
+      margin-bottom: 18px;
     }
 
     .actions a {
       flex: 1;
-      text-align: center;
+      display: inline-block;
       text-decoration: none;
-      padding: 12px;
-      border: 1px solid #fff;
-      color: #fff;
       background: #000;
+      color: #fff;
+      border: 1px solid #fff;
+      padding: 12px 10px;
+      font-size: 15px;
       font-weight: bold;
-    }
-
-    .status {
-      margin-top: 10px;
-      font-size: 14px;
-      min-height: 20px;
+      font-family: "Courier New", Courier, monospace;
+      text-transform: uppercase;
+      box-sizing: border-box;
     }
 
     .preview {
-      margin-top: 15px;
-      text-align: center;
+      margin-top: 10px;
     }
 
     .preview img {
       max-width: 100%;
-      border: 1px solid #fff;
+      height: auto;
       background: #fff;
+      border: 1px solid #fff;
+      display: block;
+      margin: 0 auto;
     }
   </style>
 </head>
-
 <body>
-  <div class="box">
-    <h1>NATGLOBE AVIATION<br>ACARS WEATHER</h1>
-
-    <input id="icao" placeholder="EFHK" maxlength="4" value="EFHK">
-
-    <button id="btn">GENERATE WEATHER</button>
-
-    <div class="actions" id="actions">
-      <a id="download" download>DOWNLOAD PNG</a>
-      <a id="open" target="_blank">OPEN PNG</a>
+  <div class="container">
+    <div class="title">
+      NATGLOBE AVIATION<br>
+      ACARS WEATHER
     </div>
 
-    <div class="status" id="status"></div>
-    <div class="preview" id="preview"></div>
+    <input
+      id="icao"
+      class="icao-input"
+      type="text"
+      maxlength="4"
+      value="EFHK"
+      placeholder="EFHK"
+      autocapitalize="characters"
+      autocorrect="off"
+      spellcheck="false"
+    >
+
+    <button id="generateBtn" class="generate-btn">GENERATE WEATHER</button>
+
+    <div id="status" class="status"></div>
+
+    <div id="actions" class="actions">
+      <a id="downloadLink" href="#" download>DOWNLOAD PNG</a>
+      <a id="openLink" href="#" target="_blank" rel="noopener">OPEN PNG</a>
+    </div>
+
+    <div id="preview" class="preview"></div>
   </div>
 
   <script>
-    async function clearCache() {
+    async function clearOldCaches() {
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
         for (const reg of regs) {
@@ -123,69 +154,75 @@
 
       if ('caches' in window) {
         const keys = await caches.keys();
-        await Promise.all(keys.map(k => caches.delete(k)));
+        await Promise.all(keys.map(key => caches.delete(key)));
       }
     }
 
-    const btn = document.getElementById('btn');
-    const input = document.getElementById('icao');
-    const status = document.getElementById('status');
-    const preview = document.getElementById('preview');
-    const actions = document.getElementById('actions');
-    const download = document.getElementById('download');
-    const open = document.getElementById('open');
+    const icaoInput = document.getElementById('icao');
+    const generateBtn = document.getElementById('generateBtn');
+    const statusEl = document.getElementById('status');
+    const actionsEl = document.getElementById('actions');
+    const previewEl = document.getElementById('preview');
+    const downloadLink = document.getElementById('downloadLink');
+    const openLink = document.getElementById('openLink');
 
     function setStatus(text) {
-      status.textContent = text;
+      statusEl.textContent = text;
     }
 
-    function showImage(icao, blob) {
+    function showPng(icao, blob) {
       const url = URL.createObjectURL(blob);
 
-      preview.innerHTML = `<img src="${url}">`;
-
-      download.href = url;
-      download.download = `${icao}_ACARS_WEATHER.png`;
-
-      open.href = url;
-
-      actions.style.display = 'flex';
+      previewEl.innerHTML = `<img src="${url}" alt="ACARS Weather PNG">`;
+      downloadLink.href = url;
+      downloadLink.download = `${icao}_ACARS_WEATHER.png`;
+      openLink.href = url;
+      actionsEl.style.display = 'flex';
     }
 
-    async function generate() {
-      const icao = input.value.trim().toUpperCase();
+    async function generateWeather() {
+      const icao = icaoInput.value.trim().toUpperCase();
 
       if (!/^[A-Z]{4}$/.test(icao)) {
         setStatus('INVALID ICAO');
+        actionsEl.style.display = 'none';
+        previewEl.innerHTML = '';
         return;
       }
 
       setStatus('FETCHING WEATHER...');
-      preview.innerHTML = '';
-      actions.style.display = 'none';
+      actionsEl.style.display = 'none';
+      previewEl.innerHTML = '';
 
       try {
         const res = await fetch(`/api/weather-v2?icao=${icao}&t=${Date.now()}`, {
           cache: 'no-store'
         });
 
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
 
         const blob = await res.blob();
 
-        showImage(icao, blob);
+        if (!blob || blob.size === 0) {
+          throw new Error('EMPTY PNG');
+        }
+
+        showPng(icao, blob);
         setStatus('READY');
-      } catch {
+      } catch (err) {
+        console.error(err);
         setStatus('ERROR FETCHING WEATHER');
       }
     }
 
-    btn.onclick = generate;
-    input.onkeydown = e => {
-      if (e.key === 'Enter') generate();
-    };
+    generateBtn.addEventListener('click', generateWeather);
+    icaoInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') generateWeather();
+    });
 
-    clearCache();
+    clearOldCaches();
   </script>
 </body>
 </html>
