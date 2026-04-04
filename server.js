@@ -1,8 +1,9 @@
 import express from 'express';
-import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { PDFDocument, rgb } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import { airports } from './data/airports.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,8 +15,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// Load uploaded Courier font from repo root
-const courierFontBase64 = fs.readFileSync(path.join(__dirname, 'cour.ttf')).toString('base64');
+const courierFontBytes = fs.readFileSync(path.join(__dirname, 'cour.ttf'));
 
 function normalizeIcao(input) {
   return String(input || '')
@@ -152,7 +152,7 @@ async function getWeatherWithFallback(icao) {
   };
 }
 
-function wrapText(text, maxChars = 56) {
+function wrapText(text, maxChars = 58) {
   const words = String(text || '').split(/\s+/).filter(Boolean);
   const lines = [];
   let current = '';
@@ -171,149 +171,130 @@ function wrapText(text, maxChars = 56) {
   return lines.length ? lines : [''];
 }
 
-function buildReportText(icao, weather) {
-  const metarSourceLine =
-    weather.metarFallback && weather.metarSource
-      ? `METAR SOURCE: ${weather.metarSource} (nearest available, ${weather.metarDistanceNm} NM)`
-      : null;
+function buildReportData(icao, weather) {
+  return {
+    airport: icao,
+    timeUtc: new Date().toUTCString(),
+    metar: weather.metar || 'NOT AVAILABLE',
+    taf: weather.taf || 'NOT AVAILABLE',
+    mode: weather.mode,
+    metarSource: weather.metarSource,
+    tafSource: weather.tafSource,
+    metarFallback: weather.metarFallback,
+    tafFallback: weather.tafFallback,
+    metarDistanceNm: weather.metarDistanceNm,
+    tafDistanceNm: weather.tafDistanceNm
+  };
+}
 
-  const tafSourceLine =
-    weather.tafFallback && weather.tafSource
-      ? `TAF SOURCE: ${weather.tafSource} (nearest available, ${weather.tafDistanceNm} NM)`
-      : null;
-
+function buildReportText(report) {
   return [
     'ACARS WEATHER REPORT',
     '--------------------',
-    `TIME (UTC): ${new Date().toUTCString()}`,
-    `AIRPORT: ${icao}`,
-    `MODE: ${weather.mode}`,
-    metarSourceLine,
-    tafSourceLine,
+    `TIME (UTC): ${report.timeUtc}`,
+    `AIRPORT: ${report.airport}`,
+    `MODE: ${report.mode}`,
+    report.metarFallback && report.metarSource
+      ? `METAR SOURCE: ${report.metarSource} (nearest available, ${report.metarDistanceNm} NM)`
+      : null,
+    report.tafFallback && report.tafSource
+      ? `TAF SOURCE: ${report.tafSource} (nearest available, ${report.tafDistanceNm} NM)`
+      : null,
     'METAR:',
-    weather.metar || 'NOT AVAILABLE',
+    report.metar,
     'TAF:',
-    weather.taf || 'NOT AVAILABLE',
+    report.taf,
     'END OF REPORT'
   ].filter(Boolean).join('\n');
 }
 
-function escapeXml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
+async function reportToPdfBuffer(report) {
+  const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
 
-async function reportToPngBuffer(report) {
-  const pageWidth = 1600;
-  const left = 70;
-  const top = 60;
-  const lineGap = 30;
-  const sectionGap = 12;
-  const wrapIndent = 34;
+  const courierFont = await pdfDoc.embedFont(courierFontBytes);
 
-  const metarLines = wrapText(report.metar, 58);
-  const tafLines = wrapText(report.taf, 58);
+  // A4 landscape
+  const page = pdfDoc.addPage([842, 595]);
+  const { width, height } = page.getSize();
 
-  const lines = [
-    { text: 'ACARS WEATHER REPORT', bold: true, size: 24, x: left },
-    { text: '--------------------', bold: true, size: 22, x: left },
-    { blank: 10 },
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width,
+    height,
+    color: rgb(1, 1, 1)
+  });
 
-    { text: `TIME (UTC): ${report.timeUtc}`, bold: true, size: 22, x: left },
-    { text: `AIRPORT: ${report.airport}`, bold: true, size: 22, x: left },
+  const black = rgb(0, 0, 0);
 
-    ...(report.mode !== 'LIVE'
-      ? [{ text: `MODE: ${report.mode}`, bold: true, size: 20, x: left }]
-      : []),
+  let y = height - 42;
+  const left = 36;
+  const wrapIndent = 18;
 
-    ...(report.metarFallback && report.metarSource
-      ? [{
-          text: `METAR SOURCE: ${report.metarSource} (nearest available, ${report.metarDistanceNm} NM)`,
-          bold: true,
-          size: 18,
-          x: left
-        }]
-      : []),
+  const drawLine = (text, size = 18) => {
+    page.drawText(text, {
+      x: left,
+      y,
+      size,
+      font: courierFont,
+      color: black
+    });
+    y -= size + 6;
+  };
 
-    ...(report.tafFallback && report.tafSource
-      ? [{
-          text: `TAF SOURCE: ${report.tafSource} (nearest available, ${report.tafDistanceNm} NM)`,
-          bold: true,
-          size: 18,
-          x: left
-        }]
-      : []),
-
-    { blank: 14 },
-
-    { text: 'METAR:', bold: true, size: 22, x: left },
-    ...metarLines.map(line => ({ text: line, bold: false, size: 21, x: left + wrapIndent })),
-
-    { blank: 14 },
-
-    { text: 'TAF:', bold: true, size: 22, x: left },
-    ...tafLines.map(line => ({ text: line, bold: false, size: 21, x: left + wrapIndent })),
-
-    { blank: 18 },
-    { text: 'END OF REPORT', bold: true, size: 22, x: left }
-  ];
-
-  let y = top;
-  for (const item of lines) {
-    if (item.blank) y += item.blank;
-    else y += lineGap;
-  }
-
-  const pageHeight = Math.max(900, y + 60);
-
-  let currentY = top;
-  const textElements = [];
-
-  for (const item of lines) {
-    if (item.blank) {
-      currentY += item.blank;
-      continue;
+  const drawIndentedLines = (lines, size = 17) => {
+    for (const line of lines) {
+      page.drawText(line, {
+        x: left + wrapIndent,
+        y,
+        size,
+        font: courierFont,
+        color: black
+      });
+      y -= size + 5;
     }
+  };
 
-    textElements.push(`
-      <text
-        x="${item.x}"
-        y="${currentY}"
-        font-family="CourierNewEmbedded"
-        font-size="${item.size}"
-        fill="#000000"
-        font-weight="${item.bold ? '700' : '400'}"
-      >${escapeXml(item.text)}</text>
-    `);
+  drawLine('ACARS WEATHER REPORT', 20);
+  drawLine('--------------------', 18);
+  y -= 6;
 
-    currentY += lineGap;
+  drawLine(`TIME (UTC): ${report.timeUtc}`, 17);
+  drawLine(`AIRPORT: ${report.airport}`, 17);
+  drawLine(`MODE: ${report.mode}`, 17);
+
+  if (report.metarFallback && report.metarSource) {
+    drawLine(
+      `METAR SOURCE: ${report.metarSource} (nearest available, ${report.metarDistanceNm} NM)`,
+      15
+    );
   }
 
-  const svg = `
-  <svg width="${pageWidth}" height="${pageHeight}" xmlns="http://www.w3.org/2000/svg">
-    <style>
-      @font-face {
-        font-family: 'CourierNewEmbedded';
-        src: url(data:font/ttf;base64,${courierFontBase64}) format('truetype');
-      }
-      text {
-        text-rendering: geometricPrecision;
-        shape-rendering: geometricPrecision;
-      }
-    </style>
-    <rect x="0" y="0" width="${pageWidth}" height="${pageHeight}" fill="#FFFFFF" />
-    ${textElements.join('\n')}
-  </svg>`;
+  if (report.tafFallback && report.tafSource) {
+    drawLine(
+      `TAF SOURCE: ${report.tafSource} (nearest available, ${report.tafDistanceNm} NM)`,
+      15
+    );
+  }
 
-  return sharp(Buffer.from(svg))
-    .flatten({ background: '#FFFFFF' })
-    .png({ compressionLevel: 0, quality: 100 })
-    .toBuffer();
+  y -= 8;
+
+  drawLine('METAR:', 18);
+  drawIndentedLines(wrapText(report.metar, 62), 17);
+
+  y -= 8;
+
+  drawLine('TAF:', 18);
+  drawIndentedLines(wrapText(report.taf, 62), 17);
+
+  y -= 10;
+  drawLine('END OF REPORT', 18);
+
+  return Buffer.from(await pdfDoc.save());
 }
 
-app.get('/api/weather-v2', async (req, res) => {
+app.get('/api/weather-pdf', async (req, res) => {
   try {
     const icao = normalizeIcao(req.query.icao);
 
@@ -322,30 +303,16 @@ app.get('/api/weather-v2', async (req, res) => {
     }
 
     const weather = await getWeatherWithFallback(icao);
+    const report = buildReportData(icao, weather);
+    const pdfBuffer = await reportToPdfBuffer(report);
 
-    const report = {
-      airport: icao,
-      timeUtc: new Date().toUTCString(),
-      metar: weather.metar,
-      taf: weather.taf,
-      mode: weather.mode,
-      metarSource: weather.metarSource,
-      tafSource: weather.tafSource,
-      metarFallback: weather.metarFallback,
-      tafFallback: weather.tafFallback,
-      metarDistanceNm: weather.metarDistanceNm,
-      tafDistanceNm: weather.tafDistanceNm
-    };
-
-    const png = await reportToPngBuffer(report);
-
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', `attachment; filename="${icao}_ACARS_WEATHER.png"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${icao}_ACARS_WEATHER.pdf"`);
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.send(png);
+    res.send(pdfBuffer);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to generate weather report' });
+    res.status(500).json({ error: 'Failed to generate weather PDF' });
   }
 });
 
@@ -358,7 +325,8 @@ app.get('/api/report-text', async (req, res) => {
     }
 
     const weather = await getWeatherWithFallback(icao);
-    const reportText = buildReportText(icao, weather);
+    const report = buildReportData(icao, weather);
+    const reportText = buildReportText(report);
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
