@@ -1,57 +1,53 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NatGlobe ACARS Weather</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NatGlobe ACARS Weather v2</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <style>
     body {
       margin: 0;
-      font-family: "Courier New", monospace;
       background: #000;
       color: #fff;
+      font-family: "Courier New", monospace;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
     }
-
-    .card {
-      width: 90%;
-      max-width: 700px;
-      background: #111;
+    .wrap {
+      width: 92%;
+      max-width: 720px;
       border: 1px solid #fff;
       padding: 24px;
       box-sizing: border-box;
+      background: #111;
     }
-
     h1 {
-      margin: 0 0 20px;
-      font-size: 24px;
-      color: #c0c0c0;
       text-align: center;
-      letter-spacing: 1px;
+      color: #c0c0c0;
+      margin-top: 0;
+      line-height: 1.4;
+      font-size: 24px;
     }
-
     label {
       display: block;
       margin-bottom: 8px;
-      font-weight: bold;
       color: #c0c0c0;
+      font-weight: bold;
     }
-
     input {
       width: 100%;
-      padding: 12px;
+      box-sizing: border-box;
+      padding: 14px;
       font-size: 20px;
       font-family: "Courier New", monospace;
-      box-sizing: border-box;
-      border: 1px solid #fff;
       background: #000;
       color: #fff;
+      border: 1px solid #fff;
       text-transform: uppercase;
     }
-
     button {
       width: 100%;
       margin-top: 16px;
@@ -59,43 +55,30 @@
       font-size: 18px;
       font-family: "Courier New", monospace;
       font-weight: bold;
-      border: 1px solid #fff;
       background: #c0c0c0;
       color: #000;
-      cursor: pointer;
+      border: 1px solid #fff;
     }
-
-    button:hover {
-      background: #d9d9d9;
-    }
-
     .status {
       margin-top: 16px;
-      min-height: 24px;
-      font-size: 14px;
-      color: #fff;
       white-space: pre-wrap;
+      min-height: 24px;
     }
-
     .preview {
       margin-top: 20px;
       text-align: center;
     }
-
     .preview img {
       max-width: 100%;
-      height: auto;
       border: 1px solid #fff;
       background: #fff;
     }
-
     .actions {
       margin-top: 16px;
-      display: flex;
+      display: none;
       gap: 12px;
       flex-wrap: wrap;
     }
-
     .actions a {
       flex: 1;
       min-width: 160px;
@@ -103,29 +86,36 @@
       text-decoration: none;
       padding: 12px;
       border: 1px solid #fff;
-      background: #000;
       color: #fff;
+      background: #000;
       font-weight: bold;
+    }
+    .version {
+      margin-top: 18px;
+      color: #888;
+      font-size: 12px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>NATGLOBE AVIATION<br>ACARS WEATHER</h1>
+  <div class="wrap">
+    <h1>NATGLOBE AVIATION<br>ACARS WEATHER v2</h1>
 
     <label for="icao">AIRPORT ICAO</label>
-    <input id="icao" maxlength="4" placeholder="EFHK" value="EFHK" />
+    <input id="icao" maxlength="4" value="EFHK" placeholder="EFHK">
 
     <button id="generateBtn">GENERATE WEATHER PNG</button>
 
-    <div id="status" class="status"></div>
+    <div class="status" id="status"></div>
 
-    <div class="actions" id="actions" style="display:none;">
+    <div class="actions" id="actions">
       <a id="downloadLink" href="#" download>DOWNLOAD PNG</a>
       <a id="openLink" href="#" target="_blank" rel="noopener">OPEN PNG</a>
     </div>
 
     <div class="preview" id="preview"></div>
+    <div class="version">Frontend version: v2-force-refresh</div>
   </div>
 
   <script>
@@ -141,38 +131,13 @@
       statusEl.textContent = msg;
     }
 
-    function saveLastBlob(icao, blob) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        localStorage.setItem(`last_png_${icao}`, reader.result);
-      };
-      reader.readAsDataURL(blob);
-    }
-
     function showBlob(icao, blob) {
       const url = URL.createObjectURL(blob);
-
-      previewEl.innerHTML = `<img src="${url}" alt="ACARS Weather PNG" />`;
+      previewEl.innerHTML = `<img src="${url}" alt="ACARS Weather PNG">`;
       downloadLink.href = url;
       downloadLink.download = `${icao}_ACARS_WEATHER.png`;
       openLink.href = url;
       actionsEl.style.display = 'flex';
-    }
-
-    function showCached(icao) {
-      const cached = localStorage.getItem(`last_png_${icao}`);
-      if (!cached) {
-        setStatus('No saved local report found.');
-        return false;
-      }
-
-      previewEl.innerHTML = `<img src="${cached}" alt="Saved ACARS Weather PNG" />`;
-      downloadLink.href = cached;
-      downloadLink.download = `${icao}_ACARS_WEATHER.png`;
-      openLink.href = cached;
-      actionsEl.style.display = 'flex';
-      setStatus('LIVE FETCH FAILED — SHOWING SAVED LOCAL REPORT');
-      return true;
     }
 
     async function generate() {
@@ -187,9 +152,8 @@
       actionsEl.style.display = 'none';
 
       try {
-        const res = await fetch(`/api/weather?icao=${icao}`, {
-          cache: 'no-store'
-        });
+        const url = `/api/weather-v2?icao=${icao}&t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
 
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
@@ -201,14 +165,10 @@
         }
 
         showBlob(icao, blob);
-        saveLastBlob(icao, blob);
         setStatus('LIVE WEATHER REPORT GENERATED');
       } catch (err) {
         console.error(err);
-        const ok = showCached(icao);
-        if (!ok) {
-          setStatus(`Live fetch failed: ${err.message}`);
-        }
+        setStatus(`LIVE FETCH FAILED: ${err.message}`);
       }
     }
 
