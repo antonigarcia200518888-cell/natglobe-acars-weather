@@ -171,13 +171,51 @@ function wrapText(text, maxChars = 58) {
   return lines.length ? lines : [''];
 }
 
+function buildReportData(icao, weather) {
+  return {
+    airport: icao,
+    timeUtc: new Date().toUTCString(),
+    metar: weather.metar || 'NOT AVAILABLE',
+    taf: weather.taf || 'NOT AVAILABLE',
+    mode: weather.mode,
+    metarSource: weather.metarSource,
+    tafSource: weather.tafSource,
+    metarFallback: weather.metarFallback,
+    tafFallback: weather.tafFallback,
+    metarDistanceNm: weather.metarDistanceNm,
+    tafDistanceNm: weather.tafDistanceNm
+  };
+}
+
+function buildReportText(report) {
+  return [
+    'ACARS WEATHER REPORT',
+    '--------------------',
+    'OPS SOURCE: NATGLOBE AVIATION',
+    `TIME (UTC): ${report.timeUtc}`,
+    `REQUESTED AIRPORT: ${report.airport}`,
+    `MODE: ${report.mode}`,
+    report.metarFallback && report.metarSource
+      ? `METAR SOURCE: ${report.metarSource} / ${report.metarDistanceNm} NM`
+      : null,
+    report.tafFallback && report.tafSource
+      ? `TAF SOURCE: ${report.tafSource} / ${report.tafDistanceNm} NM`
+      : null,
+    'METAR:',
+    report.metar,
+    'TAF:',
+    report.taf,
+    'END OF REPORT'
+  ].filter(Boolean).join('\n');
+}
+
 async function reportToPdfBuffer(report) {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
 
   const font = await pdfDoc.embedFont(courierFontBytes);
 
-  const page = pdfDoc.addPage([842, 595]);
+  const page = pdfDoc.addPage([842, 595]); // A4 landscape
   const { width, height } = page.getSize();
 
   page.drawRectangle({
@@ -237,12 +275,12 @@ async function reportToPdfBuffer(report) {
   y -= 8;
 
   drawLine('METAR:', 18, true);
-  drawIndented(wrapText(report.metar, 62));
+  drawIndented(wrapText(report.metar, 62), 17);
 
   y -= 8;
 
   drawLine('TAF:', 18, true);
-  drawIndented(wrapText(report.taf, 62));
+  drawIndented(wrapText(report.taf, 62), 17);
 
   y -= 10;
   drawLine('END OF REPORT', 18, true);
@@ -256,29 +294,34 @@ app.get('/api/weather-pdf', async (req, res) => {
     if (!icao) return res.status(400).send('INVALID ICAO');
 
     const weather = await getWeatherWithFallback(icao);
-
-    const report = {
-      airport: icao,
-      timeUtc: new Date().toUTCString(),
-      metar: weather.metar,
-      taf: weather.taf,
-      mode: weather.mode,
-      metarSource: weather.metarSource,
-      tafSource: weather.tafSource,
-      metarFallback: weather.metarFallback,
-      tafFallback: weather.tafFallback,
-      metarDistanceNm: weather.metarDistanceNm,
-      tafDistanceNm: weather.tafDistanceNm
-    };
-
+    const report = buildReportData(icao, weather);
     const pdf = await reportToPdfBuffer(report);
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${icao}_ACARS_WEATHER.pdf"`);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.send(pdf);
   } catch (err) {
     console.error(err);
     res.status(500).send('ERROR');
+  }
+});
+
+app.get('/api/report-text', async (req, res) => {
+  try {
+    const icao = normalizeIcao(req.query.icao);
+    if (!icao) return res.status(400).send('INVALID ICAO');
+
+    const weather = await getWeatherWithFallback(icao);
+    const report = buildReportData(icao, weather);
+    const reportText = buildReportText(report);
+
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.send(reportText);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('FAILED TO BUILD REPORT');
   }
 });
 
