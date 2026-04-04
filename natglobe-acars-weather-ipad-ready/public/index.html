@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NatGlobe Aviation ACARS Weather</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#050505" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --border: #ffffff;
+      --silver: #bfc3c7;
+      --text: #ffffff;
+      --muted: #d0d0d0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Courier New", Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .app {
+      width: min(980px, 100%);
+      background: var(--panel);
+      border: 2px solid var(--border);
+      padding: 24px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.2) inset;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      letter-spacing: 1px;
+      color: var(--silver);
+    }
+    p { color: var(--muted); }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      margin: 18px 0 22px;
+    }
+    input, button {
+      height: 50px;
+      border: 2px solid var(--border);
+      background: #000;
+      color: #fff;
+      font: inherit;
+      padding: 0 14px;
+      border-radius: 0;
+    }
+    input { text-transform: uppercase; font-size: 20px; }
+    button {
+      min-width: 180px;
+      background: var(--silver);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #000;
+      color: #fff;
+    }
+    .status {
+      border: 1px solid var(--border);
+      padding: 12px;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+      min-height: 52px;
+    }
+    .report {
+      border: 2px solid var(--border);
+      background: #000;
+      padding: 20px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+      min-height: 320px;
+      overflow-x: auto;
+    }
+    .small { font-size: 13px; color: #cfcfcf; margin-top: 14px; }
+    @media (max-width: 740px) {
+      .row { grid-template-columns: 1fr; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>NATGLOBE AVIATION / ACARS WEATHER</h1>
+    <p>Enter an ICAO code. Tap one button to fetch METAR/TAF, fall back to nearby airfields, and download a print-ready PNG. If offline, the last saved report on this device is used.</p>
+
+    <div class="row">
+      <input id="icao" maxlength="4" value="EFUT" placeholder="EFUT" />
+      <button id="generate">Generate PNG</button>
+      <button id="cached" class="secondary">Use Latest Saved</button>
+    </div>
+
+    <div id="status" class="status">READY</div>
+    <pre id="report" class="report">ACARS WEATHER REPORT
+--------------------
+TIME (UTC):
+AIRPORT:
+
+METAR:
+
+TAF:
+
+END OF REPORT</pre>
+    <div class="small">Tip on iPad: if the file opens in a new tab instead of downloading, use Share → Print or Save to Files.</div>
+  </main>
+
+  <script>
+    const $icao = document.getElementById('icao');
+    const $status = document.getElementById('status');
+    const $report = document.getElementById('report');
+    const storageKey = (icao) => `natglobe_latest_${icao}`;
+
+    function setStatus(text) {
+      $status.textContent = text;
+    }
+
+    function sanitizeIcao(value) {
+      return (value || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+    }
+
+    function renderReport(text) {
+      $report.textContent = text;
+    }
+
+    function saveLocal(icao, payload) {
+      localStorage.setItem(storageKey(icao), JSON.stringify(payload));
+    }
+
+    function getLocal(icao) {
+      const raw = localStorage.getItem(storageKey(icao));
+      return raw ? JSON.parse(raw) : null;
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    async function textToPngBlob(text) {
+      const lines = text.split('\n');
+      const width = 1400;
+      const lineHeight = 34;
+      const height = 80 + lines.length * lineHeight;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = 'black';
+      ctx.font = '24px Courier New';
+      let y = 60;
+      for (const line of lines) {
+        ctx.fillText(line, 40, y);
+        y += lineHeight;
+      }
+      return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    }
+
+    async function fetchLiveJson(icao) {
+      const res = await fetch(`/api/report-json?icao=${icao}`);
+      if (!res.ok) throw new Error('Live fetch failed');
+      return res.json();
+    }
+
+    async function fetchLivePng(icao) {
+      const res = await fetch(`/api/report-png?icao=${icao}`);
+      if (!res.ok) throw new Error('PNG fetch failed');
+      return await res.blob();
+    }
+
+    async function generate() {
+      const icao = sanitizeIcao($icao.value);
+      $icao.value = icao;
+      if (icao.length !== 4) {
+        setStatus('ENTER A VALID 4-LETTER ICAO CODE');
+        return;
+      }
+
+      try {
+        setStatus('FETCHING LIVE WEATHER...');
+        const payload = await fetchLiveJson(icao);
+        renderReport(payload.text);
+        saveLocal(icao, payload);
+        setStatus(`LIVE REPORT READY (${payload.mode}) — DOWNLOADING PNG...`);
+        const pngBlob = await fetchLivePng(icao);
+        downloadBlob(pngBlob, `${icao}_ACARS_WEATHER.png`);
+        setStatus(`DONE — ${icao}_ACARS_WEATHER.png`);
+      } catch (err) {
+        const cached = getLocal(icao);
+        if (!cached) {
+          setStatus('NO LIVE DATA AND NO SAVED LOCAL REPORT FOUND');
+          return;
+        }
+        renderReport(cached.text);
+        setStatus('OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT');
+        const blob = await textToPngBlob(cached.text);
+        downloadBlob(blob, `${icao}_ACARS_WEATHER_OFFLINE.png`);
+      }
+    }
+
+    async function useLatestSaved() {
+      const icao = sanitizeIcao($icao.value);
+      $icao.value = icao;
+      if (icao.length !== 4) {
+        setStatus('ENTER A VALID 4-LETTER ICAO CODE');
+        return;
+      }
+      const cached = getLocal(icao);
+      if (!cached) {
+        setStatus('NO SAVED LOCAL REPORT FOUND FOR THIS ICAO');
+        return;
+      }
+      renderReport(cached.text);
+      setStatus('USING SAVED LOCAL REPORT — BUILDING PNG...');
+      const blob = await textToPngBlob(cached.text);
+      downloadBlob(blob, `${icao}_ACARS_WEATHER_OFFLINE.png`);
+      setStatus(`DONE — ${icao}_ACARS_WEATHER_OFFLINE.png`);
+    }
+
+    document.getElementById('generate').addEventListener('click', generate);
+    document.getElementById('cached').addEventListener('click', useLatestSaved);
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    }
+  </script>
+</body>
+</html>
