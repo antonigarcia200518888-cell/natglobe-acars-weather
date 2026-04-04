@@ -268,14 +268,19 @@ async function reportToPngBuffer(report) {
   }
 
   const pageHeight = Math.max(900, y + 60);
+
   const canvas = createCanvas(pageWidth, pageHeight);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: false });
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.antialias = 'gray';
+  ctx.patternQuality = 'best';
+  ctx.quality = 'best';
+  ctx.textDrawingMode = 'glyph';
+  ctx.textBaseline = 'top';
 
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, pageWidth, pageHeight);
-
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = '#000000';
 
   let currentY = top;
   for (const item of lines) {
@@ -285,6 +290,7 @@ async function reportToPngBuffer(report) {
     }
 
     ctx.font = `${item.size}px "CourierNewEmbedded"`;
+    ctx.fillStyle = '#000000';
 
     if (item.bold) {
       drawBoldText(ctx, item.text, item.x, currentY);
