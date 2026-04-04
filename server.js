@@ -1,11 +1,17 @@
 import express from 'express';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { createCanvas, registerFont } from 'canvas';
+import { PDFDocument, rgb } from 'pdf-lib';
 import { airports } from './data/airports.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+registerFont(path.join(__dirname, 'cour.ttf'), {
+  family: 'CourierNewEmbedded'
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -205,65 +211,95 @@ function buildReportText(report) {
   ].filter(Boolean).join('\n');
 }
 
+function drawBoldText(ctx, text, x, y) {
+  ctx.fillText(text, x, y);
+  ctx.fillText(text, x + 0.4, y);
+}
+
+function reportToPngBuffer(report) {
+  const canvasWidth = 1200;
+  const canvasHeight = 2200;
+
+  const ctxCanvas = createCanvas(canvasWidth, canvasHeight);
+  const ctx = ctxCanvas.getContext('2d', { alpha: false });
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  ctx.fillStyle = '#000000';
+  ctx.textBaseline = 'top';
+  ctx.antialias = 'gray';
+  ctx.patternQuality = 'best';
+  ctx.quality = 'best';
+  ctx.textDrawingMode = 'glyph';
+
+  const left = 42;
+  const indent = 28;
+  let y = 34;
+
+  const lineGap = 12;
+
+  const drawLine = (text, size = 34, bold = false, x = left) => {
+    ctx.font = `${size}px "CourierNewEmbedded"`;
+    if (bold) {
+      drawBoldText(ctx, text, x, y);
+    } else {
+      ctx.fillText(text, x, y);
+    }
+    y += size + lineGap;
+  };
+
+  const drawWrapped = (lines, size = 28, x = left + indent) => {
+    ctx.font = `${size}px "CourierNewEmbedded"`;
+    for (const line of lines) {
+      ctx.fillText(line, x, y);
+      y += size + 10;
+    }
+  };
+
+  drawLine('ACARS WEATHER REPORT', 34, true);
+  drawLine('--------------------', 30, true);
+  y += 8;
+
+  drawLine('OPS SOURCE: NATGLOBE AVIATION', 28, true);
+  drawLine(`TIME (UTC): ${report.timeUtc}`, 28, true);
+  drawLine(`REQUESTED AIRPORT: ${report.airport}`, 28, true);
+  drawLine(`MODE: ${report.mode}`, 28, true);
+
+  if (report.metarFallback && report.metarSource) {
+    drawLine(`METAR SOURCE: ${report.metarSource} / ${report.metarDistanceNm} NM`, 24, true);
+  }
+
+  if (report.tafFallback && report.tafSource) {
+    drawLine(`TAF SOURCE: ${report.tafSource} / ${report.tafDistanceNm} NM`, 24, true);
+  }
+
+  y += 10;
+
+  drawLine('METAR:', 30, true);
+  drawWrapped(wrapText(report.metar, 36), 27);
+
+  y += 10;
+
+  drawLine('TAF:', 30, true);
+  drawWrapped(wrapText(report.taf, 36), 27);
+
+  y += 14;
+  drawLine('END OF REPORT', 30, true);
+
+  return ctxCanvas.toBuffer('image/png');
+}
+
 async function reportToPdfBuffer(report) {
   const pdfDoc = await PDFDocument.create();
 
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Courier);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.CourierBold);
+  const pngBuffer = reportToPngBuffer(report);
+  const pngImage = await pdfDoc.embedPng(pngBuffer);
 
-  // 110 mm paper width
+  // 110 mm x 210 mm fixed page for better thermal preview compatibility
   const pageWidth = 311.81;
-  const left = 10;
-  const indent = 8;
-  const topMargin = 12;
-  const bottomMargin = 12;
+  const pageHeight = 595.28;
 
-  const metarLines = wrapText(report.metar, 34);
-  const tafLines = wrapText(report.taf, 34);
-
-  const items = [
-    { text: 'ACARS WEATHER REPORT', size: 10, bold: true, indent: 0 },
-    { text: '--------------------', size: 9, bold: true, indent: 0 },
-    { blank: 4 },
-
-    { text: 'OPS SOURCE: NATGLOBE AVIATION', size: 8.5, bold: true, indent: 0 },
-    { text: `TIME (UTC): ${report.timeUtc}`, size: 8.5, bold: true, indent: 0 },
-    { text: `REQUESTED AIRPORT: ${report.airport}`, size: 8.5, bold: true, indent: 0 },
-    { text: `MODE: ${report.mode}`, size: 8.5, bold: true, indent: 0 },
-
-    ...(report.metarFallback && report.metarSource
-      ? [{ text: `METAR SOURCE: ${report.metarSource} / ${report.metarDistanceNm} NM`, size: 7.8, bold: true, indent: 0 }]
-      : []),
-
-    ...(report.tafFallback && report.tafSource
-      ? [{ text: `TAF SOURCE: ${report.tafSource} / ${report.tafDistanceNm} NM`, size: 7.8, bold: true, indent: 0 }]
-      : []),
-
-    { blank: 4 },
-
-    { text: 'METAR:', size: 9, bold: true, indent: 0 },
-    ...metarLines.map(line => ({ text: line, size: 8.4, bold: false, indent: indent })),
-
-    { blank: 4 },
-
-    { text: 'TAF:', size: 9, bold: true, indent: 0 },
-    ...tafLines.map(line => ({ text: line, size: 8.4, bold: false, indent: indent })),
-
-    { blank: 4 },
-    { text: 'END OF REPORT', size: 9, bold: true, indent: 0 }
-  ];
-
-  let contentHeight = topMargin;
-  for (const item of items) {
-    if (item.blank) {
-      contentHeight += item.blank;
-    } else {
-      contentHeight += item.size + 2.5;
-    }
-  }
-  contentHeight += bottomMargin;
-
-  const pageHeight = Math.max(140, contentHeight);
   const page = pdfDoc.addPage([pageWidth, pageHeight]);
 
   page.drawRectangle({
@@ -274,27 +310,14 @@ async function reportToPdfBuffer(report) {
     color: rgb(1, 1, 1)
   });
 
-  const black = rgb(0, 0, 0);
-  let y = pageHeight - topMargin;
+  const imgDims = pngImage.scaleToFit(pageWidth - 8, pageHeight - 8);
 
-  for (const item of items) {
-    if (item.blank) {
-      y -= item.blank;
-      continue;
-    }
-
-    y -= item.size;
-
-    page.drawText(item.text, {
-      x: left + (item.indent || 0),
-      y,
-      size: item.size,
-      font: item.bold ? boldFont : regularFont,
-      color: black
-    });
-
-    y -= 2.5;
-  }
+  page.drawImage(pngImage, {
+    x: 4,
+    y: pageHeight - imgDims.height - 4,
+    width: imgDims.width,
+    height: imgDims.height
+  });
 
   return Buffer.from(await pdfDoc.save());
 }
