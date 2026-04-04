@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NatGlobe ACARS Weather v2</title>
+  <title>NatGlobe ACARS Weather v3</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <style>
     body {
@@ -100,7 +100,7 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>NATGLOBE AVIATION<br>ACARS WEATHER v2</h1>
+    <h1>NATGLOBE AVIATION<br>ACARS WEATHER v3</h1>
 
     <label for="icao">AIRPORT ICAO</label>
     <input id="icao" maxlength="4" value="EFHK" placeholder="EFHK">
@@ -115,10 +115,24 @@
     </div>
 
     <div class="preview" id="preview"></div>
-    <div class="version">Frontend version: v2-force-refresh</div>
+    <div class="version">Frontend version: v3-no-offline-cache</div>
   </div>
 
   <script>
+    async function clearOldPwaCaches() {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          await reg.unregister();
+        }
+      }
+
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(key => caches.delete(key)));
+      }
+    }
+
     const btn = document.getElementById('generateBtn');
     const input = document.getElementById('icao');
     const statusEl = document.getElementById('status');
@@ -171,6 +185,11 @@
         setStatus(`LIVE FETCH FAILED: ${err.message}`);
       }
     }
+
+    (async () => {
+      await clearOldPwaCaches();
+      setStatus('Ready.');
+    })();
 
     btn.addEventListener('click', generate);
     input.addEventListener('keydown', (e) => {
