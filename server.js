@@ -1,5 +1,6 @@
 import express from 'express';
 import sharp from 'sharp';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { airports } from './data/airports.js';
@@ -125,7 +126,7 @@ function escapeXml(str) {
     .replace(/>/g, '&gt;');
 }
 
-function wrapText(text, maxChars = 64) {
+function wrapText(text, maxChars = 56) {
   const words = String(text || '').split(/\s+/).filter(Boolean);
   const lines = [];
   let current = '';
@@ -146,73 +147,90 @@ function wrapText(text, maxChars = 64) {
 
 async function textToPng(report) {
   const pageWidth = 1600;
-  const pageMinHeight = 950;
-  const left = 70;
-  const top = 70;
-  const lineGap = 38;
-  const metarIndent = 40;
-  const tafIndent = 40;
+  const pageMinHeight = 900;
 
-  const metarLines = wrapText(report.metar, 68);
-  const tafLines = wrapText(report.taf, 68);
+  // receipt-like block on left side
+  const left = 70;
+  const top = 60;
+  const lineGap = 28;
+  const sectionGap = 10;
+  const wrapIndent = 34;
+
+  const metarLines = wrapText(report.metar, 58);
+  const tafLines = wrapText(report.taf, 58);
 
   let y = top;
   const parts = [];
 
   function addText(x, text, options = {}) {
-    const { bold = false, size = 28 } = options;
+    const { bold = false, size = 23 } = options;
     parts.push(
-      `<text x="${x}" y="${y}" font-family="Courier New, monospace" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}">${escapeXml(text)}</text>`
+      `<text x="${x}" y="${y}" font-family="ACARS" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}" letter-spacing="0.6">${escapeXml(text)}</text>`
     );
     y += lineGap;
   }
 
-  function addBlank(space = 20) {
+  function addBlank(space = sectionGap) {
     y += space;
   }
 
-  addText(left, 'ACARS WEATHER REPORT', { bold: true, size: 34 });
-  addText(left, '--------------------', { bold: true, size: 30 });
-  addBlank(16);
+  addText(left, 'ACARS WEATHER REPORT', { bold: true, size: 24 });
+  addText(left, '--------------------', { bold: true, size: 22 });
+  addBlank(10);
 
-  addText(left, `TIME (UTC): ${report.timeUtc}`, { bold: true, size: 30 });
-  addText(left, `AIRPORT: ${report.airport}`, { bold: true, size: 30 });
+  addText(left, `TIME (UTC): ${report.timeUtc}`, { bold: true, size: 22 });
+  addText(left, `AIRPORT: ${report.airport}`, { bold: true, size: 22 });
 
   if (report.mode !== 'LIVE') {
-    addText(left, `MODE: ${report.mode}`, { bold: true, size: 28 });
+    addText(left, `MODE: ${report.mode}`, { bold: true, size: 20 });
   }
 
   if (report.metarFallback && report.metarSource) {
-    addText(left, `METAR SOURCE: ${report.metarSource} (nearest available)`, { bold: true, size: 26 });
+    addText(left, `METAR SOURCE: ${report.metarSource} (NEAREST AVAILABLE)`, { bold: true, size: 18 });
   }
 
   if (report.tafFallback && report.tafSource) {
-    addText(left, `TAF SOURCE: ${report.tafSource} (nearest available)`, { bold: true, size: 26 });
+    addText(left, `TAF SOURCE: ${report.tafSource} (NEAREST AVAILABLE)`, { bold: true, size: 18 });
   }
 
+  addBlank(14);
+
+  addText(left, 'METAR:', { bold: true, size: 22 });
+  metarLines.forEach((line, idx) => {
+    addText(left + (idx === 0 ? wrapIndent : wrapIndent), line, { size: 21 });
+  });
+
+  addBlank(14);
+
+  addText(left, 'TAF:', { bold: true, size: 22 });
+  tafLines.forEach((line, idx) => {
+    addText(left + (idx === 0 ? wrapIndent : wrapIndent), line, { size: 21 });
+  });
+
   addBlank(18);
+  addText(left, 'END OF REPORT', { bold: true, size: 22 });
 
-  addText(left, 'METAR:', { bold: true, size: 30 });
-  for (const line of metarLines) addText(left + metarIndent, line, { size: 28 });
+  const pageHeight = Math.max(pageMinHeight, y + 60);
 
-  addBlank(18);
-
-  addText(left, 'TAF:', { bold: true, size: 30 });
-  for (const line of tafLines) addText(left + tafIndent, line, { size: 28 });
-
-  addBlank(24);
-  addText(left, 'END OF REPORT', { bold: true, size: 30 });
-
-  const pageHeight = Math.max(pageMinHeight, y + 80);
+  // embedded crisp monospace font
+  const fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf';
+  const fontData = fs.readFileSync(fontPath).toString('base64');
 
   const svg = `
 <svg width="${pageWidth}" height="${pageHeight}" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @font-face {
+      font-family: 'ACARS';
+      src: url(data:font/ttf;base64,${fontData}) format('truetype');
+    }
+  </style>
   <rect width="100%" height="100%" fill="#FFFFFF"/>
   ${parts.join('\n')}
 </svg>`;
 
   return sharp(Buffer.from(svg))
     .png({ compressionLevel: 0, quality: 100 })
+    .sharpen()
     .toBuffer();
 }
 
