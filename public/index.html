@@ -3,43 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NatGlobe ACARS Weather v3</title>
+  <title>NatGlobe ACARS Weather</title>
+
   <meta name="apple-mobile-web-app-capable" content="yes">
+
   <style>
     body {
       margin: 0;
       background: #000;
       color: #fff;
       font-family: "Courier New", monospace;
-      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      height: 100vh;
     }
-    .wrap {
-      width: 92%;
-      max-width: 720px;
+
+    .box {
+      width: 90%;
+      max-width: 600px;
       border: 1px solid #fff;
       padding: 24px;
-      box-sizing: border-box;
-      background: #111;
+      background: #000;
     }
+
     h1 {
+      margin: 0 0 20px 0;
       text-align: center;
+      font-size: 22px;
       color: #c0c0c0;
-      margin-top: 0;
-      line-height: 1.4;
-      font-size: 24px;
+      letter-spacing: 1px;
     }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #c0c0c0;
-      font-weight: bold;
-    }
+
     input {
       width: 100%;
-      box-sizing: border-box;
       padding: 14px;
       font-size: 20px;
       font-family: "Courier New", monospace;
@@ -47,10 +44,11 @@
       color: #fff;
       border: 1px solid #fff;
       text-transform: uppercase;
+      margin-bottom: 12px;
     }
+
     button {
       width: 100%;
-      margin-top: 16px;
       padding: 14px;
       font-size: 18px;
       font-family: "Courier New", monospace;
@@ -58,30 +56,17 @@
       background: #c0c0c0;
       color: #000;
       border: 1px solid #fff;
+      margin-bottom: 12px;
     }
-    .status {
-      margin-top: 16px;
-      white-space: pre-wrap;
-      min-height: 24px;
-    }
-    .preview {
-      margin-top: 20px;
-      text-align: center;
-    }
-    .preview img {
-      max-width: 100%;
-      border: 1px solid #fff;
-      background: #fff;
-    }
+
     .actions {
-      margin-top: 16px;
       display: none;
-      gap: 12px;
-      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
     }
+
     .actions a {
       flex: 1;
-      min-width: 160px;
       text-align: center;
       text-decoration: none;
       padding: 12px;
@@ -90,36 +75,45 @@
       background: #000;
       font-weight: bold;
     }
-    .version {
-      margin-top: 18px;
-      color: #888;
-      font-size: 12px;
+
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    .preview {
+      margin-top: 15px;
       text-align: center;
+    }
+
+    .preview img {
+      max-width: 100%;
+      border: 1px solid #fff;
+      background: #fff;
     }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>NATGLOBE AVIATION<br>ACARS WEATHER v3</h1>
+  <div class="box">
+    <h1>NATGLOBE AVIATION<br>ACARS WEATHER</h1>
 
-    <label for="icao">AIRPORT ICAO</label>
-    <input id="icao" maxlength="4" value="EFHK" placeholder="EFHK">
+    <input id="icao" placeholder="EFHK" maxlength="4" value="EFHK">
 
-    <button id="generateBtn">GENERATE WEATHER PNG</button>
-
-    <div class="status" id="status"></div>
+    <button id="btn">GENERATE WEATHER</button>
 
     <div class="actions" id="actions">
-      <a id="downloadLink" href="#" download>DOWNLOAD PNG</a>
-      <a id="openLink" href="#" target="_blank" rel="noopener">OPEN PNG</a>
+      <a id="download" download>DOWNLOAD PNG</a>
+      <a id="open" target="_blank">OPEN PNG</a>
     </div>
 
+    <div class="status" id="status"></div>
     <div class="preview" id="preview"></div>
-    <div class="version">Frontend version: v3-no-offline-cache</div>
   </div>
 
   <script>
-    async function clearOldPwaCaches() {
+    async function clearCache() {
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
         for (const reg of regs) {
@@ -129,72 +123,69 @@
 
       if ('caches' in window) {
         const keys = await caches.keys();
-        await Promise.all(keys.map(key => caches.delete(key)));
+        await Promise.all(keys.map(k => caches.delete(k)));
       }
     }
 
-    const btn = document.getElementById('generateBtn');
+    const btn = document.getElementById('btn');
     const input = document.getElementById('icao');
-    const statusEl = document.getElementById('status');
-    const previewEl = document.getElementById('preview');
-    const actionsEl = document.getElementById('actions');
-    const downloadLink = document.getElementById('downloadLink');
-    const openLink = document.getElementById('openLink');
+    const status = document.getElementById('status');
+    const preview = document.getElementById('preview');
+    const actions = document.getElementById('actions');
+    const download = document.getElementById('download');
+    const open = document.getElementById('open');
 
-    function setStatus(msg) {
-      statusEl.textContent = msg;
+    function setStatus(text) {
+      status.textContent = text;
     }
 
-    function showBlob(icao, blob) {
+    function showImage(icao, blob) {
       const url = URL.createObjectURL(blob);
-      previewEl.innerHTML = `<img src="${url}" alt="ACARS Weather PNG">`;
-      downloadLink.href = url;
-      downloadLink.download = `${icao}_ACARS_WEATHER.png`;
-      openLink.href = url;
-      actionsEl.style.display = 'flex';
+
+      preview.innerHTML = `<img src="${url}">`;
+
+      download.href = url;
+      download.download = `${icao}_ACARS_WEATHER.png`;
+
+      open.href = url;
+
+      actions.style.display = 'flex';
     }
 
     async function generate() {
       const icao = input.value.trim().toUpperCase();
+
       if (!/^[A-Z]{4}$/.test(icao)) {
-        setStatus('Please enter a valid 4-letter ICAO code.');
+        setStatus('INVALID ICAO');
         return;
       }
 
-      setStatus('Fetching live weather...');
-      previewEl.innerHTML = '';
-      actionsEl.style.display = 'none';
+      setStatus('FETCHING WEATHER...');
+      preview.innerHTML = '';
+      actions.style.display = 'none';
 
       try {
-        const url = `/api/weather-v2?icao=${icao}&t=${Date.now()}`;
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await fetch(`/api/weather-v2?icao=${icao}&t=${Date.now()}`, {
+          cache: 'no-store'
+        });
 
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error();
 
         const blob = await res.blob();
-        if (!blob || blob.size === 0) {
-          throw new Error('Empty PNG response');
-        }
 
-        showBlob(icao, blob);
-        setStatus('LIVE WEATHER REPORT GENERATED');
-      } catch (err) {
-        console.error(err);
-        setStatus(`LIVE FETCH FAILED: ${err.message}`);
+        showImage(icao, blob);
+        setStatus('READY');
+      } catch {
+        setStatus('ERROR FETCHING WEATHER');
       }
     }
 
-    (async () => {
-      await clearOldPwaCaches();
-      setStatus('Ready.');
-    })();
-
-    btn.addEventListener('click', generate);
-    input.addEventListener('keydown', (e) => {
+    btn.onclick = generate;
+    input.onkeydown = e => {
       if (e.key === 'Enter') generate();
-    });
+    };
+
+    clearCache();
   </script>
 </body>
 </html>
