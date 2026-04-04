@@ -22,7 +22,7 @@
       justify-content: center;
     }
 
-    .app {
+    .wrap {
       width: 90%;
       max-width: 520px;
       text-align: center;
@@ -30,22 +30,23 @@
 
     .title {
       color: #c0c0c0;
-      font-size: 22px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 24px;
       font-weight: bold;
-      line-height: 1.6;
       letter-spacing: 1px;
       text-transform: uppercase;
+      line-height: 1.6;
       margin-bottom: 28px;
     }
 
-    .input {
+    .icao {
       width: 100%;
       box-sizing: border-box;
       background: #000;
       color: #fff;
       border: 1px solid #fff;
       padding: 14px;
-      font-size: 20px;
+      font-size: 22px;
       font-family: "Courier New", Courier, monospace;
       text-transform: uppercase;
       text-align: center;
@@ -70,10 +71,11 @@
 
     .status {
       min-height: 20px;
-      font-size: 14px;
-      color: #fff;
-      text-transform: uppercase;
       margin: 12px 0 18px 0;
+      font-size: 14px;
+      font-family: "Courier New", Courier, monospace;
+      text-transform: uppercase;
+      color: #fff;
     }
 
     .actions {
@@ -85,9 +87,9 @@
     .actions a {
       flex: 1;
       text-decoration: none;
-      border: 1px solid #fff;
-      color: #fff;
       background: #000;
+      color: #fff;
+      border: 1px solid #fff;
       padding: 12px;
       font-size: 15px;
       font-weight: bold;
@@ -95,17 +97,10 @@
       text-transform: uppercase;
       box-sizing: border-box;
     }
-
-    .footer-note {
-      margin-top: 18px;
-      font-size: 12px;
-      color: #777;
-      text-transform: uppercase;
-    }
   </style>
 </head>
 <body>
-  <div class="app">
+  <div class="wrap">
     <div class="title">
       NATGLOBE AVIATION<br>
       ACARS WEATHER
@@ -113,7 +108,7 @@
 
     <input
       id="icao"
-      class="input"
+      class="icao"
       type="text"
       maxlength="4"
       value="EFHK"
@@ -131,8 +126,6 @@
       <a id="downloadLink" href="#" download>Download PNG</a>
       <a id="openLink" href="#" target="_blank" rel="noopener">Open PNG</a>
     </div>
-
-    <div class="footer-note">ACARS PRINT FORMAT</div>
   </div>
 
   <script>
@@ -173,12 +166,12 @@
       const icao = icaoInput.value.trim().toUpperCase();
 
       if (!/^[A-Z]{4}$/.test(icao)) {
-        setStatus('Invalid ICAO');
+        setStatus('INVALID ICAO');
         actionsEl.style.display = 'none';
         return;
       }
 
-      setStatus('Fetching Weather...');
+      setStatus('FETCHING WEATHER...');
       actionsEl.style.display = 'none';
 
       try {
@@ -193,14 +186,14 @@
         const blob = await res.blob();
 
         if (!blob || blob.size === 0) {
-          throw new Error('Empty PNG');
+          throw new Error('EMPTY PNG');
         }
 
         showLinks(icao, blob);
-        setStatus('Ready');
+        setStatus('READY');
       } catch (err) {
         console.error(err);
-        setStatus('Error Fetching Weather');
+        setStatus('ERROR FETCHING WEATHER');
       }
     }
 
