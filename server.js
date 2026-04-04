@@ -1,21 +1,21 @@
 import express from 'express';
+import sharp from 'sharp';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createCanvas, registerFont } from 'canvas';
 import { airports } from './data/airports.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-registerFont(path.join(__dirname, 'cour.ttf'), {
-  family: 'CourierNewEmbedded'
-});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+
+// Load uploaded Courier font from repo root
+const courierFontBase64 = fs.readFileSync(path.join(__dirname, 'cour.ttf')).toString('base64');
 
 function normalizeIcao(input) {
   return String(input || '')
@@ -198,9 +198,11 @@ function buildReportText(icao, weather) {
   ].filter(Boolean).join('\n');
 }
 
-function drawBoldText(ctx, text, x, y) {
-  ctx.fillText(text, x, y);
-  ctx.fillText(text, x + 0.6, y);
+function escapeXml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 async function reportToPngBuffer(report) {
@@ -260,48 +262,55 @@ async function reportToPngBuffer(report) {
 
   let y = top;
   for (const item of lines) {
-    if (item.blank) {
-      y += item.blank;
-    } else {
-      y += lineGap;
-    }
+    if (item.blank) y += item.blank;
+    else y += lineGap;
   }
 
   const pageHeight = Math.max(900, y + 60);
 
-  const canvas = createCanvas(pageWidth, pageHeight);
-  const ctx = canvas.getContext('2d', { alpha: false });
-
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.antialias = 'gray';
-  ctx.patternQuality = 'best';
-  ctx.quality = 'best';
-  ctx.textDrawingMode = 'glyph';
-  ctx.textBaseline = 'top';
-
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, pageWidth, pageHeight);
-
   let currentY = top;
+  const textElements = [];
+
   for (const item of lines) {
     if (item.blank) {
       currentY += item.blank;
       continue;
     }
 
-    ctx.font = `${item.size}px "CourierNewEmbedded"`;
-    ctx.fillStyle = '#000000';
-
-    if (item.bold) {
-      drawBoldText(ctx, item.text, item.x, currentY);
-    } else {
-      ctx.fillText(item.text, item.x, currentY);
-    }
+    textElements.push(`
+      <text
+        x="${item.x}"
+        y="${currentY}"
+        font-family="CourierNewEmbedded"
+        font-size="${item.size}"
+        fill="#000000"
+        font-weight="${item.bold ? '700' : '400'}"
+      >${escapeXml(item.text)}</text>
+    `);
 
     currentY += lineGap;
   }
 
-  return canvas.toBuffer('image/png');
+  const svg = `
+  <svg width="${pageWidth}" height="${pageHeight}" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      @font-face {
+        font-family: 'CourierNewEmbedded';
+        src: url(data:font/ttf;base64,${courierFontBase64}) format('truetype');
+      }
+      text {
+        text-rendering: geometricPrecision;
+        shape-rendering: geometricPrecision;
+      }
+    </style>
+    <rect x="0" y="0" width="${pageWidth}" height="${pageHeight}" fill="#FFFFFF" />
+    ${textElements.join('\n')}
+  </svg>`;
+
+  return sharp(Buffer.from(svg))
+    .flatten({ background: '#FFFFFF' })
+    .png({ compressionLevel: 0, quality: 100 })
+    .toBuffer();
 }
 
 app.get('/api/weather-v2', async (req, res) => {
