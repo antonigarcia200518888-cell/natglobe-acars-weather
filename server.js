@@ -1,6 +1,5 @@
 import express from 'express';
 import sharp from 'sharp';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { airports } from './data/airports.js';
@@ -76,7 +75,7 @@ async function getTaf(icao) {
 async function getFirstAvailable(fetchFn, requestedIcao) {
   const own = await fetchFn(requestedIcao);
   if (own) {
-    return { text: own, source: requestedIcao, fallback: false, distanceKm: null };
+    return { text: own, source: requestedIcao, fallback: false };
   }
 
   const nearby = getNearbyAirports(requestedIcao, 10);
@@ -86,8 +85,7 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
       return {
         text: found,
         source: apt.icao,
-        fallback: true,
-        distanceKm: apt.distanceKm
+        fallback: true
       };
     }
   }
@@ -95,8 +93,7 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
   return {
     text: 'NOT AVAILABLE',
     source: null,
-    fallback: false,
-    distanceKm: null
+    fallback: false
   };
 }
 
@@ -148,8 +145,6 @@ function wrapText(text, maxChars = 56) {
 async function textToPng(report) {
   const pageWidth = 1600;
   const pageMinHeight = 900;
-
-  // receipt-like block on left side
   const left = 70;
   const top = 60;
   const lineGap = 28;
@@ -165,7 +160,7 @@ async function textToPng(report) {
   function addText(x, text, options = {}) {
     const { bold = false, size = 23 } = options;
     parts.push(
-      `<text x="${x}" y="${y}" font-family="ACARS" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}" letter-spacing="0.6">${escapeXml(text)}</text>`
+      `<text x="${x}" y="${y}" font-family="Courier New, Courier, monospace" font-size="${size}" fill="#000000" font-weight="${bold ? '700' : '400'}">${escapeXml(text)}</text>`
     );
     y += lineGap;
   }
@@ -196,15 +191,15 @@ async function textToPng(report) {
   addBlank(14);
 
   addText(left, 'METAR:', { bold: true, size: 22 });
-  metarLines.forEach((line, idx) => {
-    addText(left + (idx === 0 ? wrapIndent : wrapIndent), line, { size: 21 });
+  metarLines.forEach((line) => {
+    addText(left + wrapIndent, line, { size: 21 });
   });
 
   addBlank(14);
 
   addText(left, 'TAF:', { bold: true, size: 22 });
-  tafLines.forEach((line, idx) => {
-    addText(left + (idx === 0 ? wrapIndent : wrapIndent), line, { size: 21 });
+  tafLines.forEach((line) => {
+    addText(left + wrapIndent, line, { size: 21 });
   });
 
   addBlank(18);
@@ -212,18 +207,8 @@ async function textToPng(report) {
 
   const pageHeight = Math.max(pageMinHeight, y + 60);
 
-  // embedded crisp monospace font
-  const fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf';
-  const fontData = fs.readFileSync(fontPath).toString('base64');
-
   const svg = `
 <svg width="${pageWidth}" height="${pageHeight}" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    @font-face {
-      font-family: 'ACARS';
-      src: url(data:font/ttf;base64,${fontData}) format('truetype');
-    }
-  </style>
   <rect width="100%" height="100%" fill="#FFFFFF"/>
   ${parts.join('\n')}
 </svg>`;
