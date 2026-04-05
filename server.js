@@ -250,7 +250,7 @@ async function fetchHtml(url) {
   const res = await fetch(url, {
     headers: {
       'User-Agent': 'NatGlobeAviation/1.0',
-      'Accept': 'text/html,application/xhtml+xml'
+      Accept: 'text/html,application/xhtml+xml'
     }
   });
 
@@ -461,95 +461,125 @@ function parseEfhvLocalMetar(html, icao) {
 function parseEfnuAwosTextToMetar(text, icao) {
   const compact = cleanLine(stripHtml(text));
 
-  const timestamp =
-    compact.match(/(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?/) ||
-    compact.match(/AUTO WEATHER\s+(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})\s+UTC/i);
+  const spokenNumberToInt = (input) => {
+    if (!input) return null;
 
-  let day = new Date().getUTCDate();
-  let hour = new Date().getUTCHours();
-  let minute = new Date().getUTCMinutes();
+    const words = String(input)
+      .toUpperCase()
+      .replace(/[^A-Z0-9 -]/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean);
 
-  if (timestamp) {
-    if (timestamp[1] && timestamp[2] && timestamp[3] && timestamp[4] && timestamp[5] && timestamp[0].includes('/')) {
-      day = Number(timestamp[2]);
-      hour = Number(timestamp[4]);
-      minute = Number(timestamp[5]);
-    } else {
-      day = Number(timestamp[3]);
-      hour = Number(timestamp[4]);
-      minute = Number(timestamp[5]);
+    const map = {
+      ZERO: '0',
+      ONE: '1',
+      TWO: '2',
+      THREE: '3',
+      FOUR: '4',
+      FIVE: '5',
+      SIX: '6',
+      SEVEN: '7',
+      EIGHT: '8',
+      NINE: '9'
+    };
+
+    let out = '';
+
+    for (const w of words) {
+      if (/^\d+$/.test(w)) {
+        out += w;
+      } else if (map[w]) {
+        out += map[w];
+      }
+    }
+
+    return out ? Number(out) : null;
+  };
+
+  const now = new Date();
+
+  let day = now.getUTCDate();
+  let hour = now.getUTCHours();
+  let minute = now.getUTCMinutes();
+
+  const infoTimeMatch =
+    compact.match(/INFO\s+[A-Z]+\s+((?:ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|\d)\s+(?:ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|\d)\s+(?:ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|\d)\s+(?:ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|\d))/i) ||
+    compact.match(/THIS IS NUMMELA INFO [A-Z]+\s+((?:ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|\d)\s+(?:ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|\d)\s+(?:ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|\d)\s+(?:ZERO|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|\d))/i);
+
+  if (infoTimeMatch) {
+    const hhmm = spokenNumberToInt(infoTimeMatch[1]);
+    if (Number.isFinite(hhmm)) {
+      hour = Math.floor(hhmm / 100);
+      minute = hhmm % 100;
     }
   }
 
-  const windMatch =
-    compact.match(/Wind\s+(\d{1,3})°\s+([0-9.]+)\s*kt(?:\s+[0-9.]+\s*m\/s)?(?:,\s*variable\s+\d{1,3}-\d{1,3}°)?(?:,\s*gusts\s+([0-9.]+)\s*kt)?/i) ||
-    compact.match(/Wind\s+([0-9.]+)\s*m\/s\s+[A-Z]{1,3}\s+\((\d{1,3})°\)/i);
+  const windMatch = compact.match(
+    /WIND\s+(.+?)\s+DEGREES\s+(.+?)\s+KNOTS(?:\.\s*VARIABLE BETWEEN\s+(.+?)\s+AND\s+(.+?))?(?:\.\s*GUSTS\s+(.+?)\s+KNOTS)?/i
+  );
 
   let windDir = null;
   let windKt = null;
   let windGustKt = null;
+  let varFrom = null;
+  let varTo = null;
 
   if (windMatch) {
-    if (windMatch[0].includes('kt')) {
-      windDir = Number(windMatch[1]);
-      windKt = Number(windMatch[2]);
-      windGustKt = windMatch[3] ? Number(windMatch[3]) : null;
-    } else {
-      windDir = Number(windMatch[2]);
-      windKt = metersPerSecondToKt(Number(windMatch[1]));
-    }
+    windDir = spokenNumberToInt(windMatch[1]);
+    windKt = spokenNumberToInt(windMatch[2]);
+    varFrom = spokenNumberToInt(windMatch[3]);
+    varTo = spokenNumberToInt(windMatch[4]);
+    windGustKt = spokenNumberToInt(windMatch[5]);
   }
 
-  const visMatch =
-    compact.match(/Visibility\s+([0-9.]+)\s*km/i) ||
-    compact.match(/Visibility\s+([0-9.]+)\s*m\b/i);
-
+  const visMatch = compact.match(/VISIBILITY\s+(.+?)\s+KILOMETERS?/i);
   let visibility = 9999;
   if (visMatch) {
-    if (/km/i.test(visMatch[0])) {
-      visibility = Math.min(9999, Math.round(Number(visMatch[1]) * 1000));
-    } else {
-      visibility = Math.min(9999, Math.round(Number(visMatch[1])));
+    const km = spokenNumberToInt(visMatch[1]);
+    if (Number.isFinite(km)) {
+      visibility = Math.min(9999, km * 1000);
     }
   }
 
-  const cloudMatch =
-    compact.match(/Clouds\s+(FEW|SCT|BKN|OVC|VV|SKC|CLR|NSC|NCD)\s+(\d+)\s*ft/i) ||
-    compact.match(/Vertical visibility\s+(\d+)\s*ft/i);
+  const cloudMatches = [
+    ...compact.matchAll(/\b(FEW|SCT|BKN|OVC)\s+(.+?)\s+THOUSAND\s+(.+?)\s+HUNDRED\s+FEET\b/gi)
+  ];
+  const cloudGroups = [];
 
-  let cloud = '///';
-  if (cloudMatch) {
-    if (cloudMatch[1] && /^[A-Z]+$/.test(cloudMatch[1])) {
-      cloud = mapCloudFromFeet(cloudMatch[1], Number(cloudMatch[2]));
-    } else {
-      cloud = mapCloudFromFeet('VV', Number(cloudMatch[1]));
+  for (const m of cloudMatches) {
+    const layer = String(m[1]).toUpperCase();
+    const thousands = spokenNumberToInt(m[2]);
+    const hundreds = spokenNumberToInt(m[3]);
+
+    if (Number.isFinite(thousands) && Number.isFinite(hundreds)) {
+      const feet = thousands * 1000 + hundreds * 100;
+      const group = mapCloudFromFeet(layer, feet);
+      if (group) cloudGroups.push(group);
     }
   }
 
-  const tempMatch =
-    compact.match(/(?:Outside Temperature|Temp)\s+(-?[0-9.]+)\s*°?C/i);
+  const cloud = cloudGroups.length ? cloudGroups.join(' ') : '///';
 
-  const dewMatch =
-    compact.match(/(?:Dew Point|dew point)\s+(-?[0-9.]+)\s*°?C/i);
+  const tempMatch = compact.match(/TEMPERATURE\s+(.+?)(?:\.|\s|$)/i);
+  const dewMatch = compact.match(/DEWPOINT\s+(.+?)(?:\.|\s|$)/i);
+  const qnhMatch = compact.match(/QNH\s+(.+?)(?:\.|\s|$)/i);
 
-  const qnhMatch =
-    compact.match(/QNH\s+([0-9.]+)/i) ||
-    compact.match(/Barometer\s+([0-9.]+)\s*mbar/i);
-
-  const temp = tempMatch ? Number(tempMatch[1]) : null;
-  const dew = dewMatch ? Number(dewMatch[1]) : null;
-  const pressure = qnhMatch ? Number(qnhMatch[1]) : null;
+  const temp = tempMatch ? spokenNumberToInt(tempMatch[1]) : null;
+  const dew = dewMatch ? spokenNumberToInt(dewMatch[1]) : null;
+  const pressure = qnhMatch ? spokenNumberToInt(qnhMatch[1]) : null;
 
   if (
-    !Number.isFinite(Number(temp)) &&
-    !Number.isFinite(Number(dew)) &&
-    !Number.isFinite(Number(pressure)) &&
-    !Number.isFinite(Number(windKt))
+    !Number.isFinite(windDir) &&
+    !Number.isFinite(windKt) &&
+    !Number.isFinite(temp) &&
+    !Number.isFinite(dew) &&
+    !Number.isFinite(pressure) &&
+    cloud === '///'
   ) {
     return null;
   }
 
-  return buildPseudoMetar({
+  const baseMetar = buildPseudoMetar({
     icao,
     day,
     hour,
@@ -563,6 +593,12 @@ function parseEfnuAwosTextToMetar(text, icao) {
     visibility,
     cloud
   });
+
+  if (Number.isFinite(varFrom) && Number.isFinite(varTo)) {
+    return `${baseMetar} ${String(varFrom).padStart(3, '0')}V${String(varTo).padStart(3, '0')}`;
+  }
+
+  return baseMetar;
 }
 
 async function getEfnuLocalGeneratedMetar(icao) {
