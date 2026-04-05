@@ -77,23 +77,6 @@
       background: var(--button-bg);
       color: var(--button-fg);
     }
-    .options {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin: 10px 0 14px;
-    }
-    .opt {
-      border: 1px solid #666;
-      padding: 10px;
-      font-size: 14px;
-    }
-    .opt label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
     .status-box {
       border: 1px solid var(--line);
       min-height: 52px;
@@ -123,7 +106,7 @@
     }
     .actions {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
@@ -133,7 +116,7 @@
       line-height: 1.35;
     }
     @media (max-width: 900px) {
-      .grid, .options, .actions {
+      .grid, .actions {
         grid-template-columns: 1fr;
       }
     }
@@ -144,8 +127,8 @@
     <div class="title">NATGLOBE AVIATION / ACARS DISPATCH</div>
 
     <div class="intro">
-      Finland-first official NOTAM section, plus departure, arrival, alternate, and selectable weather sections.
-      For non-Finland airports the NOTAM block stays as an official-source placeholder until broader EAD / AIS briefing integration is added.
+      Weather report generator for departure, arrival and alternate airports.
+      The NOTAMS button opens the official Fintraffic PIB page in a new tab.
     </div>
 
     <div class="grid">
@@ -155,21 +138,11 @@
       <input id="altn" class="field" type="text" placeholder="ALTN ICAO" value="EETN" maxlength="4" />
     </div>
 
-    <div class="options">
-      <div class="opt"><label><input type="checkbox" id="includeDepMetar" checked> DEP METAR</label></div>
-      <div class="opt"><label><input type="checkbox" id="includeDepTaf" checked> DEP TAF</label></div>
-      <div class="opt"><label><input type="checkbox" id="includeArrMetar" checked> ARR METAR</label></div>
-      <div class="opt"><label><input type="checkbox" id="includeArrTaf" checked> ARR TAF</label></div>
-      <div class="opt"><label><input type="checkbox" id="includeAltnMetar" checked> ALTN METAR</label></div>
-      <div class="opt"><label><input type="checkbox" id="includeAltnTaf" checked> ALTN TAF</label></div>
-      <div class="opt"><label><input type="checkbox" id="includeNotams" checked> NOTAMS</label></div>
-      <div class="opt"><label><input type="checkbox" id="fullPackage"> FULL PACKAGE</label></div>
-    </div>
-
     <div class="actions">
       <button id="generateBtn" class="btn primary">Generate PDF</button>
       <button id="openBtn" class="btn">Open PDF</button>
       <button id="latestBtn" class="btn">Use Latest Saved</button>
+      <button id="notamsBtn" class="btn">NOTAMS</button>
     </div>
 
     <div id="statusBox" class="status-box">READY</div>
@@ -184,13 +157,11 @@ DEP WEATHER:
 ARR WEATHER:
 ALTN WEATHER:
 
-NOTAMS
-
 END OF REPORT</pre>
     </div>
 
     <div class="footer-tip">
-      Finland NOTAM guidance is inserted from official AIS bulletin references. Broader Europe-wide digital NOTAM retrieval should be added through official briefing / EAD-style sources, not eAIP scraping.
+      Weather stays in your ACARS PDF. NOTAMS open separately in Fintraffic PIB.
     </div>
   </main>
 
@@ -208,26 +179,17 @@ END OF REPORT</pre>
 
     const el = (id) => document.getElementById(id);
 
-    const fields = {
-      flight: el('flight'),
-      dep: el('dep'),
-      arr: el('arr'),
-      altn: el('altn'),
-      includeDepMetar: el('includeDepMetar'),
-      includeDepTaf: el('includeDepTaf'),
-      includeArrMetar: el('includeArrMetar'),
-      includeArrTaf: el('includeArrTaf'),
-      includeAltnMetar: el('includeAltnMetar'),
-      includeAltnTaf: el('includeAltnTaf'),
-      includeNotams: el('includeNotams'),
-      fullPackage: el('fullPackage')
-    };
+    const flight = el('flight');
+    const dep = el('dep');
+    const arr = el('arr');
+    const altn = el('altn');
 
     const statusBox = el('statusBox');
     const previewText = el('previewText');
     const generateBtn = el('generateBtn');
     const openBtn = el('openBtn');
     const latestBtn = el('latestBtn');
+    const notamsBtn = el('notamsBtn');
 
     let latestDirectUrl = null;
 
@@ -239,33 +201,19 @@ END OF REPORT</pre>
       return String(v || '').trim().toUpperCase();
     }
 
-    function applyFullPackage() {
-      const checked = fields.fullPackage.checked;
-      if (!checked) return;
-      fields.includeDepMetar.checked = true;
-      fields.includeDepTaf.checked = true;
-      fields.includeArrMetar.checked = true;
-      fields.includeArrTaf.checked = true;
-      fields.includeAltnMetar.checked = true;
-      fields.includeAltnTaf.checked = true;
-      fields.includeNotams.checked = true;
-    }
-
-    fields.fullPackage.addEventListener('change', applyFullPackage);
-
     function buildQuery() {
       const params = new URLSearchParams({
-        flight: upper(fields.flight.value),
-        dep: upper(fields.dep.value),
-        arr: upper(fields.arr.value),
-        altn: upper(fields.altn.value),
-        includeDepMetar: String(fields.includeDepMetar.checked),
-        includeDepTaf: String(fields.includeDepTaf.checked),
-        includeArrMetar: String(fields.includeArrMetar.checked),
-        includeArrTaf: String(fields.includeArrTaf.checked),
-        includeAltnMetar: String(fields.includeAltnMetar.checked),
-        includeAltnTaf: String(fields.includeAltnTaf.checked),
-        includeNotams: String(fields.includeNotams.checked)
+        flight: upper(flight.value),
+        dep: upper(dep.value),
+        arr: upper(arr.value),
+        altn: upper(altn.value),
+        includeDepMetar: 'true',
+        includeDepTaf: 'true',
+        includeArrMetar: 'true',
+        includeArrTaf: 'true',
+        includeAltnMetar: 'true',
+        includeAltnTaf: 'true',
+        includeNotams: 'false'
       });
       return params.toString();
     }
@@ -291,10 +239,9 @@ END OF REPORT</pre>
     }
 
     async function generate() {
-      applyFullPackage();
       const queryString = buildQuery();
 
-      setStatus('FETCHING DISPATCH PACKAGE...');
+      setStatus('FETCHING WEATHER PACKAGE...');
       previewText.textContent = '';
 
       try {
@@ -312,7 +259,7 @@ END OF REPORT</pre>
           latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
           setStatus('OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT');
         } else {
-          setStatus('ERROR FETCHING DISPATCH PACKAGE');
+          setStatus('ERROR FETCHING WEATHER PACKAGE');
         }
       }
     }
@@ -349,6 +296,10 @@ END OF REPORT</pre>
       previewText.textContent = saved.report;
       latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
       setStatus('DONE — ACARS_DISPATCH_REPORT.pdf');
+    });
+
+    notamsBtn.addEventListener('click', () => {
+      window.open('https://sky.fintraffic.fi/FlightRequest/PIB', '_blank');
     });
 
     (async () => {
