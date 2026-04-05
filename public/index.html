@@ -215,6 +215,7 @@
         <div class="opt"><label><input type="checkbox" id="includeArrTaf" checked> ARR TAF</label></div>
         <div class="opt"><label><input type="checkbox" id="includeAltnMetar" checked> ALTN METAR</label></div>
         <div class="opt"><label><input type="checkbox" id="includeAltnTaf" checked> ALTN TAF</label></div>
+        <div class="opt"><label><input type="checkbox" id="includeWindsAloft"> WINDS ALOFT</label></div>
         <div class="opt"><label><input type="checkbox" id="fullWeather"> FULL WEATHER PACKAGE</label></div>
       </div>
     </div>
@@ -237,6 +238,10 @@ FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
 EFHK 051620Z 12012KT 9999 FEW012 03/00 Q1000
+
+WINDS ALOFT
+DEP 2000FT 21015KT   FL050 23028KT   FL100 24542KT
+ARR 2000FT 20012KT   FL050 22526KT   FL100 24040KT
 
 RMK NIL
 
@@ -268,6 +273,10 @@ FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 DEP WX (EFHV)
 EFHK 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
+WINDS ALOFT
+DEP 2000FT 21015KT   FL050 23028KT   FL100 24542KT
+ARR 2000FT 20012KT   FL050 22526KT   FL100 24040KT
+
 RMK NIL
 
 END OF REPORT`;
@@ -285,6 +294,7 @@ END OF REPORT`;
       includeArrTaf: true,
       includeAltnMetar: true,
       includeAltnTaf: true,
+      includeWindsAloft: false,
       fullWeather: false
     };
 
@@ -303,6 +313,7 @@ END OF REPORT`;
       includeArrTaf: el('includeArrTaf'),
       includeAltnMetar: el('includeAltnMetar'),
       includeAltnTaf: el('includeAltnTaf'),
+      includeWindsAloft: el('includeWindsAloft'),
       fullWeather: el('fullWeather')
     };
 
@@ -382,6 +393,7 @@ END OF REPORT`;
       fields.includeArrTaf.checked = true;
       fields.includeAltnMetar.checked = true;
       fields.includeAltnTaf.checked = true;
+      fields.includeWindsAloft.checked = true;
     }
 
     function validateInputs() {
@@ -405,7 +417,8 @@ END OF REPORT`;
         !fields.includeArrMetar.checked &&
         !fields.includeArrTaf.checked &&
         !fields.includeAltnMetar.checked &&
-        !fields.includeAltnTaf.checked
+        !fields.includeAltnTaf.checked &&
+        !fields.includeWindsAloft.checked
       ) {
         return 'SELECT AT LEAST ONE WEATHER OPTION';
       }
@@ -427,6 +440,7 @@ END OF REPORT`;
       fields.includeArrTaf.checked = DEFAULTS.includeArrTaf;
       fields.includeAltnMetar.checked = DEFAULTS.includeAltnMetar;
       fields.includeAltnTaf.checked = DEFAULTS.includeAltnTaf;
+      fields.includeWindsAloft.checked = DEFAULTS.includeWindsAloft;
       fields.fullWeather.checked = DEFAULTS.fullWeather;
 
       routeTouched = false;
@@ -485,7 +499,8 @@ END OF REPORT`;
         includeArrMetar: String(fields.includeArrMetar.checked),
         includeArrTaf: String(fields.includeArrTaf.checked),
         includeAltnMetar: String(fields.includeAltnMetar.checked),
-        includeAltnTaf: String(fields.includeAltnTaf.checked)
+        includeAltnTaf: String(fields.includeAltnTaf.checked),
+        includeWindsAloft: String(fields.includeWindsAloft.checked)
       });
       return params.toString();
     }
