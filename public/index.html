@@ -14,9 +14,7 @@
       --button-bg: #d0d0d0;
       --button-fg: #000000;
     }
-
     * { box-sizing: border-box; }
-
     html, body {
       margin: 0;
       min-height: 100%;
@@ -24,21 +22,18 @@
       color: var(--fg);
       font-family: "Courier New", Courier, monospace;
     }
-
     body {
       display: flex;
       justify-content: center;
       align-items: flex-start;
       padding: 32px 18px;
     }
-
     .frame {
       width: min(1100px, 100%);
       border: 2px solid var(--line);
       padding: 22px 20px 18px;
       background: #000;
     }
-
     .title {
       font-size: clamp(20px, 2.8vw, 32px);
       font-weight: 700;
@@ -46,28 +41,24 @@
       margin-bottom: 14px;
       text-transform: uppercase;
     }
-
     .intro {
       color: #bdbdbd;
       font-size: clamp(12px, 1.3vw, 17px);
       line-height: 1.35;
       margin-bottom: 18px;
     }
-
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
-
     .field, .btn {
       min-height: 52px;
       border: 2px solid var(--line);
       font-family: "Courier New", Courier, monospace;
       font-size: clamp(15px, 1.6vw, 22px);
     }
-
     .field {
       background: #000;
       color: #fff;
@@ -75,7 +66,6 @@
       text-transform: uppercase;
       outline: none;
     }
-
     .options-wrap {
       border: 2px solid var(--line);
       max-height: 180px;
@@ -83,26 +73,22 @@
       padding: 10px;
       margin-bottom: 12px;
     }
-
     .options {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
     }
-
     .opt {
       border: 1px solid #666;
       padding: 10px;
       font-size: 14px;
     }
-
     .opt label {
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
     }
-
     .btn {
       background: #000;
       color: #fff;
@@ -110,12 +96,10 @@
       font-weight: 700;
       padding: 10px 12px;
     }
-
     .btn.primary {
       background: var(--button-bg);
       color: var(--button-fg);
     }
-
     .status-box {
       border: 1px solid var(--line);
       min-height: 52px;
@@ -126,7 +110,6 @@
       color: #d7d7d7;
       white-space: pre-wrap;
     }
-
     .preview-box {
       border: 2px solid var(--line);
       padding: 14px;
@@ -135,7 +118,6 @@
       overflow: auto;
       margin-bottom: 12px;
     }
-
     .preview-text {
       margin: 0;
       color: #fff;
@@ -145,20 +127,17 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
-
     .actions {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
-
     .footer-tip {
       color: #9f9f9f;
       font-size: clamp(12px, 1vw, 16px);
       line-height: 1.35;
     }
-
     @media (max-width: 900px) {
       .grid, .options, .actions {
         grid-template-columns: 1fr;
@@ -179,7 +158,7 @@
       <input id="flight" class="field" type="text" placeholder="FLIGHT (NG123)" />
       <input id="dep" class="field" type="text" placeholder="DEP ICAO" value="EFLA" maxlength="4" />
       <input id="arr" class="field" type="text" placeholder="ARR ICAO" value="EFHV" maxlength="4" />
-      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" value="EFHK" maxlength="4" />
+      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" value="EFNU" maxlength="4" />
     </div>
 
     <div class="options-wrap">
