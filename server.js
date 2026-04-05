@@ -25,6 +25,7 @@ const FALLBACK_SEARCH_LIMIT = 20;
 const FALLBACK_BATCH_SIZE = 5;
 
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
+const EFNU_AWOS_URL = 'https://atis.efnu.fi/weewx-awos/';
 
 let airportDbCache = {
   data: null,
@@ -310,7 +311,7 @@ async function fetchRaw(url) {
     const text = String(await res.text() || '').trim() || null;
     setCached(cacheKey, text, WEATHER_CACHE_TTL_MS);
     return text;
-  } catch (err) {
+  } catch {
     return null;
   }
 }
@@ -340,7 +341,7 @@ async function fetchHtml(url) {
     const html = await res.text();
     setCached(cacheKey, html, HTML_CACHE_TTL_MS);
     return html;
-  } catch (err) {
+  } catch {
     return null;
   }
 }
@@ -549,8 +550,17 @@ function parseEfhvLocalMetar(html, icao) {
   });
 }
 
-function parseEfnuAwosTextToMetar(text, icao) {
+function extractEfnuInfoText(text) {
   const compact = cleanLine(stripHtml(text));
+
+  const startMarker = compact.match(/THIS IS NUMMELA INFO [A-Z]+ .*? INFO [A-Z]+\./i);
+  if (startMarker) return startMarker[0];
+
+  return compact;
+}
+
+function parseEfnuAwosTextToMetar(text, icao) {
+  const compact = extractEfnuInfoText(text);
 
   const spokenNumberToInt = (input) => {
     if (!input) return null;
@@ -697,29 +707,21 @@ async function getEfnuLocalGeneratedMetar(icao) {
   const cached = getCached(cacheKey);
   if (cached !== undefined) return cached;
 
-  const urls = [
-    'https://atis.efnu.fi/weewx-awos/',
-    'https://cumulusry.fi/atis-efnu/',
-    'https://info.efnu.fi/'
-  ];
-
-  for (const url of urls) {
-    try {
-      const html = await fetchHtml(url);
-      if (!html) continue;
-
-      const metar = parseEfnuAwosTextToMetar(html, icao);
-      if (metar) {
-        setCached(cacheKey, metar, HTML_CACHE_TTL_MS);
-        return metar;
-      }
-    } catch (err) {
-      console.warn(`EFNU local parser failed for ${url}:`, err.message);
+  try {
+    const html = await fetchHtml(EFNU_AWOS_URL);
+    if (!html) {
+      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
+      return null;
     }
-  }
 
-  setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
-  return null;
+    const metar = parseEfnuAwosTextToMetar(html, icao);
+    setCached(cacheKey, metar, metar ? HTML_CACHE_TTL_MS : NEGATIVE_CACHE_TTL_MS);
+    return metar;
+  } catch (err) {
+    console.warn(`EFNU local parser failed:`, err.message);
+    setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
+    return null;
+  }
 }
 
 async function getLocalGeneratedMetar(icao) {
