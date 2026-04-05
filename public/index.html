@@ -278,6 +278,7 @@ END OF REPORT</pre>
     const notamsBtn = el('notamsBtn');
 
     let latestDirectUrl = null;
+    let routeTouched = false;
 
     function setStatus(text) {
       statusBox.textContent = text;
@@ -291,6 +292,42 @@ END OF REPORT</pre>
       return String(v || '').trim().replace(/\s+/g, ' ').toUpperCase();
     }
 
+    function normalizeIcaoInputValue(v) {
+      return String(v || '')
+        .toUpperCase()
+        .replace(/[^A-Z]/g, '')
+        .slice(0, 4);
+    }
+
+    function normalizeFlightInputValue(v) {
+      return String(v || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .slice(0, 10);
+    }
+
+    function normalizeRouteInputValue(v) {
+      return String(v || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9/ \-]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 40);
+    }
+
+    function autoFillRouteFromDepArr() {
+      const dep = normalizeIcaoInputValue(fields.dep.value);
+      const arr = normalizeIcaoInputValue(fields.arr.value);
+
+      fields.dep.value = dep;
+      fields.arr.value = arr;
+
+      if (routeTouched) return;
+      if (dep.length !== 4 || arr.length !== 4) return;
+
+      fields.route.value = `${dep}-${arr}`;
+    }
+
     function applyFullWeather() {
       if (!fields.fullWeather.checked) return;
       fields.includeDepMetar.checked = true;
@@ -302,6 +339,41 @@ END OF REPORT</pre>
     }
 
     fields.fullWeather.addEventListener('change', applyFullWeather);
+
+    fields.flight.addEventListener('input', () => {
+      fields.flight.value = normalizeFlightInputValue(fields.flight.value);
+    });
+
+    fields.dep.addEventListener('input', () => {
+      fields.dep.value = normalizeIcaoInputValue(fields.dep.value);
+      autoFillRouteFromDepArr();
+    });
+
+    fields.arr.addEventListener('input', () => {
+      fields.arr.value = normalizeIcaoInputValue(fields.arr.value);
+      autoFillRouteFromDepArr();
+    });
+
+    fields.altn.addEventListener('input', () => {
+      fields.altn.value = normalizeIcaoInputValue(fields.altn.value);
+    });
+
+    fields.route.addEventListener('input', () => {
+      const normalized = normalizeRouteInputValue(fields.route.value);
+      fields.route.value = normalized;
+      routeTouched = normalized.length > 0;
+    });
+
+    fields.route.addEventListener('blur', () => {
+      if (!fields.route.value.trim()) {
+        routeTouched = false;
+        autoFillRouteFromDepArr();
+      }
+    });
+
+    fields.remarks.addEventListener('input', () => {
+      fields.remarks.value = normalizedRemarks(fields.remarks.value);
+    });
 
     function buildQuery() {
       const params = new URLSearchParams({
@@ -408,6 +480,7 @@ END OF REPORT</pre>
 
     (async () => {
       await clearOldCaches();
+      autoFillRouteFromDepArr();
     })();
   </script>
 </body>
