@@ -146,6 +146,22 @@
       white-space: pre-wrap;
     }
 
+    .status-box.status-neutral {
+      color: #d7d7d7;
+    }
+
+    .status-box.status-live {
+      color: #66ff99;
+    }
+
+    .status-box.status-fallback {
+      color: #ffcc66;
+    }
+
+    .status-box.status-nodata {
+      color: #ff6b6b;
+    }
+
     .preview-box {
       border: 2px solid var(--line);
       padding: 14px;
@@ -228,7 +244,7 @@
       <button id="notamsBtn" class="btn">NOTAMS</button>
     </div>
 
-    <div id="statusBox" class="status-box">READY</div>
+    <div id="statusBox" class="status-box status-neutral">READY</div>
 
     <div class="preview-box">
       <pre id="previewText" class="preview-text">ACARS WEATHER REPORT
@@ -337,8 +353,24 @@ END OF REPORT`;
       utcClock.textContent = `UTC ${hh}:${mm}:${ss}`;
     }
 
-    function setStatus(text) {
+    function setStatus(text, mode = 'neutral') {
       statusBox.textContent = text;
+      statusBox.classList.remove('status-neutral', 'status-live', 'status-fallback', 'status-nodata');
+      statusBox.classList.add(`status-${mode}`);
+    }
+
+    function getStatusModeFromReport(reportText) {
+      const text = String(reportText || '');
+
+      if (text.includes('NOT AVAILABLE')) {
+        return 'nodata';
+      }
+
+      if (text.includes('MODE FALLBACK')) {
+        return 'fallback';
+      }
+
+      return 'live';
     }
 
     function upper(v) {
@@ -446,7 +478,7 @@ END OF REPORT`;
       routeTouched = false;
       latestDirectUrl = null;
       previewText.textContent = DEFAULT_PREVIEW;
-      setStatus('READY');
+      setStatus('READY', 'neutral');
     }
 
     fields.fullWeather.addEventListener('change', applyFullWeather);
@@ -530,13 +562,13 @@ END OF REPORT`;
 
       const validationError = validateInputs();
       if (validationError) {
-        setStatus(validationError);
+        setStatus(validationError, 'nodata');
         return;
       }
 
       const queryString = buildQuery();
 
-      setStatus('FETCHING WEATHER PACKAGE...');
+      setStatus('FETCHING WEATHER PACKAGE...', 'neutral');
       previewText.textContent = '';
 
       try {
@@ -545,16 +577,19 @@ END OF REPORT`;
 
         previewText.textContent = reportText;
         saveLatest(queryString, reportText);
-        setStatus('DONE — ACARS_DISPATCH_REPORT.pdf');
+        setStatus('DONE — ACARS_DISPATCH_REPORT.pdf', getStatusModeFromReport(reportText));
       } catch (err) {
         console.error(err);
         const saved = loadLatest();
         if (saved.report) {
           previewText.textContent = saved.report;
           latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
-          setStatus('OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT');
+          setStatus(
+            'OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT',
+            getStatusModeFromReport(saved.report)
+          );
         } else {
-          setStatus('ERROR FETCHING WEATHER PACKAGE');
+          setStatus('ERROR FETCHING WEATHER PACKAGE', 'nodata');
         }
       }
     }
@@ -574,7 +609,7 @@ END OF REPORT`;
     openBtn.addEventListener('click', async () => {
       const validationError = validateInputs();
       if (validationError) {
-        setStatus(validationError);
+        setStatus(validationError, 'nodata');
         return;
       }
 
@@ -583,7 +618,7 @@ END OF REPORT`;
       }
 
       if (!latestDirectUrl) {
-        setStatus('NO LIVE PDF READY');
+        setStatus('NO LIVE PDF READY', 'nodata');
         return;
       }
 
@@ -593,12 +628,12 @@ END OF REPORT`;
     latestBtn.addEventListener('click', () => {
       const saved = loadLatest();
       if (!saved.report) {
-        setStatus('NO SAVED REPORT');
+        setStatus('NO SAVED REPORT', 'nodata');
         return;
       }
       previewText.textContent = saved.report;
       latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
-      setStatus('DONE — ACARS_DISPATCH_REPORT.pdf');
+      setStatus('DONE — ACARS_DISPATCH_REPORT.pdf', getStatusModeFromReport(saved.report));
     });
 
     resetBtn.addEventListener('click', () => {
