@@ -433,6 +433,18 @@ function parseCloudBase(metar) {
   return lowest;
 }
 
+function parseTemperatureC(metar) {
+  const match = metar.match(/\b(M?\d{2})\/(M?\d{2})\b/);
+  if (!match) return null;
+
+  const raw = match[1];
+  const isMinus = raw.startsWith('M');
+  const num = parseInt(raw.replace('M', ''), 10);
+
+  if (Number.isNaN(num)) return null;
+  return isMinus ? -num : num;
+}
+
 function arrivalNeedsAlternate(wx) {
   if (!wx || !wx.metar || wx.metar === 'NOT AVAILABLE') return false;
 
@@ -450,6 +462,10 @@ function arrivalNeedsAlternate(wx) {
   return false;
 }
 
+function pushUnique(remarks, value) {
+  if (!remarks.includes(value)) remarks.push(value);
+}
+
 function generateAutoRemark(data) {
   if (data.remarks) return data.remarks;
 
@@ -463,40 +479,76 @@ function generateAutoRemark(data) {
     const vis = parseVisibility(metar);
     const phenomena = parseWeatherPhenomena(metar);
     const cloudBase = parseCloudBase(metar);
+    const tempC = parseTemperatureC(metar);
 
     if (vis !== null) {
-      if (vis < 2000) {
-        remarks.push('POOR VIS');
+      if (vis < 1500) {
+        pushUnique(remarks, 'VERY LOW VIS');
+      } else if (vis < 2000) {
+        pushUnique(remarks, 'POOR VIS');
       } else if (vis < 5000) {
-        remarks.push('LOW VIS');
+        pushUnique(remarks, 'LOW VIS');
       }
     }
 
     if (wind) {
       if (wind.gust && wind.gust >= 25) {
-        remarks.push(`GUSTS ${wind.gust}KT`);
+        pushUnique(remarks, `GUSTS ${wind.gust}KT`);
       } else if (wind.speed >= 20) {
-        remarks.push('STRONG WIND');
+        pushUnique(remarks, 'STRONG WIND');
+      }
+
+      if (wind.gust && wind.gust - wind.speed >= 10) {
+        pushUnique(remarks, 'GUST SPREAD');
       }
     }
 
-    if (cloudBase !== null && cloudBase <= 2000) {
-      remarks.push('LOW CEILING');
+    if (cloudBase !== null) {
+      if (cloudBase <= 500) {
+        pushUnique(remarks, 'VERY LOW CEILING');
+      } else if (cloudBase <= 2000) {
+        pushUnique(remarks, 'LOW CEILING');
+      }
     }
 
     if (phenomena.includes('TS')) {
-      remarks.push('TS');
-    } else if (phenomena.includes('FG')) {
-      remarks.push('FOG');
+      pushUnique(remarks, 'TS');
+    }
+
+    if (phenomena.includes('FG')) {
+      pushUnique(remarks, 'FOG');
+    } else if (phenomena.includes('BR')) {
+      pushUnique(remarks, 'MIST');
+    }
+
+    if (phenomena.includes('FZRA')) {
+      pushUnique(remarks, 'FREEZING PRECIP');
     } else if (
       phenomena.includes('RA') ||
       phenomena.includes('SHRA') ||
-      phenomena.includes('DZ') ||
-      phenomena.includes('SN') ||
-      phenomena.includes('SHSN') ||
-      phenomena.includes('FZRA')
+      phenomena.includes('DZ')
     ) {
-      remarks.push('PRECIP');
+      pushUnique(remarks, 'PRECIP');
+    }
+
+    if (phenomena.includes('SN') || phenomena.includes('SHSN')) {
+      pushUnique(remarks, 'SNOW');
+    }
+
+    if (
+      tempC !== null &&
+      tempC <= 2 &&
+      (
+        phenomena.includes('RA') ||
+        phenomena.includes('SHRA') ||
+        phenomena.includes('DZ') ||
+        phenomena.includes('FZRA') ||
+        phenomena.includes('SN') ||
+        phenomena.includes('SHSN') ||
+        cloudBase !== null && cloudBase <= 2000
+      )
+    ) {
+      pushUnique(remarks, 'ICING RISK');
     }
   }
 
@@ -504,11 +556,10 @@ function generateAutoRemark(data) {
   inspect(data.arrWx);
 
   if (arrivalNeedsAlternate(data.arrWx)) {
-    remarks.push('ALTN REQUIRED');
+    pushUnique(remarks, 'ALTN REQUIRED');
   }
 
-  const unique = [...new Set(remarks)];
-  return unique.length ? unique.join(' / ') : 'NIL';
+  return remarks.length ? remarks.join(' / ') : 'NIL';
 }
 
 async function getAirportWeather(icao) {
@@ -784,8 +835,10 @@ function buildWeatherSectionLines(label, wx, wantMetar, wantTaf) {
     if (wx.metarFallback && wx.metarSource) {
       lines.push('METAR MODE FALLBACK');
       lines.push(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`);
-    } else {
+    } else if (wx.metar && wx.metar !== 'NOT AVAILABLE') {
       lines.push('METAR MODE LIVE');
+    } else {
+      lines.push('METAR MODE NO DATA');
     }
 
     lines.push(wx.metar || 'NOT AVAILABLE');
@@ -993,8 +1046,10 @@ async function dispatchToPdfBuffer(data) {
       if (wx.metarFallback && wx.metarSource) {
         drawLine('METAR MODE FALLBACK', 9.2, true);
         drawLine(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`, 9.2, true);
-      } else {
+      } else if (wx.metar && wx.metar !== 'NOT AVAILABLE') {
         drawLine('METAR MODE LIVE', 9.2, true);
+      } else {
+        drawLine('METAR MODE NO DATA', 9.2, true);
       }
 
       drawWrappedText(wx.metar || 'NOT AVAILABLE');
