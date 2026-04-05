@@ -184,8 +184,8 @@
     <div class="title">NATGLOBE AVIATION / ACARS DISPATCH</div>
 
     <div class="intro">
-      Minimal ACARS-style weather and dispatch strip. NOTAMS remain external via Fintraffic PIB.
-      Report includes UTC and Helsinki local time.
+      Choose exactly what weather sections to include. NOTAMS open separately in Fintraffic PIB.
+      Report shows both UTC time and local Finland time.
     </div>
 
     <div class="grid">
@@ -196,7 +196,7 @@
     </div>
 
     <div class="grid-2">
-      <input id="route" class="field" type="text" placeholder="ROUTE (EFHV/EFHK)" />
+      <input id="route" class="field" type="text" placeholder="ROUTE (OPTIONAL)" />
       <input id="docType" class="field" type="text" value="WX DISPATCH" disabled />
     </div>
 
@@ -224,22 +224,21 @@
     <div id="statusBox" class="status-box">READY</div>
 
     <div class="preview-box">
-      <pre id="previewText" class="preview-text">NATGLOBE AVIATION ACARS DISPATCH
-========================================
-DOC TYPE:   WX DISPATCH
-MSG REF:
-TIME UTC:
-TIME HEL:
+      <pre id="previewText" class="preview-text">ACARS WEATHER REPORT
+--------------------
+OPS SOURCE: NATGLOBE AVIATION
+TIME (UTC):
+TIME (LOCAL):
 
-DEP WEATHER
-ARR WEATHER
-ALTN WX
+DEP WEATHER:
+ARR WEATHER:
+ALTN WEATHER:
 
 END OF REPORT</pre>
     </div>
 
     <div class="footer-tip">
-      Weather remains inside the ACARS report. NOTAMS stay external in official Fintraffic PIB.
+      Weather stays in the ACARS PDF. NOTAMS open separately in the official Fintraffic PIB page.
     </div>
   </main>
 
