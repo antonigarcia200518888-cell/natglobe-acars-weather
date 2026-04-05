@@ -437,9 +437,11 @@ OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
 FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
+METAR MODE LIVE
 EFHV 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
 ARR WX (EFHK)
+METAR MODE LIVE
 EFHK 051650Z 19014KT 9999 SCT018 BKN030 04/01 Q1002
 
 RMK NIL
@@ -470,9 +472,11 @@ OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
 FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
+METAR MODE LIVE
 EFHV 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
 ARR WX (EFHK)
+METAR MODE LIVE
 EFHK 051650Z 19014KT 9999 SCT018 BKN030 04/01 Q1002
 
 RMK NIL
@@ -646,8 +650,14 @@ END OF REPORT`;
 
       const replacements = [
         { regex: /\bNOT AVAILABLE\b/g, cls: 'hl-danger' },
-        { regex: /\bMODE FALLBACK\b/g, cls: 'hl-warn' },
+        { regex: /\bMETAR MODE FALLBACK\b/g, cls: 'hl-warn' },
+        { regex: /\bTAF MODE FALLBACK\b/g, cls: 'hl-warn' },
+        { regex: /\bMETAR MODE NO DATA\b/g, cls: 'hl-danger' },
+        { regex: /\bTAF MODE NO DATA\b/g, cls: 'hl-danger' },
+        { regex: /\bMETAR MODE LIVE\b/g, cls: 'hl-live' },
+        { regex: /\bTAF MODE LIVE\b/g, cls: 'hl-live' },
         { regex: /\bMETAR SRC [A-Z]{4}\/\d+NM\b/g, cls: 'hl-warn' },
+        { regex: /\bTAF SRC [A-Z]{4}\/\d+NM\b/g, cls: 'hl-warn' },
         { regex: /\bALTN REQUIRED\b/g, cls: 'hl-danger' },
         { regex: /\bPOOR VIS\b/g, cls: 'hl-danger' },
         { regex: /\bLOW VIS\b/g, cls: 'hl-warn' },
