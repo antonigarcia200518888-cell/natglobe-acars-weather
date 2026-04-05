@@ -15,19 +15,15 @@ app.use(express.json());
 
 const AIRPORT_DB_TTL_MS = 24 * 60 * 60 * 1000;
 const WEATHER_CACHE_TTL_MS = 90 * 1000;
-const HTML_CACHE_TTL_MS = 60 * 1000;
 const NEGATIVE_CACHE_TTL_MS = 15 * 1000;
 
 const FETCH_TIMEOUT_RAW_MS = 4500;
-const FETCH_TIMEOUT_HTML_MS = 3500;
 const FETCH_TIMEOUT_AIRPORT_DB_MS = 10000;
 
 const FALLBACK_SEARCH_LIMIT = 16;
 const FALLBACK_BATCH_SIZE = 4;
 
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
-const EFNU_AWOS_URL = 'https://atis.efnu.fi/weewx-awos/';
-const EFHV_URL = 'https://efhv.fi/';
 
 let airportDbCache = {
   data: null,
@@ -97,10 +93,6 @@ function kmToNm(km) {
 function formatNm(km) {
   if (km == null || Number.isNaN(km)) return null;
   return Math.round(kmToNm(km));
-}
-
-function pad2(n) {
-  return String(n).padStart(2, '0');
 }
 
 function parseCsv(csvText) {
@@ -317,36 +309,6 @@ async function fetchRaw(url) {
   }
 }
 
-async function fetchHtml(url) {
-  const cacheKey = `html:${url}`;
-  const cached = getCached(cacheKey);
-  if (cached !== undefined) return cached;
-
-  try {
-    const res = await fetchWithTimeout(
-      url,
-      {
-        headers: {
-          'User-Agent': 'NatGlobeAviation/1.0',
-          Accept: 'text/html,application/xhtml+xml'
-        }
-      },
-      FETCH_TIMEOUT_HTML_MS
-    );
-
-    if (!res.ok) {
-      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
-      return null;
-    }
-
-    const html = await res.text();
-    setCached(cacheKey, html, HTML_CACHE_TTL_MS);
-    return html;
-  } catch {
-    return null;
-  }
-}
-
 async function getMetar(icao) {
   return fetchRaw(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=raw`);
 }
@@ -389,255 +351,6 @@ async function getNearestOfficial(fetchFn, requestedIcao) {
   };
 }
 
-function stripHtml(html) {
-  return String(html || '')
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
-    .replace(/<\/div>/gi, '\n')
-    .replace(/<\/h\d>/gi, '\n')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&deg;/gi, '°')
-    .replace(/\r/g, '')
-    .replace(/[ \t]+/g, ' ')
-    .replace(/\n{2,}/g, '\n')
-    .trim();
-}
-
-function cleanLine(line) {
-  return String(line || '').replace(/\s+/g, ' ').trim();
-}
-
-function toSignedTempGroup(value) {
-  if (!Number.isFinite(Number(value))) return '//';
-  const rounded = Math.round(Number(value));
-  return rounded < 0 ? `M${pad2(Math.abs(rounded))}` : pad2(rounded);
-}
-
-function mapCloudFromFeet(cloudCode, baseFt) {
-  const code = String(cloudCode || '').trim().toUpperCase();
-  const base = Number(baseFt);
-
-  if (['SKC', 'CLR', 'NSC', 'NCD'].includes(code)) return code;
-  if (!Number.isFinite(base)) return code || '///';
-
-  const hundreds = Math.max(0, Math.round(base / 100));
-  const suffix = String(hundreds).padStart(3, '0');
-
-  if (['FEW', 'SCT', 'BKN', 'OVC', 'VV'].includes(code)) {
-    return `${code}${suffix}`;
-  }
-
-  return code || '///';
-}
-
-function mapCloudFromOktas(oktas) {
-  const n = Number(oktas);
-  if (!Number.isFinite(n)) return '///';
-  if (n <= 0) return 'SKC';
-  if (n <= 2) return 'FEW020';
-  if (n <= 4) return 'SCT020';
-  if (n <= 7) return 'BKN020';
-  return 'OVC020';
-}
-
-function buildWindGroup(dirDeg, speedKt, gustKt) {
-  const dirNum = Number(dirDeg);
-  const spdNum = Number(speedKt);
-  const gstNum = Number(gustKt);
-
-  const dir =
-    Number.isFinite(dirNum)
-      ? String(Math.round(dirNum / 10) * 10).padStart(3, '0')
-      : 'VRB';
-
-  const spd =
-    Number.isFinite(spdNum)
-      ? pad2(Math.max(0, Math.round(spdNum)))
-      : '//';
-
-  const gust =
-    Number.isFinite(gstNum) && (!Number.isFinite(spdNum) || gstNum > spdNum)
-      ? `G${pad2(Math.round(gstNum))}`
-      : '';
-
-  return `${dir}${spd}${gust}KT`;
-}
-
-function buildPseudoMetar({
-  icao,
-  day,
-  hour,
-  minute,
-  windDir,
-  windKt,
-  windGustKt,
-  temp,
-  dew,
-  pressure,
-  visibility,
-  cloud
-}) {
-  const dd = pad2(day ?? new Date().getUTCDate());
-  const hh = pad2(hour ?? new Date().getUTCHours());
-  const mm = pad2(minute ?? new Date().getUTCMinutes());
-
-  const windGroup = buildWindGroup(windDir, windKt, windGustKt);
-  const visGroup =
-    Number.isFinite(Number(visibility)) && Number(visibility) > 0
-      ? String(Math.max(0, Math.round(Number(visibility)))).padStart(4, '0')
-      : '9999';
-
-  const tempGroup = toSignedTempGroup(temp);
-  const dewGroup = toSignedTempGroup(dew);
-
-  const qnhGroup =
-    Number.isFinite(Number(pressure))
-      ? `Q${String(Math.round(Number(pressure))).padStart(4, '0')}`
-      : 'Q////';
-
-  const cloudGroup = cloud || '///';
-
-  return `${icao} ${dd}${hh}${mm}Z AUTO ${windGroup} ${visGroup} ${cloudGroup} ${tempGroup}/${dewGroup} ${qnhGroup}`;
-}
-
-function parseEfhvLocalMetar(html, icao) {
-  const text = stripHtml(html);
-
-  if (/Anturista akku loppu/i.test(text)) {
-    return null;
-  }
-
-  const measuredMatch = text.match(/Mitattu\s+(\d{1,2})\.(\d{1,2})\.\s+(\d{1,2}):(\d{2})/i);
-  const lineMatch = text.match(
-    /(\d{1,2}):(\d{2})\s+(-?\d+)°\s*(\d+)%[,\s]+(-?\d+)°\s*(\d{1,3})°\s*(\d+)\((\d+)\)\s*(\d)\/8/i
-  );
-
-  if (!measuredMatch || !lineMatch) {
-    return null;
-  }
-
-  const day = Number(measuredMatch[1]);
-  const hour = Number(measuredMatch[3]);
-  const minute = Number(measuredMatch[4]);
-
-  const temp = Number(lineMatch[3]);
-  const dew = Number(lineMatch[5]);
-  const windDir = Number(lineMatch[6]);
-  const windKt = Number(lineMatch[7]);
-  const windGustKt = Number(lineMatch[8]);
-  const oktas = Number(lineMatch[9]);
-
-  return buildPseudoMetar({
-    icao,
-    day,
-    hour,
-    minute,
-    windDir,
-    windKt,
-    windGustKt,
-    temp,
-    dew,
-    pressure: null,
-    visibility: 9999,
-    cloud: mapCloudFromOktas(oktas)
-  });
-}
-
-function parseEfnuAwosTextToMetar(text, icao) {
-  const compact = cleanLine(stripHtml(text));
-
-  const timestampMatch = compact.match(/(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/i);
-  const tempMatch = compact.match(/Outside Temperature\s+(-?\d+(?:\.\d+)?)°C/i);
-  const dewMatch = compact.match(/Dew Point\s+(-?\d+(?:\.\d+)?)°C/i);
-  const pressureMatch = compact.match(/Barometer\s+(\d+(?:\.\d+)?)\s*mbar/i);
-  const windMatch = compact.match(/Wind\s+(\d+(?:\.\d+)?)\s*m\/s\s+[A-Z]+\s+\((\d{1,3})°\)/i);
-
-  if (!timestampMatch || !tempMatch || !dewMatch || !pressureMatch || !windMatch) {
-    return null;
-  }
-
-  const day = Number(timestampMatch[2]);
-  const hour = Number(timestampMatch[4]);
-  const minute = Number(timestampMatch[5]);
-
-  const temp = Number(tempMatch[1]);
-  const dew = Number(dewMatch[1]);
-  const pressure = Number(pressureMatch[1]);
-
-  const windMs = Number(windMatch[1]);
-  const windDir = Number(windMatch[2]);
-  const windKt = windMs * 1.943844;
-
-  return buildPseudoMetar({
-    icao,
-    day,
-    hour,
-    minute,
-    windDir,
-    windKt,
-    windGustKt: null,
-    temp,
-    dew,
-    pressure,
-    visibility: 9999,
-    cloud: '///'
-  });
-}
-
-async function getEfnuLocalGeneratedMetar(icao) {
-  const cacheKey = `localmetar:${icao}`;
-  const cached = getCached(cacheKey);
-  if (cached !== undefined) return cached;
-
-  try {
-    const html = await fetchHtml(EFNU_AWOS_URL);
-    if (!html) {
-      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
-      return null;
-    }
-
-    const metar = parseEfnuAwosTextToMetar(html, icao);
-    setCached(cacheKey, metar, metar ? HTML_CACHE_TTL_MS : NEGATIVE_CACHE_TTL_MS);
-    return metar;
-  } catch (err) {
-    console.warn(`EFNU local parser failed:`, err.message);
-    setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
-    return null;
-  }
-}
-
-async function getLocalGeneratedMetar(icao) {
-  const cacheKey = `localmetar:${icao}`;
-  const cached = getCached(cacheKey);
-  if (cached !== undefined) return cached;
-
-  try {
-    if (icao === 'EFHV') {
-      const html = await fetchHtml(EFHV_URL);
-      if (!html) {
-        setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
-        return null;
-      }
-      const metar = parseEfhvLocalMetar(html, icao);
-      setCached(cacheKey, metar, metar ? HTML_CACHE_TTL_MS : NEGATIVE_CACHE_TTL_MS);
-      return metar;
-    }
-
-    if (icao === 'EFNU') {
-      return await getEfnuLocalGeneratedMetar(icao);
-    }
-  } catch (err) {
-    console.warn(`Local METAR build failed for ${icao}:`, err.message);
-  }
-
-  setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
-  return null;
-}
-
 async function getAirportWeather(icao) {
   if (!icao) return null;
 
@@ -655,17 +368,6 @@ async function getAirportWeather(icao) {
   let metarDistanceNm = 0;
   let tafDistanceNm = 0;
   let mode = 'LIVE';
-
-  if (!metar) {
-    const localGeneratedMetar = await getLocalGeneratedMetar(icao);
-    if (localGeneratedMetar) {
-      metar = localGeneratedMetar;
-      mode = 'LOCAL';
-      metarSource = null;
-      metarFallback = false;
-      metarDistanceNm = null;
-    }
-  }
 
   const fallbackPromises = [];
   let needFallbackMetar = false;
@@ -700,7 +402,7 @@ async function getAirportWeather(icao) {
       tafSource = fallbackTaf.source;
       tafFallback = fallbackTaf.fallback;
       tafDistanceNm = fallbackTaf.distanceNm;
-      if (fallbackTaf.fallback && mode !== 'LOCAL') mode = 'FALLBACK';
+      if (fallbackTaf.fallback) mode = 'FALLBACK';
     }
   }
 
@@ -709,10 +411,6 @@ async function getAirportWeather(icao) {
 
   if (metar === 'NOT AVAILABLE' && taf === 'NOT AVAILABLE') {
     mode = 'NO DATA';
-  }
-
-  if (officialMetar && !officialTaf && tafFallback) {
-    mode = 'FALLBACK';
   }
 
   return {
