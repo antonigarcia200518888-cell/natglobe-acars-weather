@@ -368,6 +368,113 @@ async function getNearestOfficial(fetchFn, requestedIcao) {
   };
 }
 
+function parseWindKt(metar) {
+  const gustMatch = metar.match(/\b(\d{3}|VRB)(\d{2,3})G(\d{2,3})KT\b/);
+  if (gustMatch) {
+    return {
+      speed: parseInt(gustMatch[2], 10),
+      gust: parseInt(gustMatch[3], 10)
+    };
+  }
+
+  const basicMatch = metar.match(/\b(\d{3}|VRB)(\d{2,3})KT\b/);
+  if (basicMatch) {
+    return {
+      speed: parseInt(basicMatch[2], 10),
+      gust: null
+    };
+  }
+
+  return null;
+}
+
+function parseVisibility(metar) {
+  const visMatch = metar.match(/\b(\d{4})\b/);
+  if (!visMatch) return null;
+
+  const value = parseInt(visMatch[1], 10);
+  if (Number.isNaN(value)) return null;
+
+  return value;
+}
+
+function parseWeatherPhenomena(metar) {
+  const phenomena = [];
+  const tokens = ['FG', 'BR', 'RA', 'SN', 'TS', 'DZ', 'FZRA', 'SHRA', 'SHSN'];
+
+  for (const token of tokens) {
+    if (metar.includes(token)) phenomena.push(token);
+  }
+
+  return phenomena;
+}
+
+function parseCloudBase(metar) {
+  const cloudRegex = /\b(FEW|SCT|BKN|OVC)(\d{3})\b/g;
+  let match;
+  let lowest = null;
+
+  while ((match = cloudRegex.exec(metar)) !== null) {
+    const base = parseInt(match[2], 10) * 100;
+    if (!Number.isNaN(base)) {
+      if (lowest === null || base < lowest) lowest = base;
+    }
+  }
+
+  return lowest;
+}
+
+function generateAutoRemark(data) {
+  if (data.remarks) return data.remarks;
+
+  const remarks = [];
+
+  function inspect(label, wx) {
+    if (!wx || !wx.metar || wx.metar === 'NOT AVAILABLE') return;
+
+    const metar = String(wx.metar);
+    const wind = parseWindKt(metar);
+    const vis = parseVisibility(metar);
+    const phenomena = parseWeatherPhenomena(metar);
+    const cloudBase = parseCloudBase(metar);
+
+    if (vis !== null && vis <= 5000) {
+      remarks.push(`LOW VIS ${label}`);
+    }
+
+    if (wind) {
+      if ((wind.gust && wind.gust >= 25) || wind.speed >= 20) {
+        remarks.push(`STRONG WIND ${label}`);
+      }
+    }
+
+    if (cloudBase !== null && cloudBase <= 1000) {
+      remarks.push(`LOW CIG ${label}`);
+    }
+
+    if (phenomena.includes('FG')) {
+      remarks.push(`FOG ${label}`);
+    } else if (phenomena.includes('TS')) {
+      remarks.push(`TS ${label}`);
+    } else if (
+      phenomena.includes('RA') ||
+      phenomena.includes('SHRA') ||
+      phenomena.includes('DZ') ||
+      phenomena.includes('SN') ||
+      phenomena.includes('SHSN') ||
+      phenomena.includes('FZRA')
+    ) {
+      remarks.push(`WX ${label}`);
+    }
+  }
+
+  inspect('DEP', data.depWx);
+  inspect('ARR', data.arrWx);
+
+  const unique = [...new Set(remarks)];
+  return unique.length ? unique.join(' / ') : 'NIL';
+}
+
 async function getAirportWeather(icao) {
   if (!icao) return null;
 
@@ -490,6 +597,8 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
     flight: normalizeFlight(query.flight),
     route: normalizeRoute(query.route),
     remarks: normalizeRemarks(query.remarks),
+    dep: normalizeIcao(query.dep),
+    arr: normalizeIcao(query.arr),
     depWx,
     arrWx,
     altnWx,
@@ -503,18 +612,24 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
 }
 
 function buildDispatchText(data) {
-  const headerLine = [
+  const headerLine1 = [
     'OPS: NATGLOBE AVIATION',
-    data.flight ? `FLT ${data.flight}` : null,
-    data.route ? `ROUTE ${data.route}` : null,
     `DATE ${data.date}`,
     `UTC ${data.timeUtc.replace(' UTC', '')}`
+  ].join('   ');
+
+  const headerLine2 = [
+    data.flight ? `FLT ${data.flight}` : null,
+    data.dep ? `ORIG ${data.dep}` : null,
+    data.arr ? `DEST ${data.arr}` : null,
+    data.route ? `ROUTE ${data.route}` : null
   ].filter(Boolean).join('   ');
 
   const lines = [
     'ACARS WEATHER REPORT',
     '--------------------',
-    headerLine,
+    headerLine1,
+    headerLine2,
     ''
   ];
 
@@ -537,12 +652,10 @@ function buildDispatchText(data) {
   pushAirportBlock('ARR WX', data.arrWx, data.includeArrMetar);
   pushAirportBlock('ALTN WX', data.altnWx, data.includeAltnMetar);
 
-  if (data.remarks) {
-    lines.push(`RMK ${data.remarks}`);
-    lines.push('');
-  }
-
+  lines.push(`RMK ${generateAutoRemark(data)}`);
+  lines.push('');
   lines.push('END OF REPORT');
+
   return lines.join('\n');
 }
 
@@ -611,27 +724,31 @@ async function dispatchToPdfBuffer(data) {
     y -= 4;
   };
 
-  const headerLine = [
+  const headerLine1 = [
     'OPS: NATGLOBE AVIATION',
-    data.flight ? `FLT ${data.flight}` : null,
-    data.route ? `ROUTE ${data.route}` : null,
     `DATE ${data.date}`,
     `UTC ${data.timeUtc.replace(' UTC', '')}`
+  ].join('   ');
+
+  const headerLine2 = [
+    data.flight ? `FLT ${data.flight}` : null,
+    data.dep ? `ORIG ${data.dep}` : null,
+    data.arr ? `DEST ${data.arr}` : null,
+    data.route ? `ROUTE ${data.route}` : null
   ].filter(Boolean).join('   ');
 
   drawLine('ACARS WEATHER REPORT', 12, true);
   drawLine('--------------------', 11, true);
-  drawLine(headerLine, 9.5, false);
+  drawLine(headerLine1, 9.5, false);
+  drawLine(headerLine2, 9.5, false);
   y -= 4;
 
   drawAirportSection('DEP WX', data.depWx, data.includeDepMetar);
   drawAirportSection('ARR WX', data.arrWx, data.includeArrMetar);
   drawAirportSection('ALTN WX', data.altnWx, data.includeAltnMetar);
 
-  if (data.remarks) {
-    drawLine(`RMK ${data.remarks}`, 9.5, true);
-    y -= 2;
-  }
+  drawLine(`RMK ${generateAutoRemark(data)}`, 9.5, true);
+  y -= 2;
 
   drawLine('END OF REPORT', 10.5, true);
 
