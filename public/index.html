@@ -183,8 +183,8 @@
     <div class="title">NATGLOBE AVIATION / ACARS DISPATCH</div>
 
     <div class="intro">
-      Choose exactly what weather sections to include. NOTAMS open separately in Fintraffic PIB.
-      Route and remarks are now included in the ACARS report.
+      Choose exactly what weather sections to include. ORIG / DEST are automatic from DEP / ARR.
+      Remarks are used if entered; otherwise RMK is generated automatically from the weather.
     </div>
 
     <div class="grid">
@@ -196,7 +196,7 @@
 
     <div class="grid-2">
       <input id="route" class="field" type="text" placeholder="ROUTE (EFHV-EFHK)" />
-      <textarea id="remarks" class="remarks" placeholder="REMARKS"></textarea>
+      <textarea id="remarks" class="remarks" placeholder="REMARKS (OPTIONAL)"></textarea>
     </div>
 
     <div class="options-wrap">
@@ -223,16 +223,20 @@
     <div class="preview-box">
       <pre id="previewText" class="preview-text">ACARS WEATHER REPORT
 --------------------
-OPS: NATGLOBE AVIATION   DATE   UTC
+OPS: NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
+FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
-DEP WX
+DEP WX (EFHV)
 METAR
+EFHK 051620Z 12012KT 9999 FEW012 03/00 Q1000
+
+RMK NIL
 
 END OF REPORT</pre>
     </div>
 
     <div class="footer-tip">
-      Weather stays in the ACARS PDF. NOTAMS open separately in the official Fintraffic PIB page.
+      Weather stays in the ACARS PDF. If REMARKS is left empty, RMK is generated automatically.
     </div>
   </main>
 
