@@ -13,6 +13,10 @@
       --line: #ffffff;
       --button-bg: #d0d0d0;
       --button-fg: #000000;
+      --live: #66ff99;
+      --warn: #ffcc66;
+      --danger: #ff6b6b;
+      --accent: #8ec5ff;
     }
 
     * { box-sizing: border-box; }
@@ -135,6 +139,13 @@
       color: var(--button-fg);
     }
 
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
     .status-box {
       border: 1px solid var(--line);
       min-height: 52px;
@@ -151,15 +162,15 @@
     }
 
     .status-box.status-live {
-      color: #66ff99;
+      color: var(--live);
     }
 
     .status-box.status-fallback {
-      color: #ffcc66;
+      color: var(--warn);
     }
 
     .status-box.status-nodata {
-      color: #ff6b6b;
+      color: var(--danger);
     }
 
     .preview-box {
@@ -181,11 +192,24 @@
       word-break: break-word;
     }
 
-    .actions {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin-bottom: 12px;
+    .preview-text .hl-warn {
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    .preview-text .hl-danger {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .preview-text .hl-live {
+      color: var(--live);
+      font-weight: 700;
+    }
+
+    .preview-text .hl-info {
+      color: var(--accent);
+      font-weight: 700;
     }
 
     .footer-tip {
@@ -240,6 +264,7 @@
       <button id="generateBtn" class="btn primary">Generate PDF</button>
       <button id="openBtn" class="btn">Open PDF</button>
       <button id="latestBtn" class="btn">Use Latest Saved</button>
+      <button id="swapBtn" class="btn">Swap Route</button>
       <button id="resetBtn" class="btn">Reset</button>
       <button id="notamsBtn" class="btn">NOTAMS</button>
     </div>
@@ -253,11 +278,10 @@ OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
 FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
-EFHK 051620Z 12012KT 9999 FEW012 03/00 Q1000
+EFHV 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
-WINDS ALOFT
-DEP 2000FT 21015KT   FL050 23028KT   FL100 24542KT
-ARR 2000FT 20012KT   FL050 22526KT   FL100 24040KT
+ARR WX (EFHK)
+EFHK 051650Z 19014KT 9999 SCT018 BKN030 04/01 Q1002
 
 RMK NIL
 
@@ -287,11 +311,10 @@ OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
 FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
-EFHK 051620Z 12012KT 9999 FEW012 03/00 Q1000
+EFHV 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
-WINDS ALOFT
-DEP 2000FT 21015KT   FL050 23028KT   FL100 24542KT
-ARR 2000FT 20012KT   FL050 22526KT   FL100 24040KT
+ARR WX (EFHK)
+EFHK 051650Z 19014KT 9999 SCT018 BKN030 04/01 Q1002
 
 RMK NIL
 
@@ -338,6 +361,7 @@ END OF REPORT`;
     const generateBtn = el('generateBtn');
     const openBtn = el('openBtn');
     const latestBtn = el('latestBtn');
+    const swapBtn = el('swapBtn');
     const resetBtn = el('resetBtn');
     const notamsBtn = el('notamsBtn');
     const utcClock = el('utcClock');
@@ -458,6 +482,44 @@ END OF REPORT`;
       return null;
     }
 
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function applyPreviewHighlights(escapedText) {
+      let html = escapedText;
+
+      const replacements = [
+        { regex: /\bNOT AVAILABLE\b/g, cls: 'hl-danger' },
+        { regex: /\bMODE FALLBACK\b/g, cls: 'hl-warn' },
+        { regex: /\bMETAR SRC [A-Z]{4}\/\d+NM\b/g, cls: 'hl-warn' },
+        { regex: /\bALTN REQUIRED\b/g, cls: 'hl-danger' },
+        { regex: /\bPOOR VIS\b/g, cls: 'hl-danger' },
+        { regex: /\bLOW VIS\b/g, cls: 'hl-warn' },
+        { regex: /\bLOW CEILING\b/g, cls: 'hl-warn' },
+        { regex: /\bSTRONG WIND\b/g, cls: 'hl-warn' },
+        { regex: /\bGUSTS \d{2,3}KT\b/g, cls: 'hl-warn' },
+        { regex: /\bFOG\b/g, cls: 'hl-danger' },
+        { regex: /\bTS\b/g, cls: 'hl-danger' },
+        { regex: /\bPRECIP\b/g, cls: 'hl-info' },
+        { regex: /\bWINDS ALOFT\b/g, cls: 'hl-info' }
+      ];
+
+      for (const item of replacements) {
+        html = html.replace(item.regex, match => `<span class="${item.cls}">${match}</span>`);
+      }
+
+      return html;
+    }
+
+    function renderPreview(reportText) {
+      const escaped = escapeHtml(reportText);
+      previewText.innerHTML = applyPreviewHighlights(escaped);
+    }
+
     function resetForm() {
       fields.flight.value = DEFAULTS.flight;
       fields.dep.value = DEFAULTS.dep;
@@ -477,8 +539,24 @@ END OF REPORT`;
 
       routeTouched = false;
       latestDirectUrl = null;
-      previewText.textContent = DEFAULT_PREVIEW;
+      renderPreview(DEFAULT_PREVIEW);
       setStatus('READY', 'neutral');
+    }
+
+    function swapDepArr() {
+      const oldDep = normalizeIcaoInputValue(fields.dep.value);
+      const oldArr = normalizeIcaoInputValue(fields.arr.value);
+
+      fields.dep.value = oldArr;
+      fields.arr.value = oldDep;
+
+      if (!routeTouched) {
+        autoFillRouteFromDepArr();
+      } else {
+        fields.route.value = normalizeRouteInputValue(fields.route.value);
+      }
+
+      setStatus('DEP / ARR SWAPPED', 'neutral');
     }
 
     fields.fullWeather.addEventListener('change', applyFullWeather);
@@ -569,20 +647,20 @@ END OF REPORT`;
       const queryString = buildQuery();
 
       setStatus('FETCHING WEATHER PACKAGE...', 'neutral');
-      previewText.textContent = '';
+      renderPreview('');
 
       try {
         const reportText = await fetchText(queryString);
         latestDirectUrl = `/api/dispatch-pdf?${queryString}&t=${Date.now()}`;
 
-        previewText.textContent = reportText;
+        renderPreview(reportText);
         saveLatest(queryString, reportText);
-        setStatus('DONE — ACARS_DISPATCH_REPORT.pdf', getStatusModeFromReport(reportText));
+        setStatus('DONE — REPORT GENERATED', getStatusModeFromReport(reportText));
       } catch (err) {
         console.error(err);
         const saved = loadLatest();
         if (saved.report) {
-          previewText.textContent = saved.report;
+          renderPreview(saved.report);
           latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
           setStatus(
             'OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT',
@@ -596,14 +674,6 @@ END OF REPORT`;
 
     generateBtn.addEventListener('click', async () => {
       await generate();
-      if (latestDirectUrl) {
-        const a = document.createElement('a');
-        a.href = latestDirectUrl;
-        a.download = 'ACARS_DISPATCH_REPORT.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
     });
 
     openBtn.addEventListener('click', async () => {
@@ -631,9 +701,13 @@ END OF REPORT`;
         setStatus('NO SAVED REPORT', 'nodata');
         return;
       }
-      previewText.textContent = saved.report;
+      renderPreview(saved.report);
       latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
-      setStatus('DONE — ACARS_DISPATCH_REPORT.pdf', getStatusModeFromReport(saved.report));
+      setStatus('DONE — SAVED REPORT LOADED', getStatusModeFromReport(saved.report));
+    });
+
+    swapBtn.addEventListener('click', () => {
+      swapDepArr();
     });
 
     resetBtn.addEventListener('click', () => {
@@ -648,6 +722,7 @@ END OF REPORT`;
       await clearOldCaches();
       updateUtcClock();
       setInterval(updateUtcClock, 1000);
+      renderPreview(DEFAULT_PREVIEW);
     })();
   </script>
 </body>
