@@ -1,163 +1,245 @@
-import express from "express";
-import fetch from "node-fetch";
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { airports as bundledAirports } from './data/airports.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
-app.use(express.static("public"));
 
-const WX_API = "https://aviationweather.gov/api/data/metar?format=raw&ids=";
+const AIRPORT_DB_TTL_MS = 24 * 60 * 60 * 1000;
+const WEATHER_CACHE_TTL_MS = 90 * 1000;
+const NEGATIVE_CACHE_TTL_MS = 15 * 1000;
 
-// ---------------------------
-// Fetch METAR
-// ---------------------------
-async function fetchMetar(icao) {
-  try {
-    const res = await fetch(`${WX_API}${icao}`, { timeout: 4000 });
-    const text = await res.text();
-    return text || null;
-  } catch {
-    return null;
+const FETCH_TIMEOUT_RAW_MS = 4500;
+const FETCH_TIMEOUT_AIRPORT_DB_MS = 10000;
+
+const FALLBACK_SEARCH_LIMIT = 16;
+const FALLBACK_BATCH_SIZE = 4;
+
+const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
+
+let airportDbCache = { data: null, loadedAt: 0, promise: null };
+const responseCache = new Map();
+
+/* -------------------- (UNCHANGED CORE LOGIC REMOVED FOR BREVITY — KEEP YOUR ORIGINAL) -------------------- */
+/* KEEP EVERYTHING FROM YOUR ORIGINAL FILE EXACTLY THE SAME UNTIL RMK + FORMAT FUNCTIONS */
+
+/* ========================= */
+/* 🔥 UPDATED RMK GENERATOR */
+/* ========================= */
+
+function generateAutoRemark(data) {
+  if (data.remarks) return data.remarks;
+
+  const remarks = [];
+
+  function inspect(wx) {
+    if (!wx || !wx.metar || wx.metar === 'NOT AVAILABLE') return;
+
+    const metar = String(wx.metar);
+
+    const wind = parseWindKt(metar);
+    const vis = parseVisibility(metar);
+    const phenomena = parseWeatherPhenomena(metar);
+    const cloudBase = parseCloudBase(metar);
+
+    if (vis !== null) {
+      if (vis < 2000) remarks.push('POOR VIS');
+      else if (vis < 5000) remarks.push('LOW VIS');
+    }
+
+    if (wind) {
+      if (wind.gust && wind.gust >= 25) {
+        remarks.push(`GUSTS ${wind.gust}KT`);
+      } else if (wind.speed >= 20) {
+        remarks.push('STRONG WIND');
+      }
+    }
+
+    if (cloudBase !== null && cloudBase <= 2000) {
+      remarks.push('LOW CEILING');
+    }
+
+    if (phenomena.includes('TS')) remarks.push('TS');
+    else if (phenomena.includes('FG')) remarks.push('FOG');
+    else if (phenomena.some(p => ['RA','SN','DZ','SHRA','SHSN','FZRA'].includes(p))) {
+      remarks.push('PRECIP');
+    }
   }
+
+  inspect(data.depWx);
+  inspect(data.arrWx);
+
+  const unique = [...new Set(remarks)];
+  return unique.length ? unique.join(' / ') : 'NIL';
 }
 
-// ---------------------------
-// Fake fallback (replace later with real nearest search if needed)
-// ---------------------------
-async function fetchWithFallback(icao) {
-  let metar = await fetchMetar(icao);
+/* ========================= */
+/* 🧾 TEXT REPORT FIX */
+/* ========================= */
 
-  if (metar) {
-    return { metar, fallback: false };
+function buildDispatchText(data) {
+  const headerLine1 = [
+    'OPS NATGLOBE AVIATION',
+    `DATE ${data.date}`,
+    `UTC ${data.timeUtc.replace(' UTC', '')}`
+  ].join('   ');
+
+  const headerLine2 = [
+    data.flight ? `FLT ${data.flight}` : null,
+    data.dep ? `ORIG ${data.dep}` : null,
+    data.arr ? `DEST ${data.arr}` : null,
+    data.route ? `ROUTE ${data.route}` : null
+  ].filter(Boolean).join('   ');
+
+  const lines = [
+    'ACARS WEATHER REPORT',
+    '--------------------',
+    headerLine1,
+    headerLine2,
+    ''
+  ];
+
+  function pushAirportBlock(label, wx, wantMetar) {
+    if (!wx || !wantMetar) return;
+
+    lines.push(`${label} (${wx.airport})`);
+
+    if (wx.metarFallback && wx.metarSource) {
+      lines.push('MODE FALLBACK');
+      lines.push(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`);
+    }
+
+    // ✅ CLEAN: no "METAR" label
+    lines.push(wx.metar || 'NOT AVAILABLE');
+    lines.push('');
   }
 
-  // Simple fallback example
-  const fallbackIcao = "EHAM";
-  const fallbackMetar = await fetchMetar(fallbackIcao);
+  pushAirportBlock('DEP WX', data.depWx, data.includeDepMetar);
+  pushAirportBlock('ARR WX', data.arrWx, data.includeArrMetar);
+  pushAirportBlock('ALTN WX', data.altnWx, data.includeAltnMetar);
 
-  return {
-    metar: fallbackMetar || "METAR UNAVAILABLE",
-    fallback: true,
-    source: fallbackIcao,
-    distance: 42
-  };
+  lines.push(`RMK ${generateAutoRemark(data)}`);
+  lines.push('');
+  lines.push('END OF REPORT');
+
+  return lines.join('\n');
 }
 
-// ---------------------------
-// RMK Generator
-// ---------------------------
-function generateRMK(metar) {
-  if (!metar) return "NIL";
+/* ========================= */
+/* 📄 PDF FIX */
+/* ========================= */
 
-  const rmk = [];
-
-  const gustMatch = metar.match(/G(\d{2,3})KT/);
-  if (gustMatch && parseInt(gustMatch[1]) >= 25) {
-    rmk.push(`GUSTS ${gustMatch[1]}KT`);
-  }
-
-  const visMatch = metar.match(/\s(\d{4})\s/);
-  if (visMatch) {
-    const vis = parseInt(visMatch[1]);
-    if (vis < 2000) rmk.push("POOR VIS");
-    else if (vis < 5000) rmk.push("LOW VIS");
-  }
-
-  if (/BKN0\d{2}|OVC0\d{2}/.test(metar)) {
-    rmk.push("LOW CEILING");
-  }
-
-  if (/RA|SN/.test(metar)) rmk.push("PRECIP");
-  if (/TS/.test(metar)) rmk.push("TS");
-  if (/FG/.test(metar)) rmk.push("FOG");
-
-  return rmk.length ? rmk.join(" / ") : "NIL";
-}
-
-// ---------------------------
-// Build Report
-// ---------------------------
-function buildReport(data) {
-  const date = new Date();
-  const utc = date.toISOString().slice(11, 16);
-
-  return `
-ACARS WEATHER REPORT
---------------------
-
-OPS NATGLOBE AVIATION   DATE ${date.toISOString().slice(0, 10)}   UTC ${utc}
-FLT ${data.flt}   ORIG ${data.dep}   DEST ${data.arr}   ROUTE ${data.route}
-
-DEP WX (${data.dep})
-${data.depFallback ? `MODE FALLBACK\nMETAR SRC ${data.depSrc}/${data.depDist}NM\n` : ""}${data.depMetar}
-
-ARR WX (${data.arr})
-${data.arrFallback ? `MODE FALLBACK\nMETAR SRC ${data.arrSrc}/${data.arrDist}NM\n` : ""}${data.arrMetar}
-
-RMK ${data.rmk}
-END OF REPORT
-`.trim();
-}
-
-// ---------------------------
-// PDF Generator
-// ---------------------------
-async function generatePDF(text) {
+async function dispatchToPdfBuffer(data) {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([600, 800]);
-  const font = await pdfDoc.embedFont(StandardFonts.Courier);
+  const regularFont = await pdfDoc.embedFont(StandardFonts.Courier);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.CourierBold);
 
-  const lines = text.split("\n");
+  const pageWidth = 595.28;
+  const pageHeight = 841.89;
+  const page = pdfDoc.addPage([pageWidth, pageHeight]);
 
-  let y = 750;
-
-  lines.forEach(line => {
-    page.drawText(line.slice(0, 95), {
-      x: 40,
-      y,
-      size: 10,
-      font
-    });
-    y -= 14;
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width: pageWidth,
+    height: pageHeight,
+    color: rgb(1, 1, 1)
   });
 
-  return await pdfDoc.save();
+  const black = rgb(0, 0, 0);
+  const blockWidth = 311.81;
+  const left = (pageWidth - blockWidth) / 2;
+  const indent = 12;
+  let y = pageHeight - 36;
+
+  const drawLine = (text, size = 10, bold = false, x = left) => {
+    y -= size;
+    page.drawText(text, {
+      x,
+      y,
+      size,
+      font: bold ? boldFont : regularFont,
+      color: black
+    });
+    y -= 3.5;
+  };
+
+  const drawWrappedText = (text, size = 9.2, x = left + indent) => {
+    const wrapped = wrapText(text, 50);
+    for (const line of wrapped) {
+      y -= size;
+      page.drawText(line, {
+        x,
+        y,
+        size,
+        font: regularFont,
+        color: black
+      });
+      y -= 3;
+    }
+  };
+
+  const drawAirportSection = (title, wx, wantMetar) => {
+    if (!wx || !wantMetar) return;
+
+    drawLine(`${title} (${wx.airport})`, 10.5, true);
+
+    if (wx.metarFallback && wx.metarSource) {
+      drawLine('MODE FALLBACK', 9.2, true);
+      drawLine(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`, 9.2, true);
+    }
+
+    // ✅ CLEAN: no "METAR" label
+    drawWrappedText(wx.metar || 'NOT AVAILABLE');
+    y -= 4;
+  };
+
+  const headerLine1 = [
+    'OPS NATGLOBE AVIATION',
+    `DATE ${data.date}`,
+    `UTC ${data.timeUtc.replace(' UTC', '')}`
+  ].join('   ');
+
+  const headerLine2 = [
+    data.flight ? `FLT ${data.flight}` : null,
+    data.dep ? `ORIG ${data.dep}` : null,
+    data.arr ? `DEST ${data.arr}` : null,
+    data.route ? `ROUTE ${data.route}` : null
+  ].filter(Boolean).join('   ');
+
+  drawLine('ACARS WEATHER REPORT', 12, true);
+  drawLine('--------------------', 11, true);
+  drawLine(headerLine1, 9.5, false);
+  drawLine(headerLine2, 9.5, false);
+  y -= 4;
+
+  drawAirportSection('DEP WX', data.depWx, data.includeDepMetar);
+  drawAirportSection('ARR WX', data.arrWx, data.includeArrMetar);
+  drawAirportSection('ALTN WX', data.altnWx, data.includeAltnMetar);
+
+  drawLine(`RMK ${generateAutoRemark(data)}`, 9.5, true);
+  y -= 2;
+
+  drawLine('END OF REPORT', 10.5, true);
+
+  return Buffer.from(await pdfDoc.save());
 }
 
-// ---------------------------
-// API Route
-// ---------------------------
-app.post("/generate", async (req, res) => {
-  const { flt, dep, arr, route, remarks } = req.body;
+/* -------------------- KEEP REST OF YOUR ORIGINAL FILE UNCHANGED -------------------- */
 
-  const depData = await fetchWithFallback(dep);
-  const arrData = await fetchWithFallback(arr);
-
-  const rmk = remarks || generateRMK(depData.metar + " " + arrData.metar);
-
-  const report = buildReport({
-    flt,
-    dep,
-    arr,
-    route,
-    depMetar: depData.metar,
-    arrMetar: arrData.metar,
-    depFallback: depData.fallback,
-    arrFallback: arrData.fallback,
-    depSrc: depData.source,
-    arrSrc: arrData.source,
-    depDist: depData.distance,
-    arrDist: arrData.distance,
-    rmk
-  });
-
-  const pdfBytes = await generatePDF(report);
-
-  res.setHeader("Content-Type", "application/pdf");
-  res.send(Buffer.from(pdfBytes));
-});
-
-// ---------------------------
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  try {
+    await loadAirportDatabase();
+  } catch (err) {
+    console.warn('Airport DB warm-up failed:', err.message);
+  }
 });
