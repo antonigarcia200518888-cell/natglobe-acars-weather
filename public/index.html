@@ -101,21 +101,54 @@
 
     .options-wrap {
       border: 2px solid var(--line);
-      max-height: 180px;
-      overflow-y: auto;
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 12px;
     }
 
-    .options {
+    .options-title {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .options-groups {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .options-group {
+      border: 1px solid #666;
+      padding: 10px;
+      min-height: 100%;
+    }
+
+    .options-group-title {
+      color: #d7d7d7;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .options-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .options-single {
+      display: grid;
+      grid-template-columns: 1fr;
       gap: 8px;
     }
 
     .opt {
-      border: 1px solid #666;
-      padding: 10px;
+      border: 1px solid #444;
+      padding: 8px;
       font-size: 14px;
     }
 
@@ -218,8 +251,18 @@
       line-height: 1.35;
     }
 
+    @media (max-width: 1000px) {
+      .options-groups {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
     @media (max-width: 900px) {
-      .grid, .grid-2, .options, .actions {
+      .grid, .grid-2, .actions, .options-groups {
+        grid-template-columns: 1fr;
+      }
+
+      .options-pair {
         grid-template-columns: 1fr;
       }
     }
@@ -248,15 +291,40 @@
     </div>
 
     <div class="options-wrap">
-      <div class="options">
-        <div class="opt"><label><input type="checkbox" id="includeDepMetar"> DEP METAR</label></div>
-        <div class="opt"><label><input type="checkbox" id="includeDepTaf"> DEP TAF</label></div>
-        <div class="opt"><label><input type="checkbox" id="includeArrMetar"> ARR METAR</label></div>
-        <div class="opt"><label><input type="checkbox" id="includeArrTaf"> ARR TAF</label></div>
-        <div class="opt"><label><input type="checkbox" id="includeAltnMetar"> ALTN METAR</label></div>
-        <div class="opt"><label><input type="checkbox" id="includeAltnTaf"> ALTN TAF</label></div>
-        <div class="opt"><label><input type="checkbox" id="includeWindsAloft"> WINDS ALOFT</label></div>
-        <div class="opt"><label><input type="checkbox" id="fullWeather"> FULL WEATHER PACKAGE</label></div>
+      <div class="options-title">REPORT OPTIONS</div>
+
+      <div class="options-groups">
+        <div class="options-group">
+          <div class="options-group-title">DEPARTURE</div>
+          <div class="options-pair">
+            <div class="opt"><label><input type="checkbox" id="includeDepMetar"> METAR</label></div>
+            <div class="opt"><label><input type="checkbox" id="includeDepTaf"> TAF</label></div>
+          </div>
+        </div>
+
+        <div class="options-group">
+          <div class="options-group-title">ARRIVAL</div>
+          <div class="options-pair">
+            <div class="opt"><label><input type="checkbox" id="includeArrMetar"> METAR</label></div>
+            <div class="opt"><label><input type="checkbox" id="includeArrTaf"> TAF</label></div>
+          </div>
+        </div>
+
+        <div class="options-group">
+          <div class="options-group-title">ALTERNATE</div>
+          <div class="options-pair">
+            <div class="opt"><label><input type="checkbox" id="includeAltnMetar"> METAR</label></div>
+            <div class="opt"><label><input type="checkbox" id="includeAltnTaf"> TAF</label></div>
+          </div>
+        </div>
+
+        <div class="options-group">
+          <div class="options-group-title">EXTRAS</div>
+          <div class="options-single">
+            <div class="opt"><label><input type="checkbox" id="includeWindsAloft"> WINDS ALOFT</label></div>
+            <div class="opt"><label><input type="checkbox" id="fullWeather"> FULL WEATHER PACKAGE</label></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -386,14 +454,8 @@ END OF REPORT`;
     function getStatusModeFromReport(reportText) {
       const text = String(reportText || '');
 
-      if (text.includes('NOT AVAILABLE')) {
-        return 'nodata';
-      }
-
-      if (text.includes('MODE FALLBACK')) {
-        return 'fallback';
-      }
-
+      if (text.includes('NOT AVAILABLE')) return 'nodata';
+      if (text.includes('MODE FALLBACK')) return 'fallback';
       return 'live';
     }
 
@@ -459,12 +521,9 @@ END OF REPORT`;
 
       if (!dep) return 'DEP ICAO REQUIRED';
       if (dep.length !== 4) return 'DEP ICAO MUST BE 4 LETTERS';
-
       if (!arr) return 'ARR ICAO REQUIRED';
       if (arr.length !== 4) return 'ARR ICAO MUST BE 4 LETTERS';
-
       if (dep === arr) return 'DEP AND ARR CANNOT MATCH';
-
       if (altn && altn.length !== 4) return 'ALTN ICAO MUST BE 4 LETTERS';
 
       if (
