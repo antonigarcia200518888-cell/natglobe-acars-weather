@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import { airports } from './data/airports.js';
+import { airports as bundledAirports } from './data/airports.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +12,14 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+
+const AIRPORT_DB_TTL_MS = 24 * 60 * 60 * 1000;
+
+let airportDbCache = {
+  data: null,
+  loadedAt: 0,
+  promise: null
+};
 
 function normalizeIcao(input) {
   return String(input || '')
@@ -56,32 +64,178 @@ function formatNm(km) {
   return Math.round(kmToNm(km));
 }
 
-function getNearbyAirports(icao, limit = 8) {
-  const target = airports.find(a => a.icao === icao);
+function parseCsv(csvText) {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
 
-  if (target) {
-    return airports
-      .filter(a => a.icao !== icao)
-      .map(a => {
-        const distanceKm = haversineKm(target, a);
-        return {
-          ...a,
-          distanceKm,
-          distanceNm: formatNm(distanceKm)
-        };
-      })
-      .sort((a, b) => a.distanceKm - b.distanceKm)
-      .slice(0, limit);
+  for (let i = 0; i < csvText.length; i++) {
+    const ch = csvText[i];
+    const next = csvText[i + 1];
+
+    if (ch === '"') {
+      if (inQuotes && next === '"') {
+        cell += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === ',' && !inQuotes) {
+      row.push(cell);
+      cell = '';
+      continue;
+    }
+
+    if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cell);
+      if (row.some(value => value !== '')) rows.push(row);
+      row = [];
+      cell = '';
+      continue;
+    }
+
+    cell += ch;
   }
 
-  return airports
-    .filter(a => a.icao !== icao)
-    .slice(0, limit)
+  if (cell.length || row.length) {
+    row.push(cell);
+    if (row.some(value => value !== '')) rows.push(row);
+  }
+
+  if (!rows.length) return [];
+
+  const headers = rows[0];
+  return rows.slice(1).map(cols => {
+    const obj = {};
+    for (let i = 0; i < headers.length; i++) {
+      obj[headers[i]] = cols[i] ?? '';
+    }
+    return obj;
+  });
+}
+
+function normalizeAirportRow(row) {
+  const icao = String(row.gps_code || row.ident || '')
+    .trim()
+    .toUpperCase();
+
+  const lat = Number(row.latitude_deg);
+  const lon = Number(row.longitude_deg);
+
+  if (!/^[A-Z]{4}$/.test(icao)) return null;
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+
+  return {
+    icao,
+    name: String(row.name || '').trim(),
+    municipality: String(row.municipality || '').trim(),
+    country: String(row.iso_country || '').trim().toUpperCase(),
+    type: String(row.type || '').trim(),
+    lat,
+    lon
+  };
+}
+
+async function fetchCsvAirports(url) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
+  });
+
+  if (!res.ok) {
+    throw new Error(`AIRPORT DB HTTP ${res.status} for ${url}`);
+  }
+
+  const csv = await res.text();
+  const rows = parseCsv(csv);
+
+  return rows
+    .map(normalizeAirportRow)
+    .filter(Boolean);
+}
+
+function getBundledAirportFallback() {
+  return (bundledAirports || [])
+    .filter(a => a && /^[A-Z]{4}$/.test(String(a.icao || '').toUpperCase()))
+    .filter(a => Number.isFinite(Number(a.lat)) && Number.isFinite(Number(a.lon)))
     .map(a => ({
-      ...a,
-      distanceKm: null,
-      distanceNm: null
+      icao: String(a.icao).toUpperCase(),
+      name: String(a.name || '').trim(),
+      municipality: String(a.city || '').trim(),
+      country: String(a.country || '').trim().toUpperCase(),
+      type: String(a.type || 'airport').trim(),
+      lat: Number(a.lat),
+      lon: Number(a.lon)
     }));
+}
+
+async function loadAirportDatabase() {
+  const now = Date.now();
+
+  if (airportDbCache.data && now - airportDbCache.loadedAt < AIRPORT_DB_TTL_MS) {
+    return airportDbCache.data;
+  }
+
+  if (airportDbCache.promise) {
+    return airportDbCache.promise;
+  }
+
+  airportDbCache.promise = (async () => {
+    try {
+      const [fi, ee] = await Promise.all([
+        fetchCsvAirports('https://ourairports.com/countries/FI/airports.csv'),
+        fetchCsvAirports('https://ourairports.com/countries/EE/airports.csv')
+      ]);
+
+      const merged = [...fi, ...ee];
+      const dedupedMap = new Map();
+
+      for (const apt of merged) {
+        if (!dedupedMap.has(apt.icao)) dedupedMap.set(apt.icao, apt);
+      }
+
+      const data = Array.from(dedupedMap.values());
+      airportDbCache.data = data;
+      airportDbCache.loadedAt = Date.now();
+      airportDbCache.promise = null;
+
+      console.log(`Loaded airport DB: ${data.length} FI+EE aerodromes`);
+      return data;
+    } catch (err) {
+      console.warn('Failed to load remote FI+EE airport DB, using bundled fallback:', err.message);
+      const data = getBundledAirportFallback();
+      airportDbCache.data = data;
+      airportDbCache.loadedAt = Date.now();
+      airportDbCache.promise = null;
+      return data;
+    }
+  })();
+
+  return airportDbCache.promise;
+}
+
+async function getNearbyAirports(icao, limit = 20) {
+  const airportDb = await loadAirportDatabase();
+  const target = airportDb.find(a => a.icao === icao);
+
+  if (!target) return [];
+
+  return airportDb
+    .filter(a => a.icao !== icao)
+    .map(a => {
+      const distanceKm = haversineKm(target, a);
+      return {
+        ...a,
+        distanceKm,
+        distanceNm: formatNm(distanceKm)
+      };
+    })
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, limit);
 }
 
 async function fetchRaw(url) {
@@ -116,7 +270,8 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
     };
   }
 
-  const nearby = getNearbyAirports(requestedIcao, 10);
+  const nearby = await getNearbyAirports(requestedIcao, 60);
+
   for (const apt of nearby) {
     const found = await fetchFn(apt.icao);
     if (found) {
@@ -139,6 +294,115 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
   };
 }
 
+function stripHtml(html) {
+  return String(html || '')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<\/h\d>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&deg;/gi, '°')
+    .replace(/\r/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{2,}/g, '\n')
+    .trim();
+}
+
+function cleanLine(line) {
+  return String(line || '').replace(/\s+/g, ' ').trim();
+}
+
+function extractLine(text, regex) {
+  const match = text.match(regex);
+  return match ? cleanLine(match[0]) : null;
+}
+
+async function fetchHtml(url) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
+  });
+
+  if (!res.ok) return null;
+  return await res.text();
+}
+
+function parseEfhvLocalWx(html) {
+  const text = stripHtml(html);
+  const lines = [];
+
+  const sensorNotice = extractLine(text, /Anturista akku loppu[^\n]*/i);
+  const measured = extractLine(text, /Mitattu\s+[^\n]+/i);
+
+  if (sensorNotice) lines.push(sensorNotice);
+  if (measured) lines.push(measured);
+
+  const forecastSection = text.match(/Sääennuste([\s\S]{0,500})Tietoja kentästä/i);
+  if (forecastSection) {
+    const compact = cleanLine(forecastSection[1])
+      .replace(/\s+/g, ' ')
+      .slice(0, 180);
+    if (compact) lines.push(`FORECAST SNAPSHOT: ${compact}`);
+  }
+
+  if (!lines.length) return null;
+
+  return {
+    sourceLabel: 'EFHV LOCAL PAGE',
+    lines
+  };
+}
+
+function parseEfnuLocalWx(html) {
+  const text = stripHtml(html);
+  const lines = [];
+
+  const temp = extractLine(text, /Dew Point,\s*[-+0-9.,°C ]+/i);
+  const hum = extractLine(text, /Humidity,\s*[-+0-9.,% ]+/i);
+  const pressure = extractLine(text, /Barometer,\s*[-+0-9.,() mbar]+/i);
+  const wind = extractLine(text, /Wind,\s*[-+0-9.,/A-Z°() msknot]+/i);
+  const rain = extractLine(text, /Rain Rate,\s*[-+0-9.,/A-Z ]+/i);
+
+  for (const item of [temp, hum, pressure, wind, rain]) {
+    if (item) lines.push(item);
+  }
+
+  if (!lines.length) {
+    const utcMarker = extractLine(text, /UTC TIME/i);
+    if (utcMarker) lines.push('WX-INFO PAGE AVAILABLE');
+  }
+
+  if (!lines.length) return null;
+
+  return {
+    sourceLabel: 'EFNU LOCAL PAGE',
+    lines
+  };
+}
+
+async function getSupplementalLocalWx(icao) {
+  try {
+    if (icao === 'EFHV') {
+      const html = await fetchHtml('https://efhv.fi/');
+      if (!html) return null;
+      return parseEfhvLocalWx(html);
+    }
+
+    if (icao === 'EFNU') {
+      const html = await fetchHtml('https://efnu.fi/info-wx/');
+      if (!html) return null;
+      return parseEfnuLocalWx(html);
+    }
+  } catch (err) {
+    console.warn(`Supplemental WX failed for ${icao}:`, err.message);
+  }
+
+  return null;
+}
+
 async function getAirportWeather(icao) {
   if (!icao) return null;
 
@@ -148,6 +412,11 @@ async function getAirportWeather(icao) {
   let mode = 'LIVE';
   if (metarResult.fallback || tafResult.fallback) mode = 'FALLBACK';
   if (metarResult.text === 'NOT AVAILABLE' && tafResult.text === 'NOT AVAILABLE') mode = 'NO DATA';
+
+  const localWx =
+    metarResult.text === 'NOT AVAILABLE' && tafResult.text === 'NOT AVAILABLE'
+      ? await getSupplementalLocalWx(icao)
+      : null;
 
   return {
     airport: icao,
@@ -159,7 +428,8 @@ async function getAirportWeather(icao) {
     metarFallback: metarResult.fallback,
     tafFallback: tafResult.fallback,
     metarDistanceNm: metarResult.distanceNm,
-    tafDistanceNm: tafResult.distanceNm
+    tafDistanceNm: tafResult.distanceNm,
+    localWx
   };
 }
 
@@ -174,7 +444,15 @@ function wrapText(text, maxChars = 34) {
       current = test;
     } else {
       if (current) lines.push(current);
-      current = word;
+
+      if (word.length > maxChars) {
+        for (let i = 0; i < word.length; i += maxChars) {
+          lines.push(word.slice(i, i + maxChars));
+        }
+        current = '';
+      } else {
+        current = word;
+      }
     }
   }
 
@@ -182,32 +460,33 @@ function wrapText(text, maxChars = 34) {
   return lines.length ? lines : [''];
 }
 
-function formatUtcTime(d) {
-  return d.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
+function formatDateOnly(d) {
+  return d.toISOString().slice(0, 10);
 }
 
-function formatLocalHelsinkiTime(d) {
+function formatUtcClock(d) {
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${hh}:${mm} UTC`;
+}
+
+function formatLocalHelsinkiClock(d) {
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/Helsinki',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
     hour12: false
-  }).format(d).replace(',', '') + ' Europe/Helsinki';
+  }).format(d);
 }
 
 function buildDispatchData(query, depWx, arrWx, altnWx) {
   const now = new Date();
 
   return {
-    timeUtc: formatUtcTime(now),
-    timeLocal: formatLocalHelsinkiTime(now),
+    date: formatDateOnly(now),
+    timeUtc: formatUtcClock(now),
+    timeLocal: formatLocalHelsinkiClock(now),
     flight: normalizeFlight(query.flight),
-    route: String(query.route || '').trim().toUpperCase(),
-    remarks: String(query.remarks || '').trim(),
     depWx,
     arrWx,
     altnWx,
@@ -226,6 +505,7 @@ function buildDispatchText(data) {
     '--------------------',
     'OPS SOURCE: NATGLOBE AVIATION',
     data.flight ? `FLIGHT: ${data.flight}` : null,
+    `DATE: ${data.date}`,
     `TIME (UTC): ${data.timeUtc}`,
     `TIME (LOCAL): ${data.timeLocal}`,
     ''
@@ -243,6 +523,7 @@ function buildDispatchText(data) {
       }
       lines.push('METAR:');
       lines.push(wx.metar || 'NOT AVAILABLE');
+      lines.push('');
     }
 
     if (wantTaf) {
@@ -251,9 +532,17 @@ function buildDispatchText(data) {
       }
       lines.push('TAF:');
       lines.push(wx.taf || 'NOT AVAILABLE');
+      lines.push('');
     }
 
-    lines.push('');
+    if (wx.localWx) {
+      lines.push(`LOCAL WX SOURCE: ${wx.localWx.sourceLabel}`);
+      lines.push('LOCAL WX:');
+      for (const item of wx.localWx.lines) {
+        lines.push(item);
+      }
+      lines.push('');
+    }
   }
 
   pushAirportBlock('DEP WEATHER', data.depWx, data.includeDepMetar, data.includeDepTaf);
@@ -326,6 +615,7 @@ async function dispatchToPdfBuffer(data) {
       }
       drawLine('METAR:', 10, true);
       drawWrappedText(wx.metar || 'NOT AVAILABLE');
+      y -= 2;
     }
 
     if (wantTaf) {
@@ -334,6 +624,16 @@ async function dispatchToPdfBuffer(data) {
       }
       drawLine('TAF:', 10, true);
       drawWrappedText(wx.taf || 'NOT AVAILABLE');
+      y -= 2;
+    }
+
+    if (wx.localWx) {
+      drawLine(`LOCAL WX SOURCE: ${wx.localWx.sourceLabel}`, 8.8, true);
+      drawLine('LOCAL WX:', 10, true);
+      for (const item of wx.localWx.lines) {
+        drawWrappedText(item);
+      }
+      y -= 2;
     }
 
     y -= 4;
@@ -345,6 +645,7 @@ async function dispatchToPdfBuffer(data) {
 
   drawLine('OPS SOURCE: NATGLOBE AVIATION', 10, true);
   if (data.flight) drawLine(`FLIGHT: ${data.flight}`, 10, true);
+  drawLine(`DATE: ${data.date}`, 10, true);
   drawLine(`TIME (UTC): ${data.timeUtc}`, 10, true);
   drawLine(`TIME (LOCAL): ${data.timeLocal}`, 10, true);
   y -= 4;
@@ -407,6 +708,11 @@ app.get('/api/dispatch-text', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+  try {
+    await loadAirportDatabase();
+  } catch (err) {
+    console.warn('Airport DB warm-up failed:', err.message);
+  }
 });
