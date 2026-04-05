@@ -160,7 +160,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
@@ -215,6 +215,7 @@
       <button id="generateBtn" class="btn primary">Generate PDF</button>
       <button id="openBtn" class="btn">Open PDF</button>
       <button id="latestBtn" class="btn">Use Latest Saved</button>
+      <button id="resetBtn" class="btn">Reset</button>
       <button id="notamsBtn" class="btn">NOTAMS</button>
     </div>
 
@@ -252,6 +253,35 @@ END OF REPORT</pre>
       }
     }
 
+    const DEFAULT_PREVIEW = `ACARS WEATHER REPORT
+--------------------
+OPS: NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
+FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
+
+DEP WX (EFHV)
+METAR
+EFHK 051620Z 12012KT 9999 FEW012 03/00 Q1000
+
+RMK NIL
+
+END OF REPORT`;
+
+    const DEFAULTS = {
+      flight: '',
+      dep: 'EFHV',
+      arr: 'EFHK',
+      altn: 'EETN',
+      route: '',
+      remarks: '',
+      includeDepMetar: true,
+      includeDepTaf: true,
+      includeArrMetar: true,
+      includeArrTaf: true,
+      includeAltnMetar: true,
+      includeAltnTaf: true,
+      fullWeather: false
+    };
+
     const el = (id) => document.getElementById(id);
 
     const fields = {
@@ -275,6 +305,7 @@ END OF REPORT</pre>
     const generateBtn = el('generateBtn');
     const openBtn = el('openBtn');
     const latestBtn = el('latestBtn');
+    const resetBtn = el('resetBtn');
     const notamsBtn = el('notamsBtn');
 
     let latestDirectUrl = null;
@@ -336,6 +367,72 @@ END OF REPORT</pre>
       fields.includeArrTaf.checked = true;
       fields.includeAltnMetar.checked = true;
       fields.includeAltnTaf.checked = true;
+    }
+
+    function validateInputs() {
+      const dep = normalizeIcaoInputValue(fields.dep.value);
+      const arr = normalizeIcaoInputValue(fields.arr.value);
+      const altn = normalizeIcaoInputValue(fields.altn.value);
+
+      if (!dep) {
+        return 'DEP ICAO REQUIRED';
+      }
+
+      if (dep.length !== 4) {
+        return 'DEP ICAO MUST BE 4 LETTERS';
+      }
+
+      if (!arr) {
+        return 'ARR ICAO REQUIRED';
+      }
+
+      if (arr.length !== 4) {
+        return 'ARR ICAO MUST BE 4 LETTERS';
+      }
+
+      if (dep === arr) {
+        return 'DEP AND ARR CANNOT MATCH';
+      }
+
+      if (altn && altn.length !== 4) {
+        return 'ALTN ICAO MUST BE 4 LETTERS';
+      }
+
+      if (
+        !fields.includeDepMetar.checked &&
+        !fields.includeDepTaf.checked &&
+        !fields.includeArrMetar.checked &&
+        !fields.includeArrTaf.checked &&
+        !fields.includeAltnMetar.checked &&
+        !fields.includeAltnTaf.checked
+      ) {
+        return 'SELECT AT LEAST ONE WEATHER OPTION';
+      }
+
+      return null;
+    }
+
+    function resetForm() {
+      fields.flight.value = DEFAULTS.flight;
+      fields.dep.value = DEFAULTS.dep;
+      fields.arr.value = DEFAULTS.arr;
+      fields.altn.value = DEFAULTS.altn;
+      fields.route.value = DEFAULTS.route;
+      fields.remarks.value = DEFAULTS.remarks;
+
+      fields.includeDepMetar.checked = DEFAULTS.includeDepMetar;
+      fields.includeDepTaf.checked = DEFAULTS.includeDepTaf;
+      fields.includeArrMetar.checked = DEFAULTS.includeArrMetar;
+      fields.includeArrTaf.checked = DEFAULTS.includeArrTaf;
+      fields.includeAltnMetar.checked = DEFAULTS.includeAltnMetar;
+      fields.includeAltnTaf.checked = DEFAULTS.includeAltnTaf;
+      fields.fullWeather.checked = DEFAULTS.fullWeather;
+
+      routeTouched = false;
+      latestDirectUrl = null;
+      previewText.textContent = DEFAULT_PREVIEW;
+      autoFillRouteFromDepArr();
+      setStatus('READY');
     }
 
     fields.fullWeather.addEventListener('change', applyFullWeather);
@@ -415,6 +512,13 @@ END OF REPORT</pre>
 
     async function generate() {
       applyFullWeather();
+
+      const validationError = validateInputs();
+      if (validationError) {
+        setStatus(validationError);
+        return;
+      }
+
       const queryString = buildQuery();
 
       setStatus('FETCHING WEATHER PACKAGE...');
@@ -453,13 +557,21 @@ END OF REPORT</pre>
     });
 
     openBtn.addEventListener('click', async () => {
+      const validationError = validateInputs();
+      if (validationError) {
+        setStatus(validationError);
+        return;
+      }
+
       if (!latestDirectUrl) {
         await generate();
       }
+
       if (!latestDirectUrl) {
         setStatus('NO LIVE PDF READY');
         return;
       }
+
       window.open(latestDirectUrl, '_blank');
     });
 
@@ -472,6 +584,10 @@ END OF REPORT</pre>
       previewText.textContent = saved.report;
       latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
       setStatus('DONE — ACARS_DISPATCH_REPORT.pdf');
+    });
+
+    resetBtn.addEventListener('click', () => {
+      resetForm();
     });
 
     notamsBtn.addEventListener('click', () => {
