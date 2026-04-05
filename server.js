@@ -545,7 +545,7 @@ function generateAutoRemark(data) {
         phenomena.includes('FZRA') ||
         phenomena.includes('SN') ||
         phenomena.includes('SHSN') ||
-        cloudBase !== null && cloudBase <= 2000
+        (cloudBase !== null && cloudBase <= 2000)
       )
     ) {
       pushUnique(remarks, 'ICING RISK');
