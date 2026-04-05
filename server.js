@@ -21,6 +21,29 @@ function normalizeIcao(input) {
     .slice(0, 4);
 }
 
+function normalizeFlight(input) {
+  return String(input || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 10);
+}
+
+function normalizeRoute(input) {
+  return String(input || '')
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, ' ')
+    .slice(0, 80);
+}
+
+function normalizeRemarks(input) {
+  return String(input || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .slice(0, 180);
+}
+
 function parseBoolean(v) {
   return String(v).toLowerCase() === 'true';
 }
@@ -155,15 +178,29 @@ async function getAirportWeather(icao) {
   };
 }
 
-function wrapText(text, maxChars = 34) {
-  const words = String(text || '').split(/\s+/).filter(Boolean);
+function wrapText(text, maxChars = 38) {
+  const raw = String(text || '').trim();
+  if (!raw) return [''];
+
+  const words = raw.split(/\s+/).filter(Boolean);
   const lines = [];
   let current = '';
 
   for (const word of words) {
-    const test = current ? `${current} ${word}` : word;
-    if (test.length <= maxChars) {
-      current = test;
+    if (word.length > maxChars) {
+      if (current) {
+        lines.push(current);
+        current = '';
+      }
+      for (let i = 0; i < word.length; i += maxChars) {
+        lines.push(word.slice(i, i + maxChars));
+      }
+      continue;
+    }
+
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= maxChars) {
+      current = candidate;
     } else {
       if (current) lines.push(current);
       current = word;
@@ -174,8 +211,13 @@ function wrapText(text, maxChars = 34) {
   return lines.length ? lines : [''];
 }
 
-function formatUtcTime(d) {
-  return d.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
+function formatUtcDisplay(d) {
+  const y = d.getUTCFullYear();
+  const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const da = String(d.getUTCDate()).padStart(2, '0');
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${y}-${mo}-${da} ${hh}:${mm} UTC`;
 }
 
 function formatLocalHelsinkiTime(d) {
@@ -186,21 +228,40 @@ function formatLocalHelsinkiTime(d) {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
     hour12: false
-  }).format(d).replace(',', '') + ' Europe/Helsinki';
+  }).format(d).replace(',', '') + ' HEL';
+}
+
+function formatHeaderDateZ(d) {
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${dd}${hh}${mm}Z`;
+}
+
+function padLabel(label, width = 11) {
+  return `${label}:`.padEnd(width, ' ');
 }
 
 function buildDispatchData(query, depWx, arrWx, altnWx) {
   const now = new Date();
+  const dep = normalizeIcao(query.dep);
+  const arr = normalizeIcao(query.arr);
+  const altn = normalizeIcao(query.altn);
 
   return {
-    timeUtc: formatUtcTime(now),
+    reportId: formatHeaderDateZ(now),
+    timeUtc: formatUtcDisplay(now),
     timeLocal: formatLocalHelsinkiTime(now),
-    flight: String(query.flight || '').trim().toUpperCase(),
-    dep: depWx,
-    arr: arrWx,
-    altn: altnWx,
+    flight: normalizeFlight(query.flight),
+    route: normalizeRoute(query.route || [dep, arr].filter(Boolean).join('/')),
+    remarks: normalizeRemarks(query.remarks),
+    dep,
+    arr,
+    altn,
+    depWx,
+    arrWx,
+    altnWx,
     includeDepMetar: parseBoolean(query.includeDepMetar),
     includeDepTaf: parseBoolean(query.includeDepTaf),
     includeArrMetar: parseBoolean(query.includeArrMetar),
@@ -210,47 +271,66 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
   };
 }
 
-function buildDispatchText(data) {
-  const lines = [
-    'ACARS WEATHER REPORT',
-    '--------------------',
-    'OPS SOURCE: NATGLOBE AVIATION',
-    data.flight ? `FLIGHT: ${data.flight}` : null,
-    `TIME (UTC): ${data.timeUtc}`,
-    `TIME (LOCAL): ${data.timeLocal}`,
-    ''
-  ].filter(Boolean);
-
-  function pushAirportBlock(label, wx, wantMetar, wantTaf) {
-    if (!wx) return;
-
-    lines.push(`${label} (${wx.airport})`);
-    lines.push(`MODE: ${wx.mode}`);
-
-    if (wantMetar) {
-      if (wx.metarFallback && wx.metarSource) {
-        lines.push(`METAR SOURCE: ${wx.metarSource} / ${wx.metarDistanceNm} NM`);
-      }
-      lines.push('METAR:');
-      lines.push(wx.metar || 'NOT AVAILABLE');
-    }
-
-    if (wantTaf) {
-      if (wx.tafFallback && wx.tafSource) {
-        lines.push(`TAF SOURCE: ${wx.tafSource} / ${wx.tafDistanceNm} NM`);
-      }
-      lines.push('TAF:');
-      lines.push(wx.taf || 'NOT AVAILABLE');
-    }
-
-    lines.push('');
+function pushWrappedBlock(lines, label, value, wrapAt = 40) {
+  const wrapped = wrapText(value, wrapAt);
+  if (!wrapped.length) {
+    lines.push(`${padLabel(label)} `);
+    return;
   }
 
-  pushAirportBlock('DEP WEATHER', data.dep, data.includeDepMetar, data.includeDepTaf);
-  pushAirportBlock('ARR WEATHER', data.arr, data.includeArrMetar, data.includeArrTaf);
-  pushAirportBlock('ALTN WEATHER', data.altn, data.includeAltnMetar, data.includeAltnTaf);
+  lines.push(`${padLabel(label)} ${wrapped[0]}`);
+  for (let i = 1; i < wrapped.length; i++) {
+    lines.push(`${' '.repeat(11)} ${wrapped[i]}`);
+  }
+}
 
+function buildWeatherSection(lines, title, wx, wantMetar, wantTaf) {
+  if (!wx) return;
+
+  lines.push('----------------------------------------');
+  lines.push(`${title} ${wx.airport}`);
+  lines.push(`${padLabel('STATUS')} ${wx.mode}`);
+
+  if (wantMetar) {
+    if (wx.metarFallback && wx.metarSource) {
+      lines.push(`${padLabel('METAR SRC')} ${wx.metarSource} ${wx.metarDistanceNm}NM`);
+    }
+    pushWrappedBlock(lines, 'METAR', wx.metar || 'NOT AVAILABLE');
+  }
+
+  if (wantTaf) {
+    if (wx.tafFallback && wx.tafSource) {
+      lines.push(`${padLabel('TAF SRC')} ${wx.tafSource} ${wx.tafDistanceNm}NM`);
+    }
+    pushWrappedBlock(lines, 'TAF', wx.taf || 'NOT AVAILABLE');
+  }
+}
+
+function buildDispatchText(data) {
+  const lines = [];
+
+  lines.push('NATGLOBE AVIATION ACARS DISPATCH');
+  lines.push('========================================');
+  lines.push(`${padLabel('DOC TYPE')} WX DISPATCH`);
+  lines.push(`${padLabel('MSG REF')} ${data.reportId}`);
+  if (data.flight) lines.push(`${padLabel('FLIGHT')} ${data.flight}`);
+  if (data.route) lines.push(`${padLabel('ROUTE')} ${data.route}`);
+  lines.push(`${padLabel('TIME UTC')} ${data.timeUtc}`);
+  lines.push(`${padLabel('TIME HEL')} ${data.timeLocal}`);
+
+  if (data.remarks) {
+    lines.push('----------------------------------------');
+    pushWrappedBlock(lines, 'RMKS', data.remarks);
+  }
+
+  buildWeatherSection(lines, 'DEP WEATHER', data.depWx, data.includeDepMetar, data.includeDepTaf);
+  buildWeatherSection(lines, 'ARR WEATHER', data.arrWx, data.includeArrMetar, data.includeArrTaf);
+  buildWeatherSection(lines, 'ALTN WX', data.altnWx, data.includeAltnMetar, data.includeAltnTaf);
+
+  lines.push('----------------------------------------');
+  lines.push('NOTAMS: EXTERNAL VIA FINTRAFFIC PIB');
   lines.push('END OF REPORT');
+
   return lines.join('\n');
 }
 
@@ -272,12 +352,21 @@ async function dispatchToPdfBuffer(data) {
   });
 
   const black = rgb(0, 0, 0);
-  const blockWidth = 311.81;
-  const left = (pageWidth - blockWidth) / 2;
+  const stripWidth = 311.81;
+  const left = (pageWidth - stripWidth) / 2;
   const indent = 12;
-  let y = pageHeight - 36;
+  const rightWrapChars = 40;
+  let y = pageHeight - 34;
 
-  const drawLine = (text, size = 10, bold = false, x = left) => {
+  const ensureRoom = (needed = 24) => {
+    if (y < 50 + needed) {
+      y = pageHeight - 34;
+      pdfDoc.addPage([pageWidth, pageHeight]);
+    }
+  };
+
+  const drawLine = (text, size = 9.6, bold = false, x = left) => {
+    ensureRoom(size + 8);
     y -= size;
     page.drawText(text, {
       x,
@@ -286,64 +375,62 @@ async function dispatchToPdfBuffer(data) {
       font: bold ? boldFont : regularFont,
       color: black
     });
-    y -= 3.5;
+    y -= 3.2;
   };
 
-  const drawWrappedText = (text, size = 9.2, x = left + indent) => {
-    const wrapped = wrapText(text, 50);
-    for (const line of wrapped) {
-      y -= size;
-      page.drawText(line, {
-        x,
-        y,
-        size,
-        font: regularFont,
-        color: black
-      });
-      y -= 3;
+  const drawWrappedField = (label, value, size = 9.2) => {
+    const wrapped = wrapText(value, rightWrapChars);
+    drawLine(`${padLabel(label)} ${wrapped[0] || ''}`, size, false);
+    for (let i = 1; i < wrapped.length; i++) {
+      drawLine(`${' '.repeat(11)} ${wrapped[i]}`, size, false);
     }
   };
 
-  const drawAirportSection = (title, wx, wantMetar, wantTaf) => {
+  const drawDivider = () => drawLine('----------------------------------------', 9.4, false);
+
+  const drawWeatherSection = (title, wx, wantMetar, wantTaf) => {
     if (!wx) return;
 
-    drawLine(`${title} (${wx.airport})`, 10.5, true);
-    drawLine(`MODE: ${wx.mode}`, 9.5, true);
+    drawDivider();
+    drawLine(`${title} ${wx.airport}`, 10, true);
+    drawLine(`${padLabel('STATUS')} ${wx.mode}`, 9.2, true);
 
     if (wantMetar) {
       if (wx.metarFallback && wx.metarSource) {
-        drawLine(`METAR SOURCE: ${wx.metarSource} / ${wx.metarDistanceNm} NM`, 8.8, true);
+        drawLine(`${padLabel('METAR SRC')} ${wx.metarSource} ${wx.metarDistanceNm}NM`, 8.8, true);
       }
-      drawLine('METAR:', 10, true);
-      drawWrappedText(wx.metar || 'NOT AVAILABLE');
+      drawWrappedField('METAR', wx.metar || 'NOT AVAILABLE');
     }
 
     if (wantTaf) {
       if (wx.tafFallback && wx.tafSource) {
-        drawLine(`TAF SOURCE: ${wx.tafSource} / ${wx.tafDistanceNm} NM`, 8.8, true);
+        drawLine(`${padLabel('TAF SRC')} ${wx.tafSource} ${wx.tafDistanceNm}NM`, 8.8, true);
       }
-      drawLine('TAF:', 10, true);
-      drawWrappedText(wx.taf || 'NOT AVAILABLE');
+      drawWrappedField('TAF', wx.taf || 'NOT AVAILABLE');
     }
-
-    y -= 4;
   };
 
-  drawLine('ACARS WEATHER REPORT', 12, true);
-  drawLine('--------------------', 11, true);
-  y -= 5;
+  drawLine('NATGLOBE AVIATION ACARS DISPATCH', 11.2, true);
+  drawLine('========================================', 10.2, true);
+  drawLine(`${padLabel('DOC TYPE')} WX DISPATCH`, 9.4, true);
+  drawLine(`${padLabel('MSG REF')} ${data.reportId}`, 9.4, true);
+  if (data.flight) drawLine(`${padLabel('FLIGHT')} ${data.flight}`, 9.4, true);
+  if (data.route) drawWrappedField('ROUTE', data.route, 9.2);
+  drawLine(`${padLabel('TIME UTC')} ${data.timeUtc}`, 9.2, true);
+  drawLine(`${padLabel('TIME HEL')} ${data.timeLocal}`, 9.2, true);
 
-  drawLine('OPS SOURCE: NATGLOBE AVIATION', 10, true);
-  if (data.flight) drawLine(`FLIGHT: ${data.flight}`, 10, true);
-  drawLine(`TIME (UTC): ${data.timeUtc}`, 10, true);
-  drawLine(`TIME (LOCAL): ${data.timeLocal}`, 10, true);
-  y -= 4;
+  if (data.remarks) {
+    drawDivider();
+    drawWrappedField('RMKS', data.remarks, 9.2);
+  }
 
-  drawAirportSection('DEP WEATHER', data.dep, data.includeDepMetar, data.includeDepTaf);
-  drawAirportSection('ARR WEATHER', data.arr, data.includeArrMetar, data.includeArrTaf);
-  drawAirportSection('ALTN WEATHER', data.altn, data.includeAltnMetar, data.includeAltnTaf);
+  drawWeatherSection('DEP WEATHER', data.depWx, data.includeDepMetar, data.includeDepTaf);
+  drawWeatherSection('ARR WEATHER', data.arrWx, data.includeArrMetar, data.includeArrTaf);
+  drawWeatherSection('ALTN WX', data.altnWx, data.includeAltnMetar, data.includeAltnTaf);
 
-  drawLine('END OF REPORT', 10.5, true);
+  drawDivider();
+  drawLine('NOTAMS: EXTERNAL VIA FINTRAFFIC PIB', 9.2, true);
+  drawLine('END OF REPORT', 9.8, true);
 
   return Buffer.from(await pdfDoc.save());
 }
