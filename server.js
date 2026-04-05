@@ -14,6 +14,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 const AIRPORT_DB_TTL_MS = 24 * 60 * 60 * 1000;
+const WEATHER_CACHE_TTL_MS = 90 * 1000;
+const HTML_CACHE_TTL_MS = 60 * 1000;
+const NEGATIVE_CACHE_TTL_MS = 15 * 1000;
+
+const FETCH_TIMEOUT_RAW_MS = 5000;
+const FETCH_TIMEOUT_HTML_MS = 4000;
+
+const FALLBACK_SEARCH_LIMIT = 20;
+const FALLBACK_BATCH_SIZE = 5;
+
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
 
 let airportDbCache = {
@@ -21,6 +31,27 @@ let airportDbCache = {
   loadedAt: 0,
   promise: null
 };
+
+const responseCache = new Map();
+
+function getCached(key) {
+  const item = responseCache.get(key);
+  if (!item) return undefined;
+
+  if (Date.now() > item.expiresAt) {
+    responseCache.delete(key);
+    return undefined;
+  }
+
+  return item.value;
+}
+
+function setCached(key, value, ttlMs) {
+  responseCache.set(key, {
+    value,
+    expiresAt: Date.now() + ttlMs
+  });
+}
 
 function normalizeIcao(input) {
   return String(input || '')
@@ -159,10 +190,28 @@ function getBundledAirportFallback() {
     }));
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchCsvAirports(url) {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
-  });
+  const res = await fetchWithTimeout(
+    url,
+    {
+      headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
+    },
+    10000
+  );
 
   if (!res.ok) {
     throw new Error(`AIRPORT DB HTTP ${res.status}`);
@@ -214,7 +263,7 @@ async function loadAirportDatabase() {
   return airportDbCache.promise;
 }
 
-async function getNearbyAirports(icao, limit = 80) {
+async function getNearbyAirports(icao, limit = FALLBACK_SEARCH_LIMIT) {
   const airportDb = await loadAirportDatabase();
   const target = airportDb.find(a => a.icao === icao);
 
@@ -235,27 +284,65 @@ async function getNearbyAirports(icao, limit = 80) {
 }
 
 async function fetchRaw(url) {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
-  });
+  const cacheKey = `raw:${url}`;
+  const cached = getCached(cacheKey);
+  if (cached !== undefined) return cached;
 
-  if (res.status === 204) return null;
-  if (!res.ok) return null;
+  try {
+    const res = await fetchWithTimeout(
+      url,
+      {
+        headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
+      },
+      FETCH_TIMEOUT_RAW_MS
+    );
 
-  const text = await res.text();
-  return String(text || '').trim() || null;
+    if (res.status === 204) {
+      setCached(cacheKey, null, WEATHER_CACHE_TTL_MS);
+      return null;
+    }
+
+    if (!res.ok) {
+      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
+      return null;
+    }
+
+    const text = String(await res.text() || '').trim() || null;
+    setCached(cacheKey, text, WEATHER_CACHE_TTL_MS);
+    return text;
+  } catch (err) {
+    return null;
+  }
 }
 
 async function fetchHtml(url) {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'NatGlobeAviation/1.0',
-      Accept: 'text/html,application/xhtml+xml'
-    }
-  });
+  const cacheKey = `html:${url}`;
+  const cached = getCached(cacheKey);
+  if (cached !== undefined) return cached;
 
-  if (!res.ok) return null;
-  return await res.text();
+  try {
+    const res = await fetchWithTimeout(
+      url,
+      {
+        headers: {
+          'User-Agent': 'NatGlobeAviation/1.0',
+          Accept: 'text/html,application/xhtml+xml'
+        }
+      },
+      FETCH_TIMEOUT_HTML_MS
+    );
+
+    if (!res.ok) {
+      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
+      return null;
+    }
+
+    const html = await res.text();
+    setCached(cacheKey, html, HTML_CACHE_TTL_MS);
+    return html;
+  } catch (err) {
+    return null;
+  }
 }
 
 async function getMetar(icao) {
@@ -267,19 +354,28 @@ async function getTaf(icao) {
 }
 
 async function getNearestOfficial(fetchFn, requestedIcao) {
-  const nearby = await getNearbyAirports(requestedIcao, 80);
+  const nearby = await getNearbyAirports(requestedIcao, FALLBACK_SEARCH_LIMIT);
 
-  for (const apt of nearby) {
-    const found = await fetchFn(apt.icao);
-    if (found) {
-      return {
-        text: found,
-        source: apt.icao,
-        fallback: true,
-        distanceKm: apt.distanceKm,
-        distanceNm: apt.distanceNm
-      };
-    }
+  for (let i = 0; i < nearby.length; i += FALLBACK_BATCH_SIZE) {
+    const batch = nearby.slice(i, i + FALLBACK_BATCH_SIZE);
+
+    const results = await Promise.all(
+      batch.map(async (apt) => {
+        const found = await fetchFn(apt.icao);
+        if (!found) return null;
+
+        return {
+          text: found,
+          source: apt.icao,
+          fallback: true,
+          distanceKm: apt.distanceKm,
+          distanceNm: apt.distanceNm
+        };
+      })
+    );
+
+    const firstHit = results.find(Boolean);
+    if (firstHit) return firstHit;
   }
 
   return {
@@ -321,11 +417,6 @@ function toSignedTempGroup(value) {
   if (!Number.isFinite(Number(value))) return '//';
   const rounded = Math.round(Number(value));
   return rounded < 0 ? `M${pad2(Math.abs(rounded))}` : pad2(rounded);
-}
-
-function metersPerSecondToKt(ms) {
-  if (!Number.isFinite(Number(ms))) return null;
-  return Number(ms) * 1.943844;
 }
 
 function mapCloudFromFeet(cloudCode, baseFt) {
@@ -602,6 +693,10 @@ function parseEfnuAwosTextToMetar(text, icao) {
 }
 
 async function getEfnuLocalGeneratedMetar(icao) {
+  const cacheKey = `localmetar:${icao}`;
+  const cached = getCached(cacheKey);
+  if (cached !== undefined) return cached;
+
   const urls = [
     'https://atis.efnu.fi/weewx-awos/',
     'https://cumulusry.fi/atis-efnu/',
@@ -615,6 +710,7 @@ async function getEfnuLocalGeneratedMetar(icao) {
 
       const metar = parseEfnuAwosTextToMetar(html, icao);
       if (metar) {
+        setCached(cacheKey, metar, HTML_CACHE_TTL_MS);
         return metar;
       }
     } catch (err) {
@@ -622,15 +718,25 @@ async function getEfnuLocalGeneratedMetar(icao) {
     }
   }
 
+  setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
   return null;
 }
 
 async function getLocalGeneratedMetar(icao) {
+  const cacheKey = `localmetar:${icao}`;
+  const cached = getCached(cacheKey);
+  if (cached !== undefined) return cached;
+
   try {
     if (icao === 'EFHV') {
       const html = await fetchHtml('https://efhv.fi/');
-      if (!html) return null;
-      return parseEfhvLocalMetar(html, icao);
+      if (!html) {
+        setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
+        return null;
+      }
+      const metar = parseEfhvLocalMetar(html, icao);
+      setCached(cacheKey, metar, metar ? HTML_CACHE_TTL_MS : NEGATIVE_CACHE_TTL_MS);
+      return metar;
     }
 
     if (icao === 'EFNU') {
@@ -640,14 +746,17 @@ async function getLocalGeneratedMetar(icao) {
     console.warn(`Local METAR build failed for ${icao}:`, err.message);
   }
 
+  setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
   return null;
 }
 
 async function getAirportWeather(icao) {
   if (!icao) return null;
 
-  const officialMetar = await getMetar(icao);
-  const officialTaf = await getTaf(icao);
+  const [officialMetar, officialTaf] = await Promise.all([
+    getMetar(icao),
+    getTaf(icao)
+  ]);
 
   let metar = officialMetar;
   let taf = officialTaf;
@@ -670,22 +779,41 @@ async function getAirportWeather(icao) {
     }
   }
 
+  const fallbackPromises = [];
+  let needFallbackMetar = false;
+  let needFallbackTaf = false;
+
   if (!metar) {
-    const fallbackMetar = await getNearestOfficial(getMetar, icao);
-    metar = fallbackMetar.text;
-    metarSource = fallbackMetar.source;
-    metarFallback = fallbackMetar.fallback;
-    metarDistanceNm = fallbackMetar.distanceNm;
-    if (fallbackMetar.fallback) mode = 'FALLBACK';
+    needFallbackMetar = true;
+    fallbackPromises.push(getNearestOfficial(getMetar, icao));
   }
 
   if (!taf) {
-    const fallbackTaf = await getNearestOfficial(getTaf, icao);
-    taf = fallbackTaf.text;
-    tafSource = fallbackTaf.source;
-    tafFallback = fallbackTaf.fallback;
-    tafDistanceNm = fallbackTaf.distanceNm;
-    if (fallbackTaf.fallback && mode !== 'LOCAL') mode = 'FALLBACK';
+    needFallbackTaf = true;
+    fallbackPromises.push(getNearestOfficial(getTaf, icao));
+  }
+
+  if (fallbackPromises.length) {
+    const results = await Promise.all(fallbackPromises);
+    let resultIndex = 0;
+
+    if (needFallbackMetar) {
+      const fallbackMetar = results[resultIndex++];
+      metar = fallbackMetar.text;
+      metarSource = fallbackMetar.source;
+      metarFallback = fallbackMetar.fallback;
+      metarDistanceNm = fallbackMetar.distanceNm;
+      if (fallbackMetar.fallback) mode = 'FALLBACK';
+    }
+
+    if (needFallbackTaf) {
+      const fallbackTaf = results[resultIndex++];
+      taf = fallbackTaf.text;
+      tafSource = fallbackTaf.source;
+      tafFallback = fallbackTaf.fallback;
+      tafDistanceNm = fallbackTaf.distanceNm;
+      if (fallbackTaf.fallback && mode !== 'LOCAL') mode = 'FALLBACK';
+    }
   }
 
   if (!metar) metar = 'NOT AVAILABLE';
