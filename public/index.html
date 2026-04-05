@@ -374,7 +374,10 @@
         <span id="arrTag" class="mini-tag">LIVE</span>
       </div>
 
-      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" maxlength="4" />
+      <div class="field-wrap">
+        <input id="altn" class="field" type="text" placeholder="ALTN ICAO" maxlength="4" />
+        <span id="altnTag" class="mini-tag">LIVE</span>
+      </div>
     </div>
 
     <div class="grid-2">
@@ -423,7 +426,7 @@
     <div class="actions">
       <button id="generateBtn" class="btn primary">Generate PDF</button>
       <button id="openBtn" class="btn">Open PDF</button>
-      <button id="latestBtn" class="btn">Use Latest Saved</button>
+      <button id="copyBtn" class="btn">Copy Report</button>
       <button id="resetBtn" class="btn">Reset</button>
       <button id="notamsBtn" class="btn">NOTAMS</button>
     </div>
@@ -500,6 +503,8 @@ END OF REPORT`;
       fullWeather: false
     };
 
+    const REPORT_HISTORY_LIMIT = 10;
+
     const el = (id) => document.getElementById(id);
 
     const fields = {
@@ -523,15 +528,17 @@ END OF REPORT`;
     const previewText = el('previewText');
     const generateBtn = el('generateBtn');
     const openBtn = el('openBtn');
-    const latestBtn = el('latestBtn');
+    const copyBtn = el('copyBtn');
     const resetBtn = el('resetBtn');
     const notamsBtn = el('notamsBtn');
     const utcClock = el('utcClock');
     const swapMiniBtn = el('swapMiniBtn');
     const depTag = el('depTag');
     const arrTag = el('arrTag');
+    const altnTag = el('altnTag');
 
     let latestDirectUrl = null;
+    let latestReportText = '';
     let routeTouched = false;
 
     function updateUtcClock() {
@@ -659,12 +666,19 @@ END OF REPORT`;
         { regex: /\bMETAR SRC [A-Z]{4}\/\d+NM\b/g, cls: 'hl-warn' },
         { regex: /\bTAF SRC [A-Z]{4}\/\d+NM\b/g, cls: 'hl-warn' },
         { regex: /\bALTN REQUIRED\b/g, cls: 'hl-danger' },
+        { regex: /\bVERY LOW VIS\b/g, cls: 'hl-danger' },
         { regex: /\bPOOR VIS\b/g, cls: 'hl-danger' },
         { regex: /\bLOW VIS\b/g, cls: 'hl-warn' },
+        { regex: /\bVERY LOW CEILING\b/g, cls: 'hl-danger' },
         { regex: /\bLOW CEILING\b/g, cls: 'hl-warn' },
         { regex: /\bSTRONG WIND\b/g, cls: 'hl-warn' },
+        { regex: /\bGUST SPREAD\b/g, cls: 'hl-warn' },
         { regex: /\bGUSTS \d{2,3}KT\b/g, cls: 'hl-warn' },
         { regex: /\bFOG\b/g, cls: 'hl-danger' },
+        { regex: /\bMIST\b/g, cls: 'hl-info' },
+        { regex: /\bFREEZING PRECIP\b/g, cls: 'hl-danger' },
+        { regex: /\bICING RISK\b/g, cls: 'hl-danger' },
+        { regex: /\bSNOW\b/g, cls: 'hl-info' },
         { regex: /\bTS\b/g, cls: 'hl-danger' },
         { regex: /\bPRECIP\b/g, cls: 'hl-info' },
         { regex: /\bWINDS ALOFT\b/g, cls: 'hl-info' }
@@ -678,6 +692,7 @@ END OF REPORT`;
     }
 
     function renderPreview(reportText) {
+      latestReportText = String(reportText || '');
       const escaped = escapeHtml(reportText);
       previewText.innerHTML = applyPreviewHighlights(escaped);
     }
@@ -706,6 +721,7 @@ END OF REPORT`;
     function clearAirportTags() {
       clearMiniTag(depTag);
       clearMiniTag(arrTag);
+      clearMiniTag(altnTag);
     }
 
     function applyAirportStatuses(statusData) {
@@ -716,6 +732,7 @@ END OF REPORT`;
 
       const depValue = normalizeIcaoInputValue(fields.dep.value);
       const arrValue = normalizeIcaoInputValue(fields.arr.value);
+      const altnValue = normalizeIcaoInputValue(fields.altn.value);
 
       if (depValue && statusData.dep?.label) {
         setMiniTag(depTag, statusData.dep.mode, statusData.dep.label);
@@ -728,6 +745,40 @@ END OF REPORT`;
       } else {
         clearMiniTag(arrTag);
       }
+
+      if (altnValue && statusData.altn?.label) {
+        setMiniTag(altnTag, statusData.altn.mode, statusData.altn.label);
+      } else {
+        clearMiniTag(altnTag);
+      }
+    }
+
+    function getHistory() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem('ng_dispatch_history') || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveHistoryEntry(queryString, reportText, statusData) {
+      const history = getHistory();
+
+      history.unshift({
+        savedAt: new Date().toISOString(),
+        query: queryString,
+        report: reportText,
+        status: statusData || null
+      });
+
+      const trimmed = history.slice(0, REPORT_HISTORY_LIMIT);
+      localStorage.setItem('ng_dispatch_history', JSON.stringify(trimmed));
+    }
+
+    function getLatestHistoryEntry() {
+      const history = getHistory();
+      return history.length ? history[0] : null;
     }
 
     function resetForm() {
@@ -749,6 +800,7 @@ END OF REPORT`;
 
       routeTouched = false;
       latestDirectUrl = null;
+      latestReportText = '';
       clearAirportTags();
       renderPreview(DEFAULT_PREVIEW);
       setStatus('READY', 'neutral');
@@ -761,7 +813,8 @@ END OF REPORT`;
       fields.dep.value = oldArr;
       fields.arr.value = oldDep;
 
-      clearAirportTags();
+      clearMiniTag(depTag);
+      clearMiniTag(arrTag);
 
       if (!routeTouched) {
         autoFillRouteFromDepArr();
@@ -792,6 +845,7 @@ END OF REPORT`;
 
     fields.altn.addEventListener('input', () => {
       fields.altn.value = normalizeIcaoInputValue(fields.altn.value);
+      clearMiniTag(altnTag);
     });
 
     fields.route.addEventListener('input', () => {
@@ -828,28 +882,6 @@ END OF REPORT`;
         includeWindsAloft: String(fields.includeWindsAloft.checked)
       });
       return params.toString();
-    }
-
-    function saveLatest(queryString, reportText, statusData) {
-      localStorage.setItem('ng_dispatch_last_query', queryString);
-      localStorage.setItem('ng_dispatch_last_report', reportText);
-      localStorage.setItem('ng_dispatch_last_status', JSON.stringify(statusData || null));
-    }
-
-    function loadLatest() {
-      let parsedStatus = null;
-
-      try {
-        parsedStatus = JSON.parse(localStorage.getItem('ng_dispatch_last_status') || 'null');
-      } catch {
-        parsedStatus = null;
-      }
-
-      return {
-        query: localStorage.getItem('ng_dispatch_last_query'),
-        report: localStorage.getItem('ng_dispatch_last_report'),
-        status: parsedStatus
-      };
     }
 
     async function fetchText(queryString) {
@@ -893,18 +925,19 @@ END OF REPORT`;
 
         renderPreview(reportText);
         applyAirportStatuses(statusData);
-        saveLatest(queryString, reportText, statusData);
+        saveHistoryEntry(queryString, reportText, statusData);
         setStatus('DONE — REPORT GENERATED', getStatusModeFromReport(reportText));
       } catch (err) {
         console.error(err);
-        const saved = loadLatest();
-        if (saved.report) {
-          renderPreview(saved.report);
-          applyAirportStatuses(saved.status);
-          latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
+        const latestHistory = getLatestHistoryEntry();
+
+        if (latestHistory?.report) {
+          renderPreview(latestHistory.report);
+          applyAirportStatuses(latestHistory.status);
+          latestDirectUrl = latestHistory.query ? `/api/dispatch-pdf?${latestHistory.query}&t=${Date.now()}` : null;
           setStatus(
-            'OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT',
-            getStatusModeFromReport(saved.report)
+            'OFFLINE OR API UNAVAILABLE — USING MOST RECENT HISTORY REPORT',
+            getStatusModeFromReport(latestHistory.report)
           );
         } else {
           clearAirportTags();
@@ -936,16 +969,21 @@ END OF REPORT`;
       window.open(latestDirectUrl, '_blank');
     });
 
-    latestBtn.addEventListener('click', () => {
-      const saved = loadLatest();
-      if (!saved.report) {
-        setStatus('NO SAVED REPORT', 'nodata');
+    copyBtn.addEventListener('click', async () => {
+      const textToCopy = String(latestReportText || '').trim();
+
+      if (!textToCopy) {
+        setStatus('NO REPORT TO COPY', 'nodata');
         return;
       }
-      renderPreview(saved.report);
-      applyAirportStatuses(saved.status);
-      latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
-      setStatus('DONE — SAVED REPORT LOADED', getStatusModeFromReport(saved.report));
+
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        setStatus('REPORT COPIED TO CLIPBOARD', 'live');
+      } catch (err) {
+        console.error(err);
+        setStatus('COPY FAILED', 'nodata');
+      }
     });
 
     swapMiniBtn.addEventListener('click', () => {
