@@ -214,7 +214,7 @@ async function loadAirportDatabase() {
   return airportDbCache.promise;
 }
 
-async function getNearbyAirports(icao, limit = 60) {
+async function getNearbyAirports(icao, limit = 80) {
   const airportDb = await loadAirportDatabase();
   const target = airportDb.find(a => a.icao === icao);
 
@@ -244,6 +244,18 @@ async function fetchRaw(url) {
 
   const text = await res.text();
   return String(text || '').trim() || null;
+}
+
+async function fetchHtml(url) {
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': 'NatGlobeAviation/1.0',
+      'Accept': 'text/html,application/xhtml+xml'
+    }
+  });
+
+  if (!res.ok) return null;
+  return await res.text();
 }
 
 async function getMetar(icao) {
@@ -305,6 +317,34 @@ function pad2(n) {
   return String(n).padStart(2, '0');
 }
 
+function toSignedTempGroup(value) {
+  if (!Number.isFinite(Number(value))) return '//';
+  const rounded = Math.round(Number(value));
+  return rounded < 0 ? `M${pad2(Math.abs(rounded))}` : pad2(rounded);
+}
+
+function metersPerSecondToKt(ms) {
+  if (!Number.isFinite(Number(ms))) return null;
+  return Number(ms) * 1.943844;
+}
+
+function mapCloudFromFeet(cloudCode, baseFt) {
+  const code = String(cloudCode || '').trim().toUpperCase();
+  const base = Number(baseFt);
+
+  if (['SKC', 'CLR', 'NSC', 'NCD'].includes(code)) return code;
+  if (!Number.isFinite(base)) return code || '///';
+
+  const hundreds = Math.max(0, Math.round(base / 100));
+  const suffix = String(hundreds).padStart(3, '0');
+
+  if (['FEW', 'SCT', 'BKN', 'OVC', 'VV'].includes(code)) {
+    return `${code}${suffix}`;
+  }
+
+  return code || '///';
+}
+
 function mapCloudFromOktas(oktas) {
   const n = Number(oktas);
   if (!Number.isFinite(n)) return '///';
@@ -315,56 +355,64 @@ function mapCloudFromOktas(oktas) {
   return 'OVC020';
 }
 
+function buildWindGroup(dirDeg, speedKt, gustKt) {
+  const dirNum = Number(dirDeg);
+  const spdNum = Number(speedKt);
+  const gstNum = Number(gustKt);
+
+  const dir =
+    Number.isFinite(dirNum)
+      ? String(Math.round(dirNum / 10) * 10).padStart(3, '0')
+      : 'VRB';
+
+  const spd =
+    Number.isFinite(spdNum)
+      ? pad2(Math.max(0, Math.round(spdNum)))
+      : '//';
+
+  const gust =
+    Number.isFinite(gstNum) && (!Number.isFinite(spdNum) || gstNum > spdNum)
+      ? `G${pad2(Math.round(gstNum))}`
+      : '';
+
+  return `${dir}${spd}${gust}KT`;
+}
+
 function buildPseudoMetar({
   icao,
   day,
   hour,
   minute,
   windDir,
-  windSpd,
-  windGust,
+  windKt,
+  windGustKt,
   temp,
   dew,
   pressure,
+  visibility,
   cloud
 }) {
   const dd = pad2(day ?? new Date().getUTCDate());
   const hh = pad2(hour ?? new Date().getUTCHours());
   const mm = pad2(minute ?? new Date().getUTCMinutes());
 
-  const dir = Number.isFinite(Number(windDir))
-    ? pad2(String(Math.round(Number(windDir) / 10) * 10).padStart(3, '0'))
-    : '///';
+  const windGroup = buildWindGroup(windDir, windKt, windGustKt);
+  const visGroup =
+    Number.isFinite(Number(visibility)) && Number(visibility) > 0
+      ? String(Math.max(0, Math.round(Number(visibility)))).padStart(4, '0')
+      : '9999';
 
-  const spd = Number.isFinite(Number(windSpd))
-    ? pad2(Math.round(Number(windSpd)))
-    : '//';
+  const tempGroup = toSignedTempGroup(temp);
+  const dewGroup = toSignedTempGroup(dew);
 
-  const gust =
-    Number.isFinite(Number(windGust)) && Number(windGust) > Number(windSpd || 0)
-      ? `G${pad2(Math.round(Number(windGust)))}`
-      : '';
-
-  const wind = dir === '///' ? 'VRB//KT' : `${String(dir).padStart(3, '0')}${spd}${gust}KT`;
-
-  const t =
-    Number.isFinite(Number(temp))
-      ? (Number(temp) < 0 ? `M${pad2(Math.abs(Math.round(Number(temp))))}` : pad2(Math.round(Number(temp))))
-      : '//';
-
-  const d =
-    Number.isFinite(Number(dew))
-      ? (Number(dew) < 0 ? `M${pad2(Math.abs(Math.round(Number(dew))))}` : pad2(Math.round(Number(dew))))
-      : '//';
-
-  const q =
+  const qnhGroup =
     Number.isFinite(Number(pressure))
-      ? `Q${pad2(String(Math.round(Number(pressure))).padStart(4, '0'))}`
+      ? `Q${String(Math.round(Number(pressure))).padStart(4, '0')}`
       : 'Q////';
 
   const cloudGroup = cloud || '///';
 
-  return `${icao} ${dd}${hh}${mm}Z AUTO ${wind} 9999 ${cloudGroup} ${t}/${d} ${q}`;
+  return `${icao} ${dd}${hh}${mm}Z AUTO ${windGroup} ${visGroup} ${cloudGroup} ${tempGroup}/${dewGroup} ${qnhGroup}`;
 }
 
 function parseEfhvLocalMetar(html, icao) {
@@ -375,11 +423,11 @@ function parseEfhvLocalMetar(html, icao) {
   }
 
   const measuredMatch = text.match(/Mitattu\s+(\d{1,2})\.(\d{1,2})\.\s+(\d{1,2}):(\d{2})/i);
-  const forecastLineMatch = text.match(
-    /(\d{1,2}):(\d{2})\s+(-?\d+)°\s*(\d+)%\,\s*(-?\d+)°\s*(\d{1,3})°\s*(\d+)\((\d+)\)\s*(\d)\/8/i
+  const lineMatch = text.match(
+    /(\d{1,2}):(\d{2})\s+(-?\d+)°\s*(\d+)%[,\s]+(-?\d+)°\s*(\d{1,3})°\s*(\d+)\((\d+)\)\s*(\d)\/8/i
   );
 
-  if (!measuredMatch || !forecastLineMatch) {
+  if (!measuredMatch || !lineMatch) {
     return null;
   }
 
@@ -387,12 +435,12 @@ function parseEfhvLocalMetar(html, icao) {
   const hour = Number(measuredMatch[3]);
   const minute = Number(measuredMatch[4]);
 
-  const temp = Number(forecastLineMatch[3]);
-  const dew = Number(forecastLineMatch[5]);
-  const windDir = Number(forecastLineMatch[6]);
-  const windSpd = Number(forecastLineMatch[7]);
-  const windGust = Number(forecastLineMatch[8]);
-  const oktas = Number(forecastLineMatch[9]);
+  const temp = Number(lineMatch[3]);
+  const dew = Number(lineMatch[5]);
+  const windDir = Number(lineMatch[6]);
+  const windKt = Number(lineMatch[7]);
+  const windGustKt = Number(lineMatch[8]);
+  const oktas = Number(lineMatch[9]);
 
   return buildPseudoMetar({
     icao,
@@ -400,56 +448,145 @@ function parseEfhvLocalMetar(html, icao) {
     hour,
     minute,
     windDir,
-    windSpd,
-    windGust,
+    windKt,
+    windGustKt,
     temp,
     dew,
     pressure: null,
+    visibility: 9999,
     cloud: mapCloudFromOktas(oktas)
   });
 }
 
-function parseEfnuLocalMetar(html, icao) {
-  const text = stripHtml(html);
+function parseEfnuAwosTextToMetar(text, icao) {
+  const compact = cleanLine(stripHtml(text));
 
-  const compact = cleanLine(text);
+  const timestamp =
+    compact.match(/(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?/) ||
+    compact.match(/AUTO WEATHER\s+(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})\s+UTC/i);
 
-  const timeMatch = compact.match(/UTC TIME\s+(\d{1,2}):(\d{2})/i);
-  const windMatch = compact.match(/(?:WIND|TUULI)\s+(\d{1,3})\D+(\d{1,2})(?:\D+(\d{1,2}))?/i);
-  const tempMatch = compact.match(/(?:TEMP|LÄMPÖ|T)\s+(-?\d+(?:[.,]\d+)?)/i);
-  const dewMatch = compact.match(/(?:DEW|DEW POINT|DP)\s+(-?\d+(?:[.,]\d+)?)/i);
-  const qnhMatch = compact.match(/(?:QNH|BAROMETER|PRESSURE)\s+(\d{3,4}(?:[.,]\d+)?)/i);
-  const cloudMatch = compact.match(/(?:PILVET|CLOUD)\s+(\d)\/8/i);
+  let day = new Date().getUTCDate();
+  let hour = new Date().getUTCHours();
+  let minute = new Date().getUTCMinutes();
 
-  if (!timeMatch) return null;
+  if (timestamp) {
+    if (timestamp[1] && timestamp[2] && timestamp[3] && timestamp[4] && timestamp[5] && timestamp[0].includes('/')) {
+      day = Number(timestamp[2]);
+      hour = Number(timestamp[4]);
+      minute = Number(timestamp[5]);
+    } else {
+      day = Number(timestamp[3]);
+      hour = Number(timestamp[4]);
+      minute = Number(timestamp[5]);
+    }
+  }
 
-  const now = new Date();
-  const day = now.getUTCDate();
-  const hour = Number(timeMatch[1]);
-  const minute = Number(timeMatch[2]);
+  const windMatch =
+    compact.match(/Wind\s+(\d{1,3})°\s+([0-9.]+)\s*kt(?:\s+[0-9.]+\s*m\/s)?(?:,\s*variable\s+\d{1,3}-\d{1,3}°)?(?:,\s*gusts\s+([0-9.]+)\s*kt)?/i) ||
+    compact.match(/Wind\s+([0-9.]+)\s*m\/s\s+[A-Z]{1,3}\s+\((\d{1,3})°\)/i);
+
+  let windDir = null;
+  let windKt = null;
+  let windGustKt = null;
+
+  if (windMatch) {
+    if (windMatch[0].includes('kt')) {
+      windDir = Number(windMatch[1]);
+      windKt = Number(windMatch[2]);
+      windGustKt = windMatch[3] ? Number(windMatch[3]) : null;
+    } else {
+      windDir = Number(windMatch[2]);
+      windKt = metersPerSecondToKt(Number(windMatch[1]));
+    }
+  }
+
+  const visMatch =
+    compact.match(/Visibility\s+([0-9.]+)\s*km/i) ||
+    compact.match(/Visibility\s+([0-9.]+)\s*m\b/i);
+
+  let visibility = 9999;
+  if (visMatch) {
+    if (/km/i.test(visMatch[0])) {
+      visibility = Math.min(9999, Math.round(Number(visMatch[1]) * 1000));
+    } else {
+      visibility = Math.min(9999, Math.round(Number(visMatch[1])));
+    }
+  }
+
+  const cloudMatch =
+    compact.match(/Clouds\s+(FEW|SCT|BKN|OVC|VV|SKC|CLR|NSC|NCD)\s+(\d+)\s*ft/i) ||
+    compact.match(/Vertical visibility\s+(\d+)\s*ft/i);
+
+  let cloud = '///';
+  if (cloudMatch) {
+    if (cloudMatch[1] && /^[A-Z]+$/.test(cloudMatch[1])) {
+      cloud = mapCloudFromFeet(cloudMatch[1], Number(cloudMatch[2]));
+    } else {
+      cloud = mapCloudFromFeet('VV', Number(cloudMatch[1]));
+    }
+  }
+
+  const tempMatch =
+    compact.match(/(?:Outside Temperature|Temp)\s+(-?[0-9.]+)\s*°?C/i);
+
+  const dewMatch =
+    compact.match(/(?:Dew Point|dew point)\s+(-?[0-9.]+)\s*°?C/i);
+
+  const qnhMatch =
+    compact.match(/QNH\s+([0-9.]+)/i) ||
+    compact.match(/Barometer\s+([0-9.]+)\s*mbar/i);
+
+  const temp = tempMatch ? Number(tempMatch[1]) : null;
+  const dew = dewMatch ? Number(dewMatch[1]) : null;
+  const pressure = qnhMatch ? Number(qnhMatch[1]) : null;
+
+  if (
+    !Number.isFinite(Number(temp)) &&
+    !Number.isFinite(Number(dew)) &&
+    !Number.isFinite(Number(pressure)) &&
+    !Number.isFinite(Number(windKt))
+  ) {
+    return null;
+  }
 
   return buildPseudoMetar({
     icao,
     day,
     hour,
     minute,
-    windDir: windMatch ? Number(windMatch[1]) : null,
-    windSpd: windMatch ? Number(windMatch[2]) : null,
-    windGust: windMatch && windMatch[3] ? Number(windMatch[3]) : null,
-    temp: tempMatch ? Number(String(tempMatch[1]).replace(',', '.')) : null,
-    dew: dewMatch ? Number(String(dewMatch[1]).replace(',', '.')) : null,
-    pressure: qnhMatch ? Number(String(qnhMatch[1]).replace(',', '.')) : null,
-    cloud: cloudMatch ? mapCloudFromOktas(Number(cloudMatch[1])) : '///'
+    windDir,
+    windKt,
+    windGustKt,
+    temp,
+    dew,
+    pressure,
+    visibility,
+    cloud
   });
 }
 
-async function fetchHtml(url) {
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
-  });
+async function getEfnuLocalGeneratedMetar(icao) {
+  const urls = [
+    'https://atis.efnu.fi/weewx-awos/',
+    'https://cumulusry.fi/atis-efnu/',
+    'https://info.efnu.fi/'
+  ];
 
-  if (!res.ok) return null;
-  return await res.text();
+  for (const url of urls) {
+    try {
+      const html = await fetchHtml(url);
+      if (!html) continue;
+
+      const metar = parseEfnuAwosTextToMetar(html, icao);
+      if (metar) {
+        return metar;
+      }
+    } catch (err) {
+      console.warn(`EFNU local parser failed for ${url}:`, err.message);
+    }
+  }
+
+  return null;
 }
 
 async function getLocalGeneratedMetar(icao) {
@@ -461,9 +598,7 @@ async function getLocalGeneratedMetar(icao) {
     }
 
     if (icao === 'EFNU') {
-      const html = await fetchHtml('https://efnu.fi/info-wx/');
-      if (!html) return null;
-      return parseEfnuLocalMetar(html, icao);
+      return await getEfnuLocalGeneratedMetar(icao);
     }
   } catch (err) {
     console.warn(`Local METAR build failed for ${icao}:`, err.message);
@@ -552,16 +687,16 @@ function wrapText(text, maxChars = 34) {
     if (test.length <= maxChars) {
       current = test;
     } else {
-        if (current) lines.push(current);
+      if (current) lines.push(current);
 
-        if (word.length > maxChars) {
-          for (let i = 0; i < word.length; i += maxChars) {
-            lines.push(word.slice(i, i + maxChars));
-          }
-          current = '';
-        } else {
-          current = word;
+      if (word.length > maxChars) {
+        for (let i = 0; i < word.length; i += maxChars) {
+          lines.push(word.slice(i, i + maxChars));
         }
+        current = '';
+      } else {
+        current = word;
+      }
     }
   }
 
