@@ -464,22 +464,12 @@ function formatUtcClock(d) {
   return `${hh}:${mm} UTC`;
 }
 
-function formatLocalHelsinkiClock(d) {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Helsinki',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }).format(d);
-}
-
 function buildDispatchData(query, depWx, arrWx, altnWx) {
   const now = new Date();
 
   return {
     date: formatDateOnly(now),
     timeUtc: formatUtcClock(now),
-    timeLocal: formatLocalHelsinkiClock(now),
     flight: normalizeFlight(query.flight),
     depWx,
     arrWx,
@@ -495,11 +485,10 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
 
 function buildDispatchText(data) {
   const headerLine = [
-    'OPS NATGLOBE AVIATION',
+    'OPS: NATGLOBE AVIATION',
     data.flight ? `FLT ${data.flight}` : null,
     `DATE ${data.date}`,
-    `UTC ${data.timeUtc.replace(' UTC', '')}`,
-    `LOC ${data.timeLocal}`
+    `UTC ${data.timeUtc.replace(' UTC', '')}`
   ].filter(Boolean).join('   ');
 
   const lines = [
@@ -598,11 +587,10 @@ async function dispatchToPdfBuffer(data) {
   };
 
   const headerLine = [
-    'OPS NATGLOBE AVIATION',
+    'OPS: NATGLOBE AVIATION',
     data.flight ? `FLT ${data.flight}` : null,
     `DATE ${data.date}`,
-    `UTC ${data.timeUtc.replace(' UTC', '')}`,
-    `LOC ${data.timeLocal}`
+    `UTC ${data.timeUtc.replace(' UTC', '')}`
   ].filter(Boolean).join('   ');
 
   drawLine('ACARS WEATHER REPORT', 12, true);
