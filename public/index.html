@@ -43,6 +43,13 @@
       font-size: clamp(20px, 2.8vw, 32px);
       font-weight: 700;
       color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .utc-clock {
+      font-size: clamp(14px, 1.4vw, 18px);
+      color: #bdbdbd;
       margin-bottom: 14px;
       text-transform: uppercase;
     }
@@ -181,6 +188,7 @@
 <body>
   <main class="frame">
     <div class="title">NATGLOBE AVIATION / ACARS DISPATCH</div>
+    <div id="utcClock" class="utc-clock">UTC --:--:--</div>
 
     <div class="intro">
       Choose exactly what weather sections to include. ORIG / DEST are automatic from DEP / ARR.
@@ -189,9 +197,9 @@
 
     <div class="grid">
       <input id="flight" class="field" type="text" placeholder="FLIGHT (NG123)" />
-      <input id="dep" class="field" type="text" placeholder="DEP ICAO" value="EFHV" maxlength="4" />
-      <input id="arr" class="field" type="text" placeholder="ARR ICAO" value="EFHK" maxlength="4" />
-      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" value="EETN" maxlength="4" />
+      <input id="dep" class="field" type="text" placeholder="DEP ICAO" maxlength="4" />
+      <input id="arr" class="field" type="text" placeholder="ARR ICAO" maxlength="4" />
+      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" maxlength="4" />
     </div>
 
     <div class="grid-2">
@@ -224,11 +232,10 @@
     <div class="preview-box">
       <pre id="previewText" class="preview-text">ACARS WEATHER REPORT
 --------------------
-OPS: NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
+OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
 FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
-METAR
 EFHK 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
 RMK NIL
@@ -255,11 +262,10 @@ END OF REPORT</pre>
 
     const DEFAULT_PREVIEW = `ACARS WEATHER REPORT
 --------------------
-OPS: NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
+OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
 FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
-METAR
 EFHK 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
 RMK NIL
@@ -268,9 +274,9 @@ END OF REPORT`;
 
     const DEFAULTS = {
       flight: '',
-      dep: 'EFHV',
-      arr: 'EFHK',
-      altn: 'EETN',
+      dep: '',
+      arr: '',
+      altn: '',
       route: '',
       remarks: '',
       includeDepMetar: true,
@@ -307,9 +313,18 @@ END OF REPORT`;
     const latestBtn = el('latestBtn');
     const resetBtn = el('resetBtn');
     const notamsBtn = el('notamsBtn');
+    const utcClock = el('utcClock');
 
     let latestDirectUrl = null;
     let routeTouched = false;
+
+    function updateUtcClock() {
+      const now = new Date();
+      const hh = String(now.getUTCHours()).padStart(2, '0');
+      const mm = String(now.getUTCMinutes()).padStart(2, '0');
+      const ss = String(now.getUTCSeconds()).padStart(2, '0');
+      utcClock.textContent = `UTC ${hh}:${mm}:${ss}`;
+    }
 
     function setStatus(text) {
       statusBox.textContent = text;
@@ -374,29 +389,15 @@ END OF REPORT`;
       const arr = normalizeIcaoInputValue(fields.arr.value);
       const altn = normalizeIcaoInputValue(fields.altn.value);
 
-      if (!dep) {
-        return 'DEP ICAO REQUIRED';
-      }
+      if (!dep) return 'DEP ICAO REQUIRED';
+      if (dep.length !== 4) return 'DEP ICAO MUST BE 4 LETTERS';
 
-      if (dep.length !== 4) {
-        return 'DEP ICAO MUST BE 4 LETTERS';
-      }
+      if (!arr) return 'ARR ICAO REQUIRED';
+      if (arr.length !== 4) return 'ARR ICAO MUST BE 4 LETTERS';
 
-      if (!arr) {
-        return 'ARR ICAO REQUIRED';
-      }
+      if (dep === arr) return 'DEP AND ARR CANNOT MATCH';
 
-      if (arr.length !== 4) {
-        return 'ARR ICAO MUST BE 4 LETTERS';
-      }
-
-      if (dep === arr) {
-        return 'DEP AND ARR CANNOT MATCH';
-      }
-
-      if (altn && altn.length !== 4) {
-        return 'ALTN ICAO MUST BE 4 LETTERS';
-      }
+      if (altn && altn.length !== 4) return 'ALTN ICAO MUST BE 4 LETTERS';
 
       if (
         !fields.includeDepMetar.checked &&
@@ -431,7 +432,6 @@ END OF REPORT`;
       routeTouched = false;
       latestDirectUrl = null;
       previewText.textContent = DEFAULT_PREVIEW;
-      autoFillRouteFromDepArr();
       setStatus('READY');
     }
 
@@ -596,7 +596,8 @@ END OF REPORT`;
 
     (async () => {
       await clearOldCaches();
-      autoFillRouteFromDepArr();
+      updateUtcClock();
+      setInterval(updateUtcClock, 1000);
     })();
   </script>
 </body>
