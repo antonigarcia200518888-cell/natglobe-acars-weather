@@ -99,7 +99,6 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
       text: own,
       source: requestedIcao,
       fallback: false,
-      distanceKm: 0,
       distanceNm: 0
     };
   }
@@ -112,7 +111,6 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
         text: found,
         source: apt.icao,
         fallback: true,
-        distanceKm: apt.distanceKm,
         distanceNm: apt.distanceNm
       };
     }
@@ -122,12 +120,13 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
     text: 'NOT AVAILABLE',
     source: null,
     fallback: false,
-    distanceKm: null,
     distanceNm: null
   };
 }
 
-async function getWeatherWithFallback(icao) {
+async function getAirportWeather(icao) {
+  if (!icao) return null;
+
   const metarResult = await getFirstAvailable(getMetar, icao);
   const tafResult = await getFirstAvailable(getTaf, icao);
 
@@ -136,6 +135,7 @@ async function getWeatherWithFallback(icao) {
   if (metarResult.text === 'NOT AVAILABLE' && tafResult.text === 'NOT AVAILABLE') mode = 'NO DATA';
 
   return {
+    airport: icao,
     mode,
     metar: metarResult.text,
     taf: tafResult.text,
@@ -167,55 +167,94 @@ function wrapText(text, maxChars = 34) {
   return lines.length ? lines : [''];
 }
 
-function buildReportData(icao, weather) {
+function parseBoolean(v) {
+  return String(v).toLowerCase() === 'true';
+}
+
+function buildNotamStub(airportsList) {
+  const filtered = airportsList.filter(Boolean);
+  if (!filtered.length) return 'NOTAMS NOT REQUESTED';
+  return [
+    'NOTAM FETCHER NOT CONNECTED YET',
+    `REQUESTED FOR: ${filtered.join(', ')}`,
+    'ADD OFFICIAL EUROPEAN AIS / PIB SOURCE NEXT'
+  ].join('\n');
+}
+
+function buildDispatchData(query, depWx, arrWx, altnWx) {
   return {
-    airport: icao,
     timeUtc: new Date().toUTCString(),
-    metar: weather.metar || 'NOT AVAILABLE',
-    taf: weather.taf || 'NOT AVAILABLE',
-    mode: weather.mode,
-    metarSource: weather.metarSource,
-    tafSource: weather.tafSource,
-    metarFallback: weather.metarFallback,
-    tafFallback: weather.tafFallback,
-    metarDistanceNm: weather.metarDistanceNm,
-    tafDistanceNm: weather.tafDistanceNm
+    flight: String(query.flight || '').trim().toUpperCase(),
+    dep: depWx,
+    arr: arrWx,
+    altn: altnWx,
+    includeDepMetar: parseBoolean(query.includeDepMetar),
+    includeDepTaf: parseBoolean(query.includeDepTaf),
+    includeArrMetar: parseBoolean(query.includeArrMetar),
+    includeArrTaf: parseBoolean(query.includeArrTaf),
+    includeAltnMetar: parseBoolean(query.includeAltnMetar),
+    includeAltnTaf: parseBoolean(query.includeAltnTaf),
+    includeNotams: parseBoolean(query.includeNotams),
+    notamText: buildNotamStub([
+      depWx?.airport,
+      arrWx?.airport,
+      altnWx?.airport
+    ])
   };
 }
 
-function buildReportText(report) {
-  return [
+function buildDispatchText(data) {
+  const lines = [
     'ACARS WEATHER REPORT',
     '--------------------',
     'OPS SOURCE: NATGLOBE AVIATION',
-    `TIME (UTC): ${report.timeUtc}`,
-    `REQUESTED AIRPORT: ${report.airport}`,
-    `MODE: ${report.mode}`,
-    report.metarFallback && report.metarSource
-      ? `METAR SOURCE: ${report.metarSource} / ${report.metarDistanceNm} NM`
-      : null,
-    report.tafFallback && report.tafSource
-      ? `TAF SOURCE: ${report.tafSource} / ${report.tafDistanceNm} NM`
-      : null,
-    'METAR:',
-    report.metar,
-    'TAF:',
-    report.taf,
-    'END OF REPORT'
-  ].filter(Boolean).join('\n');
+    data.flight ? `FLIGHT: ${data.flight}` : null,
+    `TIME (UTC): ${data.timeUtc}`
+  ].filter(Boolean);
+
+  function pushAirportBlock(label, wx, wantMetar, wantTaf) {
+    if (!wx) return;
+    lines.push(`${label} (${wx.airport})`);
+    lines.push(`MODE: ${wx.mode}`);
+
+    if (wantMetar) {
+      if (wx.metarFallback && wx.metarSource) {
+        lines.push(`METAR SOURCE: ${wx.metarSource} / ${wx.metarDistanceNm} NM`);
+      }
+      lines.push('METAR:');
+      lines.push(wx.metar || 'NOT AVAILABLE');
+    }
+
+    if (wantTaf) {
+      if (wx.tafFallback && wx.tafSource) {
+        lines.push(`TAF SOURCE: ${wx.tafSource} / ${wx.tafDistanceNm} NM`);
+      }
+      lines.push('TAF:');
+      lines.push(wx.taf || 'NOT AVAILABLE');
+    }
+  }
+
+  pushAirportBlock('DEP WEATHER', data.dep, data.includeDepMetar, data.includeDepTaf);
+  pushAirportBlock('ARR WEATHER', data.arr, data.includeArrMetar, data.includeArrTaf);
+  pushAirportBlock('ALTN WEATHER', data.altn, data.includeAltnMetar, data.includeAltnTaf);
+
+  if (data.includeNotams) {
+    lines.push('NOTAMS');
+    lines.push(data.notamText);
+  }
+
+  lines.push('END OF REPORT');
+  return lines.join('\n');
 }
 
-async function reportToPdfBuffer(report) {
+async function dispatchToPdfBuffer(data) {
   const pdfDoc = await PDFDocument.create();
-
   const regularFont = await pdfDoc.embedFont(StandardFonts.Courier);
   const boldFont = await pdfDoc.embedFont(StandardFonts.CourierBold);
 
-  // 110 mm width = 311.81 pt
-  // fixed height for thermal preview compatibility
-  const pageWidth = 311.81;
-  const pageHeight = 595.28;
-
+  // A4 portrait for maximum preview compatibility
+  const pageWidth = 595.28;
+  const pageHeight = 841.89;
   const page = pdfDoc.addPage([pageWidth, pageHeight]);
 
   page.drawRectangle({
@@ -227,12 +266,14 @@ async function reportToPdfBuffer(report) {
   });
 
   const black = rgb(0, 0, 0);
-  const left = 10;
-  const indent = 8;
-  const topMargin = 12;
-  let y = pageHeight - topMargin;
 
-  const drawLine = (text, size = 9, bold = false, x = left) => {
+  // 110 mm content block centered on page
+  const blockWidth = 311.81;
+  const left = (pageWidth - blockWidth) / 2;
+  const indent = 12;
+  let y = pageHeight - 36;
+
+  const drawLine = (text, size = 10, bold = false, x = left) => {
     y -= size;
     page.drawText(text, {
       x,
@@ -241,10 +282,11 @@ async function reportToPdfBuffer(report) {
       font: bold ? boldFont : regularFont,
       color: black
     });
-    y -= 3;
+    y -= 3.5;
   };
 
-  const drawWrapped = (lines, size = 8.4, x = left + indent) => {
+  const drawWrapped = (text, size = 9.2, x = left + indent) => {
+    const lines = wrapText(text, 50);
     for (const line of lines) {
       y -= size;
       page.drawText(line, {
@@ -254,54 +296,76 @@ async function reportToPdfBuffer(report) {
         font: regularFont,
         color: black
       });
-      y -= 2.5;
+      y -= 3;
     }
   };
 
-  drawLine('ACARS WEATHER REPORT', 10, true);
-  drawLine('--------------------', 9, true);
+  drawLine('ACARS WEATHER REPORT', 12, true);
+  drawLine('--------------------', 11, true);
+  y -= 5;
+
+  drawLine('OPS SOURCE: NATGLOBE AVIATION', 10, true);
+  if (data.flight) drawLine(`FLIGHT: ${data.flight}`, 10, true);
+  drawLine(`TIME (UTC): ${data.timeUtc}`, 10, true);
   y -= 4;
 
-  drawLine('OPS SOURCE: NATGLOBE AVIATION', 8.5, true);
-  drawLine(`TIME (UTC): ${report.timeUtc}`, 8.5, true);
-  drawLine(`REQUESTED AIRPORT: ${report.airport}`, 8.5, true);
-  drawLine(`MODE: ${report.mode}`, 8.5, true);
+  const drawAirportSection = (title, wx, wantMetar, wantTaf) => {
+    if (!wx) return;
 
-  if (report.metarFallback && report.metarSource) {
-    drawLine(`METAR SOURCE: ${report.metarSource} / ${report.metarDistanceNm} NM`, 7.8, true);
+    drawLine(`${title} (${wx.airport})`, 10.5, true);
+    drawLine(`MODE: ${wx.mode}`, 9.5, true);
+
+    if (wantMetar) {
+      if (wx.metarFallback && wx.metarSource) {
+        drawLine(`METAR SOURCE: ${wx.metarSource} / ${wx.metarDistanceNm} NM`, 8.8, true);
+      }
+      drawLine('METAR:', 10, true);
+      drawWrapped(wx.metar || 'NOT AVAILABLE');
+    }
+
+    if (wantTaf) {
+      if (wx.tafFallback && wx.tafSource) {
+        drawLine(`TAF SOURCE: ${wx.tafSource} / ${wx.tafDistanceNm} NM`, 8.8, true);
+      }
+      drawLine('TAF:', 10, true);
+      drawWrapped(wx.taf || 'NOT AVAILABLE');
+    }
+
+    y -= 4;
+  };
+
+  drawAirportSection('DEP WEATHER', data.dep, data.includeDepMetar, data.includeDepTaf);
+  drawAirportSection('ARR WEATHER', data.arr, data.includeArrMetar, data.includeArrTaf);
+  drawAirportSection('ALTN WEATHER', data.altn, data.includeAltnMetar, data.includeAltnTaf);
+
+  if (data.includeNotams) {
+    drawLine('NOTAMS', 10.5, true);
+    drawWrapped(data.notamText);
+    y -= 4;
   }
 
-  if (report.tafFallback && report.tafSource) {
-    drawLine(`TAF SOURCE: ${report.tafSource} / ${report.tafDistanceNm} NM`, 7.8, true);
-  }
-
-  y -= 4;
-
-  drawLine('METAR:', 9, true);
-  drawWrapped(wrapText(report.metar, 34));
-
-  y -= 4;
-
-  drawLine('TAF:', 9, true);
-  drawWrapped(wrapText(report.taf, 34));
-
-  y -= 4;
-  drawLine('END OF REPORT', 9, true);
+  drawLine('END OF REPORT', 10.5, true);
 
   return Buffer.from(await pdfDoc.save());
 }
 
-app.get('/api/weather-pdf', async (req, res) => {
+app.get('/api/dispatch-pdf', async (req, res) => {
   try {
-    const icao = normalizeIcao(req.query.icao);
-    if (!icao) return res.status(400).send('INVALID ICAO');
+    const dep = normalizeIcao(req.query.dep);
+    const arr = normalizeIcao(req.query.arr);
+    const altn = normalizeIcao(req.query.altn);
 
-    const weather = await getWeatherWithFallback(icao);
-    const report = buildReportData(icao, weather);
-    const pdf = await reportToPdfBuffer(report);
+    const [depWx, arrWx, altnWx] = await Promise.all([
+      dep ? getAirportWeather(dep) : null,
+      arr ? getAirportWeather(arr) : null,
+      altn ? getAirportWeather(altn) : null
+    ]);
+
+    const data = buildDispatchData(req.query, depWx, arrWx, altnWx);
+    const pdf = await dispatchToPdfBuffer(data);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${icao}_ACARS_WEATHER.pdf"`);
+    res.setHeader('Content-Disposition', 'attachment; filename="ACARS_DISPATCH_REPORT.pdf"');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.send(pdf);
   } catch (err) {
@@ -310,14 +374,20 @@ app.get('/api/weather-pdf', async (req, res) => {
   }
 });
 
-app.get('/api/report-text', async (req, res) => {
+app.get('/api/dispatch-text', async (req, res) => {
   try {
-    const icao = normalizeIcao(req.query.icao);
-    if (!icao) return res.status(400).send('INVALID ICAO');
+    const dep = normalizeIcao(req.query.dep);
+    const arr = normalizeIcao(req.query.arr);
+    const altn = normalizeIcao(req.query.altn);
 
-    const weather = await getWeatherWithFallback(icao);
-    const report = buildReportData(icao, weather);
-    const reportText = buildReportText(report);
+    const [depWx, arrWx, altnWx] = await Promise.all([
+      dep ? getAirportWeather(dep) : null,
+      arr ? getAirportWeather(arr) : null,
+      altn ? getAirportWeather(altn) : null
+    ]);
+
+    const data = buildDispatchData(req.query, depWx, arrWx, altnWx);
+    const reportText = buildDispatchText(data);
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
