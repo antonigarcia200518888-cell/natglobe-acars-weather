@@ -21,6 +21,10 @@ function normalizeIcao(input) {
     .slice(0, 4);
 }
 
+function parseBoolean(v) {
+  return String(v).toLowerCase() === 'true';
+}
+
 function haversineKm(a, b) {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
@@ -170,44 +174,29 @@ function wrapText(text, maxChars = 34) {
   return lines.length ? lines : [''];
 }
 
-function parseBoolean(v) {
-  return String(v).toLowerCase() === 'true';
+function formatUtcTime(d) {
+  return d.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
 }
 
-function isFinnishIcao(icao) {
-  return String(icao || '').toUpperCase().startsWith('EF');
-}
-
-function buildNotamText(dep, arr, altn) {
-  const airportsList = [dep, arr, altn].filter(Boolean).map(x => x.airport);
-  const finnish = airportsList.filter(isFinnishIcao);
-  const nonFinnish = airportsList.filter(x => !isFinnishIcao(x));
-
-  const lines = ['NOTAMS'];
-
-  if (finnish.length) {
-    lines.push('FINLAND OFFICIAL AIS BULLETIN SOURCES:');
-    lines.push('HELSINKI FIR (IFR): https://www.ais.fi/bulletins/efinen.htm');
-    lines.push('FINLAND FIR (IFR) BULLETIN PAGE: https://www.ais.fi/bulletins/efinen-fr.htm');
-    lines.push('NOTE: VERIFY CURRENT AERODROME / ROUTE / FIR NOTAMS FROM OFFICIAL AIS BRIEFING.');
-  }
-
-  if (nonFinnish.length) {
-    lines.push('');
-    lines.push(`EUROPEAN OFFICIAL-NOTAM SOURCE NEEDED FOR: ${nonFinnish.join(', ')}`);
-    lines.push('NEXT STEP: CONNECT EAD / OFFICIAL AIS BRIEFING SOURCE.');
-  }
-
-  if (!airportsList.length) {
-    lines.push('NO AIRPORTS SELECTED FOR NOTAM BRIEFING.');
-  }
-
-  return lines.join('\n');
+function formatLocalHelsinkiTime(d) {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Helsinki',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(d).replace(',', '') + ' Europe/Helsinki';
 }
 
 function buildDispatchData(query, depWx, arrWx, altnWx) {
+  const now = new Date();
+
   return {
-    timeUtc: new Date().toUTCString(),
+    timeUtc: formatUtcTime(now),
+    timeLocal: formatLocalHelsinkiTime(now),
     flight: String(query.flight || '').trim().toUpperCase(),
     dep: depWx,
     arr: arrWx,
@@ -217,8 +206,7 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
     includeArrMetar: parseBoolean(query.includeArrMetar),
     includeArrTaf: parseBoolean(query.includeArrTaf),
     includeAltnMetar: parseBoolean(query.includeAltnMetar),
-    includeAltnTaf: parseBoolean(query.includeAltnTaf),
-    includeNotams: parseBoolean(query.includeNotams)
+    includeAltnTaf: parseBoolean(query.includeAltnTaf)
   };
 }
 
@@ -228,7 +216,9 @@ function buildDispatchText(data) {
     '--------------------',
     'OPS SOURCE: NATGLOBE AVIATION',
     data.flight ? `FLIGHT: ${data.flight}` : null,
-    `TIME (UTC): ${data.timeUtc}`
+    `TIME (UTC): ${data.timeUtc}`,
+    `TIME (LOCAL): ${data.timeLocal}`,
+    ''
   ].filter(Boolean);
 
   function pushAirportBlock(label, wx, wantMetar, wantTaf) {
@@ -259,11 +249,6 @@ function buildDispatchText(data) {
   pushAirportBlock('DEP WEATHER', data.dep, data.includeDepMetar, data.includeDepTaf);
   pushAirportBlock('ARR WEATHER', data.arr, data.includeArrMetar, data.includeArrTaf);
   pushAirportBlock('ALTN WEATHER', data.altn, data.includeAltnMetar, data.includeAltnTaf);
-
-  if (data.includeNotams) {
-    lines.push(buildNotamText(data.dep, data.arr, data.altn));
-    lines.push('');
-  }
 
   lines.push('END OF REPORT');
   return lines.join('\n');
@@ -351,25 +336,12 @@ async function dispatchToPdfBuffer(data) {
   drawLine('OPS SOURCE: NATGLOBE AVIATION', 10, true);
   if (data.flight) drawLine(`FLIGHT: ${data.flight}`, 10, true);
   drawLine(`TIME (UTC): ${data.timeUtc}`, 10, true);
+  drawLine(`TIME (LOCAL): ${data.timeLocal}`, 10, true);
   y -= 4;
 
   drawAirportSection('DEP WEATHER', data.dep, data.includeDepMetar, data.includeDepTaf);
   drawAirportSection('ARR WEATHER', data.arr, data.includeArrMetar, data.includeArrTaf);
   drawAirportSection('ALTN WEATHER', data.altn, data.includeAltnMetar, data.includeAltnTaf);
-
-  if (data.includeNotams) {
-    drawLine('NOTAMS', 10.5, true);
-
-    const notamLines = buildNotamText(data.dep, data.arr, data.altn).split('\n');
-    for (const line of notamLines) {
-      if (!line.trim()) {
-        y -= 4;
-        continue;
-      }
-      drawWrappedText(line, 8.8, left + indent);
-    }
-    y -= 4;
-  }
 
   drawLine('END OF REPORT', 10.5, true);
 
