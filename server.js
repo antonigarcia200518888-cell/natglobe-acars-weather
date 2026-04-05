@@ -18,14 +18,16 @@ const WEATHER_CACHE_TTL_MS = 90 * 1000;
 const HTML_CACHE_TTL_MS = 60 * 1000;
 const NEGATIVE_CACHE_TTL_MS = 15 * 1000;
 
-const FETCH_TIMEOUT_RAW_MS = 5000;
-const FETCH_TIMEOUT_HTML_MS = 4000;
+const FETCH_TIMEOUT_RAW_MS = 4500;
+const FETCH_TIMEOUT_HTML_MS = 3500;
+const FETCH_TIMEOUT_AIRPORT_DB_MS = 10000;
 
-const FALLBACK_SEARCH_LIMIT = 20;
-const FALLBACK_BATCH_SIZE = 5;
+const FALLBACK_SEARCH_LIMIT = 16;
+const FALLBACK_BATCH_SIZE = 4;
 
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
 const EFNU_AWOS_URL = 'https://atis.efnu.fi/weewx-awos/';
+const EFHV_URL = 'https://efhv.fi/';
 
 let airportDbCache = {
   data: null,
@@ -95,6 +97,10 @@ function kmToNm(km) {
 function formatNm(km) {
   if (km == null || Number.isNaN(km)) return null;
   return Math.round(kmToNm(km));
+}
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
 }
 
 function parseCsv(csvText) {
@@ -208,10 +214,8 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
 async function fetchCsvAirports(url) {
   const res = await fetchWithTimeout(
     url,
-    {
-      headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
-    },
-    10000
+    { headers: { 'User-Agent': 'NatGlobeAviation/1.0' } },
+    FETCH_TIMEOUT_AIRPORT_DB_MS
   );
 
   if (!res.ok) {
@@ -248,7 +252,6 @@ async function loadAirportDatabase() {
       airportDbCache.data = data;
       airportDbCache.loadedAt = Date.now();
       airportDbCache.promise = null;
-
       console.log(`Loaded airport DB: ${data.length} FI+EE aerodromes`);
       return data;
     } catch (err) {
@@ -292,9 +295,7 @@ async function fetchRaw(url) {
   try {
     const res = await fetchWithTimeout(
       url,
-      {
-        headers: { 'User-Agent': 'NatGlobeAviation/1.0' }
-      },
+      { headers: { 'User-Agent': 'NatGlobeAviation/1.0' } },
       FETCH_TIMEOUT_RAW_MS
     );
 
@@ -408,10 +409,6 @@ function stripHtml(html) {
 
 function cleanLine(line) {
   return String(line || '').replace(/\s+/g, ' ').trim();
-}
-
-function pad2(n) {
-  return String(n).padStart(2, '0');
 }
 
 function toSignedTempGroup(value) {
@@ -553,7 +550,7 @@ function parseEfhvLocalMetar(html, icao) {
 function parseEfnuAwosTextToMetar(text, icao) {
   const compact = cleanLine(stripHtml(text));
 
-  const timestampMatch = compact.match(/(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+  const timestampMatch = compact.match(/(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/i);
   const tempMatch = compact.match(/Outside Temperature\s+(-?\d+(?:\.\d+)?)°C/i);
   const dewMatch = compact.match(/Dew Point\s+(-?\d+(?:\.\d+)?)°C/i);
   const pressureMatch = compact.match(/Barometer\s+(\d+(?:\.\d+)?)\s*mbar/i);
@@ -620,7 +617,7 @@ async function getLocalGeneratedMetar(icao) {
 
   try {
     if (icao === 'EFHV') {
-      const html = await fetchHtml('https://efhv.fi/');
+      const html = await fetchHtml(EFHV_URL);
       if (!html) {
         setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
         return null;
