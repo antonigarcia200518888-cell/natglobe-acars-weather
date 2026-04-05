@@ -67,9 +67,10 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 56px minmax(0, 1fr) minmax(0, 1fr);
       gap: 10px;
       margin-bottom: 12px;
+      align-items: stretch;
     }
 
     .grid-2 {
@@ -79,7 +80,7 @@
       margin-bottom: 12px;
     }
 
-    .field, .btn, .remarks {
+    .field, .btn, .remarks, .swap-mini {
       min-height: 52px;
       border: 2px solid var(--line);
       font-family: "Courier New", Courier, monospace;
@@ -92,11 +93,81 @@
       padding: 10px 12px;
       text-transform: uppercase;
       outline: none;
+      width: 100%;
     }
 
     .remarks {
       min-height: 80px;
       resize: vertical;
+    }
+
+    .field-wrap {
+      position: relative;
+      min-width: 0;
+    }
+
+    .field-wrap .field {
+      padding-right: 80px;
+    }
+
+    .mini-tag {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      min-width: 62px;
+      text-align: center;
+      border: 1px solid currentColor;
+      padding: 2px 6px;
+      font-size: 11px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: #000;
+      pointer-events: none;
+      display: none;
+    }
+
+    .mini-tag.tag-live {
+      display: inline-block;
+      color: var(--live);
+    }
+
+    .mini-tag.tag-fallback {
+      display: inline-block;
+      color: var(--warn);
+    }
+
+    .mini-tag.tag-nodata {
+      display: inline-block;
+      color: var(--danger);
+    }
+
+    .swap-mini {
+      background: #000;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .swap-mini:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .swap-mini:active {
+      transform: translateY(1px);
+    }
+
+    .swap-symbol {
+      font-size: 22px;
+      transform: translateY(-1px);
     }
 
     .options-wrap {
@@ -174,7 +245,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
@@ -265,6 +336,14 @@
       .options-pair {
         grid-template-columns: 1fr;
       }
+
+      .field-wrap .field {
+        padding-right: 84px;
+      }
+
+      .swap-mini {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -280,8 +359,21 @@
 
     <div class="grid">
       <input id="flight" class="field" type="text" placeholder="FLIGHT (NG123)" />
-      <input id="dep" class="field" type="text" placeholder="DEP ICAO" maxlength="4" />
-      <input id="arr" class="field" type="text" placeholder="ARR ICAO" maxlength="4" />
+
+      <div class="field-wrap">
+        <input id="dep" class="field" type="text" placeholder="DEP ICAO" maxlength="4" />
+        <span id="depTag" class="mini-tag">LIVE</span>
+      </div>
+
+      <button id="swapMiniBtn" class="swap-mini" type="button" aria-label="Swap departure and arrival">
+        <span class="swap-symbol">⇄</span>
+      </button>
+
+      <div class="field-wrap">
+        <input id="arr" class="field" type="text" placeholder="ARR ICAO" maxlength="4" />
+        <span id="arrTag" class="mini-tag">LIVE</span>
+      </div>
+
       <input id="altn" class="field" type="text" placeholder="ALTN ICAO" maxlength="4" />
     </div>
 
@@ -332,7 +424,6 @@
       <button id="generateBtn" class="btn primary">Generate PDF</button>
       <button id="openBtn" class="btn">Open PDF</button>
       <button id="latestBtn" class="btn">Use Latest Saved</button>
-      <button id="swapBtn" class="btn">Swap Route</button>
       <button id="resetBtn" class="btn">Reset</button>
       <button id="notamsBtn" class="btn">NOTAMS</button>
     </div>
@@ -429,10 +520,12 @@ END OF REPORT`;
     const generateBtn = el('generateBtn');
     const openBtn = el('openBtn');
     const latestBtn = el('latestBtn');
-    const swapBtn = el('swapBtn');
     const resetBtn = el('resetBtn');
     const notamsBtn = el('notamsBtn');
     const utcClock = el('utcClock');
+    const swapMiniBtn = el('swapMiniBtn');
+    const depTag = el('depTag');
+    const arrTag = el('arrTag');
 
     let latestDirectUrl = null;
     let routeTouched = false;
@@ -579,6 +672,54 @@ END OF REPORT`;
       previewText.innerHTML = applyPreviewHighlights(escaped);
     }
 
+    function clearMiniTag(tagEl) {
+      tagEl.textContent = '';
+      tagEl.classList.remove('tag-live', 'tag-fallback', 'tag-nodata');
+    }
+
+    function setMiniTag(tagEl, mode, label) {
+      clearMiniTag(tagEl);
+
+      if (!label) return;
+
+      tagEl.textContent = label;
+
+      if (mode === 'LIVE') {
+        tagEl.classList.add('tag-live');
+      } else if (mode === 'FALLBACK') {
+        tagEl.classList.add('tag-fallback');
+      } else if (mode === 'NO DATA') {
+        tagEl.classList.add('tag-nodata');
+      }
+    }
+
+    function clearAirportTags() {
+      clearMiniTag(depTag);
+      clearMiniTag(arrTag);
+    }
+
+    function applyAirportStatuses(statusData) {
+      if (!statusData) {
+        clearAirportTags();
+        return;
+      }
+
+      const depValue = normalizeIcaoInputValue(fields.dep.value);
+      const arrValue = normalizeIcaoInputValue(fields.arr.value);
+
+      if (depValue && statusData.dep?.label) {
+        setMiniTag(depTag, statusData.dep.mode, statusData.dep.label);
+      } else {
+        clearMiniTag(depTag);
+      }
+
+      if (arrValue && statusData.arr?.label) {
+        setMiniTag(arrTag, statusData.arr.mode, statusData.arr.label);
+      } else {
+        clearMiniTag(arrTag);
+      }
+    }
+
     function resetForm() {
       fields.flight.value = DEFAULTS.flight;
       fields.dep.value = DEFAULTS.dep;
@@ -598,6 +739,7 @@ END OF REPORT`;
 
       routeTouched = false;
       latestDirectUrl = null;
+      clearAirportTags();
       renderPreview(DEFAULT_PREVIEW);
       setStatus('READY', 'neutral');
     }
@@ -608,6 +750,8 @@ END OF REPORT`;
 
       fields.dep.value = oldArr;
       fields.arr.value = oldDep;
+
+      clearAirportTags();
 
       if (!routeTouched) {
         autoFillRouteFromDepArr();
@@ -626,11 +770,13 @@ END OF REPORT`;
 
     fields.dep.addEventListener('input', () => {
       fields.dep.value = normalizeIcaoInputValue(fields.dep.value);
+      clearMiniTag(depTag);
       autoFillRouteFromDepArr();
     });
 
     fields.arr.addEventListener('input', () => {
       fields.arr.value = normalizeIcaoInputValue(fields.arr.value);
+      clearMiniTag(arrTag);
       autoFillRouteFromDepArr();
     });
 
@@ -674,15 +820,25 @@ END OF REPORT`;
       return params.toString();
     }
 
-    function saveLatest(queryString, reportText) {
+    function saveLatest(queryString, reportText, statusData) {
       localStorage.setItem('ng_dispatch_last_query', queryString);
       localStorage.setItem('ng_dispatch_last_report', reportText);
+      localStorage.setItem('ng_dispatch_last_status', JSON.stringify(statusData || null));
     }
 
     function loadLatest() {
+      let parsedStatus = null;
+
+      try {
+        parsedStatus = JSON.parse(localStorage.getItem('ng_dispatch_last_status') || 'null');
+      } catch {
+        parsedStatus = null;
+      }
+
       return {
         query: localStorage.getItem('ng_dispatch_last_query'),
-        report: localStorage.getItem('ng_dispatch_last_report')
+        report: localStorage.getItem('ng_dispatch_last_report'),
+        status: parsedStatus
       };
     }
 
@@ -692,6 +848,14 @@ END OF REPORT`;
       });
       if (!res.ok) throw new Error(`TEXT HTTP ${res.status}`);
       return await res.text();
+    }
+
+    async function fetchAirportStatuses(queryString) {
+      const res = await fetch(`/api/dispatch-status?${queryString}&t=${Date.now()}`, {
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error(`STATUS HTTP ${res.status}`);
+      return await res.json();
     }
 
     async function generate() {
@@ -707,25 +871,33 @@ END OF REPORT`;
 
       setStatus('FETCHING WEATHER PACKAGE...', 'neutral');
       renderPreview('');
+      clearAirportTags();
 
       try {
-        const reportText = await fetchText(queryString);
+        const [reportText, statusData] = await Promise.all([
+          fetchText(queryString),
+          fetchAirportStatuses(queryString)
+        ]);
+
         latestDirectUrl = `/api/dispatch-pdf?${queryString}&t=${Date.now()}`;
 
         renderPreview(reportText);
-        saveLatest(queryString, reportText);
+        applyAirportStatuses(statusData);
+        saveLatest(queryString, reportText, statusData);
         setStatus('DONE — REPORT GENERATED', getStatusModeFromReport(reportText));
       } catch (err) {
         console.error(err);
         const saved = loadLatest();
         if (saved.report) {
           renderPreview(saved.report);
+          applyAirportStatuses(saved.status);
           latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
           setStatus(
             'OFFLINE OR API UNAVAILABLE — USING SAVED LOCAL REPORT',
             getStatusModeFromReport(saved.report)
           );
         } else {
+          clearAirportTags();
           setStatus('ERROR FETCHING WEATHER PACKAGE', 'nodata');
         }
       }
@@ -761,11 +933,12 @@ END OF REPORT`;
         return;
       }
       renderPreview(saved.report);
+      applyAirportStatuses(saved.status);
       latestDirectUrl = saved.query ? `/api/dispatch-pdf?${saved.query}&t=${Date.now()}` : null;
       setStatus('DONE — SAVED REPORT LOADED', getStatusModeFromReport(saved.report));
     });
 
-    swapBtn.addEventListener('click', () => {
+    swapMiniBtn.addEventListener('click', () => {
       swapDepArr();
     });
 
@@ -782,6 +955,7 @@ END OF REPORT`;
       updateUtcClock();
       setInterval(updateUtcClock, 1000);
       renderPreview(DEFAULT_PREVIEW);
+      clearAirportTags();
     })();
   </script>
 </body>
