@@ -833,6 +833,46 @@ function buildDispatchText(data) {
   return lines.join('\n');
 }
 
+function summarizeAirportStatus(wx, icao) {
+  if (!icao) {
+    return {
+      airport: '',
+      mode: 'EMPTY',
+      label: ''
+    };
+  }
+
+  if (!wx) {
+    return {
+      airport: icao,
+      mode: 'NO DATA',
+      label: 'NO DATA'
+    };
+  }
+
+  if (wx.mode === 'FALLBACK') {
+    return {
+      airport: icao,
+      mode: 'FALLBACK',
+      label: 'FALLBACK'
+    };
+  }
+
+  if (wx.mode === 'NO DATA') {
+    return {
+      airport: icao,
+      mode: 'NO DATA',
+      label: 'NO DATA'
+    };
+  }
+
+  return {
+    airport: icao,
+    mode: 'LIVE',
+    label: 'LIVE'
+  };
+}
+
 async function dispatchToPdfBuffer(data) {
   const pdfDoc = await PDFDocument.create();
   const regularFont = await pdfDoc.embedFont(StandardFonts.Courier);
@@ -994,6 +1034,35 @@ app.get('/api/dispatch-text', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('FAILED TO BUILD REPORT');
+  }
+});
+
+app.get('/api/dispatch-status', async (req, res) => {
+  try {
+    const dep = normalizeIcao(req.query.dep);
+    const arr = normalizeIcao(req.query.arr);
+    const altn = normalizeIcao(req.query.altn);
+
+    const [depWx, arrWx, altnWx] = await Promise.all([
+      dep ? getAirportWeather(dep) : null,
+      arr ? getAirportWeather(arr) : null,
+      altn ? getAirportWeather(altn) : null
+    ]);
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.json({
+      dep: summarizeAirportStatus(depWx, dep),
+      arr: summarizeAirportStatus(arrWx, arr),
+      altn: summarizeAirportStatus(altnWx, altn)
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      dep: { airport: '', mode: 'NO DATA', label: '' },
+      arr: { airport: '', mode: 'NO DATA', label: '' },
+      altn: { airport: '', mode: 'NO DATA', label: '' }
+    });
   }
 });
 
