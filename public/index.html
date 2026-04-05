@@ -43,12 +43,60 @@
       background: #000;
     }
 
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
     .title {
       font-size: clamp(20px, 2.8vw, 32px);
       font-weight: 700;
       color: var(--muted);
-      margin-bottom: 4px;
       text-transform: uppercase;
+    }
+
+    .connection-badge {
+      min-height: 32px;
+      border: 2px solid currentColor;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(12px, 1.1vw, 16px);
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+      line-height: 1;
+      background: #000;
+      margin-top: 2px;
+    }
+
+    .connection-wifi {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wifi-icon {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
+    .connection-badge.conn-good {
+      color: var(--live);
+    }
+
+    .connection-badge.conn-weak {
+      color: var(--warn);
+    }
+
+    .connection-badge.conn-offline {
+      color: var(--danger);
     }
 
     .utc-clock {
@@ -329,6 +377,11 @@
     }
 
     @media (max-width: 900px) {
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
       .grid, .grid-2, .actions, .options-groups {
         grid-template-columns: 1fr;
       }
@@ -349,7 +402,22 @@
 </head>
 <body>
   <main class="frame">
-    <div class="title">NATGLOBE AVIATION / ACARS DISPATCH</div>
+    <div class="title-row">
+      <div class="title">NATGLOBE AVIATION / ACARS DISPATCH</div>
+
+      <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
+        <span id="connectionWifi" class="connection-wifi" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="wifi-icon">
+            <path d="M2 8.5C7.5 4.5 16.5 4.5 22 8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M5 12C8.8 9.2 15.2 9.2 19 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8.5 15.5C10.5 14 13.5 14 15.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="19" r="1.6" fill="currentColor"/>
+          </svg>
+        </span>
+        <span id="connectionText">OFFLINE</span>
+      </div>
+    </div>
+
     <div id="utcClock" class="utc-clock">UTC --:--:--</div>
 
     <div class="intro">
@@ -536,6 +604,8 @@ END OF REPORT`;
     const depTag = el('depTag');
     const arrTag = el('arrTag');
     const altnTag = el('altnTag');
+    const connectionBadge = el('connectionBadge');
+    const connectionText = el('connectionText');
 
     let latestDirectUrl = null;
     let latestReportText = '';
@@ -547,6 +617,59 @@ END OF REPORT`;
       const mm = String(now.getUTCMinutes()).padStart(2, '0');
       const ss = String(now.getUTCSeconds()).padStart(2, '0');
       utcClock.textContent = `UTC ${hh}:${mm}:${ss}`;
+    }
+
+    function setConnectionState(mode, text) {
+      connectionBadge.classList.remove('conn-good', 'conn-weak', 'conn-offline');
+      connectionText.textContent = text;
+
+      if (mode === 'good') {
+        connectionBadge.classList.add('conn-good');
+      } else if (mode === 'weak') {
+        connectionBadge.classList.add('conn-weak');
+      } else {
+        connectionBadge.classList.add('conn-offline');
+      }
+    }
+
+    function getConnectionQuality() {
+      if (!navigator.onLine) {
+        return { mode: 'offline', text: 'OFFLINE' };
+      }
+
+      const conn =
+        navigator.connection ||
+        navigator.mozConnection ||
+        navigator.webkitConnection;
+
+      if (!conn) {
+        return { mode: 'good', text: 'CONNECTED' };
+      }
+
+      const effectiveType = String(conn.effectiveType || '').toLowerCase();
+      const downlink = Number(conn.downlink);
+
+      if (
+        effectiveType === 'slow-2g' ||
+        effectiveType === '2g' ||
+        (Number.isFinite(downlink) && downlink > 0 && downlink < 1.5)
+      ) {
+        return { mode: 'weak', text: 'WEAK' };
+      }
+
+      return { mode: 'good', text: 'CONNECTED' };
+    }
+
+    function updateConnectionBadge() {
+      const state = getConnectionQuality();
+
+      if (state.mode === 'offline') {
+        setConnectionState('offline', state.text);
+      } else if (state.mode === 'weak') {
+        setConnectionState('weak', state.text);
+      } else {
+        setConnectionState('good', state.text);
+      }
     }
 
     function setStatus(text, mode = 'neutral') {
@@ -998,12 +1121,20 @@ END OF REPORT`;
       window.open('https://sky.fintraffic.fi/FlightRequest/PIB', '_blank');
     });
 
+    window.addEventListener('online', updateConnectionBadge);
+    window.addEventListener('offline', updateConnectionBadge);
+
+    if (navigator.connection) {
+      navigator.connection.addEventListener('change', updateConnectionBadge);
+    }
+
     (async () => {
       await clearOldCaches();
       updateUtcClock();
       setInterval(updateUtcClock, 1000);
       renderPreview(DEFAULT_PREVIEW);
       clearAirportTags();
+      updateConnectionBadge();
     })();
   </script>
 </body>
