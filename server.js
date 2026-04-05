@@ -99,6 +99,7 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
       text: own,
       source: requestedIcao,
       fallback: false,
+      distanceKm: 0,
       distanceNm: 0
     };
   }
@@ -111,6 +112,7 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
         text: found,
         source: apt.icao,
         fallback: true,
+        distanceKm: apt.distanceKm,
         distanceNm: apt.distanceNm
       };
     }
@@ -120,6 +122,7 @@ async function getFirstAvailable(fetchFn, requestedIcao) {
     text: 'NOT AVAILABLE',
     source: null,
     fallback: false,
+    distanceKm: null,
     distanceNm: null
   };
 }
@@ -171,14 +174,35 @@ function parseBoolean(v) {
   return String(v).toLowerCase() === 'true';
 }
 
-function buildNotamStub(airportsList) {
-  const filtered = airportsList.filter(Boolean);
-  if (!filtered.length) return 'NOTAMS NOT REQUESTED';
-  return [
-    'NOTAM FETCHER NOT CONNECTED YET',
-    `REQUESTED FOR: ${filtered.join(', ')}`,
-    'ADD OFFICIAL EUROPEAN AIS / PIB SOURCE NEXT'
-  ].join('\n');
+function isFinnishIcao(icao) {
+  return String(icao || '').toUpperCase().startsWith('EF');
+}
+
+function buildNotamText(dep, arr, altn) {
+  const airportsList = [dep, arr, altn].filter(Boolean).map(x => x.airport);
+  const finnish = airportsList.filter(isFinnishIcao);
+  const nonFinnish = airportsList.filter(x => !isFinnishIcao(x));
+
+  const lines = ['NOTAMS'];
+
+  if (finnish.length) {
+    lines.push('FINLAND OFFICIAL AIS BULLETIN SOURCES:');
+    lines.push('HELSINKI FIR (IFR): https://www.ais.fi/bulletins/efinen.htm');
+    lines.push('FINLAND FIR (IFR) BULLETIN PAGE: https://www.ais.fi/bulletins/efinen-fr.htm');
+    lines.push('NOTE: VERIFY CURRENT AERODROME / ROUTE / FIR NOTAMS FROM OFFICIAL AIS BRIEFING.');
+  }
+
+  if (nonFinnish.length) {
+    lines.push('');
+    lines.push(`EUROPEAN OFFICIAL-NOTAM SOURCE NEEDED FOR: ${nonFinnish.join(', ')}`);
+    lines.push('NEXT STEP: CONNECT EAD / OFFICIAL AIS BRIEFING SOURCE.');
+  }
+
+  if (!airportsList.length) {
+    lines.push('NO AIRPORTS SELECTED FOR NOTAM BRIEFING.');
+  }
+
+  return lines.join('\n');
 }
 
 function buildDispatchData(query, depWx, arrWx, altnWx) {
@@ -194,12 +218,7 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
     includeArrTaf: parseBoolean(query.includeArrTaf),
     includeAltnMetar: parseBoolean(query.includeAltnMetar),
     includeAltnTaf: parseBoolean(query.includeAltnTaf),
-    includeNotams: parseBoolean(query.includeNotams),
-    notamText: buildNotamStub([
-      depWx?.airport,
-      arrWx?.airport,
-      altnWx?.airport
-    ])
+    includeNotams: parseBoolean(query.includeNotams)
   };
 }
 
@@ -214,6 +233,7 @@ function buildDispatchText(data) {
 
   function pushAirportBlock(label, wx, wantMetar, wantTaf) {
     if (!wx) return;
+
     lines.push(`${label} (${wx.airport})`);
     lines.push(`MODE: ${wx.mode}`);
 
@@ -232,6 +252,8 @@ function buildDispatchText(data) {
       lines.push('TAF:');
       lines.push(wx.taf || 'NOT AVAILABLE');
     }
+
+    lines.push('');
   }
 
   pushAirportBlock('DEP WEATHER', data.dep, data.includeDepMetar, data.includeDepTaf);
@@ -239,8 +261,8 @@ function buildDispatchText(data) {
   pushAirportBlock('ALTN WEATHER', data.altn, data.includeAltnMetar, data.includeAltnTaf);
 
   if (data.includeNotams) {
-    lines.push('NOTAMS');
-    lines.push(data.notamText);
+    lines.push(buildNotamText(data.dep, data.arr, data.altn));
+    lines.push('');
   }
 
   lines.push('END OF REPORT');
@@ -252,7 +274,6 @@ async function dispatchToPdfBuffer(data) {
   const regularFont = await pdfDoc.embedFont(StandardFonts.Courier);
   const boldFont = await pdfDoc.embedFont(StandardFonts.CourierBold);
 
-  // A4 portrait for maximum preview compatibility
   const pageWidth = 595.28;
   const pageHeight = 841.89;
   const page = pdfDoc.addPage([pageWidth, pageHeight]);
@@ -266,8 +287,6 @@ async function dispatchToPdfBuffer(data) {
   });
 
   const black = rgb(0, 0, 0);
-
-  // 110 mm content block centered on page
   const blockWidth = 311.81;
   const left = (pageWidth - blockWidth) / 2;
   const indent = 12;
@@ -285,9 +304,9 @@ async function dispatchToPdfBuffer(data) {
     y -= 3.5;
   };
 
-  const drawWrapped = (text, size = 9.2, x = left + indent) => {
-    const lines = wrapText(text, 50);
-    for (const line of lines) {
+  const drawWrappedText = (text, size = 9.2, x = left + indent) => {
+    const wrapped = wrapText(text, 50);
+    for (const line of wrapped) {
       y -= size;
       page.drawText(line, {
         x,
@@ -300,15 +319,6 @@ async function dispatchToPdfBuffer(data) {
     }
   };
 
-  drawLine('ACARS WEATHER REPORT', 12, true);
-  drawLine('--------------------', 11, true);
-  y -= 5;
-
-  drawLine('OPS SOURCE: NATGLOBE AVIATION', 10, true);
-  if (data.flight) drawLine(`FLIGHT: ${data.flight}`, 10, true);
-  drawLine(`TIME (UTC): ${data.timeUtc}`, 10, true);
-  y -= 4;
-
   const drawAirportSection = (title, wx, wantMetar, wantTaf) => {
     if (!wx) return;
 
@@ -320,7 +330,7 @@ async function dispatchToPdfBuffer(data) {
         drawLine(`METAR SOURCE: ${wx.metarSource} / ${wx.metarDistanceNm} NM`, 8.8, true);
       }
       drawLine('METAR:', 10, true);
-      drawWrapped(wx.metar || 'NOT AVAILABLE');
+      drawWrappedText(wx.metar || 'NOT AVAILABLE');
     }
 
     if (wantTaf) {
@@ -328,11 +338,20 @@ async function dispatchToPdfBuffer(data) {
         drawLine(`TAF SOURCE: ${wx.tafSource} / ${wx.tafDistanceNm} NM`, 8.8, true);
       }
       drawLine('TAF:', 10, true);
-      drawWrapped(wx.taf || 'NOT AVAILABLE');
+      drawWrappedText(wx.taf || 'NOT AVAILABLE');
     }
 
     y -= 4;
   };
+
+  drawLine('ACARS WEATHER REPORT', 12, true);
+  drawLine('--------------------', 11, true);
+  y -= 5;
+
+  drawLine('OPS SOURCE: NATGLOBE AVIATION', 10, true);
+  if (data.flight) drawLine(`FLIGHT: ${data.flight}`, 10, true);
+  drawLine(`TIME (UTC): ${data.timeUtc}`, 10, true);
+  y -= 4;
 
   drawAirportSection('DEP WEATHER', data.dep, data.includeDepMetar, data.includeDepTaf);
   drawAirportSection('ARR WEATHER', data.arr, data.includeArrMetar, data.includeArrTaf);
@@ -340,7 +359,15 @@ async function dispatchToPdfBuffer(data) {
 
   if (data.includeNotams) {
     drawLine('NOTAMS', 10.5, true);
-    drawWrapped(data.notamText);
+
+    const notamLines = buildNotamText(data.dep, data.arr, data.altn).split('\n');
+    for (const line of notamLines) {
+      if (!line.trim()) {
+        y -= 4;
+        continue;
+      }
+      drawWrappedText(line, 8.8, left + indent);
+    }
     y -= 4;
   }
 
