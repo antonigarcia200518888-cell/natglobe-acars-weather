@@ -494,45 +494,39 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
 }
 
 function buildDispatchText(data) {
+  const headerLine = [
+    'OPS NATGLOBE AVIATION',
+    data.flight ? `FLT ${data.flight}` : null,
+    `DATE ${data.date}`,
+    `UTC ${data.timeUtc.replace(' UTC', '')}`,
+    `LOC ${data.timeLocal}`
+  ].filter(Boolean).join('   ');
+
   const lines = [
     'ACARS WEATHER REPORT',
     '--------------------',
-    'OPS SOURCE: NATGLOBE AVIATION',
-    data.flight ? `FLIGHT: ${data.flight}` : null,
-    `DATE: ${data.date}`,
-    `TIME (UTC): ${data.timeUtc}`,
-    `TIME (LOCAL): ${data.timeLocal}`,
+    headerLine,
     ''
-  ].filter(Boolean);
+  ];
 
-  function pushAirportBlock(label, wx, wantMetar, wantTaf) {
-    if (!wx) return;
+  function pushAirportBlock(label, wx, wantMetar) {
+    if (!wx || !wantMetar) return;
 
     lines.push(`${label} (${wx.airport})`);
-    lines.push(`MODE: ${wx.mode}`);
 
-    if (wantMetar) {
-      if (wx.metarFallback && wx.metarSource) {
-        lines.push(`METAR SOURCE: ${wx.metarSource} / ${wx.metarDistanceNm} NM`);
-      }
-      lines.push('METAR:');
-      lines.push(wx.metar || 'NOT AVAILABLE');
-      lines.push('');
+    if (wx.metarFallback && wx.metarSource) {
+      lines.push('MODE FALLBACK');
+      lines.push(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`);
     }
 
-    if (wantTaf) {
-      if (wx.tafFallback && wx.tafSource) {
-        lines.push(`TAF SOURCE: ${wx.tafSource} / ${wx.tafDistanceNm} NM`);
-      }
-      lines.push('TAF:');
-      lines.push(wx.taf || 'NOT AVAILABLE');
-      lines.push('');
-    }
+    lines.push('METAR');
+    lines.push(wx.metar || 'NOT AVAILABLE');
+    lines.push('');
   }
 
-  pushAirportBlock('DEP WEATHER', data.depWx, data.includeDepMetar, data.includeDepTaf);
-  pushAirportBlock('ARR WEATHER', data.arrWx, data.includeArrMetar, data.includeArrTaf);
-  pushAirportBlock('ALTN WEATHER', data.altnWx, data.includeAltnMetar, data.includeAltnTaf);
+  pushAirportBlock('DEP WX', data.depWx, data.includeDepMetar);
+  pushAirportBlock('ARR WX', data.arrWx, data.includeArrMetar);
+  pushAirportBlock('ALTN WX', data.altnWx, data.includeAltnMetar);
 
   lines.push('END OF REPORT');
   return lines.join('\n');
@@ -588,47 +582,37 @@ async function dispatchToPdfBuffer(data) {
     }
   };
 
-  const drawAirportSection = (title, wx, wantMetar, wantTaf) => {
-    if (!wx) return;
+  const drawAirportSection = (title, wx, wantMetar) => {
+    if (!wx || !wantMetar) return;
 
     drawLine(`${title} (${wx.airport})`, 10.5, true);
-    drawLine(`MODE: ${wx.mode}`, 9.5, true);
 
-    if (wantMetar) {
-      if (wx.metarFallback && wx.metarSource) {
-        drawLine(`METAR SOURCE: ${wx.metarSource} / ${wx.metarDistanceNm} NM`, 8.8, true);
-      }
-      drawLine('METAR:', 10, true);
-      drawWrappedText(wx.metar || 'NOT AVAILABLE');
-      y -= 2;
+    if (wx.metarFallback && wx.metarSource) {
+      drawLine('MODE FALLBACK', 9.2, true);
+      drawLine(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`, 9.2, true);
     }
 
-    if (wantTaf) {
-      if (wx.tafFallback && wx.tafSource) {
-        drawLine(`TAF SOURCE: ${wx.tafSource} / ${wx.tafDistanceNm} NM`, 8.8, true);
-      }
-      drawLine('TAF:', 10, true);
-      drawWrappedText(wx.taf || 'NOT AVAILABLE');
-      y -= 2;
-    }
-
+    drawLine('METAR', 10, true);
+    drawWrappedText(wx.metar || 'NOT AVAILABLE');
     y -= 4;
   };
 
+  const headerLine = [
+    'OPS NATGLOBE AVIATION',
+    data.flight ? `FLT ${data.flight}` : null,
+    `DATE ${data.date}`,
+    `UTC ${data.timeUtc.replace(' UTC', '')}`,
+    `LOC ${data.timeLocal}`
+  ].filter(Boolean).join('   ');
+
   drawLine('ACARS WEATHER REPORT', 12, true);
   drawLine('--------------------', 11, true);
-  y -= 5;
-
-  drawLine('OPS SOURCE: NATGLOBE AVIATION', 10, true);
-  if (data.flight) drawLine(`FLIGHT: ${data.flight}`, 10, true);
-  drawLine(`DATE: ${data.date}`, 10, true);
-  drawLine(`TIME (UTC): ${data.timeUtc}`, 10, true);
-  drawLine(`TIME (LOCAL): ${data.timeLocal}`, 10, true);
+  drawLine(headerLine, 9.5, false);
   y -= 4;
 
-  drawAirportSection('DEP WEATHER', data.depWx, data.includeDepMetar, data.includeDepTaf);
-  drawAirportSection('ARR WEATHER', data.arrWx, data.includeArrMetar, data.includeArrTaf);
-  drawAirportSection('ALTN WEATHER', data.altnWx, data.includeAltnMetar, data.includeAltnTaf);
+  drawAirportSection('DEP WX', data.depWx, data.includeDepMetar);
+  drawAirportSection('ARR WX', data.arrWx, data.includeArrMetar);
+  drawAirportSection('ALTN WX', data.altnWx, data.includeAltnMetar);
 
   drawLine('END OF REPORT', 10.5, true);
 
