@@ -433,6 +433,23 @@ function parseCloudBase(metar) {
   return lowest;
 }
 
+function arrivalNeedsAlternate(wx) {
+  if (!wx || !wx.metar || wx.metar === 'NOT AVAILABLE') return false;
+
+  const metar = String(wx.metar);
+  const wind = parseWindKt(metar);
+  const vis = parseVisibility(metar);
+  const phenomena = parseWeatherPhenomena(metar);
+  const cloudBase = parseCloudBase(metar);
+
+  if (vis !== null && vis < 5000) return true;
+  if (cloudBase !== null && cloudBase <= 1000) return true;
+  if (phenomena.includes('TS') || phenomena.includes('FG')) return true;
+  if (wind?.gust && wind.gust >= 25) return true;
+
+  return false;
+}
+
 function generateAutoRemark(data) {
   if (data.remarks) return data.remarks;
 
@@ -485,6 +502,10 @@ function generateAutoRemark(data) {
 
   inspect(data.depWx);
   inspect(data.arrWx);
+
+  if (arrivalNeedsAlternate(data.arrWx)) {
+    remarks.push('ALTN REQUIRED');
+  }
 
   const unique = [...new Set(remarks)];
   return unique.length ? unique.join(' / ') : 'NIL';
@@ -622,7 +643,6 @@ function pickNearestHourlyIndex(times) {
   }
 
   if (bestIndex !== -1) return bestIndex;
-
   return times.length - 1;
 }
 
