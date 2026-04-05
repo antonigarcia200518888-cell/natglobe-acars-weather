@@ -19,6 +19,7 @@ const NEGATIVE_CACHE_TTL_MS = 15 * 1000;
 
 const FETCH_TIMEOUT_RAW_MS = 4500;
 const FETCH_TIMEOUT_AIRPORT_DB_MS = 10000;
+const FETCH_TIMEOUT_WINDS_MS = 5500;
 
 const FALLBACK_SEARCH_LIMIT = 16;
 const FALLBACK_BATCH_SIZE = 4;
@@ -174,6 +175,7 @@ function normalizeAirportRow(row) {
 
   const lat = Number(row.latitude_deg);
   const lon = Number(row.longitude_deg);
+  const elevationFt = Number(row.elevation_ft);
   const country = String(row.iso_country || '').trim().toUpperCase();
 
   if (!/^[A-Z]{4}$/.test(icao)) return null;
@@ -187,7 +189,8 @@ function normalizeAirportRow(row) {
     country,
     type: String(row.type || '').trim(),
     lat,
-    lon
+    lon,
+    elevationFt: Number.isFinite(elevationFt) ? elevationFt : null
   };
 }
 
@@ -202,7 +205,8 @@ function getBundledAirportFallback() {
       country: String(a.country || '').trim().toUpperCase(),
       type: String(a.type || 'airport').trim(),
       lat: Number(a.lat),
-      lon: Number(a.lon)
+      lon: Number(a.lon),
+      elevationFt: Number.isFinite(Number(a.elevationFt)) ? Number(a.elevationFt) : null
     }));
 }
 
@@ -274,6 +278,11 @@ async function loadAirportDatabase() {
   })();
 
   return airportDbCache.promise;
+}
+
+async function findAirportByIcao(icao) {
+  const airportDb = await loadAirportDatabase();
+  return airportDb.find(a => a.icao === icao) || null;
 }
 
 async function getNearbyAirports(icao, limit = FALLBACK_SEARCH_LIMIT) {
@@ -594,7 +603,133 @@ function formatUtcClock(d) {
   return `${hh}:${mm} UTC`;
 }
 
-function buildDispatchData(query, depWx, arrWx, altnWx) {
+function pickNearestHourlyIndex(times) {
+  if (!Array.isArray(times) || !times.length) return -1;
+
+  const now = Date.now();
+  let bestIndex = -1;
+  let bestDiff = Infinity;
+
+  for (let i = 0; i < times.length; i++) {
+    const t = Date.parse(times[i]);
+    if (Number.isNaN(t)) continue;
+
+    const diff = t - now;
+    if (diff >= 0 && diff < bestDiff) {
+      bestDiff = diff;
+      bestIndex = i;
+    }
+  }
+
+  if (bestIndex !== -1) return bestIndex;
+
+  return times.length - 1;
+}
+
+function formatWindAloft(directionDeg, speedKt) {
+  if (!Number.isFinite(directionDeg) || !Number.isFinite(speedKt)) return null;
+
+  let dir = Math.round(directionDeg / 10) * 10;
+  if (dir === 360) dir = 0;
+
+  const ddd = String(dir).padStart(3, '0');
+  const ss = String(Math.round(speedKt)).padStart(2, '0');
+  return `${ddd}${ss}KT`;
+}
+
+async function getWindsAloftForAirport(icao) {
+  if (!icao) return null;
+
+  const airport = await findAirportByIcao(icao);
+  if (!airport || !Number.isFinite(airport.lat) || !Number.isFinite(airport.lon)) return null;
+
+  const url = new URL('https://api.open-meteo.com/v1/gfs');
+  url.searchParams.set('latitude', String(airport.lat));
+  url.searchParams.set('longitude', String(airport.lon));
+  url.searchParams.set(
+    'hourly',
+    [
+      'wind_speed_925hPa',
+      'wind_direction_925hPa',
+      'wind_speed_850hPa',
+      'wind_direction_850hPa',
+      'wind_speed_700hPa',
+      'wind_direction_700hPa'
+    ].join(',')
+  );
+  url.searchParams.set('wind_speed_unit', 'kn');
+  url.searchParams.set('timezone', 'UTC');
+  url.searchParams.set('forecast_days', '2');
+
+  const cacheKey = `winds:${url.toString()}`;
+  const cached = getCached(cacheKey);
+  if (cached !== undefined) return cached;
+
+  try {
+    const res = await fetchWithTimeout(
+      url.toString(),
+      { headers: { 'User-Agent': 'NatGlobeAviation/1.0' } },
+      FETCH_TIMEOUT_WINDS_MS
+    );
+
+    if (!res.ok) {
+      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
+      return null;
+    }
+
+    const json = await res.json();
+    const hourly = json?.hourly;
+
+    if (!hourly?.time?.length) {
+      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
+      return null;
+    }
+
+    const idx = pickNearestHourlyIndex(hourly.time);
+    if (idx < 0) {
+      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
+      return null;
+    }
+
+    const formatted = {
+      airport: icao,
+      timeUtc: hourly.time[idx] || null,
+      levels: {
+        '2000FT': formatWindAloft(hourly.wind_direction_925hPa?.[idx], hourly.wind_speed_925hPa?.[idx]),
+        'FL050': formatWindAloft(hourly.wind_direction_850hPa?.[idx], hourly.wind_speed_850hPa?.[idx]),
+        'FL100': formatWindAloft(hourly.wind_direction_700hPa?.[idx], hourly.wind_speed_700hPa?.[idx])
+      }
+    };
+
+    setCached(cacheKey, formatted, WEATHER_CACHE_TTL_MS);
+    return formatted;
+  } catch {
+    return null;
+  }
+}
+
+function hasAnyWindsLine(windsAloft) {
+  if (!windsAloft) return false;
+
+  const dep = windsAloft.dep?.levels || {};
+  const arr = windsAloft.arr?.levels || {};
+
+  return Object.values(dep).some(Boolean) || Object.values(arr).some(Boolean);
+}
+
+function buildWindsLine(label, winds) {
+  if (!winds?.levels) return null;
+
+  const parts = [];
+  if (winds.levels['2000FT']) parts.push(`2000FT ${winds.levels['2000FT']}`);
+  if (winds.levels['FL050']) parts.push(`FL050 ${winds.levels['FL050']}`);
+  if (winds.levels['FL100']) parts.push(`FL100 ${winds.levels['FL100']}`);
+
+  if (!parts.length) return null;
+  return `${label} ${parts.join('   ')}`;
+}
+
+function buildDispatchData(query, depWx, arrWx, altnWx, windsAloft) {
   const now = new Date();
 
   return {
@@ -608,12 +743,14 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
     depWx,
     arrWx,
     altnWx,
+    windsAloft,
     includeDepMetar: parseBoolean(query.includeDepMetar),
     includeDepTaf: parseBoolean(query.includeDepTaf),
     includeArrMetar: parseBoolean(query.includeArrMetar),
     includeArrTaf: parseBoolean(query.includeArrTaf),
     includeAltnMetar: parseBoolean(query.includeAltnMetar),
-    includeAltnTaf: parseBoolean(query.includeAltnTaf)
+    includeAltnTaf: parseBoolean(query.includeAltnTaf),
+    includeWindsAloft: parseBoolean(query.includeWindsAloft)
   };
 }
 
@@ -656,6 +793,18 @@ function buildDispatchText(data) {
   pushAirportBlock('DEP WX', data.depWx, data.includeDepMetar);
   pushAirportBlock('ARR WX', data.arrWx, data.includeArrMetar);
   pushAirportBlock('ALTN WX', data.altnWx, data.includeAltnMetar);
+
+  if (data.includeWindsAloft && hasAnyWindsLine(data.windsAloft)) {
+    lines.push('WINDS ALOFT');
+
+    const depLine = buildWindsLine('DEP', data.windsAloft?.dep);
+    const arrLine = buildWindsLine('ARR', data.windsAloft?.arr);
+
+    if (depLine) lines.push(depLine);
+    if (arrLine) lines.push(arrLine);
+
+    lines.push('');
+  }
 
   lines.push(`RMK ${generateAutoRemark(data)}`);
   lines.push('');
@@ -751,6 +900,18 @@ async function dispatchToPdfBuffer(data) {
   drawAirportSection('ARR WX', data.arrWx, data.includeArrMetar);
   drawAirportSection('ALTN WX', data.altnWx, data.includeAltnMetar);
 
+  if (data.includeWindsAloft && hasAnyWindsLine(data.windsAloft)) {
+    drawLine('WINDS ALOFT', 10.2, true);
+
+    const depLine = buildWindsLine('DEP', data.windsAloft?.dep);
+    const arrLine = buildWindsLine('ARR', data.windsAloft?.arr);
+
+    if (depLine) drawWrappedText(depLine, 9.2, left + indent);
+    if (arrLine) drawWrappedText(arrLine, 9.2, left + indent);
+
+    y -= 4;
+  }
+
   drawLine(`RMK ${generateAutoRemark(data)}`, 9.5, true);
   y -= 2;
 
@@ -764,14 +925,18 @@ app.get('/api/dispatch-pdf', async (req, res) => {
     const dep = normalizeIcao(req.query.dep);
     const arr = normalizeIcao(req.query.arr);
     const altn = normalizeIcao(req.query.altn);
+    const includeWindsAloft = parseBoolean(req.query.includeWindsAloft);
 
-    const [depWx, arrWx, altnWx] = await Promise.all([
+    const [depWx, arrWx, altnWx, depWinds, arrWinds] = await Promise.all([
       dep ? getAirportWeather(dep) : null,
       arr ? getAirportWeather(arr) : null,
-      altn ? getAirportWeather(altn) : null
+      altn ? getAirportWeather(altn) : null,
+      includeWindsAloft && dep ? getWindsAloftForAirport(dep) : null,
+      includeWindsAloft && arr ? getWindsAloftForAirport(arr) : null
     ]);
 
-    const data = buildDispatchData(req.query, depWx, arrWx, altnWx);
+    const windsAloft = includeWindsAloft ? { dep: depWinds, arr: arrWinds } : null;
+    const data = buildDispatchData(req.query, depWx, arrWx, altnWx, windsAloft);
     const pdf = await dispatchToPdfBuffer(data);
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -789,14 +954,18 @@ app.get('/api/dispatch-text', async (req, res) => {
     const dep = normalizeIcao(req.query.dep);
     const arr = normalizeIcao(req.query.arr);
     const altn = normalizeIcao(req.query.altn);
+    const includeWindsAloft = parseBoolean(req.query.includeWindsAloft);
 
-    const [depWx, arrWx, altnWx] = await Promise.all([
+    const [depWx, arrWx, altnWx, depWinds, arrWinds] = await Promise.all([
       dep ? getAirportWeather(dep) : null,
       arr ? getAirportWeather(arr) : null,
-      altn ? getAirportWeather(altn) : null
+      altn ? getAirportWeather(altn) : null,
+      includeWindsAloft && dep ? getWindsAloftForAirport(dep) : null,
+      includeWindsAloft && arr ? getWindsAloftForAirport(arr) : null
     ]);
 
-    const data = buildDispatchData(req.query, depWx, arrWx, altnWx);
+    const windsAloft = includeWindsAloft ? { dep: depWinds, arr: arrWinds } : null;
+    const data = buildDispatchData(req.query, depWx, arrWx, altnWx, windsAloft);
     const reportText = buildDispatchText(data);
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
