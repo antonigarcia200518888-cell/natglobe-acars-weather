@@ -68,6 +68,23 @@ function normalizeFlight(input) {
     .slice(0, 10);
 }
 
+function normalizeRoute(input) {
+  return String(input || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9/ \-]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, 40);
+}
+
+function normalizeRemarks(input) {
+  return String(input || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toUpperCase()
+    .slice(0, 80);
+}
+
 function parseBoolean(v) {
   return String(v).toLowerCase() === 'true';
 }
@@ -471,6 +488,8 @@ function buildDispatchData(query, depWx, arrWx, altnWx) {
     date: formatDateOnly(now),
     timeUtc: formatUtcClock(now),
     flight: normalizeFlight(query.flight),
+    route: normalizeRoute(query.route),
+    remarks: normalizeRemarks(query.remarks),
     depWx,
     arrWx,
     altnWx,
@@ -487,6 +506,7 @@ function buildDispatchText(data) {
   const headerLine = [
     'OPS: NATGLOBE AVIATION',
     data.flight ? `FLT ${data.flight}` : null,
+    data.route ? `ROUTE ${data.route}` : null,
     `DATE ${data.date}`,
     `UTC ${data.timeUtc.replace(' UTC', '')}`
   ].filter(Boolean).join('   ');
@@ -516,6 +536,11 @@ function buildDispatchText(data) {
   pushAirportBlock('DEP WX', data.depWx, data.includeDepMetar);
   pushAirportBlock('ARR WX', data.arrWx, data.includeArrMetar);
   pushAirportBlock('ALTN WX', data.altnWx, data.includeAltnMetar);
+
+  if (data.remarks) {
+    lines.push(`RMK ${data.remarks}`);
+    lines.push('');
+  }
 
   lines.push('END OF REPORT');
   return lines.join('\n');
@@ -589,6 +614,7 @@ async function dispatchToPdfBuffer(data) {
   const headerLine = [
     'OPS: NATGLOBE AVIATION',
     data.flight ? `FLT ${data.flight}` : null,
+    data.route ? `ROUTE ${data.route}` : null,
     `DATE ${data.date}`,
     `UTC ${data.timeUtc.replace(' UTC', '')}`
   ].filter(Boolean).join('   ');
@@ -601,6 +627,11 @@ async function dispatchToPdfBuffer(data) {
   drawAirportSection('DEP WX', data.depWx, data.includeDepMetar);
   drawAirportSection('ARR WX', data.arrWx, data.includeArrMetar);
   drawAirportSection('ALTN WX', data.altnWx, data.includeAltnMetar);
+
+  if (data.remarks) {
+    drawLine(`RMK ${data.remarks}`, 9.5, true);
+    y -= 2;
+  }
 
   drawLine('END OF REPORT', 10.5, true);
 
