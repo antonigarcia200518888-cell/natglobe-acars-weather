@@ -774,6 +774,41 @@ function buildDispatchData(query, depWx, arrWx, altnWx, windsAloft) {
   };
 }
 
+function buildWeatherSectionLines(label, wx, wantMetar, wantTaf) {
+  if (!wx || (!wantMetar && !wantTaf)) return [];
+
+  const lines = [];
+  lines.push(`${label} (${wx.airport})`);
+
+  if (wantMetar) {
+    if (wx.metarFallback && wx.metarSource) {
+      lines.push('METAR MODE FALLBACK');
+      lines.push(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`);
+    } else {
+      lines.push('METAR MODE LIVE');
+    }
+
+    lines.push(wx.metar || 'NOT AVAILABLE');
+    lines.push('');
+  }
+
+  if (wantTaf) {
+    if (wx.tafFallback && wx.tafSource) {
+      lines.push('TAF MODE FALLBACK');
+      lines.push(`TAF SRC ${wx.tafSource}/${wx.tafDistanceNm}NM`);
+    } else if (wx.taf && wx.taf !== 'NOT AVAILABLE') {
+      lines.push('TAF MODE LIVE');
+    } else {
+      lines.push('TAF MODE NO DATA');
+    }
+
+    lines.push(wx.taf || 'NOT AVAILABLE');
+    lines.push('');
+  }
+
+  return lines;
+}
+
 function buildDispatchText(data) {
   const headerLine1 = [
     'OPS NATGLOBE AVIATION',
@@ -796,23 +831,9 @@ function buildDispatchText(data) {
     ''
   ];
 
-  function pushAirportBlock(label, wx, wantMetar) {
-    if (!wx || !wantMetar) return;
-
-    lines.push(`${label} (${wx.airport})`);
-
-    if (wx.metarFallback && wx.metarSource) {
-      lines.push('MODE FALLBACK');
-      lines.push(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`);
-    }
-
-    lines.push(wx.metar || 'NOT AVAILABLE');
-    lines.push('');
-  }
-
-  pushAirportBlock('DEP WX', data.depWx, data.includeDepMetar);
-  pushAirportBlock('ARR WX', data.arrWx, data.includeArrMetar);
-  pushAirportBlock('ALTN WX', data.altnWx, data.includeAltnMetar);
+  lines.push(...buildWeatherSectionLines('DEP WX', data.depWx, data.includeDepMetar, data.includeDepTaf));
+  lines.push(...buildWeatherSectionLines('ARR WX', data.arrWx, data.includeArrMetar, data.includeArrTaf));
+  lines.push(...buildWeatherSectionLines('ALTN WX', data.altnWx, data.includeAltnMetar, data.includeAltnTaf));
 
   if (data.includeWindsAloft && hasAnyWindsLine(data.windsAloft)) {
     lines.push('WINDS ALOFT');
@@ -833,7 +854,35 @@ function buildDispatchText(data) {
   return lines.join('\n');
 }
 
-function summarizeAirportStatus(wx, icao) {
+function getSingleSourceStatus(text, fallback) {
+  if (!text || text === 'NOT AVAILABLE') {
+    return { mode: 'NO DATA', rank: 3 };
+  }
+
+  if (fallback) {
+    return { mode: 'FALLBACK', rank: 2 };
+  }
+
+  return { mode: 'LIVE', rank: 1 };
+}
+
+function combineStatuses(statuses) {
+  if (!statuses.length) {
+    return { mode: 'NO DATA', label: 'NO DATA' };
+  }
+
+  let worst = statuses[0];
+  for (const status of statuses) {
+    if (status.rank > worst.rank) worst = status;
+  }
+
+  return {
+    mode: worst.mode,
+    label: worst.mode
+  };
+}
+
+function summarizeAirportStatus(wx, icao, includeMetar, includeTaf) {
   if (!icao) {
     return {
       airport: '',
@@ -850,15 +899,25 @@ function summarizeAirportStatus(wx, icao) {
     };
   }
 
-  if (wx.mode === 'FALLBACK') {
-    return {
-      airport: icao,
-      mode: 'FALLBACK',
-      label: 'FALLBACK'
-    };
+  const statuses = [];
+
+  if (includeMetar) {
+    statuses.push(getSingleSourceStatus(wx.metar, wx.metarFallback));
   }
 
-  if (wx.mode === 'NO DATA') {
+  if (includeTaf) {
+    statuses.push(getSingleSourceStatus(wx.taf, wx.tafFallback));
+  }
+
+  if (!statuses.length) {
+    if (wx.metar && wx.metar !== 'NOT AVAILABLE') {
+      return {
+        airport: icao,
+        mode: wx.metarFallback ? 'FALLBACK' : 'LIVE',
+        label: wx.metarFallback ? 'FALLBACK' : 'LIVE'
+      };
+    }
+
     return {
       airport: icao,
       mode: 'NO DATA',
@@ -866,10 +925,12 @@ function summarizeAirportStatus(wx, icao) {
     };
   }
 
+  const combined = combineStatuses(statuses);
+
   return {
     airport: icao,
-    mode: 'LIVE',
-    label: 'LIVE'
+    mode: combined.mode,
+    label: combined.label
   };
 }
 
@@ -923,18 +984,36 @@ async function dispatchToPdfBuffer(data) {
     }
   };
 
-  const drawAirportSection = (title, wx, wantMetar) => {
-    if (!wx || !wantMetar) return;
+  const drawWeatherSection = (title, wx, wantMetar, wantTaf) => {
+    if (!wx || (!wantMetar && !wantTaf)) return;
 
     drawLine(`${title} (${wx.airport})`, 10.5, true);
 
-    if (wx.metarFallback && wx.metarSource) {
-      drawLine('MODE FALLBACK', 9.2, true);
-      drawLine(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`, 9.2, true);
+    if (wantMetar) {
+      if (wx.metarFallback && wx.metarSource) {
+        drawLine('METAR MODE FALLBACK', 9.2, true);
+        drawLine(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`, 9.2, true);
+      } else {
+        drawLine('METAR MODE LIVE', 9.2, true);
+      }
+
+      drawWrappedText(wx.metar || 'NOT AVAILABLE');
+      y -= 4;
     }
 
-    drawWrappedText(wx.metar || 'NOT AVAILABLE');
-    y -= 4;
+    if (wantTaf) {
+      if (wx.tafFallback && wx.tafSource) {
+        drawLine('TAF MODE FALLBACK', 9.2, true);
+        drawLine(`TAF SRC ${wx.tafSource}/${wx.tafDistanceNm}NM`, 9.2, true);
+      } else if (wx.taf && wx.taf !== 'NOT AVAILABLE') {
+        drawLine('TAF MODE LIVE', 9.2, true);
+      } else {
+        drawLine('TAF MODE NO DATA', 9.2, true);
+      }
+
+      drawWrappedText(wx.taf || 'NOT AVAILABLE');
+      y -= 4;
+    }
   };
 
   const headerLine1 = [
@@ -956,9 +1035,9 @@ async function dispatchToPdfBuffer(data) {
   drawLine(headerLine2, 9.5, false);
   y -= 4;
 
-  drawAirportSection('DEP WX', data.depWx, data.includeDepMetar);
-  drawAirportSection('ARR WX', data.arrWx, data.includeArrMetar);
-  drawAirportSection('ALTN WX', data.altnWx, data.includeAltnMetar);
+  drawWeatherSection('DEP WX', data.depWx, data.includeDepMetar, data.includeDepTaf);
+  drawWeatherSection('ARR WX', data.arrWx, data.includeArrMetar, data.includeArrTaf);
+  drawWeatherSection('ALTN WX', data.altnWx, data.includeAltnMetar, data.includeAltnTaf);
 
   if (data.includeWindsAloft && hasAnyWindsLine(data.windsAloft)) {
     drawLine('WINDS ALOFT', 10.2, true);
@@ -1043,6 +1122,13 @@ app.get('/api/dispatch-status', async (req, res) => {
     const arr = normalizeIcao(req.query.arr);
     const altn = normalizeIcao(req.query.altn);
 
+    const includeDepMetar = parseBoolean(req.query.includeDepMetar);
+    const includeDepTaf = parseBoolean(req.query.includeDepTaf);
+    const includeArrMetar = parseBoolean(req.query.includeArrMetar);
+    const includeArrTaf = parseBoolean(req.query.includeArrTaf);
+    const includeAltnMetar = parseBoolean(req.query.includeAltnMetar);
+    const includeAltnTaf = parseBoolean(req.query.includeAltnTaf);
+
     const [depWx, arrWx, altnWx] = await Promise.all([
       dep ? getAirportWeather(dep) : null,
       arr ? getAirportWeather(arr) : null,
@@ -1052,9 +1138,9 @@ app.get('/api/dispatch-status', async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.json({
-      dep: summarizeAirportStatus(depWx, dep),
-      arr: summarizeAirportStatus(arrWx, arr),
-      altn: summarizeAirportStatus(altnWx, altn)
+      dep: summarizeAirportStatus(depWx, dep, includeDepMetar, includeDepTaf),
+      arr: summarizeAirportStatus(arrWx, arr, includeArrMetar, includeArrTaf),
+      altn: summarizeAirportStatus(altnWx, altn, includeAltnMetar, includeAltnTaf)
     });
   } catch (err) {
     console.error(err);
