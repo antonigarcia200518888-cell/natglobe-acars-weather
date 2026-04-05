@@ -14,7 +14,9 @@
       --button-bg: #d0d0d0;
       --button-fg: #000000;
     }
+
     * { box-sizing: border-box; }
+
     html, body {
       margin: 0;
       min-height: 100%;
@@ -22,18 +24,21 @@
       color: var(--fg);
       font-family: "Courier New", Courier, monospace;
     }
+
     body {
       display: flex;
       justify-content: center;
       align-items: flex-start;
       padding: 32px 18px;
     }
+
     .frame {
       width: min(1100px, 100%);
       border: 2px solid var(--line);
       padding: 22px 20px 18px;
       background: #000;
     }
+
     .title {
       font-size: clamp(20px, 2.8vw, 32px);
       font-weight: 700;
@@ -41,31 +46,48 @@
       margin-bottom: 14px;
       text-transform: uppercase;
     }
+
     .intro {
       color: #bdbdbd;
       font-size: clamp(12px, 1.3vw, 17px);
       line-height: 1.35;
       margin-bottom: 18px;
     }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
-    .field, .btn {
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .field, .btn, .remarks {
       min-height: 52px;
       border: 2px solid var(--line);
       font-family: "Courier New", Courier, monospace;
       font-size: clamp(15px, 1.6vw, 22px);
     }
-    .field {
+
+    .field, .remarks {
       background: #000;
       color: #fff;
       padding: 10px 12px;
       text-transform: uppercase;
       outline: none;
     }
+
+    .remarks {
+      min-height: 80px;
+      resize: vertical;
+    }
+
     .options-wrap {
       border: 2px solid var(--line);
       max-height: 180px;
@@ -73,22 +95,26 @@
       padding: 10px;
       margin-bottom: 12px;
     }
+
     .options {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
     }
+
     .opt {
       border: 1px solid #666;
       padding: 10px;
       font-size: 14px;
     }
+
     .opt label {
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
     }
+
     .btn {
       background: #000;
       color: #fff;
@@ -96,10 +122,12 @@
       font-weight: 700;
       padding: 10px 12px;
     }
+
     .btn.primary {
       background: var(--button-bg);
       color: var(--button-fg);
     }
+
     .status-box {
       border: 1px solid var(--line);
       min-height: 52px;
@@ -110,6 +138,7 @@
       color: #d7d7d7;
       white-space: pre-wrap;
     }
+
     .preview-box {
       border: 2px solid var(--line);
       padding: 14px;
@@ -118,6 +147,7 @@
       overflow: auto;
       margin-bottom: 12px;
     }
+
     .preview-text {
       margin: 0;
       color: #fff;
@@ -127,19 +157,22 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
+
     .actions {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
+
     .footer-tip {
       color: #9f9f9f;
       font-size: clamp(12px, 1vw, 16px);
       line-height: 1.35;
     }
+
     @media (max-width: 900px) {
-      .grid, .options, .actions {
+      .grid, .grid-2, .options, .actions {
         grid-template-columns: 1fr;
       }
     }
@@ -151,14 +184,19 @@
 
     <div class="intro">
       Choose exactly what weather sections to include. NOTAMS open separately in Fintraffic PIB.
-      Report shows one date plus UTC and local Finland time.
+      Route and remarks are now included in the ACARS report.
     </div>
 
     <div class="grid">
       <input id="flight" class="field" type="text" placeholder="FLIGHT (NG123)" />
-      <input id="dep" class="field" type="text" placeholder="DEP ICAO" value="EFLA" maxlength="4" />
-      <input id="arr" class="field" type="text" placeholder="ARR ICAO" value="EFHV" maxlength="4" />
-      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" value="EFNU" maxlength="4" />
+      <input id="dep" class="field" type="text" placeholder="DEP ICAO" value="EFHV" maxlength="4" />
+      <input id="arr" class="field" type="text" placeholder="ARR ICAO" value="EFHK" maxlength="4" />
+      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" value="EETN" maxlength="4" />
+    </div>
+
+    <div class="grid-2">
+      <input id="route" class="field" type="text" placeholder="ROUTE (EFHV-EFHK)" />
+      <textarea id="remarks" class="remarks" placeholder="REMARKS"></textarea>
     </div>
 
     <div class="options-wrap">
@@ -185,14 +223,10 @@
     <div class="preview-box">
       <pre id="previewText" class="preview-text">ACARS WEATHER REPORT
 --------------------
-OPS SOURCE: NATGLOBE AVIATION
-DATE:
-TIME (UTC):
-TIME (LOCAL):
+OPS: NATGLOBE AVIATION   DATE   UTC
 
-DEP WEATHER:
-ARR WEATHER:
-ALTN WEATHER:
+DEP WX
+METAR
 
 END OF REPORT</pre>
     </div>
@@ -221,6 +255,8 @@ END OF REPORT</pre>
       dep: el('dep'),
       arr: el('arr'),
       altn: el('altn'),
+      route: el('route'),
+      remarks: el('remarks'),
       includeDepMetar: el('includeDepMetar'),
       includeDepTaf: el('includeDepTaf'),
       includeArrMetar: el('includeArrMetar'),
@@ -247,6 +283,10 @@ END OF REPORT</pre>
       return String(v || '').trim().toUpperCase();
     }
 
+    function normalizedRemarks(v) {
+      return String(v || '').trim().replace(/\s+/g, ' ').toUpperCase();
+    }
+
     function applyFullWeather() {
       if (!fields.fullWeather.checked) return;
       fields.includeDepMetar.checked = true;
@@ -265,6 +305,8 @@ END OF REPORT</pre>
         dep: upper(fields.dep.value),
         arr: upper(fields.arr.value),
         altn: upper(fields.altn.value),
+        route: upper(fields.route.value),
+        remarks: normalizedRemarks(fields.remarks.value),
         includeDepMetar: String(fields.includeDepMetar.checked),
         includeDepTaf: String(fields.includeDepTaf.checked),
         includeArrMetar: String(fields.includeArrMetar.checked),
