@@ -58,24 +58,17 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 10px;
       margin-bottom: 12px;
     }
 
-    .field, .btn, .remarks {
+    .field, .btn {
       min-height: 52px;
       border: 2px solid var(--line);
       font-family: "Courier New", Courier, monospace;
       font-size: clamp(15px, 1.6vw, 22px);
     }
 
-    .field, .remarks {
+    .field {
       background: #000;
       color: #fff;
       padding: 10px 12px;
@@ -83,15 +76,9 @@
       outline: none;
     }
 
-    .remarks {
-      min-height: 92px;
-      resize: vertical;
-      text-transform: none;
-    }
-
     .options-wrap {
       border: 2px solid var(--line);
-      max-height: 220px;
+      max-height: 180px;
       overflow-y: auto;
       padding: 10px;
       margin-bottom: 12px;
@@ -173,7 +160,7 @@
     }
 
     @media (max-width: 900px) {
-      .grid, .grid-2, .options, .actions {
+      .grid, .options, .actions {
         grid-template-columns: 1fr;
       }
     }
@@ -185,22 +172,15 @@
 
     <div class="intro">
       Choose exactly what weather sections to include. NOTAMS open separately in Fintraffic PIB.
-      Report shows both UTC time and local Finland time.
+      Report shows one date plus UTC and local Finland time.
     </div>
 
     <div class="grid">
       <input id="flight" class="field" type="text" placeholder="FLIGHT (NG123)" />
-      <input id="dep" class="field" type="text" placeholder="DEP ICAO" value="EFHV" maxlength="4" />
-      <input id="arr" class="field" type="text" placeholder="ARR ICAO" value="EFHK" maxlength="4" />
-      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" value="EETN" maxlength="4" />
+      <input id="dep" class="field" type="text" placeholder="DEP ICAO" value="EFLA" maxlength="4" />
+      <input id="arr" class="field" type="text" placeholder="ARR ICAO" value="EFHV" maxlength="4" />
+      <input id="altn" class="field" type="text" placeholder="ALTN ICAO" value="EFHK" maxlength="4" />
     </div>
-
-    <div class="grid-2">
-      <input id="route" class="field" type="text" placeholder="ROUTE (OPTIONAL)" />
-      <input id="docType" class="field" type="text" value="WX DISPATCH" disabled />
-    </div>
-
-    <textarea id="remarks" class="remarks" placeholder="REMARKS / OPS NOTES (OPTIONAL)"></textarea>
 
     <div class="options-wrap">
       <div class="options">
@@ -227,6 +207,7 @@
       <pre id="previewText" class="preview-text">ACARS WEATHER REPORT
 --------------------
 OPS SOURCE: NATGLOBE AVIATION
+DATE:
 TIME (UTC):
 TIME (LOCAL):
 
@@ -261,8 +242,6 @@ END OF REPORT</pre>
       dep: el('dep'),
       arr: el('arr'),
       altn: el('altn'),
-      route: el('route'),
-      remarks: el('remarks'),
       includeDepMetar: el('includeDepMetar'),
       includeDepTaf: el('includeDepTaf'),
       includeArrMetar: el('includeArrMetar'),
@@ -289,18 +268,6 @@ END OF REPORT</pre>
       return String(v || '').trim().toUpperCase();
     }
 
-    function compact(v) {
-      return String(v || '').trim().replace(/\s+/g, ' ');
-    }
-
-    function syncRouteDefault() {
-      const dep = upper(fields.dep.value);
-      const arr = upper(fields.arr.value);
-      if (!fields.route.value.trim()) {
-        fields.route.value = [dep, arr].filter(Boolean).join('/');
-      }
-    }
-
     function applyFullWeather() {
       if (!fields.fullWeather.checked) return;
       fields.includeDepMetar.checked = true;
@@ -312,19 +279,13 @@ END OF REPORT</pre>
     }
 
     fields.fullWeather.addEventListener('change', applyFullWeather);
-    fields.dep.addEventListener('input', syncRouteDefault);
-    fields.arr.addEventListener('input', syncRouteDefault);
 
     function buildQuery() {
-      syncRouteDefault();
-
       const params = new URLSearchParams({
         flight: upper(fields.flight.value),
         dep: upper(fields.dep.value),
         arr: upper(fields.arr.value),
         altn: upper(fields.altn.value),
-        route: upper(fields.route.value),
-        remarks: compact(fields.remarks.value),
         includeDepMetar: String(fields.includeDepMetar.checked),
         includeDepTaf: String(fields.includeDepTaf.checked),
         includeArrMetar: String(fields.includeArrMetar.checked),
@@ -332,7 +293,6 @@ END OF REPORT</pre>
         includeAltnMetar: String(fields.includeAltnMetar.checked),
         includeAltnTaf: String(fields.includeAltnTaf.checked)
       });
-
       return params.toString();
     }
 
@@ -420,8 +380,6 @@ END OF REPORT</pre>
     notamsBtn.addEventListener('click', () => {
       window.open('https://sky.fintraffic.fi/FlightRequest/PIB', '_blank');
     });
-
-    syncRouteDefault();
 
     (async () => {
       await clearOldCaches();
