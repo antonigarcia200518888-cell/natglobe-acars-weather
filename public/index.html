@@ -128,7 +128,7 @@
       margin-bottom: 12px;
     }
 
-    .field, .btn, .remarks, .swap-mini {
+    .field, .btn, .remarks, .swap-mini, .history-btn, .print-btn {
       min-height: 52px;
       border: 2px solid var(--line);
       font-family: "Courier New", Courier, monospace;
@@ -278,7 +278,7 @@
       cursor: pointer;
     }
 
-    .btn {
+    .btn, .history-btn, .print-btn {
       background: #000;
       color: #fff;
       cursor: pointer;
@@ -293,7 +293,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
@@ -364,10 +364,128 @@
       font-weight: 700;
     }
 
+    .history-wrap {
+      border: 2px solid var(--line);
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #000;
+    }
+
+    .history-title {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-empty {
+      color: #9f9f9f;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .history-item {
+      border: 1px solid #555;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .history-meta {
+      min-width: 0;
+    }
+
+    .history-main {
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .history-sub {
+      color: #a9a9a9;
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .history-btn {
+      min-height: 40px;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
     .footer-tip {
       color: #9f9f9f;
       font-size: clamp(12px, 1vw, 16px);
       line-height: 1.35;
+      margin-bottom: 12px;
+    }
+
+    .print-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .print-btn {
+      min-height: 52px;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: #fff;
+        color: #000;
+      }
+
+      .frame {
+        width: 100%;
+        border: 0;
+        padding: 0;
+        background: #fff;
+        color: #000;
+      }
+
+      .title-row,
+      .utc-clock,
+      .intro,
+      .grid,
+      .grid-2,
+      .options-wrap,
+      .actions,
+      .status-box,
+      .history-wrap,
+      .footer-tip,
+      .print-row {
+        display: none !important;
+      }
+
+      .preview-box {
+        border: 0;
+        padding: 0;
+        margin: 0;
+        min-height: 0;
+        overflow: visible;
+        background: #fff;
+      }
+
+      .preview-text,
+      .preview-text * {
+        color: #000 !important;
+        background: transparent !important;
+        font-weight: 400 !important;
+      }
     }
 
     @media (max-width: 1000px) {
@@ -397,6 +515,10 @@
       .swap-mini {
         width: 100%;
       }
+
+      .history-item {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -406,7 +528,7 @@
       <div class="title">NATGLOBE AVIATION / ACARS DISPATCH</div>
 
       <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
-        <span id="connectionWifi" class="connection-wifi" aria-hidden="true">
+        <span class="connection-wifi" aria-hidden="true">
           <svg viewBox="0 0 24 24" class="wifi-icon">
             <path d="M2 8.5C7.5 4.5 16.5 4.5 22 8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             <path d="M5 12C8.8 9.2 15.2 9.2 19 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -495,6 +617,7 @@
       <button id="generateBtn" class="btn primary">Generate PDF</button>
       <button id="openBtn" class="btn">Open PDF</button>
       <button id="copyBtn" class="btn">Copy Report</button>
+      <button id="copyPdfLinkBtn" class="btn">Copy PDF Link</button>
       <button id="resetBtn" class="btn">Reset</button>
       <button id="notamsBtn" class="btn">NOTAMS</button>
     </div>
@@ -520,8 +643,19 @@ RMK NIL
 END OF REPORT</pre>
     </div>
 
+    <div class="history-wrap">
+      <div class="history-title">RECENT REPORT HISTORY</div>
+      <div id="historyList" class="history-list">
+        <div class="history-empty">NO SAVED REPORTS YET.</div>
+      </div>
+    </div>
+
     <div class="footer-tip">
       Weather stays in the ACARS PDF. If REMARKS is left empty, RMK is generated automatically.
+    </div>
+
+    <div class="print-row">
+      <button id="printBtn" class="print-btn">Print Report</button>
     </div>
   </main>
 
@@ -572,6 +706,8 @@ END OF REPORT`;
     };
 
     const REPORT_HISTORY_LIMIT = 10;
+    const HISTORY_VISIBLE_COUNT = 5;
+    const LIVE_STATUS_DEBOUNCE_MS = 450;
 
     const el = (id) => document.getElementById(id);
 
@@ -594,11 +730,14 @@ END OF REPORT`;
 
     const statusBox = el('statusBox');
     const previewText = el('previewText');
+    const historyList = el('historyList');
     const generateBtn = el('generateBtn');
     const openBtn = el('openBtn');
     const copyBtn = el('copyBtn');
+    const copyPdfLinkBtn = el('copyPdfLinkBtn');
     const resetBtn = el('resetBtn');
     const notamsBtn = el('notamsBtn');
+    const printBtn = el('printBtn');
     const utcClock = el('utcClock');
     const swapMiniBtn = el('swapMiniBtn');
     const depTag = el('depTag');
@@ -610,6 +749,9 @@ END OF REPORT`;
     let latestDirectUrl = null;
     let latestReportText = '';
     let routeTouched = false;
+    let liveStatusTimer = null;
+    let liveStatusRequestId = 0;
+    let lastAdviceMessage = '';
 
     function updateUtcClock() {
       const now = new Date();
@@ -676,6 +818,11 @@ END OF REPORT`;
       statusBox.textContent = text;
       statusBox.classList.remove('status-neutral', 'status-live', 'status-fallback', 'status-nodata');
       statusBox.classList.add(`status-${mode}`);
+    }
+
+    function setStatusWithAdvice(baseText, mode = 'neutral') {
+      const combined = lastAdviceMessage ? `${baseText}\n${lastAdviceMessage}` : baseText;
+      setStatus(combined, mode);
     }
 
     function getStatusModeFromReport(reportText) {
@@ -889,19 +1036,84 @@ END OF REPORT`;
       const history = getHistory();
 
       history.unshift({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         savedAt: new Date().toISOString(),
         query: queryString,
         report: reportText,
         status: statusData || null
       });
 
-      const trimmed = history.slice(0, REPORT_HISTORY_LIMIT);
+      const deduped = [];
+      const seen = new Set();
+
+      for (const item of history) {
+        const key = `${item.query}__${item.report}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(item);
+      }
+
+      const trimmed = deduped.slice(0, REPORT_HISTORY_LIMIT);
       localStorage.setItem('ng_dispatch_history', JSON.stringify(trimmed));
+      renderHistory();
     }
 
     function getLatestHistoryEntry() {
       const history = getHistory();
       return history.length ? history[0] : null;
+    }
+
+    function formatHistoryTime(iso) {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return 'UNKNOWN TIME';
+
+      const date = d.toISOString().slice(0, 10);
+      const hh = String(d.getUTCHours()).padStart(2, '0');
+      const mm = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${date} ${hh}:${mm} UTC`;
+    }
+
+    function summarizeHistoryQuery(queryString) {
+      const params = new URLSearchParams(queryString || '');
+      const flight = params.get('flight') || 'NO FLT';
+      const dep = params.get('dep') || '----';
+      const arr = params.get('arr') || '----';
+      const altn = params.get('altn') || '----';
+      return `${flight} / ${dep}-${arr} / ALTN ${altn}`;
+    }
+
+    function loadHistoryEntry(index) {
+      const history = getHistory();
+      const entry = history[index];
+      if (!entry) {
+        setStatusWithAdvice('HISTORY ENTRY NOT FOUND', 'nodata');
+        return;
+      }
+
+      renderPreview(entry.report || DEFAULT_PREVIEW);
+      applyAirportStatuses(entry.status);
+      latestDirectUrl = entry.query ? `/api/dispatch-pdf?${entry.query}&t=${Date.now()}` : null;
+      lastAdviceMessage = '';
+      setStatusWithAdvice('HISTORY REPORT LOADED', getStatusModeFromReport(entry.report || ''));
+    }
+
+    function renderHistory() {
+      const history = getHistory().slice(0, HISTORY_VISIBLE_COUNT);
+
+      if (!history.length) {
+        historyList.innerHTML = '<div class="history-empty">NO SAVED REPORTS YET.</div>';
+        return;
+      }
+
+      historyList.innerHTML = history.map((entry, index) => `
+        <div class="history-item">
+          <div class="history-meta">
+            <div class="history-main">${escapeHtml(summarizeHistoryQuery(entry.query))}</div>
+            <div class="history-sub">${escapeHtml(formatHistoryTime(entry.savedAt))}</div>
+          </div>
+          <button class="history-btn" type="button" data-history-index="${index}">LOAD</button>
+        </div>
+      `).join('');
     }
 
     function resetForm() {
@@ -924,9 +1136,11 @@ END OF REPORT`;
       routeTouched = false;
       latestDirectUrl = null;
       latestReportText = '';
+      lastAdviceMessage = '';
       clearAirportTags();
       renderPreview(DEFAULT_PREVIEW);
-      setStatus('READY', 'neutral');
+      setStatusWithAdvice('READY', 'neutral');
+      scheduleLiveStatusRefresh();
     }
 
     function swapDepArr() {
@@ -945,48 +1159,9 @@ END OF REPORT`;
         fields.route.value = normalizeRouteInputValue(fields.route.value);
       }
 
-      setStatus('DEP / ARR SWAPPED', 'neutral');
+      setStatusWithAdvice('DEP / ARR SWAPPED', 'neutral');
+      scheduleLiveStatusRefresh();
     }
-
-    fields.fullWeather.addEventListener('change', applyFullWeather);
-
-    fields.flight.addEventListener('input', () => {
-      fields.flight.value = normalizeFlightInputValue(fields.flight.value);
-    });
-
-    fields.dep.addEventListener('input', () => {
-      fields.dep.value = normalizeIcaoInputValue(fields.dep.value);
-      clearMiniTag(depTag);
-      autoFillRouteFromDepArr();
-    });
-
-    fields.arr.addEventListener('input', () => {
-      fields.arr.value = normalizeIcaoInputValue(fields.arr.value);
-      clearMiniTag(arrTag);
-      autoFillRouteFromDepArr();
-    });
-
-    fields.altn.addEventListener('input', () => {
-      fields.altn.value = normalizeIcaoInputValue(fields.altn.value);
-      clearMiniTag(altnTag);
-    });
-
-    fields.route.addEventListener('input', () => {
-      const normalized = normalizeRouteInputValue(fields.route.value);
-      fields.route.value = normalized;
-      routeTouched = normalized.length > 0;
-    });
-
-    fields.route.addEventListener('blur', () => {
-      if (!fields.route.value.trim()) {
-        routeTouched = false;
-        autoFillRouteFromDepArr();
-      }
-    });
-
-    fields.remarks.addEventListener('input', () => {
-      fields.remarks.value = normalizedRemarks(fields.remarks.value);
-    });
 
     function buildQuery() {
       const params = new URLSearchParams({
@@ -1023,33 +1198,55 @@ END OF REPORT`;
       return await res.json();
     }
 
+    async function fetchDispatchAdvice(queryString) {
+      const res = await fetch(`/api/dispatch-advice?${queryString}&t=${Date.now()}`, {
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error(`ADVICE HTTP ${res.status}`);
+      return await res.json();
+    }
+
+    function applyAdviceToStatus(advice) {
+      lastAdviceMessage = '';
+
+      if (advice?.arrivalNeedsAlternate && advice?.suggestedAlternate?.airport) {
+        const suggested = advice.suggestedAlternate;
+        lastAdviceMessage = `SUGGESTED ALTN ${suggested.airport} / ${suggested.distanceNm}NM / ${suggested.weatherMode}`;
+      } else if (advice?.arrivalNeedsAlternate) {
+        lastAdviceMessage = 'ALTN REQUIRED / NO NEARBY SUGGESTION FOUND';
+      }
+    }
+
     async function generate() {
       applyFullWeather();
 
       const validationError = validateInputs();
       if (validationError) {
-        setStatus(validationError, 'nodata');
+        setStatusWithAdvice(validationError, 'nodata');
         return;
       }
 
       const queryString = buildQuery();
 
-      setStatus('FETCHING WEATHER PACKAGE...', 'neutral');
+      lastAdviceMessage = '';
+      setStatusWithAdvice('FETCHING WEATHER PACKAGE...', 'neutral');
       renderPreview('');
       clearAirportTags();
 
       try {
-        const [reportText, statusData] = await Promise.all([
+        const [reportText, statusData, advice] = await Promise.all([
           fetchText(queryString),
-          fetchAirportStatuses(queryString)
+          fetchAirportStatuses(queryString),
+          fetchDispatchAdvice(queryString)
         ]);
 
         latestDirectUrl = `/api/dispatch-pdf?${queryString}&t=${Date.now()}`;
 
         renderPreview(reportText);
         applyAirportStatuses(statusData);
+        applyAdviceToStatus(advice);
         saveHistoryEntry(queryString, reportText, statusData);
-        setStatus('DONE — REPORT GENERATED', getStatusModeFromReport(reportText));
+        setStatusWithAdvice('DONE — REPORT GENERATED', getStatusModeFromReport(reportText));
       } catch (err) {
         console.error(err);
         const latestHistory = getLatestHistoryEntry();
@@ -1058,16 +1255,111 @@ END OF REPORT`;
           renderPreview(latestHistory.report);
           applyAirportStatuses(latestHistory.status);
           latestDirectUrl = latestHistory.query ? `/api/dispatch-pdf?${latestHistory.query}&t=${Date.now()}` : null;
-          setStatus(
+          lastAdviceMessage = '';
+          setStatusWithAdvice(
             'OFFLINE OR API UNAVAILABLE — USING MOST RECENT HISTORY REPORT',
             getStatusModeFromReport(latestHistory.report)
           );
         } else {
           clearAirportTags();
-          setStatus('ERROR FETCHING WEATHER PACKAGE', 'nodata');
+          setStatusWithAdvice('ERROR FETCHING WEATHER PACKAGE', 'nodata');
         }
       }
     }
+
+    async function refreshLiveStatuses() {
+      const dep = normalizeIcaoInputValue(fields.dep.value);
+      const arr = normalizeIcaoInputValue(fields.arr.value);
+      const altn = normalizeIcaoInputValue(fields.altn.value);
+
+      if (![dep, arr, altn].some(v => v.length === 4)) {
+        clearAirportTags();
+        lastAdviceMessage = '';
+        return;
+      }
+
+      const requestId = ++liveStatusRequestId;
+      const queryString = buildQuery();
+
+      try {
+        const [statusData, advice] = await Promise.all([
+          fetchAirportStatuses(queryString),
+          fetchDispatchAdvice(queryString)
+        ]);
+
+        if (requestId !== liveStatusRequestId) return;
+
+        applyAirportStatuses(statusData);
+        applyAdviceToStatus(advice);
+      } catch {
+        if (requestId !== liveStatusRequestId) return;
+      }
+    }
+
+    function scheduleLiveStatusRefresh() {
+      clearTimeout(liveStatusTimer);
+      liveStatusTimer = setTimeout(() => {
+        refreshLiveStatuses();
+      }, LIVE_STATUS_DEBOUNCE_MS);
+    }
+
+    fields.fullWeather.addEventListener('change', () => {
+      applyFullWeather();
+      scheduleLiveStatusRefresh();
+    });
+
+    fields.flight.addEventListener('input', () => {
+      fields.flight.value = normalizeFlightInputValue(fields.flight.value);
+    });
+
+    fields.dep.addEventListener('input', () => {
+      fields.dep.value = normalizeIcaoInputValue(fields.dep.value);
+      clearMiniTag(depTag);
+      autoFillRouteFromDepArr();
+      scheduleLiveStatusRefresh();
+    });
+
+    fields.arr.addEventListener('input', () => {
+      fields.arr.value = normalizeIcaoInputValue(fields.arr.value);
+      clearMiniTag(arrTag);
+      autoFillRouteFromDepArr();
+      scheduleLiveStatusRefresh();
+    });
+
+    fields.altn.addEventListener('input', () => {
+      fields.altn.value = normalizeIcaoInputValue(fields.altn.value);
+      clearMiniTag(altnTag);
+      scheduleLiveStatusRefresh();
+    });
+
+    fields.route.addEventListener('input', () => {
+      const normalized = normalizeRouteInputValue(fields.route.value);
+      fields.route.value = normalized;
+      routeTouched = normalized.length > 0;
+    });
+
+    fields.route.addEventListener('blur', () => {
+      if (!fields.route.value.trim()) {
+        routeTouched = false;
+        autoFillRouteFromDepArr();
+      }
+    });
+
+    fields.remarks.addEventListener('input', () => {
+      fields.remarks.value = normalizedRemarks(fields.remarks.value);
+    });
+
+    [
+      fields.includeDepMetar,
+      fields.includeDepTaf,
+      fields.includeArrMetar,
+      fields.includeArrTaf,
+      fields.includeAltnMetar,
+      fields.includeAltnTaf,
+      fields.includeWindsAloft
+    ].forEach(node => {
+      node.addEventListener('change', scheduleLiveStatusRefresh);
+    });
 
     generateBtn.addEventListener('click', async () => {
       await generate();
@@ -1076,7 +1368,7 @@ END OF REPORT`;
     openBtn.addEventListener('click', async () => {
       const validationError = validateInputs();
       if (validationError) {
-        setStatus(validationError, 'nodata');
+        setStatusWithAdvice(validationError, 'nodata');
         return;
       }
 
@@ -1085,7 +1377,7 @@ END OF REPORT`;
       }
 
       if (!latestDirectUrl) {
-        setStatus('NO LIVE PDF READY', 'nodata');
+        setStatusWithAdvice('NO LIVE PDF READY', 'nodata');
         return;
       }
 
@@ -1096,16 +1388,39 @@ END OF REPORT`;
       const textToCopy = String(latestReportText || '').trim();
 
       if (!textToCopy) {
-        setStatus('NO REPORT TO COPY', 'nodata');
+        setStatusWithAdvice('NO REPORT TO COPY', 'nodata');
         return;
       }
 
       try {
         await navigator.clipboard.writeText(textToCopy);
-        setStatus('REPORT COPIED TO CLIPBOARD', 'live');
+        setStatusWithAdvice('REPORT COPIED TO CLIPBOARD', 'live');
       } catch (err) {
         console.error(err);
-        setStatus('COPY FAILED', 'nodata');
+        setStatusWithAdvice('COPY FAILED', 'nodata');
+      }
+    });
+
+    copyPdfLinkBtn.addEventListener('click', async () => {
+      const validationError = validateInputs();
+
+      if (!latestDirectUrl && !validationError) {
+        await generate();
+      }
+
+      if (!latestDirectUrl) {
+        setStatusWithAdvice('NO PDF LINK READY', 'nodata');
+        return;
+      }
+
+      const absoluteUrl = new URL(latestDirectUrl, window.location.origin).toString();
+
+      try {
+        await navigator.clipboard.writeText(absoluteUrl);
+        setStatusWithAdvice('PDF LINK COPIED', 'live');
+      } catch (err) {
+        console.error(err);
+        setStatusWithAdvice('PDF LINK COPY FAILED', 'nodata');
       }
     });
 
@@ -1121,6 +1436,24 @@ END OF REPORT`;
       window.open('https://sky.fintraffic.fi/FlightRequest/PIB', '_blank');
     });
 
+    printBtn.addEventListener('click', () => {
+      if (!String(latestReportText || '').trim()) {
+        setStatusWithAdvice('NO REPORT TO PRINT', 'nodata');
+        return;
+      }
+      window.print();
+    });
+
+    historyList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-history-index]');
+      if (!button) return;
+
+      const index = Number(button.getAttribute('data-history-index'));
+      if (Number.isNaN(index)) return;
+
+      loadHistoryEntry(index);
+    });
+
     window.addEventListener('online', updateConnectionBadge);
     window.addEventListener('offline', updateConnectionBadge);
 
@@ -1134,7 +1467,9 @@ END OF REPORT`;
       setInterval(updateUtcClock, 1000);
       renderPreview(DEFAULT_PREVIEW);
       clearAirportTags();
+      renderHistory();
       updateConnectionBadge();
+      scheduleLiveStatusRefresh();
     })();
   </script>
 </body>
