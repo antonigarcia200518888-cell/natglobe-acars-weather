@@ -446,7 +446,7 @@
 
     .runway-visual {
       width: 100%;
-      min-height: 190px;
+      min-height: 280px;
       border: 1px solid #333;
       background: #020202;
       overflow: hidden;
@@ -462,23 +462,24 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-top: 8px;
-      font-size: 12px;
-      line-height: 1.3;
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.35;
     }
 
     .runway-legend-item {
       border: 1px solid #333;
-      padding: 6px 8px;
+      padding: 8px 10px;
       color: #d7d7d7;
       text-align: center;
+      background: #050505;
     }
 
     .runway-legend-item strong {
       display: block;
       color: #fff;
-      font-size: 13px;
-      margin-top: 2px;
+      font-size: 15px;
+      margin-top: 3px;
     }
 
     .status-box {
@@ -2109,14 +2110,38 @@ END OF REPORT`;
       return Math.max(0, Math.min(1, value));
     }
 
-    function buildRunwayLightRow(startX, endX, y, count) {
+    function buildRunwayLightRow(startX, endX, y, count, color = "#bdbdbd", radius = 1.9) {
       if (!Number.isFinite(startX) || !Number.isFinite(endX)) return '';
       const dots = [];
       for (let i = 0; i < count; i++) {
         const x = startX + ((endX - startX) * i) / Math.max(1, count - 1);
-        dots.push(`<circle cx="${x.toFixed(1)}" cy="${y}" r="1.9" fill="#bdbdbd" opacity="0.95" />`);
+        dots.push(`<circle cx="${x.toFixed(1)}" cy="${y}" r="${radius}" fill="${color}" opacity="0.98" />`);
       }
       return dots.join('');
+    }
+
+    function reciprocalRunwayIdent(ident) {
+      const raw = String(ident || '').trim().toUpperCase();
+      const match = raw.match(/^(\d{1,2})([LCR]?)$/);
+      if (!match) return '';
+      let num = Number(match[1]);
+      if (!Number.isFinite(num)) return '';
+      num += 18;
+      if (num > 36) num -= 36;
+      let suffix = match[2] || '';
+      if (suffix === 'L') suffix = 'R';
+      else if (suffix === 'R') suffix = 'L';
+      return `${String(num).padStart(2, '0')}${suffix}`;
+    }
+
+    function buildPiperFigure(x, y, scale = 1, heading = 'right', color = '#8ec5ff') {
+      const flip = heading === 'left' ? '-1' : '1';
+      return `<g transform="translate(${x},${y}) scale(${flip},1) scale(${scale})">
+        <path d="M-18 0 L-6 -3 L2 -12 L6 -12 L10 -4 L24 -1 L24 1 L10 4 L6 12 L2 12 L-6 3 L-18 0 Z" fill="${color}" stroke="#ffffff" stroke-width="0.8" stroke-opacity="0.55" />
+        <path d="M2 -15 L5 -15 L7 -10 L2 -10 Z" fill="${color}" opacity="0.95" />
+        <path d="M2 15 L5 15 L7 10 L2 10 Z" fill="${color}" opacity="0.95" />
+        <rect x="-21" y="-1.8" width="5" height="3.6" fill="${color}" />
+      </g>`;
     }
 
     function renderRunwayVisual(containerId, legendPrefix, options) {
@@ -2124,6 +2149,7 @@ END OF REPORT`;
       if (!container) return;
 
       const runwayIdent = String(options.runwayIdent || 'RWY').trim() || 'RWY';
+      const oppositeIdent = String(options.oppositeRunwayIdent || reciprocalRunwayIdent(runwayIdent) || '');
       const headingText = String(options.headingText || '---°');
       const availableFt = Number(options.availableFt);
       const requiredFt = Number(options.requiredFt);
@@ -2141,53 +2167,51 @@ END OF REPORT`;
         ? clampVisualRatio(requiredFt / availableFt)
         : 0;
 
-      const viewW = 840;
-      const viewH = 190;
-      const runwayX = 62;
-      const runwayY = 64;
-      const runwayW = 716;
-      const runwayH = 58;
+      const viewW = 980;
+      const viewH = 290;
+      const runwayX = 76;
+      const runwayY = 70;
+      const runwayW = 828;
+      const runwayH = 72;
       const reqW = runwayW * reqRatio;
-      const aircraftX = aircraftMode === 'ARR' ? runwayX + 12 : runwayX - 10;
-      const aircraftY = runwayY + runwayH / 2;
-
-      const centerline = Array.from({ length: 12 }, (_, i) => {
-        const segW = 28;
-        const gap = 30;
-        const x = runwayX + 54 + i * (segW + gap);
-        return `<rect x="${x}" y="${runwayY + runwayH / 2 - 2}" width="${segW}" height="4" fill="#ffffff" opacity="0.9" />`;
-      }).join('');
-
-      const thresholdBarsLeft = Array.from({ length: 5 }, (_, i) => {
-        const x = runwayX + 12 + i * 7;
-        return `<rect x="${x}" y="${runwayY + 8}" width="4" height="${runwayH - 16}" fill="#ffffff" opacity="0.95" />`;
-      }).join('');
-
-      const thresholdBarsRight = Array.from({ length: 5 }, (_, i) => {
-        const x = runwayX + runwayW - 16 - i * 7;
-        return `<rect x="${x}" y="${runwayY + 8}" width="4" height="${runwayH - 16}" fill="#ffffff" opacity="0.95" />`;
-      }).join('');
-
+      const thresholdPad = 18;
       const reqStartX = aircraftMode === 'ARR' ? runwayX + runwayW - reqW : runwayX;
+      const activeThresholdX = aircraftMode === 'ARR' ? runwayX + runwayW : runwayX;
+      const oppositeThresholdX = aircraftMode === 'ARR' ? runwayX : runwayX + runwayW;
+      const takeoffRotateX = Number.isFinite(requiredFt) && Number.isFinite(availableFt) && availableFt > 0
+        ? runwayX + Math.min(runwayW * 0.8, Math.max(runwayW * 0.18, runwayW * (requiredFt / availableFt) * 0.45))
+        : runwayX + runwayW * 0.28;
+      const touchdownX = runwayX + runwayW * 0.1;
+      const aircraftX = aircraftMode === 'ARR' ? touchdownX : runwayX + 10;
+      const aircraftY = runwayY + runwayH / 2;
+      const rotateY = runwayY + runwayH / 2;
+
+      const centerline = Array.from({ length: 11 }, (_, i) => {
+        const segW = 34;
+        const gap = 36;
+        const x = runwayX + 70 + i * (segW + gap);
+        return `<rect x="${x}" y="${runwayY + runwayH / 2 - 2.5}" width="${segW}" height="5" fill="#ffffff" opacity="0.92" rx="1.8" />`;
+      }).join('');
+
+      const thresholdBarsLeft = Array.from({ length: 6 }, (_, i) => {
+        const x = runwayX + 16 + i * 7;
+        return `<rect x="${x}" y="${runwayY + 10}" width="4.5" height="${runwayH - 20}" fill="#ffffff" opacity="0.95" rx="0.8" />`;
+      }).join('');
+
+      const thresholdBarsRight = Array.from({ length: 6 }, (_, i) => {
+        const x = runwayX + runwayW - 20 - i * 7;
+        return `<rect x="${x}" y="${runwayY + 10}" width="4.5" height="${runwayH - 20}" fill="#ffffff" opacity="0.95" rx="0.8" />`;
+      }).join('');
+
       const reqLabelX = aircraftMode === 'ARR'
-        ? Math.max(runwayX + runwayW - reqW - 4, runwayX + 100)
-        : Math.min(runwayX + reqW + 8, runwayX + runwayW - 140);
+        ? Math.max(runwayX + runwayW - reqW - 8, runwayX + 155)
+        : Math.min(runwayX + reqW + 10, runwayX + runwayW - 170);
 
       const slopeArrow = options.slopeValue > 0
         ? `<path d="M0 12 L18 12 L18 7 L30 15 L18 23 L18 18 L0 18 Z" fill="#ffcc66" />`
         : options.slopeValue < 0
           ? `<path d="M30 12 L12 12 L12 7 L0 15 L12 23 L12 18 L30 18 Z" fill="#8ec5ff" />`
           : `<rect x="0" y="13" width="30" height="4" fill="#66ff99" />`;
-
-      const aircraftShape = aircraftMode === 'ARR'
-        ? `<g transform="translate(${aircraftX},${aircraftY}) scale(0.95)">
-             <path d="M24 0 L0 -7 L-6 -7 L-18 -2 L-18 2 L-6 7 L0 7 Z" fill="#8ec5ff" />
-             <rect x="-20" y="-2" width="8" height="4" fill="#8ec5ff" />
-           </g>`
-        : `<g transform="translate(${aircraftX},${aircraftY}) scale(0.95)">
-             <path d="M-24 0 L0 -7 L6 -7 L18 -2 L18 2 L6 7 L0 7 Z" fill="#8ec5ff" />
-             <rect x="12" y="-2" width="8" height="4" fill="#8ec5ff" />
-           </g>`;
 
       const windArrowRotation = (() => {
         const raw = String(options.windRaw || '');
@@ -2198,50 +2222,97 @@ END OF REPORT`;
         return dir - hdg;
       })();
 
+      const activeThresholdLights = aircraftMode === 'ARR'
+        ? buildRunwayLightRow(runwayX + runwayW - 44, runwayX + runwayW - 4, runwayY - 10, 6, '#66ff99', 2.5)
+        : buildRunwayLightRow(runwayX + 4, runwayX + 44, runwayY - 10, 6, '#66ff99', 2.5);
+      const activeThresholdLightsBottom = aircraftMode === 'ARR'
+        ? buildRunwayLightRow(runwayX + runwayW - 44, runwayX + runwayW - 4, runwayY + runwayH + 10, 6, '#66ff99', 2.5)
+        : buildRunwayLightRow(runwayX + 4, runwayX + 44, runwayY + runwayH + 10, 6, '#66ff99', 2.5);
+      const oppositeThresholdLights = aircraftMode === 'ARR'
+        ? buildRunwayLightRow(runwayX + 4, runwayX + 44, runwayY - 10, 6, '#ff6b6b', 2.5)
+        : buildRunwayLightRow(runwayX + runwayW - 44, runwayX + runwayW - 4, runwayY - 10, 6, '#ff6b6b', 2.5);
+      const oppositeThresholdLightsBottom = aircraftMode === 'ARR'
+        ? buildRunwayLightRow(runwayX + 4, runwayX + 44, runwayY + runwayH + 10, 6, '#ff6b6b', 2.5)
+        : buildRunwayLightRow(runwayX + runwayW - 44, runwayX + runwayW - 4, runwayY + runwayH + 10, 6, '#ff6b6b', 2.5);
+      const edgeLightsTop = buildRunwayLightRow(runwayX + 56, runwayX + runwayW - 56, runwayY - 10, 22, '#d8d8d8', 2.1);
+      const edgeLightsBottom = buildRunwayLightRow(runwayX + 56, runwayX + runwayW - 56, runwayY + runwayH + 10, 22, '#d8d8d8', 2.1);
+
+      const runwayInfoBoxes = [
+        { x: 92, label: 'RWY', value: runwayIdent },
+        { x: 320, label: 'HDG', value: headingText },
+        { x: 548, label: 'SLOPE', value: slopeText },
+        { x: 776, label: 'COND', value: `${conditionText}${Number.isFinite(widthFt) ? ` / ${Math.round(widthFt)} FT` : ''}` }
+      ].map((item) => `
+        <g transform="translate(${item.x}, 214)">
+          <rect x="0" y="0" width="180" height="46" rx="6" fill="#070707" stroke="#3a3a3a" />
+          <text x="10" y="17" fill="#9f9f9f" font-size="12" font-family="Courier New, monospace">${item.label}</text>
+          <text x="10" y="34" fill="#ffffff" font-size="15" font-family="Courier New, monospace">${item.value}</text>
+        </g>
+      `).join('');
+
+      const rotateMarker = aircraftMode === 'DEP'
+        ? `
+          <line x1="${takeoffRotateX}" y1="${runwayY - 20}" x2="${takeoffRotateX}" y2="${runwayY + runwayH + 20}" stroke="#8ec5ff" stroke-dasharray="6 4" stroke-width="1.5" opacity="0.95" />
+          ${buildPiperFigure(takeoffRotateX, rotateY, 1.05, 'right', '#8ec5ff')}
+          <text x="${takeoffRotateX}" y="${runwayY - 30}" text-anchor="middle" fill="#8ec5ff" font-size="12" font-family="Courier New, monospace">ROTATE</text>
+        `
+        : `${buildPiperFigure(aircraftX, aircraftY, 1.05, 'left', '#8ec5ff')}`;
+
+      const mainAircraft = aircraftMode === 'DEP'
+        ? `${buildPiperFigure(aircraftX, aircraftY, 1.0, 'right', '#8ec5ff')}`
+        : '';
+
       const svg = `
         <svg viewBox="0 0 ${viewW} ${viewH}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Runway performance visual">
           <rect x="0" y="0" width="${viewW}" height="${viewH}" fill="#020202" />
-          <text x="16" y="22" fill="#d7d7d7" font-size="14" font-family="Courier New, monospace">${runwayIdent} / ${headingText}</text>
-          <text x="${viewW - 16}" y="22" fill="${marginColor}" font-size="14" text-anchor="end" font-family="Courier New, monospace">${
+          <text x="18" y="24" fill="#d7d7d7" font-size="16" font-family="Courier New, monospace">${runwayIdent} / ${headingText}</text>
+          <text x="${viewW - 18}" y="24" fill="${marginColor}" font-size="16" text-anchor="end" font-family="Courier New, monospace">${
             Number.isFinite(remainingFt) ? `${remainingFt >= 0 ? '+' : ''}${Math.round(remainingFt)} FT` : 'NO DATA'
           }</text>
 
-          <rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="6" fill="#2b2b2b" stroke="#ffffff" stroke-width="1.5" />
+          <rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="8" fill="#2b2b2b" stroke="#ffffff" stroke-width="1.6" />
           ${centerline}
           ${thresholdBarsLeft}
           ${thresholdBarsRight}
+          ${edgeLightsTop}
+          ${edgeLightsBottom}
+          ${activeThresholdLights}
+          ${activeThresholdLightsBottom}
+          ${oppositeThresholdLights}
+          ${oppositeThresholdLightsBottom}
 
-          <rect x="${reqStartX}" y="${runwayY + runwayH + 14}" width="${Math.max(reqW, 0)}" height="12" rx="4" fill="${marginColor}" opacity="0.95" />
-          <rect x="${runwayX}" y="${runwayY + runwayH + 34}" width="${runwayW}" height="8" rx="4" fill="#444" />
-          <rect x="${runwayX}" y="${runwayY + runwayH + 34}" width="${Math.max(reqW, 0)}" height="8" rx="4" fill="${marginColor}" opacity="0.7" />
+          <text x="${runwayX + thresholdPad}" y="${runwayY + runwayH / 2 + 7}" fill="#ffffff" font-size="20" font-family="Courier New, monospace">${runwayIdent}</text>
+          <text x="${runwayX + runwayW - thresholdPad}" y="${runwayY + runwayH / 2 + 7}" text-anchor="end" fill="#ffffff" font-size="20" font-family="Courier New, monospace">${oppositeIdent}</text>
 
-          <text x="${reqLabelX}" y="${runwayY + runwayH + 24}" fill="${marginColor}" font-size="12" font-family="Courier New, monospace">${
+          <rect x="${reqStartX}" y="${runwayY + runwayH + 18}" width="${Math.max(reqW, 0)}" height="13" rx="4" fill="${marginColor}" opacity="0.96" />
+          <rect x="${runwayX}" y="${runwayY + runwayH + 38}" width="${runwayW}" height="8" rx="4" fill="#444" />
+          <rect x="${runwayX}" y="${runwayY + runwayH + 38}" width="${Math.max(reqW, 0)}" height="8" rx="4" fill="${marginColor}" opacity="0.72" />
+
+          <text x="${reqLabelX}" y="${runwayY + runwayH + 28}" fill="${marginColor}" font-size="13" font-family="Courier New, monospace">${
             Number.isFinite(requiredFt) ? `REQ ${Math.round(requiredFt)} FT` : 'REQ ---'
           }</text>
-          <text x="${runwayX + runwayW - 2}" y="${runwayY + runwayH + 52}" fill="#d7d7d7" text-anchor="end" font-size="12" font-family="Courier New, monospace">${
+          <text x="${runwayX + runwayW - 2}" y="${runwayY + runwayH + 56}" fill="#d7d7d7" text-anchor="end" font-size="13" font-family="Courier New, monospace">${
             Number.isFinite(availableFt) ? `AVBL ${Math.round(availableFt)} FT` : 'AVBL ---'
           }</text>
 
-          ${buildRunwayLightRow(runwayX + 4, runwayX + runwayW - 4, runwayY - 8, 22)}
-          ${buildRunwayLightRow(runwayX + 4, runwayX + runwayW - 4, runwayY + runwayH + 8, 22)}
+          ${mainAircraft}
+          ${rotateMarker}
 
-          ${aircraftShape}
-
-          <text x="${aircraftMode === 'ARR' ? runwayX + runwayW - 8 : runwayX + 8}" y="${runwayY - 16}" fill="#8ec5ff" font-size="12" ${
+          <text x="${aircraftMode === 'ARR' ? runwayX + runwayW - 8 : runwayX + 8}" y="${runwayY - 18}" fill="#66ff99" font-size="12" ${
             aircraftMode === 'ARR' ? 'text-anchor="end"' : ''
           } font-family="Courier New, monospace">${thresholdLabel}</text>
+          <text x="${aircraftMode === 'ARR' ? runwayX + 8 : runwayX + runwayW - 8}" y="${runwayY - 18}" fill="#ff6b6b" font-size="12" ${
+            aircraftMode === 'ARR' ? '' : 'text-anchor="end"'
+          } font-family="Courier New, monospace">OPPOSITE THR</text>
 
-          <g transform="translate(${viewW - 95},${runwayY + 18}) rotate(${windArrowRotation})">
-            <path d="M0 -14 L8 0 L3 0 L3 16 L-3 16 L-3 0 L-8 0 Z" fill="#8ec5ff" />
+          <g transform="translate(${viewW - 118},${runwayY + 20}) rotate(${windArrowRotation})">
+            <path d="M0 -18 L10 0 L4 0 L4 20 L-4 20 L-4 0 L-10 0 Z" fill="#ff9f43" />
           </g>
-          <text x="${viewW - 95}" y="${runwayY + 48}" text-anchor="middle" fill="#8ec5ff" font-size="12" font-family="Courier New, monospace">${windText}</text>
+          <text x="${viewW - 118}" y="${runwayY + 54}" text-anchor="middle" fill="#ff9f43" font-size="13" font-family="Courier New, monospace">${windText}</text>
 
-          <g transform="translate(18, ${runwayY + runwayH + 18})">
-            ${slopeArrow}
-          </g>
-          <text x="52" y="${runwayY + runwayH + 34}" fill="#d7d7d7" font-size="12" font-family="Courier New, monospace">SLOPE ${slopeText}</text>
-          <text x="52" y="${runwayY + runwayH + 50}" fill="#d7d7d7" font-size="12" font-family="Courier New, monospace">COND ${conditionText}${Number.isFinite(widthFt) ? ` / WIDTH ${Math.round(widthFt)} FT` : ''}</text>
-          ${extraText ? `<text x="${viewW / 2}" y="${viewH - 12}" text-anchor="middle" fill="#d7d7d7" font-size="12" font-family="Courier New, monospace">${extraText}</text>` : ''}
+          <g transform="translate(28, ${runwayY + runwayH + 18})">${slopeArrow}</g>
+          ${runwayInfoBoxes}
+          ${extraText ? `<text x="${viewW / 2}" y="${viewH - 14}" text-anchor="middle" fill="#d7d7d7" font-size="13" font-family="Courier New, monospace">${extraText}</text>` : ''}
         </svg>
       `;
       container.innerHTML = svg;
@@ -2251,11 +2322,12 @@ END OF REPORT`;
       setNodeText(`${legendPrefix}Remain`, formatFeet(remainingFt));
     }
 
-    function renderTakeoffRunwayVisual(data, calc) {
+function renderTakeoffRunwayVisual(data, calc) {
       const rw = data?.takeoff?.runwayAndWeather || {};
       const availableFt = Number(String(el('perfTakeoffTora').textContent || '').replace(/[^0-9]/g, '')) || rw.toraFt || null;
       renderRunwayVisual('perfTakeoffVisual', 'perfTakeoffVisual', {
         runwayIdent: el('perfTakeoffRunway').value || rw.rwy || 'RWY',
+        oppositeRunwayIdent: reciprocalRunwayIdent(el('perfTakeoffRunway').value || rw.rwy || 'RWY'),
         headingText: el('perfTakeoffRunwayHeading').textContent || (Number.isFinite(rw.hdgDeg) ? `${rw.hdgDeg} °` : '---°'),
         headingValue: rw.hdgDeg,
         availableFt,
@@ -2277,6 +2349,7 @@ END OF REPORT`;
       const availableFt = Number(String(el('perfLandingLda').textContent || '').replace(/[^0-9]/g, '')) || aw.ldaFt || null;
       renderRunwayVisual('perfLandingVisual', 'perfLandingVisual', {
         runwayIdent: el('perfLandingRunway').value || aw.rwy || 'RWY',
+        oppositeRunwayIdent: reciprocalRunwayIdent(el('perfLandingRunway').value || aw.rwy || 'RWY'),
         headingText: el('perfLandingRunwayHeading').textContent || (Number.isFinite(aw.hdgDeg) ? `${aw.hdgDeg} °` : '---°'),
         headingValue: aw.hdgDeg,
         availableFt,
