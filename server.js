@@ -27,6 +27,44 @@ const SUGGESTED_ALTN_LIMIT = 12;
 
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
 
+const AIRCRAFT_PROFILE = {
+  registration: 'OH-PMK',
+  type: 'Piper PA-28R-200 Arrow II',
+  bestGlideSpeedKt: 91,
+  bestGlideRatio: 9,
+  defaultCruiseAltitudeFt: 8000,
+  maxCeilingFt: 17000,
+  basicEmptyWeightLbs: 1727,
+  maxTakeoffWeightLbs: 2650,
+  maxLandingWeightLbs: 2650,
+  maxRampWeightLbs: 2657,
+  fuelType: '100LL',
+  startTaxiTakeoffFuelGal: 1.17,
+  climbTasKt: 95,
+  climbFuelFlowGph: 10,
+  climbRateFpm: 600,
+  cruiseTasKt: 115,
+  cruiseFuelFlowGph: 8,
+  descentTasKt: 115,
+  descentFuelFlowGph: 8,
+  descentRateFpm: 500,
+  takeoff: {
+    powerSetting: 'FULL',
+    ac: 'OFF',
+    defaultFlaps: '0°',
+    rotatePitch: '7–9° NOSE UP',
+    xwindLimitKt: 17,
+    limitCode: 'MTOW'
+  },
+  landing: {
+    ac: 'OFF',
+    defaultFlaps: 'FULL (40°)',
+    braking: 'MAX/MOD/CRM',
+    goAroundPower: 'FULL',
+    limitCode: 'MLDW'
+  }
+};
+
 let airportDbCache = {
   data: null,
   loadedAt: 0,
@@ -85,6 +123,22 @@ function normalizeRemarks(input) {
     .replace(/\s+/g, ' ')
     .toUpperCase()
     .slice(0, 80);
+}
+
+function normalizeHeading(input) {
+  const digits = String(input || '').replace(/[^0-9]/g, '').slice(0, 3);
+  if (!digits) return null;
+
+  const value = parseInt(digits, 10);
+  if (!Number.isFinite(value)) return null;
+  if (value < 0 || value > 360) return null;
+
+  return value === 360 ? 0 : value;
+}
+
+function normalizeWeight(input) {
+  const num = Number(input);
+  return Number.isFinite(num) ? Math.round(num) : null;
 }
 
 function parseBoolean(v) {
@@ -398,6 +452,32 @@ function parseWindKt(metar) {
   return null;
 }
 
+function parseWindDetailed(metar) {
+  const gustMatch = String(metar || '').match(/\b(\d{3}|VRB)(\d{2,3})G(\d{2,3})KT\b/);
+  if (gustMatch) {
+    return {
+      raw: gustMatch[0],
+      direction: gustMatch[1] === 'VRB' ? null : parseInt(gustMatch[1], 10),
+      speed: parseInt(gustMatch[2], 10),
+      gust: parseInt(gustMatch[3], 10),
+      variable: gustMatch[1] === 'VRB'
+    };
+  }
+
+  const basicMatch = String(metar || '').match(/\b(\d{3}|VRB)(\d{2,3})KT\b/);
+  if (basicMatch) {
+    return {
+      raw: basicMatch[0],
+      direction: basicMatch[1] === 'VRB' ? null : parseInt(basicMatch[1], 10),
+      speed: parseInt(basicMatch[2], 10),
+      gust: null,
+      variable: basicMatch[1] === 'VRB'
+    };
+  }
+
+  return null;
+}
+
 function parseVisibility(metar) {
   const visMatch = metar.match(/\b(\d{4})\b/);
   if (!visMatch) return null;
@@ -444,6 +524,60 @@ function parseTemperatureC(metar) {
 
   if (Number.isNaN(num)) return null;
   return isMinus ? -num : num;
+}
+
+function parseQnhHpa(metar) {
+  const match = String(metar || '').match(/\bQ(\d{4})\b/);
+  if (!match) return null;
+
+  const value = parseInt(match[1], 10);
+  return Number.isFinite(value) ? value : null;
+}
+
+function hpaToInHg(hpa) {
+  if (!Number.isFinite(hpa)) return null;
+  return Math.round((hpa * 0.0295299830714) * 100) / 100;
+}
+
+function computePressureAltitudeFt(elevationFt, qnhHpa) {
+  if (!Number.isFinite(elevationFt) || !Number.isFinite(qnhHpa)) return null;
+  return Math.round(elevationFt + ((1013.25 - qnhHpa) * 27));
+}
+
+function computeDensityAltitudeFt(elevationFt, oatC, qnhHpa) {
+  if (!Number.isFinite(elevationFt) || !Number.isFinite(oatC) || !Number.isFinite(qnhHpa)) {
+    return null;
+  }
+
+  const pressureAltitudeFt = computePressureAltitudeFt(elevationFt, qnhHpa);
+  if (!Number.isFinite(pressureAltitudeFt)) return null;
+
+  const isaTempC = 15 - (2 * (pressureAltitudeFt / 1000));
+  return Math.round(pressureAltitudeFt + (120 * (oatC - isaTempC)));
+}
+
+function normalizeDegrees(deg) {
+  if (!Number.isFinite(deg)) return null;
+  let value = deg % 360;
+  if (value < 0) value += 360;
+  return value;
+}
+
+function computeWindComponents(windDirectionDeg, windSpeedKt, runwayHeadingDeg) {
+  if (!Number.isFinite(windDirectionDeg) || !Number.isFinite(windSpeedKt) || !Number.isFinite(runwayHeadingDeg)) {
+    return {
+      headwindKt: null,
+      crosswindKt: null
+    };
+  }
+
+  const diffDeg = normalizeDegrees(windDirectionDeg - runwayHeadingDeg);
+  const angleRad = (diffDeg * Math.PI) / 180;
+
+  return {
+    headwindKt: Math.round(windSpeedKt * Math.cos(angleRad)),
+    crosswindKt: Math.round(Math.abs(windSpeedKt * Math.sin(angleRad)))
+  };
 }
 
 function arrivalNeedsAlternate(wx) {
@@ -1016,6 +1150,175 @@ async function getSuggestedAlternate(arrIcao, currentAltnIcao = '') {
   return null;
 }
 
+function buildPerformanceOutputSection(kind, airport, wx, runwayHeading, weightLbs, runwayCondition, runwayLengthFt, runwaySlopePct) {
+  const metar = wx?.metar && wx.metar !== 'NOT AVAILABLE' ? String(wx.metar) : '';
+  const wind = parseWindDetailed(metar);
+  const oatC = parseTemperatureC(metar);
+  const qnhHpa = parseQnhHpa(metar);
+  const qnhIn = hpaToInHg(qnhHpa);
+  const elevationFt = Number.isFinite(airport?.elevationFt) ? Math.round(airport.elevationFt) : null;
+  const densityAltitudeFt = computeDensityAltitudeFt(elevationFt, oatC, qnhHpa);
+
+  const components =
+    wind && !wind.variable && Number.isFinite(wind.direction) && Number.isFinite(wind.speed) && Number.isFinite(runwayHeading)
+      ? computeWindComponents(wind.direction, wind.speed, runwayHeading)
+      : { headwindKt: null, crosswindKt: null };
+
+  if (kind === 'takeoff') {
+    return {
+      runwayAndWeather: {
+        apt: {
+          icao: airport?.icao || '',
+          name: airport?.name || ''
+        },
+        wind: wind
+          ? {
+              raw: wind.raw,
+              direction: wind.direction,
+              speedKt: wind.speed,
+              gustKt: wind.gust,
+              variable: wind.variable
+            }
+          : null,
+        rwy: '',
+        hwXw: {
+          headwindKt: components.headwindKt,
+          crosswindKt: components.crosswindKt
+        },
+        toraFt: Number.isFinite(runwayLengthFt) ? runwayLengthFt : null,
+        oatC,
+        hdgDeg: runwayHeading,
+        qnhIn,
+        qnhHpa,
+        elevFt: elevationFt,
+        rwyCond: runwayCondition || '',
+        densityAltFt: densityAltitudeFt
+      },
+      inputs: {
+        weightLbs: Number.isFinite(weightLbs) ? weightLbs : AIRCRAFT_PROFILE.maxTakeoffWeightLbs,
+        flaps: AIRCRAFT_PROFILE.takeoff.defaultFlaps,
+        powerSetting: AIRCRAFT_PROFILE.takeoff.powerSetting,
+        ac: AIRCRAFT_PROFILE.takeoff.ac
+      },
+      outputs: {
+        vrKias: null,
+        vyKias: null,
+        vxKias: null,
+        accelCheckFt: null,
+        rwyLimitFt: Number.isFinite(runwayLengthFt) ? runwayLengthFt : null,
+        limitCode: AIRCRAFT_PROFILE.takeoff.limitCode,
+        takeoffDistanceRequiredFt: null,
+        distance50FtFt: null,
+        rotatePitch: AIRCRAFT_PROFILE.takeoff.rotatePitch,
+        xwindLimitKt: AIRCRAFT_PROFILE.takeoff.xwindLimitKt
+      },
+      messages: ['NONE']
+    };
+  }
+
+  return {
+    airportAndWeather: {
+      apt: {
+        icao: airport?.icao || '',
+        name: airport?.name || ''
+      },
+      wind: wind
+        ? {
+            raw: wind.raw,
+            direction: wind.direction,
+            speedKt: wind.speed,
+            gustKt: wind.gust,
+            variable: wind.variable
+          }
+        : null,
+      rwy: '',
+      hwXw: {
+        headwindKt: components.headwindKt,
+        crosswindKt: components.crosswindKt
+      },
+      ldaFt: Number.isFinite(runwayLengthFt) ? runwayLengthFt : null,
+      oatC,
+      hdgDeg: runwayHeading,
+      qnhIn,
+      qnhHpa,
+      elevFt: elevationFt,
+      rwyCond: runwayCondition || '',
+      densityAltFt: densityAltitudeFt,
+      rwySlopePct: Number.isFinite(runwaySlopePct) ? runwaySlopePct : null
+    },
+    inputs: {
+      landingWeightLbs: Number.isFinite(weightLbs) ? weightLbs : AIRCRAFT_PROFILE.maxLandingWeightLbs,
+      flaps: AIRCRAFT_PROFILE.landing.defaultFlaps,
+      approachSpeedKias: null,
+      ac: AIRCRAFT_PROFILE.landing.ac
+    },
+    outputs: {
+      vrefKias: null,
+      finalApproachSpeedKias: null,
+      landingDistanceRequiredFt: null,
+      distance50FtFt: null,
+      rwyLimitFt: Number.isFinite(runwayLengthFt) ? runwayLengthFt : null,
+      limitCode: AIRCRAFT_PROFILE.landing.limitCode,
+      braking: AIRCRAFT_PROFILE.landing.braking
+    },
+    goAround: {
+      goAroundPower: AIRCRAFT_PROFILE.landing.goAroundPower,
+      flapsUpSpeedKias: null
+    }
+  };
+}
+
+async function buildPerformanceData(query) {
+  const dep = normalizeIcao(query.dep);
+  const arr = normalizeIcao(query.arr);
+
+  const takeoffRunwayHeading = normalizeHeading(query.takeoffRunwayHeading ?? query.depRunwayHeading);
+  const landingRunwayHeading = normalizeHeading(query.landingRunwayHeading ?? query.arrRunwayHeading);
+
+  const takeoffWeightLbs = normalizeWeight(query.takeoffWeightLbs ?? query.weightLbs);
+  const landingWeightLbs = normalizeWeight(query.landingWeightLbs ?? query.weightLbs);
+
+  const takeoffRunwayCondition = String(query.takeoffRunwayCondition || '').trim().toUpperCase();
+  const landingRunwayCondition = String(query.landingRunwayCondition || '').trim().toUpperCase();
+
+  const takeoffRunwayLengthFt = normalizeWeight(query.takeoffRunwayLengthFt ?? query.toraFt);
+  const landingRunwayLengthFt = normalizeWeight(query.landingRunwayLengthFt ?? query.ldaFt);
+  const landingRunwaySlopePct = Number.isFinite(Number(query.landingRunwaySlopePct))
+    ? Number(query.landingRunwaySlopePct)
+    : null;
+
+  const [depAirport, arrAirport, depWx, arrWx] = await Promise.all([
+    dep ? findAirportByIcao(dep) : null,
+    arr ? findAirportByIcao(arr) : null,
+    dep ? getAirportWeather(dep) : null,
+    arr ? getAirportWeather(arr) : null
+  ]);
+
+  return {
+    aircraft: AIRCRAFT_PROFILE,
+    takeoff: buildPerformanceOutputSection(
+      'takeoff',
+      depAirport,
+      depWx,
+      takeoffRunwayHeading,
+      takeoffWeightLbs,
+      takeoffRunwayCondition,
+      takeoffRunwayLengthFt,
+      null
+    ),
+    landing: buildPerformanceOutputSection(
+      'landing',
+      arrAirport,
+      arrWx,
+      landingRunwayHeading,
+      landingWeightLbs,
+      landingRunwayCondition,
+      landingRunwayLengthFt,
+      landingRunwaySlopePct
+    )
+  };
+}
+
 async function dispatchToPdfBuffer(data) {
   const pdfDoc = await PDFDocument.create();
   const regularFont = await pdfDoc.embedFont(StandardFonts.Courier);
@@ -1256,6 +1559,92 @@ app.get('/api/dispatch-advice', async (req, res) => {
     res.status(500).json({
       arrivalNeedsAlternate: false,
       suggestedAlternate: null
+    });
+  }
+});
+
+app.get('/api/performance', async (req, res) => {
+  try {
+    const data = await buildPerformanceData(req.query);
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      aircraft: AIRCRAFT_PROFILE,
+      takeoff: {
+        runwayAndWeather: {
+          apt: { icao: '', name: '' },
+          wind: null,
+          rwy: '',
+          hwXw: { headwindKt: null, crosswindKt: null },
+          toraFt: null,
+          oatC: null,
+          hdgDeg: null,
+          qnhIn: null,
+          qnhHpa: null,
+          elevFt: null,
+          rwyCond: '',
+          densityAltFt: null
+        },
+        inputs: {
+          weightLbs: AIRCRAFT_PROFILE.maxTakeoffWeightLbs,
+          flaps: AIRCRAFT_PROFILE.takeoff.defaultFlaps,
+          powerSetting: AIRCRAFT_PROFILE.takeoff.powerSetting,
+          ac: AIRCRAFT_PROFILE.takeoff.ac
+        },
+        outputs: {
+          vrKias: null,
+          vyKias: null,
+          vxKias: null,
+          accelCheckFt: null,
+          rwyLimitFt: null,
+          limitCode: AIRCRAFT_PROFILE.takeoff.limitCode,
+          takeoffDistanceRequiredFt: null,
+          distance50FtFt: null,
+          rotatePitch: AIRCRAFT_PROFILE.takeoff.rotatePitch,
+          xwindLimitKt: AIRCRAFT_PROFILE.takeoff.xwindLimitKt
+        },
+        messages: ['NONE']
+      },
+      landing: {
+        airportAndWeather: {
+          apt: { icao: '', name: '' },
+          wind: null,
+          rwy: '',
+          hwXw: { headwindKt: null, crosswindKt: null },
+          ldaFt: null,
+          oatC: null,
+          hdgDeg: null,
+          qnhIn: null,
+          qnhHpa: null,
+          elevFt: null,
+          rwyCond: '',
+          densityAltFt: null,
+          rwySlopePct: null
+        },
+        inputs: {
+          landingWeightLbs: AIRCRAFT_PROFILE.maxLandingWeightLbs,
+          flaps: AIRCRAFT_PROFILE.landing.defaultFlaps,
+          approachSpeedKias: null,
+          ac: AIRCRAFT_PROFILE.landing.ac
+        },
+        outputs: {
+          vrefKias: null,
+          finalApproachSpeedKias: null,
+          landingDistanceRequiredFt: null,
+          distance50FtFt: null,
+          rwyLimitFt: null,
+          limitCode: AIRCRAFT_PROFILE.landing.limitCode,
+          braking: AIRCRAFT_PROFILE.landing.braking
+        },
+        goAround: {
+          goAroundPower: AIRCRAFT_PROFILE.landing.goAroundPower,
+          flapsUpSpeedKias: null
+        }
+      }
     });
   }
 });
