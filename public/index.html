@@ -439,6 +439,8 @@
     .performance-inline-input.wide { width: 150px; }
     .performance-inline-input.runway-select { width: 170px; text-align: left; }
     .performance-inline-input.locked { background: #050505; color: #d7d7d7; pointer-events: none; }
+    .performance-inline-input.mode-auto { color: var(--live); }
+    .performance-inline-input.mode-man { color: var(--warn); }
     .performance-inline-input.qnh-manual { width: 86px; }
     .performance-inline-suffix { color: #d7d7d7; font-size: 13px; white-space: nowrap; }
 
@@ -1194,7 +1196,7 @@
             <div class="runway-legend">
               <div class="runway-legend-item legend-green"><span>TO ROLL</span><strong id="perfTakeoffVisualRoll">..... FT</strong></div>
               <div class="runway-legend-item legend-red"><span>TO DIST REQ</span><strong id="perfTakeoffVisualReq">..... FT</strong></div>
-              <div class="runway-legend-item legend-blue"><span>TORA</span><strong id="perfTakeoffVisualTora">..... FT</strong></div>
+              <div class="runway-legend-item legend-green"><span>TORA</span><strong id="perfTakeoffVisualTora">..... FT</strong></div>
               <div class="runway-legend-item legend-amber"><span>RWY REM</span><strong id="perfTakeoffVisualRemain">..... FT</strong></div>
             </div>
           </div>
@@ -2104,6 +2106,12 @@ END OF REPORT`;
       node.readOnly = !manual;
     }
 
+    function applyOverrideFieldVisual(node, mode) {
+      if (!node) return;
+      node.classList.remove('mode-auto', 'mode-man');
+      node.classList.add(mode === 'MAN' ? 'mode-man' : 'mode-auto');
+    }
+
     function formatWindAutoDisplay(wind) {
       const raw = String(wind?.raw || '').trim().toUpperCase();
       if (!raw) return '.....';
@@ -2190,6 +2198,8 @@ END OF REPORT`;
       const oatField = getOatField(kind);
       setOverrideFieldMode(kind, 'Wind', windMode);
       setOverrideFieldMode(kind, 'Oat', oatMode);
+      applyOverrideFieldVisual(windField, windMode);
+      applyOverrideFieldVisual(oatField, oatMode);
       if (windMode === 'AUTO' && windField) windField.value = formatWindAutoDisplay(sourceWind);
       if (oatMode === 'AUTO' && oatField) oatField.value = Number.isFinite(sourceOat) ? `${Math.round(sourceOat)} °C` : '..... °C';
     }
@@ -2796,6 +2806,24 @@ END OF REPORT`;
       </g>`;
     }
 
+
+    function renderRunwayPlaceholder(containerId, aircraftMode) {
+      renderRunwayVisual(containerId, '', {
+        availableFt: aircraftMode === 'ARR' ? 2200 : 2600,
+        requiredFt: aircraftMode === 'ARR' ? 1500 : 1200,
+        distance50Ft: aircraftMode === 'ARR' ? null : 1800,
+        accelerateStopFt: aircraftMode === 'ARR' ? null : 2100,
+        remainingFt: aircraftMode === 'ARR' ? 700 : 1400,
+        runwayLabel: aircraftMode === 'ARR' ? '22' : '04',
+        oppositeRunwayLabel: aircraftMode === 'ARR' ? '04' : '22',
+        aircraftMode,
+        headwindKt: null,
+        crosswindKt: null,
+        runwayHeadingDeg: aircraftMode === 'ARR' ? 220 : 40,
+        slopePct: null
+      });
+    }
+
     function renderRunwayVisual(containerId, legendPrefix, options) {
       const container = el(containerId);
       if (!container) return;
@@ -3178,7 +3206,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfTakeoffDerived', 'CALCULATED FROM  RWY -- / WIND -- / WT -- / COND -- / SLOPE --');
       setPerformanceStatusBadge('perfTakeoffStatus', 'ok', 'READY');
       setNodeText('perfTakeoffAcars', `TAKEOFF PERFORMANCE\n\n${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
-      el('perfTakeoffVisual').innerHTML = '';
+      renderRunwayPlaceholder('perfTakeoffVisual', 'DEP');
       setNodeText('perfTakeoffVisualTora', '..... FT');
       setNodeText('perfTakeoffVisualRoll', '..... FT');
       setNodeText('perfTakeoffVisualReq', '..... FT');
