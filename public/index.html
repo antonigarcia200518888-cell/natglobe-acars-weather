@@ -439,8 +439,10 @@
     .performance-inline-input.wide { width: 150px; }
     .performance-inline-input.runway-select { width: 170px; text-align: left; }
     .performance-inline-input.locked { background: #050505; color: #d7d7d7; pointer-events: none; }
-    .performance-inline-input.mode-auto { color: var(--live); }
-    .performance-inline-input.mode-man { color: var(--warn); }
+    .performance-inline-input.mode-auto { color: var(--live) !important; }
+    .performance-inline-input.mode-man { color: var(--warn) !important; }
+    .performance-inline-display.locked.mode-auto { color: var(--live) !important; }
+    .performance-inline-display.locked.mode-man { color: var(--warn) !important; }
     .performance-inline-input.qnh-manual { width: 86px; }
     .performance-inline-suffix { color: #d7d7d7; font-size: 13px; white-space: nowrap; }
 
@@ -2906,6 +2908,7 @@ END OF REPORT`;
         return y;
       }
       const verticalMarkerLabel = aircraftMode === 'DEP' ? 'ROTATE' : 'REQ DIST';
+      const thresholdLabelY = bottomY - 40;
       const verticalMarkerLabelY = Number.isFinite(requiredY) ? reserveMarkerLabelY(requiredY + 7) : null;
       const distance50LabelY = show50Segment && Number.isFinite(dist50Y) ? reserveMarkerLabelY(dist50Y + 6) : null;
       const accelerateStopLabelY = aircraftMode === 'DEP' && Number.isFinite(accelerateStopY) ? reserveMarkerLabelY(accelerateStopY + 6) : null;
@@ -2918,7 +2921,6 @@ END OF REPORT`;
         const y = touchdownBaseY - (i * 56);
         return `<rect x="${runwayX + 26}" y="${y}" width="28" height="8" rx="2" fill="#f6f6f6" opacity="0.95" /><rect x="${runwayX + runwayW - 54}" y="${y}" width="28" height="8" rx="2" fill="#f6f6f6" opacity="0.95" />`;
       }).join('');
-      const thresholdLabelY = bottomY - 40;
       const thresholdLabel = `<line x1="${runwayX - 20}" y1="${thresholdLabelY}" x2="${runwayX + runwayW + 20}" y2="${thresholdLabelY}" stroke="#66ff99" stroke-dasharray="5 5" stroke-width="1.6" opacity="0.85" /><text x="${markerLabelX}" y="${thresholdLabelYAdjusted}" fill="#66ff99" font-size="19" font-family="Courier New, monospace">${aircraftMode === 'ARR' ? 'THRESHOLD / TDZ' : 'BRAKE RELEASE'}</text>`;
 
       const hw = Number(options?.headwindKt);
