@@ -1599,6 +1599,31 @@ END OF REPORT`;
       else if (generateBtn) generateBtn.classList.add('nav-active');
     }
 
+    function showWeatherView(options = {}) {
+      const shouldScroll = options.scroll !== false;
+      if (performancePanel) performancePanel.style.display = 'none';
+      setActiveNavButton('wx');
+      if (shouldScroll) {
+        requestAnimationFrame(() => {
+          const target = document.querySelector('.intro') || document.querySelector('.frame') || document.body;
+          if (target && typeof target.scrollIntoView === 'function') {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      }
+    }
+
+    function showPerformanceView() {
+      if (performancePanel) performancePanel.style.display = 'block';
+      setActiveNavButton('perf');
+      requestAnimationFrame(() => {
+        if (performancePanel && typeof performancePanel.scrollIntoView === 'function') {
+          performancePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
 
     function setStatus(text, mode = 'neutral') {
       statusBox.textContent = text;
@@ -3405,16 +3430,18 @@ function renderTakeoffRunwayVisual(data, calc) {
 
     performanceBtn.addEventListener('click', async () => {
       const isOpen = performancePanel.style.display === 'block';
-      performancePanel.style.display = isOpen ? 'none' : 'block';
-      setActiveNavButton(isOpen ? 'wx' : 'perf');
-      if (!isOpen) {
-        try {
-          await loadPerformancePanelData();
-          setStatusWithAdvice('PERFORMANCE PANEL READY', 'live');
-        } catch (err) {
-          console.error(err);
-          setStatusWithAdvice('PERFORMANCE PANEL LOAD FAILED', 'nodata');
-        }
+      if (isOpen) {
+        showWeatherView();
+        setStatusWithAdvice('WEATHER VIEW READY', 'live');
+        return;
+      }
+      showPerformanceView();
+      try {
+        await loadPerformancePanelData();
+        setStatusWithAdvice('PERFORMANCE PANEL READY', 'live');
+      } catch (err) {
+        console.error(err);
+        setStatusWithAdvice('PERFORMANCE PANEL LOAD FAILED', 'nodata');
       }
     });
 
@@ -3483,8 +3510,8 @@ function renderTakeoffRunwayVisual(data, calc) {
     });
 
     generateBtn.addEventListener('click', async () => {
-      performancePanel.style.display = 'none';
-      setActiveNavButton('wx');
+      showWeatherView();
+      setStatusWithAdvice('WEATHER VIEW READY', 'live');
       await generate();
     });
 
