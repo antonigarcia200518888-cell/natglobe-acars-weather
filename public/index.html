@@ -438,6 +438,27 @@
       white-space: pre-wrap;
     }
 
+    .performance-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .performance-acars-block {
+      border: 1px solid #444;
+      padding: 10px;
+      margin-top: 12px;
+      background: #000;
+      color: #fff;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 14px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 280px;
+    }
+
     .status-box {
       border: 1px solid var(--line);
       min-height: 52px;
@@ -641,7 +662,7 @@
         align-items: flex-start;
       }
 
-      .grid, .grid-2, .actions, .options-groups, .performance-grid, .performance-row {
+      .grid, .grid-2, .actions, .options-groups, .performance-grid, .performance-row, .performance-actions {
         grid-template-columns: 1fr;
       }
 
@@ -819,7 +840,7 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">QNH</span>
-                <span id="perfTakeoffQnh" class="performance-value performance-value-live">..... IN</span>
+                <span id="perfTakeoffQnh" class="performance-value performance-value-live">..... HPA</span>
               </div>
             </div>
 
@@ -928,6 +949,15 @@
 
           <div class="performance-section-title">MESSAGES</div>
           <div id="perfTakeoffMessages" class="performance-messages">NONE</div>
+
+          <div class="performance-actions">
+            <button id="perfTakeoffCalcBtn" class="btn" type="button">CALCULATE</button>
+            <button id="perfTakeoffOpenPdfBtn" class="btn" type="button">OPEN PDF</button>
+          </div>
+
+          <pre id="perfTakeoffAcars" class="performance-acars-block">TAKEOFF PERFORMANCE
+
+OH-PMK  Piper PA-28R-200 Arrow II</pre>
         </div>
 
         <div class="performance-block">
@@ -976,7 +1006,7 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">QNH</span>
-                <span id="perfLandingQnh" class="performance-value performance-value-live">..... IN</span>
+                <span id="perfLandingQnh" class="performance-value performance-value-live">..... HPA</span>
               </div>
             </div>
 
@@ -1085,6 +1115,15 @@
               </div>
             </div>
           </div>
+
+          <div class="performance-actions">
+            <button id="perfLandingCalcBtn" class="btn" type="button">CALCULATE</button>
+            <button id="perfLandingOpenPdfBtn" class="btn" type="button">OPEN PDF</button>
+          </div>
+
+          <pre id="perfLandingAcars" class="performance-acars-block">LANDING PERFORMANCE
+
+OH-PMK  Piper PA-28R-200 Arrow II</pre>
         </div>
       </div>
     </div>
@@ -1214,6 +1253,10 @@ END OF REPORT`;
     const connectionText = el('connectionText');
     const performanceBtn = el('performanceBtn');
     const performancePanel = el('performancePanel');
+    const perfTakeoffCalcBtn = el('perfTakeoffCalcBtn');
+    const perfTakeoffOpenPdfBtn = el('perfTakeoffOpenPdfBtn');
+    const perfLandingCalcBtn = el('perfLandingCalcBtn');
+    const perfLandingOpenPdfBtn = el('perfLandingOpenPdfBtn');
 
     let latestDirectUrl = null;
     let latestReportText = '';
@@ -1637,8 +1680,16 @@ END OF REPORT`;
       return Number.isFinite(value) ? `${value} KIAS` : '..... KIAS';
     }
 
-    function formatInHg(value) {
-      return Number.isFinite(value) ? `${value.toFixed(2)} IN` : '..... IN';
+    function formatQnhHpa(qnhHpa, qnhIn) {
+      if (Number.isFinite(qnhHpa)) {
+        return `${Math.round(qnhHpa)} HPA`;
+      }
+
+      if (Number.isFinite(qnhIn)) {
+        return `${Math.round(qnhIn * 33.8639)} HPA`;
+      }
+
+      return '..... HPA';
     }
 
     function formatTemp(value) {
@@ -1669,12 +1720,127 @@ END OF REPORT`;
       el(id).textContent = value;
     }
 
+    function toDisplayValue(value, fallback = '.....') {
+      const text = String(value ?? '').trim();
+      return text || fallback;
+    }
+
+    function compactRunwayDisplay(runwayValue, headingValue) {
+      const runway = String(runwayValue || '').trim() || '.....';
+      const heading = String(headingValue || '').trim() || '.....';
+      return `${runway}/${heading}`;
+    }
+
+    function miasText(text) {
+      return String(text || '').replace(/\bKIAS\b/g, 'MIAS').trim();
+    }
+
+    function formatHwXwAcars(hwXw) {
+      const headwind = Number.isFinite(hwXw?.headwindKt) ? String(hwXw.headwindKt).padStart(2, '0') : '.....';
+      const crosswind = Number.isFinite(hwXw?.crosswindKt) ? String(hwXw.crosswindKt).padStart(2, '0') : '.....';
+      return `${headwind}/${crosswind}`;
+    }
+
+    function formatAcarsPair(leftLabel, leftValue, rightLabel = '', rightValue = '') {
+      const left = `${leftLabel}`.padEnd(14) + `${leftValue}`.padEnd(14);
+      const right = rightLabel ? `${rightLabel}`.padEnd(14) + `${rightValue}` : '';
+      return `${left}${right}`.trimEnd();
+    }
+
+    function buildTakeoffAcarsBlock(data) {
+      const takeoff = data?.takeoff || {};
+      const rw = takeoff.runwayAndWeather || {};
+      const inputs = takeoff.inputs || {};
+      const outputs = takeoff.outputs || {};
+      const messages = Array.isArray(takeoff.messages) && takeoff.messages.length
+        ? takeoff.messages.join('\n')
+        : 'NONE';
+
+      const runwayValue = el('perfTakeoffRunway').value || '';
+      const headingValue = el('perfTakeoffRunwayHeading').value || '';
+      const toraText = el('perfTakeoffTora').value ? `${el('perfTakeoffTora').value} FT` : '..... FT';
+      const weightText = el('perfTakeoffWeight').value ? `${el('perfTakeoffWeight').value} LBS` : '..... LBS';
+      const rwyCondText = toDisplayValue(el('perfTakeoffRwyCond').value, '.....');
+      const headingText = headingValue ? `${headingValue} °` : '..... °';
+
+      return [
+        'TAKEOFF PERFORMANCE',
+        '',
+        'OH-PMK  Piper PA-28R-200 Arrow II',
+        '',
+        'RUNWAY AND WEATHER:',
+        formatAcarsPair('APT', formatApt(rw.apt), 'WIND', formatWind(rw.wind)),
+        formatAcarsPair('RWY', compactRunwayDisplay(runwayValue, headingValue), 'HW/XW', formatHwXwAcars(rw.hwXw)),
+        formatAcarsPair('TORA', toraText, 'OAT', formatTemp(rw.oatC)),
+        formatAcarsPair('HDG', headingText, 'QNH', formatQnhHpa(rw.qnhHpa, rw.qnhIn).replace(' HPA', '')),
+        formatAcarsPair('ELEV', formatFeet(rw.elevFt), 'RWY COND', rwyCondText),
+        formatAcarsPair('DENSITY ALT', formatFeet(rw.densityAltFt)),
+        '',
+        'INPUTS:',
+        formatAcarsPair('WEIGHT', weightText, 'FLAPS', toDisplayValue(inputs.flaps, '25°')),
+        formatAcarsPair('POWER SETTING', toDisplayValue(inputs.powerSetting, 'FULL'), 'AC', toDisplayValue(inputs.ac, 'OFF')),
+        '',
+        'OUTPUTS:',
+        formatAcarsPair('VR', miasText(formatKias(outputs.vrKias)), 'VY', miasText(formatKias(outputs.vyKias))),
+        formatAcarsPair('VX', miasText(formatKias(outputs.vxKias)), 'ACCEL CHECK', formatFeet(outputs.accelCheckFt)),
+        formatAcarsPair('RWY LIMIT', `${inputs.maxTakeoffWeightLbs || 2650} LBS`, 'LIMIT CODE', toDisplayValue(outputs.limitCode, 'MTOW')),
+        formatAcarsPair('T/O DIST REQ', formatFeet(outputs.takeoffDistanceRequiredFt), '50FT DISTANCE', formatFeet(outputs.distance50FtFt)),
+        formatAcarsPair('ROTATE PITCH', toDisplayValue(outputs.rotatePitch, '7–9° NOSE UP'), 'XWIND LIMIT', Number.isFinite(outputs.xwindLimitKt) ? `${outputs.xwindLimitKt} KT` : '17 KT'),
+        '',
+        'MESSAGES:',
+        messages
+      ].join('\n');
+    }
+
+    function buildLandingAcarsBlock(data) {
+      const landing = data?.landing || {};
+      const aw = landing.airportAndWeather || {};
+      const inputs = landing.inputs || {};
+      const outputs = landing.outputs || {};
+      const goAround = landing.goAround || {};
+
+      const runwayValue = el('perfLandingRunway').value || '';
+      const headingValue = el('perfLandingRunwayHeading').value || '';
+      const ldaText = el('perfLandingLda').value ? `${el('perfLandingLda').value} FT` : '..... FT';
+      const slopeText = el('perfLandingSlope').value ? `${el('perfLandingSlope').value} %` : '..... %';
+      const weightText = el('perfLandingWeight').value ? `${el('perfLandingWeight').value} LBS` : '..... LBS';
+      const rwyCondText = toDisplayValue(el('perfLandingRwyCond').value, '.....');
+      const headingText = headingValue ? `${headingValue} °` : '..... °';
+
+      return [
+        'LANDING PERFORMANCE',
+        '',
+        'OH-PMK  Piper PA-28R-200 Arrow II',
+        '',
+        'AIRPORT AND WEATHER:',
+        formatAcarsPair('APT', formatApt(aw.apt), 'WIND', formatWind(aw.wind)),
+        formatAcarsPair('RWY', compactRunwayDisplay(runwayValue, headingValue), 'HW/XW', formatHwXwAcars(aw.hwXw)),
+        formatAcarsPair('LDA', ldaText, 'OAT', formatTemp(aw.oatC)),
+        formatAcarsPair('HDG', headingText, 'QNH', formatQnhHpa(aw.qnhHpa, aw.qnhIn).replace(' HPA', '')),
+        formatAcarsPair('ELEV', formatFeet(aw.elevFt), 'RWY COND', rwyCondText),
+        formatAcarsPair('DENSITY ALT', formatFeet(aw.densityAltFt), 'RWY SLOPE', slopeText),
+        '',
+        'INPUTS:',
+        formatAcarsPair('LANDING WT', weightText, 'FLAPS', toDisplayValue(inputs.flaps, 'FULL')),
+        formatAcarsPair('APPROACH SPD', formatKias(inputs.approachSpeedKias), 'AC', toDisplayValue(inputs.ac, 'OFF')),
+        '',
+        'OUTPUTS:',
+        formatAcarsPair('VREF', miasText(formatKias(outputs.vrefKias)), 'FINAL APP SPD', miasText(formatKias(outputs.finalApproachSpeedKias))),
+        formatAcarsPair('LDG DIST REQ', formatFeet(outputs.landingDistanceRequiredFt), '50FT DIST', formatFeet(outputs.distance50FtFt)),
+        formatAcarsPair('RWY LIMIT', `${inputs.maxLandingWeightLbs || 2650} LBS`, 'LIMIT CODE', toDisplayValue(outputs.limitCode, 'MLDW')),
+        formatAcarsPair('BRAKING', toDisplayValue(outputs.braking, '.....')),
+        '',
+        'GO-AROUND:',
+        formatAcarsPair('GO-AROUND PWR', toDisplayValue(goAround.goAroundPower, 'FULL'), 'FLAPS UP SPD', miasText(formatKias(goAround.flapsUpSpeedKias)))
+      ].join('\n');
+    }
+
     function resetPerformanceFields() {
       setNodeText('perfTakeoffApt', '...../.....');
       setNodeText('perfTakeoffWind', '...../.....');
       setNodeText('perfTakeoffHwXw', '...../.....');
       setNodeText('perfTakeoffOat', '..... °C');
-      setNodeText('perfTakeoffQnh', '..... IN');
+      setNodeText('perfTakeoffQnh', '..... HPA');
       setNodeText('perfTakeoffElevation', '..... FT');
       setNodeText('perfTakeoffDensityAltitude', '..... FT');
       setNodeText('perfTakeoffFlaps', '.....');
@@ -1691,12 +1857,15 @@ END OF REPORT`;
       setNodeText('perfTakeoffRotatePitch', '7–9° NOSE UP');
       setNodeText('perfTakeoffXwindLimit', '17 KT');
       setNodeText('perfTakeoffMessages', 'NONE');
+      setNodeText('perfTakeoffAcars', `TAKEOFF PERFORMANCE
+
+OH-PMK  Piper PA-28R-200 Arrow II`);
 
       setNodeText('perfLandingApt', '...../.....');
       setNodeText('perfLandingWind', '...../.....');
       setNodeText('perfLandingHwXw', '...../.....');
       setNodeText('perfLandingOat', '..... °C');
-      setNodeText('perfLandingQnh', '..... IN');
+      setNodeText('perfLandingQnh', '..... HPA');
       setNodeText('perfLandingElevation', '..... FT');
       setNodeText('perfLandingDensityAltitude', '..... FT');
       setNodeText('perfLandingFlaps', 'FULL (.....°)');
@@ -1711,6 +1880,25 @@ END OF REPORT`;
       setNodeText('perfLandingBraking', '..... (MAX/MOD/CRM)');
       setNodeText('perfLandingGoAroundPower', 'FULL');
       setNodeText('perfLandingFlapsUpSpeed', '..... KIAS');
+      setNodeText('perfLandingAcars', `LANDING PERFORMANCE
+
+OH-PMK  Piper PA-28R-200 Arrow II`);
+
+      [
+        'perfTakeoffRunway',
+        'perfTakeoffRunwayHeading',
+        'perfTakeoffTora',
+        'perfTakeoffRwyCond',
+        'perfTakeoffWeight',
+        'perfLandingRunway',
+        'perfLandingRunwayHeading',
+        'perfLandingLda',
+        'perfLandingRwyCond',
+        'perfLandingSlope',
+        'perfLandingWeight'
+      ].forEach(id => {
+        el(id).value = '';
+      });
     }
 
     function resetForm() {
@@ -1737,22 +1925,6 @@ END OF REPORT`;
       clearAirportTags();
       renderPreview(DEFAULT_PREVIEW);
       resetPerformanceFields();
-
-      [
-        'perfTakeoffRunway',
-        'perfTakeoffRunwayHeading',
-        'perfTakeoffTora',
-        'perfTakeoffRwyCond',
-        'perfTakeoffWeight',
-        'perfLandingRunway',
-        'perfLandingRunwayHeading',
-        'perfLandingLda',
-        'perfLandingRwyCond',
-        'perfLandingSlope',
-        'perfLandingWeight'
-      ].forEach(id => {
-        el(id).value = '';
-      });
 
       setStatusWithAdvice('READY', 'neutral');
       scheduleLiveStatusRefresh();
@@ -1802,11 +1974,13 @@ END OF REPORT`;
       const params = new URLSearchParams(buildQuery());
       const perf = performanceInputValues();
 
+      params.set('takeoffRunway', perf.takeoffRunway);
       params.set('takeoffRunwayHeading', perf.takeoffRunwayHeading);
       params.set('takeoffRunwayLengthFt', perf.takeoffRunwayLengthFt);
       params.set('takeoffRunwayCondition', perf.takeoffRunwayCondition);
       params.set('takeoffWeightLbs', perf.takeoffWeightLbs);
 
+      params.set('landingRunway', perf.landingRunway);
       params.set('landingRunwayHeading', perf.landingRunwayHeading);
       params.set('landingRunwayLengthFt', perf.landingRunwayLengthFt);
       params.set('landingRunwayCondition', perf.landingRunwayCondition);
@@ -1857,9 +2031,7 @@ END OF REPORT`;
       } else if (advice?.arrivalNeedsAlternate) {
         lastAdviceMessage = 'ALTN REQUIRED / NO NEARBY SUGGESTION FOUND';
       }
-    }
-
-    function applyTakeoffPerformance(data) {
+    }    function applyTakeoffPerformance(data) {
       const takeoff = data?.takeoff || {};
       const rw = takeoff.runwayAndWeather || {};
       const inputs = takeoff.inputs || {};
@@ -1870,7 +2042,7 @@ END OF REPORT`;
       setNodeText('perfTakeoffWind', formatWind(rw.wind));
       setNodeText('perfTakeoffHwXw', formatHwXw(rw.hwXw));
       setNodeText('perfTakeoffOat', formatTemp(rw.oatC));
-      setNodeText('perfTakeoffQnh', formatInHg(rw.qnhIn));
+      setNodeText('perfTakeoffQnh', formatQnhHpa(rw.qnhHpa, rw.qnhIn));
       setNodeText('perfTakeoffElevation', formatFeet(rw.elevFt));
       setNodeText('perfTakeoffDensityAltitude', formatFeet(rw.densityAltFt));
       setNodeText('perfTakeoffFlaps', inputs.flaps || blankValue());
@@ -1903,6 +2075,8 @@ END OF REPORT`;
       if (!el('perfTakeoffRunway').value) {
         el('perfTakeoffRunway').value = perf.takeoffRunway || '';
       }
+
+      setNodeText('perfTakeoffAcars', buildTakeoffAcarsBlock(data));
     }
 
     function applyLandingPerformance(data) {
@@ -1917,7 +2091,7 @@ END OF REPORT`;
       setNodeText('perfLandingWind', formatWind(aw.wind));
       setNodeText('perfLandingHwXw', formatHwXw(aw.hwXw));
       setNodeText('perfLandingOat', formatTemp(aw.oatC));
-      setNodeText('perfLandingQnh', formatInHg(aw.qnhIn));
+      setNodeText('perfLandingQnh', formatQnhHpa(aw.qnhHpa, aw.qnhIn));
       setNodeText('perfLandingElevation', formatFeet(aw.elevFt));
       setNodeText('perfLandingDensityAltitude', formatFeet(aw.densityAltFt));
       setNodeText('perfLandingFlaps', inputs.flaps || 'FULL (.....°)');
@@ -1951,6 +2125,8 @@ END OF REPORT`;
       if (!el('perfLandingRunway').value) {
         el('perfLandingRunway').value = perf.landingRunway || '';
       }
+
+      setNodeText('perfLandingAcars', buildLandingAcarsBlock(data));
     }
 
     async function loadPerformancePanelData() {
@@ -2171,6 +2347,52 @@ END OF REPORT`;
       if (!isOpen) {
         await loadPerformancePanelData();
       }
+    });
+
+    perfTakeoffCalcBtn.addEventListener('click', async () => {
+      await loadPerformancePanelData();
+    });
+
+    perfLandingCalcBtn.addEventListener('click', async () => {
+      await loadPerformancePanelData();
+    });
+
+    perfTakeoffOpenPdfBtn.addEventListener('click', async () => {
+      const validationError = validateInputs();
+      if (validationError) {
+        setStatusWithAdvice(validationError, 'nodata');
+        return;
+      }
+
+      if (!latestDirectUrl) {
+        await generate();
+      }
+
+      if (!latestDirectUrl) {
+        setStatusWithAdvice('NO LIVE PDF READY', 'nodata');
+        return;
+      }
+
+      window.open(latestDirectUrl, '_blank');
+    });
+
+    perfLandingOpenPdfBtn.addEventListener('click', async () => {
+      const validationError = validateInputs();
+      if (validationError) {
+        setStatusWithAdvice(validationError, 'nodata');
+        return;
+      }
+
+      if (!latestDirectUrl) {
+        await generate();
+      }
+
+      if (!latestDirectUrl) {
+        setStatusWithAdvice('NO LIVE PDF READY', 'nodata');
+        return;
+      }
+
+      window.open(latestDirectUrl, '_blank');
     });
 
     generateBtn.addEventListener('click', async () => {
