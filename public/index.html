@@ -1414,6 +1414,13 @@ END OF REPORT`;
     function updateConnectionBadge() {
       const state = getConnectionQuality();
       setConnectionState(state.mode, state.text);
+      if (wxSourceStrip) {
+        if (state.mode === 'offline') {
+          if (!wxSourceStrip.classList.contains('mode-cached')) updateWeatherSourceStrip({ mode: 'OFFLINE' });
+        } else if (wxSourceStrip.classList.contains('mode-offline')) {
+          updateWeatherSourceStrip({ mode: navigator.onLine ? 'LIVE' : 'OFFLINE' });
+        }
+      }
     }
 
     function setStatus(text, mode = 'neutral') {
@@ -2609,7 +2616,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       lastAdviceMessage = '';
       clearAirportTags();
       renderPreview(DEFAULT_PREVIEW);
-      updateWeatherSourceStrip({ mode: 'LIVE' });
+      updateWeatherSourceStrip({ mode: navigator.onLine ? 'LIVE' : 'OFFLINE' });
       resetPerformanceFields();
       setStatusWithAdvice('READY', 'neutral');
       scheduleLiveStatusRefresh();
