@@ -87,17 +87,9 @@
       display: block;
     }
 
-    .connection-badge.conn-good {
-      color: var(--live);
-    }
-
-    .connection-badge.conn-weak {
-      color: var(--warn);
-    }
-
-    .connection-badge.conn-offline {
-      color: var(--danger);
-    }
+    .connection-badge.conn-good { color: var(--live); }
+    .connection-badge.conn-weak { color: var(--warn); }
+    .connection-badge.conn-offline { color: var(--danger); }
 
     .utc-clock {
       font-size: clamp(14px, 1.4vw, 18px);
@@ -176,20 +168,9 @@
       display: none;
     }
 
-    .mini-tag.tag-live {
-      display: inline-block;
-      color: var(--live);
-    }
-
-    .mini-tag.tag-fallback {
-      display: inline-block;
-      color: var(--warn);
-    }
-
-    .mini-tag.tag-nodata {
-      display: inline-block;
-      color: var(--danger);
-    }
+    .mini-tag.tag-live { display: inline-block; color: var(--live); }
+    .mini-tag.tag-fallback { display: inline-block; color: var(--warn); }
+    .mini-tag.tag-nodata { display: inline-block; color: var(--danger); }
 
     .swap-mini {
       background: #000;
@@ -209,9 +190,7 @@
       border-color: var(--accent);
     }
 
-    .swap-mini:active {
-      transform: translateY(1px);
-    }
+    .swap-mini:active { transform: translateY(1px); }
 
     .swap-symbol {
       font-size: 22px;
@@ -353,10 +332,7 @@
       letter-spacing: 0.5px;
     }
 
-    .performance-rows {
-      display: grid;
-      gap: 6px;
-    }
+    .performance-rows { display: grid; gap: 6px; }
 
     .performance-row {
       display: grid;
@@ -390,25 +366,10 @@
       word-break: break-word;
     }
 
-    .performance-value-live {
-      color: var(--live);
-      font-weight: 700;
-    }
-
-    .performance-value-warn {
-      color: var(--warn);
-      font-weight: 700;
-    }
-
-    .performance-value-danger {
-      color: var(--danger);
-      font-weight: 700;
-    }
-
-    .performance-value-info {
-      color: var(--accent);
-      font-weight: 700;
-    }
+    .performance-value-live { color: var(--live); font-weight: 700; }
+    .performance-value-warn { color: var(--warn); font-weight: 700; }
+    .performance-value-danger { color: var(--danger); font-weight: 700; }
+    .performance-value-info { color: var(--accent); font-weight: 700; }
 
     .performance-inline-input {
       width: 110px;
@@ -424,9 +385,8 @@
       text-align: right;
     }
 
-    .performance-inline-input.wide {
-      width: 150px;
-    }
+    .performance-inline-input.wide { width: 150px; }
+    .performance-inline-input.runway-select { width: 170px; text-align: left; }
 
     .performance-messages {
       border: 1px solid #444;
@@ -515,10 +475,7 @@
       letter-spacing: 0.5px;
     }
 
-    .history-list {
-      display: grid;
-      gap: 8px;
-    }
+    .history-list { display: grid; gap: 8px; }
 
     .history-empty {
       color: #9f9f9f;
@@ -621,9 +578,7 @@
     }
 
     @media (max-width: 1000px) {
-      .options-groups {
-        grid-template-columns: 1fr 1fr;
-      }
+      .options-groups { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 900px) {
@@ -641,7 +596,8 @@
       .swap-mini { width: 100%; }
       .history-item { grid-template-columns: 1fr; }
       .performance-inline-input,
-      .performance-inline-input.wide { width: 120px; }
+      .performance-inline-input.wide,
+      .performance-inline-input.runway-select { width: 160px; }
     }
   </style>
 </head>
@@ -770,7 +726,9 @@
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">RWY</span>
-                <input id="perfTakeoffRunway" class="performance-inline-input" type="text" maxlength="8" placeholder="...../....." />
+                <select id="perfTakeoffRunway" class="performance-inline-input runway-select">
+                  <option value="">SELECT</option>
+                </select>
               </div>
               <div class="performance-item">
                 <span class="performance-label">HW/XW</span>
@@ -806,11 +764,20 @@
                 <span id="perfTakeoffElevation" class="performance-value performance-value-warn">..... FT</span>
               </div>
               <div class="performance-item">
-                <span class="performance-label">RWY COND</span>
+                <span class="performance-label">RWY SURF/COND</span>
                 <select id="perfTakeoffRwyCond" class="performance-inline-input wide">
                   <option value="">.....</option>
                   <option value="DRY">DRY</option>
                   <option value="WET">WET</option>
+                  <option value="ASPH">ASPH</option>
+                  <option value="CONC">CONC</option>
+                  <option value="GRASS">GRASS</option>
+                  <option value="GRVL">GRVL</option>
+                  <option value="DIRT">DIRT</option>
+                  <option value="TURF">TURF</option>
+                  <option value="SNOW">SNOW</option>
+                  <option value="ICE">ICE</option>
+                  <option value="WATER">WATER</option>
                 </select>
               </div>
             </div>
@@ -957,7 +924,9 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">RWY</span>
-                <input id="perfLandingRunway" class="performance-inline-input" type="text" maxlength="8" placeholder="...../....." />
+                <select id="perfLandingRunway" class="performance-inline-input runway-select">
+                  <option value="">SELECT</option>
+                </select>
               </div>
               <div class="performance-item">
                 <span class="performance-label">HW/XW</span>
@@ -993,11 +962,20 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
                 <span id="perfLandingElevation" class="performance-value performance-value-warn">..... FT</span>
               </div>
               <div class="performance-item">
-                <span class="performance-label">RWY COND</span>
+                <span class="performance-label">RWY SURF/COND</span>
                 <select id="perfLandingRwyCond" class="performance-inline-input wide">
                   <option value="">.....</option>
                   <option value="DRY">DRY</option>
                   <option value="WET">WET</option>
+                  <option value="ASPH">ASPH</option>
+                  <option value="CONC">CONC</option>
+                  <option value="GRASS">GRASS</option>
+                  <option value="GRVL">GRVL</option>
+                  <option value="DIRT">DIRT</option>
+                  <option value="TURF">TURF</option>
+                  <option value="SNOW">SNOW</option>
+                  <option value="ICE">ICE</option>
+                  <option value="WATER">WATER</option>
                 </select>
               </div>
             </div>
@@ -1276,6 +1254,8 @@ END OF REPORT`;
     const perfLandingCalcBtn = el('perfLandingCalcBtn');
     const perfLandingOpenPdfBtn = el('perfLandingOpenPdfBtn');
 
+    const runwayCache = new Map();
+
     let latestDirectUrl = null;
     let latestReportText = '';
     let routeTouched = false;
@@ -1294,13 +1274,9 @@ END OF REPORT`;
     function setConnectionState(mode, text) {
       connectionBadge.classList.remove('conn-good', 'conn-weak', 'conn-offline');
       connectionText.textContent = text;
-      if (mode === 'good') {
-        connectionBadge.classList.add('conn-good');
-      } else if (mode === 'weak') {
-        connectionBadge.classList.add('conn-weak');
-      } else {
-        connectionBadge.classList.add('conn-offline');
-      }
+      if (mode === 'good') connectionBadge.classList.add('conn-good');
+      else if (mode === 'weak') connectionBadge.classList.add('conn-weak');
+      else connectionBadge.classList.add('conn-offline');
     }
 
     function getConnectionQuality() {
@@ -1637,10 +1613,6 @@ END OF REPORT`;
       return Number.isFinite(value) ? `${Math.round(value)} FT` : '..... FT';
     }
 
-    function formatKias(value) {
-      return Number.isFinite(value) ? `${Math.round(value)} KIAS` : '..... KIAS';
-    }
-
     function formatQnhHpa(qnhHpa, qnhIn) {
       if (Number.isFinite(qnhHpa)) return `${Math.round(qnhHpa)} HPA`;
       if (Number.isFinite(qnhIn)) return `${Math.round(qnhIn * 33.8639)} HPA`;
@@ -1707,6 +1679,158 @@ END OF REPORT`;
       return unit === 'MPH' ? `${Math.round(ktsToMph(speed))} MPH` : `${Math.round(speed)} MIAS`;
     }
 
+    function isWetLikeCondition(value) {
+      const text = upper(value);
+      return text === 'WET' || text === 'SNOW' || text === 'ICE' || text === 'WATER';
+    }
+
+    function surfaceToConditionValue(surface) {
+      const s = upper(surface);
+      if (!s) return '';
+      if (s.includes('WATER')) return 'WATER';
+      if (s.includes('ICE')) return 'ICE';
+      if (s.includes('SNOW')) return 'SNOW';
+      if (s.includes('GRASS')) return 'GRASS';
+      if (s.includes('GRVL') || s.includes('GRAVEL')) return 'GRVL';
+      if (s.includes('DIRT') || s.includes('SOIL') || s.includes('EARTH')) return 'DIRT';
+      if (s.includes('TURF')) return 'TURF';
+      if (s.includes('CONC')) return 'CONC';
+      if (s.includes('ASP') || s.includes('BIT') || s.includes('PAVED')) return 'ASPH';
+      return s.slice(0, 10);
+    }
+
+    function formatRunwayOptionLabel(runway) {
+      const ident = runway?.ident || 'RWY';
+      const heading = Number.isFinite(runway?.heading) ? `${runway.heading}°` : '---°';
+      const length = Number.isFinite(runway?.lengthFt) ? `${runway.lengthFt}FT` : '-----FT';
+      const surface = runway?.surface ? upper(runway.surface) : 'UNK';
+      return `${ident} / ${heading} / ${length} / ${surface}`;
+    }
+
+    async function fetchAirportRunways(icao) {
+      const normalized = normalizeIcaoInputValue(icao);
+      if (!normalized || normalized.length !== 4) return [];
+      if (runwayCache.has(normalized)) return runwayCache.get(normalized);
+      const res = await fetch(`/api/airport-runways?icao=${normalized}&t=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`RUNWAYS HTTP ${res.status}`);
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : [];
+      runwayCache.set(normalized, list);
+      return list;
+    }
+
+    function clearRunwaySelect(selectEl, placeholder = 'SELECT') {
+      selectEl.innerHTML = '';
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = placeholder;
+      selectEl.appendChild(opt);
+    }
+
+    function populateRunwaySelect(selectEl, runways, selectedValue = '') {
+      clearRunwaySelect(selectEl, 'SELECT');
+      for (const runway of runways) {
+        const opt = document.createElement('option');
+        opt.value = runway.ident || '';
+        opt.textContent = formatRunwayOptionLabel(runway);
+        selectEl.appendChild(opt);
+      }
+      if (selectedValue && runways.some(r => upper(r.ident) === upper(selectedValue))) {
+        selectEl.value = selectedValue;
+      }
+    }
+
+    function getSelectedRunwayObject(runways, ident) {
+      const target = upper(ident);
+      return runways.find(r => upper(r.ident) === target) || null;
+    }
+
+    function trySetSelectValue(selectEl, value) {
+      const target = upper(value);
+      const exists = Array.from(selectEl.options).some(opt => upper(opt.value) === target);
+      if (exists) selectEl.value = value;
+    }
+
+    function applyTakeoffRunwaySelection(runway) {
+      if (!runway) return;
+      if (Number.isFinite(runway.heading)) el('perfTakeoffRunwayHeading').value = String(runway.heading);
+      if (Number.isFinite(runway.toraFt)) el('perfTakeoffTora').value = String(runway.toraFt);
+      if (Number.isFinite(runway.elevationFt)) setNodeText('perfTakeoffElevation', `${Math.round(runway.elevationFt)} FT`);
+      const condition = surfaceToConditionValue(runway.surface);
+      if (condition) {
+        const select = el('perfTakeoffRwyCond');
+        if (Array.from(select.options).some(opt => upper(opt.value) === condition)) {
+          select.value = condition;
+        }
+      }
+    }
+
+    function applyLandingRunwaySelection(runway) {
+      if (!runway) return;
+      if (Number.isFinite(runway.heading)) el('perfLandingRunwayHeading').value = String(runway.heading);
+      if (Number.isFinite(runway.ldaFt)) el('perfLandingLda').value = String(runway.ldaFt);
+      if (Number.isFinite(runway.elevationFt)) setNodeText('perfLandingElevation', `${Math.round(runway.elevationFt)} FT`);
+      if (Number.isFinite(runway.slopePct)) el('perfLandingSlope').value = String(runway.slopePct);
+      const condition = surfaceToConditionValue(runway.surface);
+      if (condition) {
+        const select = el('perfLandingRwyCond');
+        if (Array.from(select.options).some(opt => upper(opt.value) === condition)) {
+          select.value = condition;
+        }
+      }
+    }
+
+    async function loadDepartureRunways(preserveSelection = true) {
+      const dep = normalizeIcaoInputValue(fields.dep.value);
+      const select = el('perfTakeoffRunway');
+      const previousValue = preserveSelection ? upper(select.value) : '';
+
+      if (dep.length !== 4) {
+        clearRunwaySelect(select, 'SELECT');
+        return;
+      }
+
+      try {
+        const runways = await fetchAirportRunways(dep);
+        populateRunwaySelect(select, runways, previousValue);
+        if (!select.value && runways.length) select.value = runways[0].ident || '';
+        const selected = getSelectedRunwayObject(runways, select.value);
+        if (selected) applyTakeoffRunwaySelection(selected);
+      } catch (err) {
+        console.error(err);
+        clearRunwaySelect(select, 'SELECT');
+      }
+    }
+
+    async function loadArrivalRunways(preserveSelection = true) {
+      const arr = normalizeIcaoInputValue(fields.arr.value);
+      const select = el('perfLandingRunway');
+      const previousValue = preserveSelection ? upper(select.value) : '';
+
+      if (arr.length !== 4) {
+        clearRunwaySelect(select, 'SELECT');
+        return;
+      }
+
+      try {
+        const runways = await fetchAirportRunways(arr);
+        populateRunwaySelect(select, runways, previousValue);
+        if (!select.value && runways.length) select.value = runways[0].ident || '';
+        const selected = getSelectedRunwayObject(runways, select.value);
+        if (selected) applyLandingRunwaySelection(selected);
+      } catch (err) {
+        console.error(err);
+        clearRunwaySelect(select, 'SELECT');
+      }
+    }
+
+    async function syncRunwaySelectionsFromInputs() {
+      await Promise.all([
+        loadDepartureRunways(true),
+        loadArrivalRunways(true)
+      ]);
+    }
+
     function computeTakeoffOutputs(data) {
       const rw = data?.takeoff?.runwayAndWeather || {};
       const perf = performanceInputValues();
@@ -1739,7 +1863,7 @@ END OF REPORT`;
         over50 *= factor;
       }
 
-      if (perf.takeoffRunwayCondition === 'WET') {
+      if (isWetLikeCondition(perf.takeoffRunwayCondition)) {
         groundRoll *= 1.15;
         over50 *= 1.15;
       }
@@ -1761,7 +1885,7 @@ END OF REPORT`;
         xwindLimitKt: 17,
         speedUnit: unit,
         messages: [
-          perf.takeoffRunwayCondition === 'WET' ? 'WET RUNWAY PENALTY APPLIED.' : 'FIELD DRY.',
+          isWetLikeCondition(perf.takeoffRunwayCondition) ? 'NON-DRY RUNWAY PENALTY APPLIED.' : 'FIELD DRY.',
           headwind > 0 ? `HEADWIND ${Math.round(headwind)} KT APPLIED.` : headwind < 0 ? `TAILWIND ${Math.round(Math.abs(headwind))} KT APPLIED.` : 'NO WIND CORRECTION.',
           crosswind > 17 ? 'CROSSWIND ABOVE TAKEOFF LIMIT.' : 'CROSSWIND WITHIN TAKEOFF LIMIT.'
         ]
@@ -1799,7 +1923,7 @@ END OF REPORT`;
         over50 *= factor;
       }
 
-      if (perf.landingRunwayCondition === 'WET') {
+      if (isWetLikeCondition(perf.landingRunwayCondition)) {
         groundRoll *= 1.2;
         over50 *= 1.2;
       }
@@ -1826,12 +1950,12 @@ END OF REPORT`;
         distance50FtFt: Math.round(over50 * 1.1),
         rwyLimitFt: Number(perf.landingRunwayLengthFt) || null,
         limitCode: weight > AIRCRAFT.maxLandingWeightLbs ? 'OVERWT' : 'MLDW',
-        braking: perf.landingRunwayCondition === 'WET' ? 'MOD' : 'MAX',
+        braking: isWetLikeCondition(perf.landingRunwayCondition) ? 'MOD' : 'MAX',
         goAroundPower: 'FULL',
         flapsUpSpeedKias: mphToKts(AIRCRAFT.flapsUpMph),
         speedUnit: unit,
         messages: [
-          perf.landingRunwayCondition === 'WET' ? 'WET RUNWAY PENALTY APPLIED.' : 'FIELD DRY.',
+          isWetLikeCondition(perf.landingRunwayCondition) ? 'NON-DRY RUNWAY PENALTY APPLIED.' : 'FIELD DRY.',
           headwind > 0 ? `HEADWIND ${Math.round(headwind)} KT APPLIED.` : headwind < 0 ? `TAILWIND ${Math.round(Math.abs(headwind))} KT APPLIED.` : 'NO WIND CORRECTION.',
           crosswind > mphToKts(AIRCRAFT.demonstratedCrosswindMph) ? 'XWIND ABOVE DEMONSTRATED VALUE.' : 'XWIND WITHIN DEMONSTRATED VALUE.'
         ]
@@ -2025,16 +2149,17 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
 ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
 
       [
-        'perfTakeoffRunway',
         'perfTakeoffRunwayHeading',
         'perfTakeoffTora',
         'perfTakeoffWeight',
-        'perfLandingRunway',
         'perfLandingRunwayHeading',
         'perfLandingLda',
         'perfLandingSlope',
         'perfLandingWeight'
       ].forEach((id) => { el(id).value = ''; });
+
+      clearRunwaySelect(el('perfTakeoffRunway'), 'SELECT');
+      clearRunwaySelect(el('perfLandingRunway'), 'SELECT');
 
       el('perfTakeoffRwyCond').value = '';
       el('perfLandingRwyCond').value = '';
@@ -2081,6 +2206,9 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       if (!routeTouched) autoFillRouteFromDepArr();
       else fields.route.value = normalizeRouteInputValue(fields.route.value);
 
+      loadDepartureRunways(false).catch(console.error);
+      loadArrivalRunways(false).catch(console.error);
+
       setStatusWithAdvice('DEP / ARR SWAPPED', 'neutral');
       scheduleLiveStatusRefresh();
       refreshPerformancePanelIfOpen();
@@ -2108,12 +2236,14 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
     function buildPerformanceQueryString() {
       const params = new URLSearchParams(buildQuery());
       const perf = performanceInputValues();
+
       params.set('takeoffRunway', perf.takeoffRunway);
       params.set('takeoffRunwayHeading', perf.takeoffRunwayHeading);
       params.set('takeoffRunwayLengthFt', perf.takeoffRunwayLengthFt);
       params.set('takeoffRunwayCondition', perf.takeoffRunwayCondition);
       params.set('takeoffWeightLbs', perf.takeoffWeightLbs);
       params.set('takeoffFlaps', perf.takeoffFlaps);
+
       params.set('landingRunway', perf.landingRunway);
       params.set('landingRunwayHeading', perf.landingRunwayHeading);
       params.set('landingRunwayLengthFt', perf.landingRunwayLengthFt);
@@ -2121,6 +2251,21 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       params.set('landingRunwaySlopePct', perf.landingRunwaySlopePct);
       params.set('landingWeightLbs', perf.landingWeightLbs);
       params.set('landingFlaps', perf.landingFlaps);
+
+      const takeoffSelected = runwayCache.get(normalizeIcaoInputValue(fields.dep.value)) || [];
+      const landingSelected = runwayCache.get(normalizeIcaoInputValue(fields.arr.value)) || [];
+
+      const depRwy = getSelectedRunwayObject(takeoffSelected, perf.takeoffRunway);
+      const arrRwy = getSelectedRunwayObject(landingSelected, perf.landingRunway);
+
+      if (depRwy && Number.isFinite(depRwy.elevationFt)) {
+        params.set('takeoffRunwayElevationFt', String(depRwy.elevationFt));
+      }
+
+      if (arrRwy && Number.isFinite(arrRwy.elevationFt)) {
+        params.set('landingRunwayElevationFt', String(arrRwy.elevationFt));
+      }
+
       return params.toString();
     }
 
@@ -2162,14 +2307,13 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       const takeoff = data?.takeoff || {};
       const rw = takeoff.runwayAndWeather || {};
       const inputs = takeoff.inputs || {};
-      const perf = performanceInputValues();
 
       if (!el('perfTakeoffWeight').value) el('perfTakeoffWeight').value = inputs.weightLbs || '';
       if (!el('perfTakeoffRwyCond').value) el('perfTakeoffRwyCond').value = rw.rwyCond || 'DRY';
       if (!el('perfTakeoffTora').value && Number.isFinite(rw.toraFt)) el('perfTakeoffTora').value = rw.toraFt;
       if (!el('perfTakeoffRunwayHeading').value && Number.isFinite(rw.hdgDeg)) el('perfTakeoffRunwayHeading').value = rw.hdgDeg;
-      if (!el('perfTakeoffRunway').value) el('perfTakeoffRunway').value = perf.takeoffRunway || '';
       if (!el('perfTakeoffFlaps').value) el('perfTakeoffFlaps').value = inputs.flaps || '25°';
+      if (rw.rwy) trySetSelectValue(el('perfTakeoffRunway'), rw.rwy);
 
       const calc = computeTakeoffOutputs(data);
 
@@ -2200,15 +2344,14 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       const landing = data?.landing || {};
       const aw = landing.airportAndWeather || {};
       const inputs = landing.inputs || {};
-      const perf = performanceInputValues();
 
       if (!el('perfLandingWeight').value) el('perfLandingWeight').value = inputs.landingWeightLbs || '';
       if (!el('perfLandingRwyCond').value) el('perfLandingRwyCond').value = aw.rwyCond || 'DRY';
       if (!el('perfLandingLda').value && Number.isFinite(aw.ldaFt)) el('perfLandingLda').value = aw.ldaFt;
       if (!el('perfLandingRunwayHeading').value && Number.isFinite(aw.hdgDeg)) el('perfLandingRunwayHeading').value = aw.hdgDeg;
       if (!el('perfLandingSlope').value && Number.isFinite(aw.rwySlopePct)) el('perfLandingSlope').value = aw.rwySlopePct;
-      if (!el('perfLandingRunway').value) el('perfLandingRunway').value = perf.landingRunway || '';
       if (!el('perfLandingFlaps').value) el('perfLandingFlaps').value = inputs.flaps || '40°';
+      if (aw.rwy) trySetSelectValue(el('perfLandingRunway'), aw.rwy);
 
       const calc = computeLandingOutputs(data);
 
@@ -2240,6 +2383,9 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
         resetPerformanceFields();
         return;
       }
+
+      await syncRunwaySelectionsFromInputs();
+
       const data = await fetchPerformanceData(buildPerformanceQueryString());
       applyTakeoffPerformance(data);
       applyLandingPerformance(data);
@@ -2341,6 +2487,7 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       fields.dep.value = normalizeIcaoInputValue(fields.dep.value);
       clearMiniTag(depTag);
       autoFillRouteFromDepArr();
+      loadDepartureRunways(false).catch(console.error);
       scheduleLiveStatusRefresh();
       refreshPerformancePanelIfOpen();
     });
@@ -2349,6 +2496,7 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       fields.arr.value = normalizeIcaoInputValue(fields.arr.value);
       clearMiniTag(arrTag);
       autoFillRouteFromDepArr();
+      loadArrivalRunways(false).catch(console.error);
       scheduleLiveStatusRefresh();
       refreshPerformancePanelIfOpen();
     });
@@ -2386,11 +2534,26 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       fields.includeWindsAloft
     ].forEach((node) => node.addEventListener('change', scheduleLiveStatusRefresh));
 
-    ['perfTakeoffRunway', 'perfLandingRunway'].forEach((id) => {
-      el(id).addEventListener('input', () => {
-        el(id).value = upper(el(id).value);
+    el('perfTakeoffRunway').addEventListener('change', async () => {
+      try {
+        const runways = await fetchAirportRunways(fields.dep.value);
+        const selected = getSelectedRunwayObject(runways, el('perfTakeoffRunway').value);
+        if (selected) applyTakeoffRunwaySelection(selected);
         refreshPerformancePanelIfOpen();
-      });
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    el('perfLandingRunway').addEventListener('change', async () => {
+      try {
+        const runways = await fetchAirportRunways(fields.arr.value);
+        const selected = getSelectedRunwayObject(runways, el('perfLandingRunway').value);
+        if (selected) applyLandingRunwaySelection(selected);
+        refreshPerformancePanelIfOpen();
+      } catch (err) {
+        console.error(err);
+      }
     });
 
     ['perfTakeoffRunwayHeading', 'perfLandingRunwayHeading'].forEach((id) => {
@@ -2407,7 +2570,14 @@ ${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       });
     });
 
-    ['perfTakeoffRwyCond', 'perfLandingRwyCond', 'perfTakeoffFlaps', 'perfLandingFlaps', 'perfTakeoffSpeedUnit', 'perfLandingSpeedUnit'].forEach((id) => {
+    [
+      'perfTakeoffRwyCond',
+      'perfLandingRwyCond',
+      'perfTakeoffFlaps',
+      'perfLandingFlaps',
+      'perfTakeoffSpeedUnit',
+      'perfLandingSpeedUnit'
+    ].forEach((id) => {
       el(id).addEventListener('change', () => {
         refreshPerformancePanelIfOpen();
       });
