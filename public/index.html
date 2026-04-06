@@ -324,6 +324,18 @@
       border-color: var(--live);
     }
 
+    #openBtn {
+      color: var(--live);
+      border-color: var(--live);
+      box-shadow: inset 0 0 14px rgba(102,255,153,0.10);
+    }
+
+    #openBtn:hover {
+      color: var(--live);
+      border-color: var(--live);
+      box-shadow: inset 0 0 14px rgba(102,255,153,0.16);
+    }
+
     .actions {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -1790,22 +1802,24 @@ END OF REPORT`;
       return exact || entries[0] || null;
     }
 
-    function openCachedPdfEntry(entry) {
+    function openCachedPdfEntry(entry, targetWin = null) {
       if (!entry?.dataUrl) return false;
       const blob = dataUrlToBlob(entry.dataUrl);
       if (!blob) return false;
       const objectUrl = URL.createObjectURL(blob);
-      window.open(objectUrl, '_blank');
+      if (targetWin && !targetWin.closed) targetWin.location.replace(objectUrl);
+      else window.open(objectUrl, '_blank');
       setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
       return true;
     }
 
-    async function fetchOpenAndCachePdf(pdfUrl, queryString) {
+    async function fetchOpenAndCachePdf(pdfUrl, queryString, targetWin = null) {
       const response = await fetch(pdfUrl, { cache: 'no-store' });
       if (!response.ok) throw new Error(`PDF FETCH FAILED ${response.status}`);
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
-      window.open(objectUrl, '_blank');
+      if (targetWin && !targetWin.closed) targetWin.location.replace(objectUrl);
+      else window.open(objectUrl, '_blank');
       setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
       try {
         const dataUrl = await blobToDataUrl(blob);
@@ -4090,11 +4104,17 @@ function renderTakeoffRunwayVisual(data, calc) {
       }
 
       const queryString = buildQuery();
+      const popup = window.open('', '_blank');
+      if (!popup) {
+        setStatusWithAdvice('POPUP BLOCKED', 'nodata');
+        return;
+      }
+
       if (!latestDirectUrl) await generate();
 
       if (latestDirectUrl && navigator.onLine) {
         try {
-          await fetchOpenAndCachePdf(latestDirectUrl, queryString);
+          await fetchOpenAndCachePdf(latestDirectUrl, queryString, popup);
           setStatusWithAdvice('PDF OPENED', 'live');
           return;
         } catch (err) {
@@ -4103,7 +4123,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       }
 
       const cachedPdf = getBestCachedPdf(queryString);
-      if (cachedPdf && openCachedPdfEntry(cachedPdf)) {
+      if (cachedPdf && openCachedPdfEntry(cachedPdf, popup)) {
         const ageText = formatCacheAge(cachedPdf.savedAt);
         const exactMatch = cachedPdf.query === String(queryString || '');
         setStatusWithAdvice(exactMatch ? `OPENED CACHED PDF / ${ageText}` : `OPENED MOST RECENT CACHED PDF / ${ageText}`, 'fallback');
@@ -4111,11 +4131,12 @@ function renderTakeoffRunwayVisual(data, calc) {
       }
 
       if (latestDirectUrl && navigator.onLine) {
-        window.open(latestDirectUrl, '_blank');
+        popup.location.replace(latestDirectUrl);
         setStatusWithAdvice('PDF OPENED', 'live');
         return;
       }
 
+      if (!popup.closed) popup.close();
       setStatusWithAdvice('NO CACHED PDF AVAILABLE', 'nodata');
     });
 
