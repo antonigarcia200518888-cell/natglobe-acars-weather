@@ -1152,33 +1152,33 @@
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">VR</span>
-                <span id="perfTakeoffVr" class="performance-value performance-value-warn">..... KIAS</span>
+                <span id="perfTakeoffVr" class="performance-value performance-value-live">..... KIAS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">T/O DIST REQ</span>
-                <span id="perfTakeoffDistReq" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfTakeoffDistReq" class="performance-value">..... FT</span>
               </div>
             </div>
 
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">VX</span>
-                <span id="perfTakeoffVx" class="performance-value performance-value-warn">..... KIAS</span>
+                <span id="perfTakeoffVx" class="performance-value performance-value-live">..... KIAS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">RWY AVAIL</span>
-                <span id="perfTakeoffRwyAvail" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfTakeoffRwyAvail" class="performance-value">..... FT</span>
               </div>
             </div>
 
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">VY</span>
-                <span id="perfTakeoffVy" class="performance-value performance-value-warn">..... KIAS</span>
+                <span id="perfTakeoffVy" class="performance-value performance-value-live">..... KIAS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">RWY REMAIN</span>
-                <span id="perfTakeoffRwyRemain" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfTakeoffRwyRemain" class="performance-value">..... FT</span>
               </div>
             </div>
 
@@ -1189,14 +1189,14 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">50FT DISTANCE</span>
-                <span id="perfTakeoffDist50" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfTakeoffDist50" class="performance-value">..... FT</span>
               </div>
             </div>
 
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">ACCEL-STOP</span>
-                <span id="perfTakeoffAccelStop" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfTakeoffAccelStop" class="performance-value">..... FT</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">STOP MARGIN</span>
@@ -1375,33 +1375,33 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">VREF</span>
-                <span id="perfLandingVref" class="performance-value performance-value-warn">..... KIAS</span>
+                <span id="perfLandingVref" class="performance-value performance-value-live">..... KIAS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">RWY AVAIL</span>
-                <span id="perfLandingRwyAvail" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfLandingRwyAvail" class="performance-value">..... FT</span>
               </div>
             </div>
 
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">FINAL APP SPD</span>
-                <span id="perfLandingFinalAppSpeed" class="performance-value performance-value-warn">..... KIAS</span>
+                <span id="perfLandingFinalAppSpeed" class="performance-value performance-value-live">..... KIAS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">RWY REMAIN</span>
-                <span id="perfLandingRwyRemain" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfLandingRwyRemain" class="performance-value">..... FT</span>
               </div>
             </div>
 
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">LDG DIST REQ</span>
-                <span id="perfLandingDistReq" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfLandingDistReq" class="performance-value">..... FT</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">RWY WIDTH</span>
-                <span id="perfLandingRwyWidth" class="performance-value performance-value-warn">..... FT</span>
+                <span id="perfLandingRwyWidth" class="performance-value">..... FT</span>
               </div>
             </div>
 
@@ -1422,7 +1422,7 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
               </div>
               <div class="performance-item">
                 <span class="performance-label">FLAPS UP SPD</span>
-                <span id="perfLandingFlapsUpSpeed" class="performance-value performance-value-warn">..... KIAS</span>
+                <span id="perfLandingFlapsUpSpeed" class="performance-value performance-value-live">..... KIAS</span>
               </div>
             </div>
           </div>
@@ -2681,7 +2681,7 @@ END OF REPORT`;
       const scaleTicks = Number.isFinite(availableFt) && availableFt > 0 ? [0.2, 0.4, 0.6, 0.8].map((ratio) => {
         const y = bottomY - (runwayH * ratio);
         const value = Math.round(availableFt * ratio);
-        return `<line x1="${runwayX - 70}" y1="${y}" x2="${runwayX - 26}" y2="${y}" stroke="rgba(142,197,255,0.65)" stroke-width="1.5" /><line x1="44" y1="${y}" x2="${viewW - 44}" y2="${y}" stroke="rgba(142,197,255,0.09)" stroke-width="1" stroke-dasharray="5 11" /><text x="${runwayX - 76}" y="${y + 5}" text-anchor="end" fill="#8ec5ff" font-size="14" font-family="Courier New, monospace">${value} FT</text>`;
+        return `<line x1="${runwayX + runwayW + 26}" y1="${y}" x2="${runwayX + runwayW + 72}" y2="${y}" stroke="rgba(142,197,255,0.65)" stroke-width="1.5" /><line x1="44" y1="${y}" x2="${viewW - 44}" y2="${y}" stroke="rgba(142,197,255,0.09)" stroke-width="1" stroke-dasharray="5 11" /><text x="${runwayX + runwayW + 80}" y="${y + 6}" text-anchor="start" fill="#8ec5ff" font-size="18" font-family="Courier New, monospace">${value} FT</text>`;
       }).join('') : '';
 
       const requiredY = Number.isFinite(requiredFt) && runwayScale > 0 ? Math.max(runwayY, Math.min(bottomY, bottomY - (requiredFt * runwayScale))) : null;
