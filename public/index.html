@@ -3439,7 +3439,11 @@ function renderTakeoffRunwayVisual(data, calc) {
         });
     });
 
-    generateBtn.addEventListener('click', async () => { await generate(); setActiveNavButton('wx'); });
+    generateBtn.addEventListener('click', async () => {
+      performancePanel.style.display = 'none';
+      setActiveNavButton('wx');
+      await generate();
+    });
 
     openBtn.addEventListener('click', async () => {
       const validationError = validateInputs();
