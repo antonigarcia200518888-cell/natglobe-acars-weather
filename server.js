@@ -35,6 +35,8 @@ const EUROPE_COUNTRIES = new Set([
   'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'UA', 'VA'
 ]);
 
+const RUNWAY_IDENT_RE = /^(0?[1-9]|[1-2][0-9]|3[0-6])([LCRT])?$/i;
+
 const AIRCRAFT_PROFILE = {
   registration: 'OH-PMK',
   type: 'Piper PA-28R-200 Arrow II',
@@ -153,6 +155,13 @@ function normalizeHeading(input) {
 function normalizeWeight(input) {
   const num = Number(input);
   return Number.isFinite(num) ? Math.round(num) : null;
+}
+
+function normalizeDecimal(input, digits = 2) {
+  const num = Number(input);
+  if (!Number.isFinite(num)) return null;
+  const factor = 10 ** digits;
+  return Math.round(num * factor) / factor;
 }
 
 function parseBoolean(v) {
@@ -330,13 +339,30 @@ function roundMaybe(value, digits = 2) {
   return Math.round(value * factor) / factor;
 }
 
+function isValidRunwayIdent(value) {
+  return RUNWAY_IDENT_RE.test(String(value || '').trim());
+}
+
+function computeDirectionalSlopePct(startElevationFt, oppositeElevationFt, lengthFt, fallbackSlopePct = null) {
+  if (
+    Number.isFinite(startElevationFt) &&
+    Number.isFinite(oppositeElevationFt) &&
+    Number.isFinite(lengthFt) &&
+    lengthFt > 0
+  ) {
+    return roundMaybe(((oppositeElevationFt - startElevationFt) / lengthFt) * 100, 2);
+  }
+
+  return Number.isFinite(fallbackSlopePct) ? roundMaybe(fallbackSlopePct, 2) : null;
+}
+
 function normalizeRunwayRow(row) {
   const airportIcao = normalizeIcao(row.airport_ident || '');
   if (!airportIcao) return null;
 
   const lengthFt = Number(row.length_ft);
   const widthFt = Number(row.width_ft);
-  const slopePct = Number(row.slope);
+  const csvSlopePct = Number(row.slope);
   const surface = normalizeSurface(row.surface);
 
   const leIdent = normalizeRunwayEndIdent(row.le_ident);
@@ -351,25 +377,32 @@ function normalizeRunwayRow(row) {
   const leDisplacedFt = Number(row.le_displaced_threshold_ft);
   const heDisplacedFt = Number(row.he_displaced_threshold_ft);
 
+  const normalizedLengthFt = Number.isFinite(lengthFt) ? Math.round(lengthFt) : null;
+  const normalizedCsvSlopePct = Number.isFinite(csvSlopePct) ? roundMaybe(csvSlopePct, 2) : null;
+
+  const le = isValidRunwayIdent(leIdent) ? {
+    ident: leIdent,
+    headingDegT: Number.isFinite(leHeading) ? Math.round(leHeading) : null,
+    elevationFt: Number.isFinite(leElevationFt) ? Math.round(leElevationFt) : null,
+    displacedThresholdFt: Number.isFinite(leDisplacedFt) ? Math.round(leDisplacedFt) : 0
+  } : null;
+
+  const he = isValidRunwayIdent(heIdent) ? {
+    ident: heIdent,
+    headingDegT: Number.isFinite(heHeading) ? Math.round(heHeading) : null,
+    elevationFt: Number.isFinite(heElevationFt) ? Math.round(heElevationFt) : null,
+    displacedThresholdFt: Number.isFinite(heDisplacedFt) ? Math.round(heDisplacedFt) : 0
+  } : null;
+
   return {
     airportIcao,
     airportRef: String(row.airport_ref || '').trim(),
-    lengthFt: Number.isFinite(lengthFt) ? Math.round(lengthFt) : null,
+    lengthFt: normalizedLengthFt,
     widthFt: Number.isFinite(widthFt) ? Math.round(widthFt) : null,
     surface,
-    slopePct: Number.isFinite(slopePct) ? roundMaybe(slopePct, 2) : null,
-    le: leIdent ? {
-      ident: leIdent,
-      headingDegT: Number.isFinite(leHeading) ? Math.round(leHeading) : null,
-      elevationFt: Number.isFinite(leElevationFt) ? Math.round(leElevationFt) : null,
-      displacedThresholdFt: Number.isFinite(leDisplacedFt) ? Math.round(leDisplacedFt) : 0
-    } : null,
-    he: heIdent ? {
-      ident: heIdent,
-      headingDegT: Number.isFinite(heHeading) ? Math.round(heHeading) : null,
-      elevationFt: Number.isFinite(heElevationFt) ? Math.round(heElevationFt) : null,
-      displacedThresholdFt: Number.isFinite(heDisplacedFt) ? Math.round(heDisplacedFt) : 0
-    } : null
+    csvSlopePct: normalizedCsvSlopePct,
+    le,
+    he
   };
 }
 
@@ -471,10 +504,9 @@ async function findAirportByIcao(icao) {
   return airportDb.find(a => a.icao === icao) || null;
 }
 
-function buildRunwayDirectionEntry(airport, parentRunway, end, side) {
-  if (!end?.ident) return null;
+function buildRunwayDirectionEntry(airport, parentRunway, end, oppositeEnd) {
+  if (!end?.ident || !isValidRunwayIdent(end.ident)) return null;
 
-  const opposite = side === 'LE' ? parentRunway.he : parentRunway.le;
   const totalLengthFt = Number.isFinite(parentRunway.lengthFt) ? parentRunway.lengthFt : null;
   const displacedFt = Number.isFinite(end.displacedThresholdFt) ? end.displacedThresholdFt : 0;
 
@@ -482,20 +514,27 @@ function buildRunwayDirectionEntry(airport, parentRunway, end, side) {
     ? Math.max(0, totalLengthFt - displacedFt)
     : null;
 
+  const elevationFt = Number.isFinite(end.elevationFt)
+    ? end.elevationFt
+    : (Number.isFinite(airport?.elevationFt) ? airport.elevationFt : null);
+
+  const oppositeElevationFt = Number.isFinite(oppositeEnd?.elevationFt) ? oppositeEnd.elevationFt : null;
+
   return {
     airport: airport?.icao || parentRunway.airportIcao,
     ident: end.ident,
     heading: Number.isFinite(end.headingDegT) ? end.headingDegT : null,
-    reciprocalIdent: opposite?.ident || '',
+    reciprocalIdent: oppositeEnd?.ident || '',
     lengthFt: totalLengthFt,
     toraFt: totalLengthFt,
     ldaFt,
-    elevationFt: Number.isFinite(end.elevationFt)
-      ? end.elevationFt
-      : (Number.isFinite(airport?.elevationFt) ? airport.elevationFt : null),
-    slopePct: Number.isFinite(parentRunway.slopePct)
-      ? (side === 'LE' ? parentRunway.slopePct : roundMaybe(-parentRunway.slopePct, 2))
-      : null,
+    elevationFt,
+    slopePct: computeDirectionalSlopePct(
+      elevationFt,
+      oppositeElevationFt,
+      totalLengthFt,
+      parentRunway.csvSlopePct
+    ),
     surface: parentRunway.surface || '',
     widthFt: Number.isFinite(parentRunway.widthFt) ? parentRunway.widthFt : null
   };
@@ -512,25 +551,39 @@ async function getAirportRunways(icao) {
 
   if (!airport) return [];
 
-  const records = runwayDb
-    .filter(r => r.airportIcao === normalizedIcao)
-    .flatMap(r => [
-      buildRunwayDirectionEntry(airport, r, r.le, 'LE'),
-      buildRunwayDirectionEntry(airport, r, r.he, 'HE')
-    ])
-    .filter(Boolean)
-    .sort((a, b) => {
-      const aNum = parseInt(String(a.ident).replace(/[^\d]/g, ''), 10);
-      const bNum = parseInt(String(b.ident).replace(/[^\d]/g, ''), 10);
+  const deduped = new Map();
 
-      if (Number.isFinite(aNum) && Number.isFinite(bNum) && aNum !== bNum) {
-        return aNum - bNum;
+  for (const parentRunway of runwayDb.filter(r => r.airportIcao === normalizedIcao)) {
+    const directions = [
+      buildRunwayDirectionEntry(airport, parentRunway, parentRunway.le, parentRunway.he),
+      buildRunwayDirectionEntry(airport, parentRunway, parentRunway.he, parentRunway.le)
+    ].filter(Boolean);
+
+    for (const direction of directions) {
+      if (!deduped.has(direction.ident)) {
+        deduped.set(direction.ident, direction);
       }
+    }
+  }
 
-      return String(a.ident).localeCompare(String(b.ident));
-    });
+  return Array.from(deduped.values()).sort((a, b) => {
+    const aNum = parseInt(String(a.ident).replace(/[^\d]/g, ''), 10);
+    const bNum = parseInt(String(b.ident).replace(/[^\d]/g, ''), 10);
 
-  return records;
+    if (Number.isFinite(aNum) && Number.isFinite(bNum) && aNum !== bNum) {
+      return aNum - bNum;
+    }
+
+    return String(a.ident).localeCompare(String(b.ident));
+  });
+}
+
+async function findRunwayDirection(icao, ident) {
+  const runwayIdent = normalizeRunwayEndIdent(ident);
+  if (!normalizeIcao(icao) || !runwayIdent) return null;
+
+  const runways = await getAirportRunways(icao);
+  return runways.find(r => r.ident === runwayIdent) || null;
 }
 
 async function getNearbyAirports(icao, limit = FALLBACK_SEARCH_LIMIT) {
@@ -1341,9 +1394,7 @@ async function getSuggestedAlternate(arrIcao, currentAltnIcao = '') {
   }
 
   return null;
-}
-
-function buildPerformanceOutputSection(
+}function buildPerformanceOutputSection(
   kind,
   airport,
   wx,
@@ -1353,7 +1404,9 @@ function buildPerformanceOutputSection(
   runwayCondition,
   runwayLengthFt,
   runwaySlopePct,
-  runwayElevationFt
+  runwayElevationFt,
+  runwayWidthFt,
+  runwaySurface
 ) {
   const metar = wx?.metar && wx.metar !== 'NOT AVAILABLE' ? String(wx.metar) : '';
   const wind = parseWindDetailed(metar);
@@ -1398,7 +1451,10 @@ function buildPerformanceOutputSection(
         qnhHpa,
         elevFt: elevationFt,
         rwyCond: runwayCondition || '',
-        densityAltFt: densityAltitudeFt
+        densityAltFt: densityAltitudeFt,
+        rwySlopePct: Number.isFinite(runwaySlopePct) ? runwaySlopePct : null,
+        widthFt: Number.isFinite(runwayWidthFt) ? runwayWidthFt : null,
+        surface: runwaySurface || ''
       },
       inputs: {
         weightLbs: Number.isFinite(weightLbs) ? weightLbs : AIRCRAFT_PROFILE.maxTakeoffWeightLbs,
@@ -1450,7 +1506,9 @@ function buildPerformanceOutputSection(
       elevFt: elevationFt,
       rwyCond: runwayCondition || '',
       densityAltFt: densityAltitudeFt,
-      rwySlopePct: Number.isFinite(runwaySlopePct) ? runwaySlopePct : null
+      rwySlopePct: Number.isFinite(runwaySlopePct) ? runwaySlopePct : null,
+      widthFt: Number.isFinite(runwayWidthFt) ? runwayWidthFt : null,
+      surface: runwaySurface || ''
     },
     inputs: {
       landingWeightLbs: Number.isFinite(weightLbs) ? weightLbs : AIRCRAFT_PROFILE.maxLandingWeightLbs,
@@ -1478,34 +1536,80 @@ async function buildPerformanceData(query) {
   const dep = normalizeIcao(query.dep);
   const arr = normalizeIcao(query.arr);
 
-  const takeoffRunwayIdent = String(query.takeoffRunway || query.depRunway || '').trim().toUpperCase();
-  const landingRunwayIdent = String(query.landingRunway || query.arrRunway || '').trim().toUpperCase();
+  const takeoffRunwayIdent = normalizeRunwayEndIdent(query.takeoffRunway || query.depRunway || '');
+  const landingRunwayIdent = normalizeRunwayEndIdent(query.landingRunway || query.arrRunway || '');
 
-  const takeoffRunwayHeading = normalizeHeading(query.takeoffRunwayHeading ?? query.depRunwayHeading);
-  const landingRunwayHeading = normalizeHeading(query.landingRunwayHeading ?? query.arrRunwayHeading);
+  const [depAirport, arrAirport, depWx, arrWx, takeoffRunwayData, landingRunwayData] = await Promise.all([
+    dep ? findAirportByIcao(dep) : null,
+    arr ? findAirportByIcao(arr) : null,
+    dep ? getAirportWeather(dep) : null,
+    arr ? getAirportWeather(arr) : null,
+    dep && takeoffRunwayIdent ? findRunwayDirection(dep, takeoffRunwayIdent) : null,
+    arr && landingRunwayIdent ? findRunwayDirection(arr, landingRunwayIdent) : null
+  ]);
+
+  const takeoffRunwayHeading =
+    normalizeHeading(query.takeoffRunwayHeading ?? query.depRunwayHeading) ??
+    takeoffRunwayData?.heading ??
+    null;
+
+  const landingRunwayHeading =
+    normalizeHeading(query.landingRunwayHeading ?? query.arrRunwayHeading) ??
+    landingRunwayData?.heading ??
+    null;
 
   const takeoffWeightLbs = normalizeWeight(query.takeoffWeightLbs ?? query.weightLbs);
   const landingWeightLbs = normalizeWeight(query.landingWeightLbs ?? query.weightLbs);
 
-  const takeoffRunwayCondition = String(query.takeoffRunwayCondition || '').trim().toUpperCase();
-  const landingRunwayCondition = String(query.landingRunwayCondition || '').trim().toUpperCase();
+  const takeoffRunwayCondition =
+    String(query.takeoffRunwayCondition || '').trim().toUpperCase() ||
+    takeoffRunwayData?.surface ||
+    '';
 
-  const takeoffRunwayLengthFt = normalizeWeight(query.takeoffRunwayLengthFt ?? query.toraFt);
-  const landingRunwayLengthFt = normalizeWeight(query.landingRunwayLengthFt ?? query.ldaFt);
+  const landingRunwayCondition =
+    String(query.landingRunwayCondition || '').trim().toUpperCase() ||
+    landingRunwayData?.surface ||
+    '';
 
-  const landingRunwaySlopePct = Number.isFinite(Number(query.landingRunwaySlopePct))
-    ? Number(query.landingRunwaySlopePct)
-    : null;
+  const takeoffRunwayLengthFt =
+    normalizeWeight(query.takeoffRunwayLengthFt ?? query.toraFt) ??
+    takeoffRunwayData?.toraFt ??
+    null;
 
-  const takeoffRunwayElevationFt = normalizeWeight(query.takeoffRunwayElevationFt ?? query.depRunwayElevationFt);
-  const landingRunwayElevationFt = normalizeWeight(query.landingRunwayElevationFt ?? query.arrRunwayElevationFt);
+  const landingRunwayLengthFt =
+    normalizeWeight(query.landingRunwayLengthFt ?? query.ldaFt) ??
+    landingRunwayData?.ldaFt ??
+    null;
 
-  const [depAirport, arrAirport, depWx, arrWx] = await Promise.all([
-    dep ? findAirportByIcao(dep) : null,
-    arr ? findAirportByIcao(arr) : null,
-    dep ? getAirportWeather(dep) : null,
-    arr ? getAirportWeather(arr) : null
-  ]);
+  const landingRunwaySlopePct =
+    normalizeDecimal(query.landingRunwaySlopePct) ??
+    landingRunwayData?.slopePct ??
+    null;
+
+  const takeoffRunwaySlopePct =
+    normalizeDecimal(query.takeoffRunwaySlopePct) ??
+    takeoffRunwayData?.slopePct ??
+    null;
+
+  const takeoffRunwayElevationFt =
+    normalizeWeight(query.takeoffRunwayElevationFt ?? query.depRunwayElevationFt) ??
+    takeoffRunwayData?.elevationFt ??
+    null;
+
+  const landingRunwayElevationFt =
+    normalizeWeight(query.landingRunwayElevationFt ?? query.arrRunwayElevationFt) ??
+    landingRunwayData?.elevationFt ??
+    null;
+
+  const takeoffRunwayWidthFt =
+    normalizeWeight(query.takeoffRunwayWidthFt) ??
+    takeoffRunwayData?.widthFt ??
+    null;
+
+  const landingRunwayWidthFt =
+    normalizeWeight(query.landingRunwayWidthFt) ??
+    landingRunwayData?.widthFt ??
+    null;
 
   return {
     aircraft: AIRCRAFT_PROFILE,
@@ -1518,8 +1622,10 @@ async function buildPerformanceData(query) {
       takeoffWeightLbs,
       takeoffRunwayCondition,
       takeoffRunwayLengthFt,
-      null,
-      takeoffRunwayElevationFt
+      takeoffRunwaySlopePct,
+      takeoffRunwayElevationFt,
+      takeoffRunwayWidthFt,
+      takeoffRunwayData?.surface || takeoffRunwayCondition
     ),
     landing: buildPerformanceOutputSection(
       'landing',
@@ -1531,7 +1637,9 @@ async function buildPerformanceData(query) {
       landingRunwayCondition,
       landingRunwayLengthFt,
       landingRunwaySlopePct,
-      landingRunwayElevationFt
+      landingRunwayElevationFt,
+      landingRunwayWidthFt,
+      landingRunwayData?.surface || landingRunwayCondition
     )
   };
 }
@@ -1824,7 +1932,10 @@ app.get('/api/performance', async (req, res) => {
           qnhHpa: null,
           elevFt: null,
           rwyCond: '',
-          densityAltFt: null
+          densityAltFt: null,
+          rwySlopePct: null,
+          widthFt: null,
+          surface: ''
         },
         inputs: {
           weightLbs: AIRCRAFT_PROFILE.maxTakeoffWeightLbs,
@@ -1860,7 +1971,9 @@ app.get('/api/performance', async (req, res) => {
           elevFt: null,
           rwyCond: '',
           densityAltFt: null,
-          rwySlopePct: null
+          rwySlopePct: null,
+          widthFt: null,
+          surface: ''
         },
         inputs: {
           landingWeightLbs: AIRCRAFT_PROFILE.maxLandingWeightLbs,
