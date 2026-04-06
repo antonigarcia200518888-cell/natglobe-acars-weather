@@ -26,6 +26,14 @@ const FALLBACK_BATCH_SIZE = 4;
 const SUGGESTED_ALTN_LIMIT = 12;
 
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
+const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/runways.csv';
+
+const EUROPE_COUNTRIES = new Set([
+  'AL', 'AD', 'AT', 'BE', 'BA', 'BG', 'BY', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE',
+  'ES', 'FI', 'FO', 'FR', 'GB', 'GG', 'GI', 'GR', 'HR', 'HU', 'IE', 'IM', 'IS',
+  'IT', 'JE', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO',
+  'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'UA', 'VA'
+]);
 
 const AIRCRAFT_PROFILE = {
   registration: 'OH-PMK',
@@ -66,6 +74,12 @@ const AIRCRAFT_PROFILE = {
 };
 
 let airportDbCache = {
+  data: null,
+  loadedAt: 0,
+  promise: null
+};
+
+let runwayDbCache = {
   data: null,
   loadedAt: 0,
   promise: null
@@ -235,7 +249,7 @@ function normalizeAirportRow(row) {
 
   if (!/^[A-Z]{4}$/.test(icao)) return null;
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-  if (!['FI', 'EE'].includes(country)) return null;
+  if (!EUROPE_COUNTRIES.has(country)) return null;
 
   return {
     icao,
@@ -262,7 +276,8 @@ function getBundledAirportFallback() {
       lat: Number(a.lat),
       lon: Number(a.lon),
       elevationFt: Number.isFinite(Number(a.elevationFt)) ? Number(a.elevationFt) : null
-    }));
+    }))
+    .filter(a => EUROPE_COUNTRIES.has(a.country));
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
@@ -296,6 +311,85 @@ async function fetchCsvAirports(url) {
     .filter(Boolean);
 }
 
+function normalizeRunwayEndIdent(value) {
+  return String(value || '')
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, '');
+}
+
+function normalizeSurface(value) {
+  return String(value || '')
+    .trim()
+    .toUpperCase();
+}
+
+function roundMaybe(value, digits = 2) {
+  if (!Number.isFinite(value)) return null;
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
+}
+
+function normalizeRunwayRow(row) {
+  const airportIcao = normalizeIcao(row.airport_ident || '');
+  if (!airportIcao) return null;
+
+  const lengthFt = Number(row.length_ft);
+  const widthFt = Number(row.width_ft);
+  const slopePct = Number(row.slope);
+  const surface = normalizeSurface(row.surface);
+
+  const leIdent = normalizeRunwayEndIdent(row.le_ident);
+  const heIdent = normalizeRunwayEndIdent(row.he_ident);
+
+  const leHeading = Number(row.le_heading_degT);
+  const heHeading = Number(row.he_heading_degT);
+
+  const leElevationFt = Number(row.le_elevation_ft);
+  const heElevationFt = Number(row.he_elevation_ft);
+
+  const leDisplacedFt = Number(row.le_displaced_threshold_ft);
+  const heDisplacedFt = Number(row.he_displaced_threshold_ft);
+
+  return {
+    airportIcao,
+    airportRef: String(row.airport_ref || '').trim(),
+    lengthFt: Number.isFinite(lengthFt) ? Math.round(lengthFt) : null,
+    widthFt: Number.isFinite(widthFt) ? Math.round(widthFt) : null,
+    surface,
+    slopePct: Number.isFinite(slopePct) ? roundMaybe(slopePct, 2) : null,
+    le: leIdent ? {
+      ident: leIdent,
+      headingDegT: Number.isFinite(leHeading) ? Math.round(leHeading) : null,
+      elevationFt: Number.isFinite(leElevationFt) ? Math.round(leElevationFt) : null,
+      displacedThresholdFt: Number.isFinite(leDisplacedFt) ? Math.round(leDisplacedFt) : 0
+    } : null,
+    he: heIdent ? {
+      ident: heIdent,
+      headingDegT: Number.isFinite(heHeading) ? Math.round(heHeading) : null,
+      elevationFt: Number.isFinite(heElevationFt) ? Math.round(heElevationFt) : null,
+      displacedThresholdFt: Number.isFinite(heDisplacedFt) ? Math.round(heDisplacedFt) : 0
+    } : null
+  };
+}
+
+async function fetchCsvRunways(url) {
+  const res = await fetchWithTimeout(
+    url,
+    { headers: { 'User-Agent': 'NatGlobeAviation/1.0' } },
+    FETCH_TIMEOUT_AIRPORT_DB_MS
+  );
+
+  if (!res.ok) {
+    throw new Error(`RUNWAY DB HTTP ${res.status}`);
+  }
+
+  const csv = await res.text();
+  return parseCsv(csv)
+    .map(normalizeRunwayRow)
+    .filter(Boolean);
+}
+
 async function loadAirportDatabase() {
   const now = Date.now();
 
@@ -320,7 +414,7 @@ async function loadAirportDatabase() {
       airportDbCache.data = data;
       airportDbCache.loadedAt = Date.now();
       airportDbCache.promise = null;
-      console.log(`Loaded airport DB: ${data.length} FI+EE aerodromes`);
+      console.log(`Loaded airport DB: ${data.length} European aerodromes`);
       return data;
     } catch (err) {
       console.warn('Failed to load remote airport DB, using bundled fallback:', err.message);
@@ -335,9 +429,108 @@ async function loadAirportDatabase() {
   return airportDbCache.promise;
 }
 
+async function loadRunwayDatabase() {
+  const now = Date.now();
+
+  if (runwayDbCache.data && now - runwayDbCache.loadedAt < AIRPORT_DB_TTL_MS) {
+    return runwayDbCache.data;
+  }
+
+  if (runwayDbCache.promise) {
+    return runwayDbCache.promise;
+  }
+
+  runwayDbCache.promise = (async () => {
+    try {
+      const airportDb = await loadAirportDatabase();
+      const europeIcaoSet = new Set(airportDb.map(a => a.icao));
+
+      const remoteRunways = await fetchCsvRunways(OURAIRPORTS_RUNWAYS_CSV_URL);
+      const data = remoteRunways.filter(r => europeIcaoSet.has(r.airportIcao));
+
+      runwayDbCache.data = data;
+      runwayDbCache.loadedAt = Date.now();
+      runwayDbCache.promise = null;
+      console.log(`Loaded runway DB: ${data.length} European runway records`);
+      return data;
+    } catch (err) {
+      console.warn('Failed to load runway DB:', err.message);
+      const data = [];
+      runwayDbCache.data = data;
+      runwayDbCache.loadedAt = Date.now();
+      runwayDbCache.promise = null;
+      return data;
+    }
+  })();
+
+  return runwayDbCache.promise;
+}
+
 async function findAirportByIcao(icao) {
   const airportDb = await loadAirportDatabase();
   return airportDb.find(a => a.icao === icao) || null;
+}
+
+function buildRunwayDirectionEntry(airport, parentRunway, end, side) {
+  if (!end?.ident) return null;
+
+  const opposite = side === 'LE' ? parentRunway.he : parentRunway.le;
+  const totalLengthFt = Number.isFinite(parentRunway.lengthFt) ? parentRunway.lengthFt : null;
+  const displacedFt = Number.isFinite(end.displacedThresholdFt) ? end.displacedThresholdFt : 0;
+
+  const ldaFt = Number.isFinite(totalLengthFt)
+    ? Math.max(0, totalLengthFt - displacedFt)
+    : null;
+
+  return {
+    airport: airport?.icao || parentRunway.airportIcao,
+    ident: end.ident,
+    heading: Number.isFinite(end.headingDegT) ? end.headingDegT : null,
+    reciprocalIdent: opposite?.ident || '',
+    lengthFt: totalLengthFt,
+    toraFt: totalLengthFt,
+    ldaFt,
+    elevationFt: Number.isFinite(end.elevationFt)
+      ? end.elevationFt
+      : (Number.isFinite(airport?.elevationFt) ? airport.elevationFt : null),
+    slopePct: Number.isFinite(parentRunway.slopePct)
+      ? (side === 'LE' ? parentRunway.slopePct : roundMaybe(-parentRunway.slopePct, 2))
+      : null,
+    surface: parentRunway.surface || '',
+    widthFt: Number.isFinite(parentRunway.widthFt) ? parentRunway.widthFt : null
+  };
+}
+
+async function getAirportRunways(icao) {
+  const normalizedIcao = normalizeIcao(icao);
+  if (!normalizedIcao) return [];
+
+  const [airport, runwayDb] = await Promise.all([
+    findAirportByIcao(normalizedIcao),
+    loadRunwayDatabase()
+  ]);
+
+  if (!airport) return [];
+
+  const records = runwayDb
+    .filter(r => r.airportIcao === normalizedIcao)
+    .flatMap(r => [
+      buildRunwayDirectionEntry(airport, r, r.le, 'LE'),
+      buildRunwayDirectionEntry(airport, r, r.he, 'HE')
+    ])
+    .filter(Boolean)
+    .sort((a, b) => {
+      const aNum = parseInt(String(a.ident).replace(/[^\d]/g, ''), 10);
+      const bNum = parseInt(String(b.ident).replace(/[^\d]/g, ''), 10);
+
+      if (Number.isFinite(aNum) && Number.isFinite(bNum) && aNum !== bNum) {
+        return aNum - bNum;
+      }
+
+      return String(a.ident).localeCompare(String(b.ident));
+    });
+
+  return records;
 }
 
 async function getNearbyAirports(icao, limit = FALLBACK_SEARCH_LIMIT) {
@@ -1150,13 +1343,26 @@ async function getSuggestedAlternate(arrIcao, currentAltnIcao = '') {
   return null;
 }
 
-function buildPerformanceOutputSection(kind, airport, wx, runwayHeading, weightLbs, runwayCondition, runwayLengthFt, runwaySlopePct) {
+function buildPerformanceOutputSection(
+  kind,
+  airport,
+  wx,
+  runwayIdent,
+  runwayHeading,
+  weightLbs,
+  runwayCondition,
+  runwayLengthFt,
+  runwaySlopePct,
+  runwayElevationFt
+) {
   const metar = wx?.metar && wx.metar !== 'NOT AVAILABLE' ? String(wx.metar) : '';
   const wind = parseWindDetailed(metar);
   const oatC = parseTemperatureC(metar);
   const qnhHpa = parseQnhHpa(metar);
   const qnhIn = hpaToInHg(qnhHpa);
-  const elevationFt = Number.isFinite(airport?.elevationFt) ? Math.round(airport.elevationFt) : null;
+  const elevationFt = Number.isFinite(runwayElevationFt)
+    ? Math.round(runwayElevationFt)
+    : (Number.isFinite(airport?.elevationFt) ? Math.round(airport.elevationFt) : null);
   const densityAltitudeFt = computeDensityAltitudeFt(elevationFt, oatC, qnhHpa);
 
   const components =
@@ -1180,7 +1386,7 @@ function buildPerformanceOutputSection(kind, airport, wx, runwayHeading, weightL
               variable: wind.variable
             }
           : null,
-        rwy: '',
+        rwy: runwayIdent || '',
         hwXw: {
           headwindKt: components.headwindKt,
           crosswindKt: components.crosswindKt
@@ -1231,7 +1437,7 @@ function buildPerformanceOutputSection(kind, airport, wx, runwayHeading, weightL
             variable: wind.variable
           }
         : null,
-      rwy: '',
+      rwy: runwayIdent || '',
       hwXw: {
         headwindKt: components.headwindKt,
         crosswindKt: components.crosswindKt
@@ -1272,6 +1478,9 @@ async function buildPerformanceData(query) {
   const dep = normalizeIcao(query.dep);
   const arr = normalizeIcao(query.arr);
 
+  const takeoffRunwayIdent = String(query.takeoffRunway || query.depRunway || '').trim().toUpperCase();
+  const landingRunwayIdent = String(query.landingRunway || query.arrRunway || '').trim().toUpperCase();
+
   const takeoffRunwayHeading = normalizeHeading(query.takeoffRunwayHeading ?? query.depRunwayHeading);
   const landingRunwayHeading = normalizeHeading(query.landingRunwayHeading ?? query.arrRunwayHeading);
 
@@ -1283,9 +1492,13 @@ async function buildPerformanceData(query) {
 
   const takeoffRunwayLengthFt = normalizeWeight(query.takeoffRunwayLengthFt ?? query.toraFt);
   const landingRunwayLengthFt = normalizeWeight(query.landingRunwayLengthFt ?? query.ldaFt);
+
   const landingRunwaySlopePct = Number.isFinite(Number(query.landingRunwaySlopePct))
     ? Number(query.landingRunwaySlopePct)
     : null;
+
+  const takeoffRunwayElevationFt = normalizeWeight(query.takeoffRunwayElevationFt ?? query.depRunwayElevationFt);
+  const landingRunwayElevationFt = normalizeWeight(query.landingRunwayElevationFt ?? query.arrRunwayElevationFt);
 
   const [depAirport, arrAirport, depWx, arrWx] = await Promise.all([
     dep ? findAirportByIcao(dep) : null,
@@ -1300,21 +1513,25 @@ async function buildPerformanceData(query) {
       'takeoff',
       depAirport,
       depWx,
+      takeoffRunwayIdent,
       takeoffRunwayHeading,
       takeoffWeightLbs,
       takeoffRunwayCondition,
       takeoffRunwayLengthFt,
-      null
+      null,
+      takeoffRunwayElevationFt
     ),
     landing: buildPerformanceOutputSection(
       'landing',
       arrAirport,
       arrWx,
+      landingRunwayIdent,
       landingRunwayHeading,
       landingWeightLbs,
       landingRunwayCondition,
       landingRunwayLengthFt,
-      landingRunwaySlopePct
+      landingRunwaySlopePct,
+      landingRunwayElevationFt
     )
   };
 }
@@ -1445,6 +1662,26 @@ async function dispatchToPdfBuffer(data) {
 
   return Buffer.from(await pdfDoc.save());
 }
+
+app.get('/api/airport-runways', async (req, res) => {
+  try {
+    const icao = normalizeIcao(req.query.icao);
+    if (!icao) {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      return res.json([]);
+    }
+
+    const runways = await getAirportRunways(icao);
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.json(runways);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
+});
 
 app.get('/api/dispatch-pdf', async (req, res) => {
   try {
@@ -1653,7 +1890,8 @@ app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   try {
     await loadAirportDatabase();
+    await loadRunwayDatabase();
   } catch (err) {
-    console.warn('Airport DB warm-up failed:', err.message);
+    console.warn('Airport/runway DB warm-up failed:', err.message);
   }
 });
