@@ -460,7 +460,7 @@
 
     .runway-visual {
       width: 100%;
-      min-height: 460px;
+      min-height: 540px;
       border: 1px solid #3a3a3a;
       border-radius: 14px;
       background:
@@ -1345,8 +1345,8 @@ END OF REPORT`;
       vxMph: 85,
       vyMph: 95,
       approachMph: 97,
-      vrefMph: 98,
-      finalAppMph: 104,
+      vrefMph: 88,
+      finalAppMph: 93,
       flapsUpMph: 100
     };
 
@@ -1865,9 +1865,10 @@ END OF REPORT`;
       const headwind = Number.isFinite(hwKt) ? hwKt : 0;
       const crosswind = Number.isFinite(xwKt) ? Math.abs(xwKt) : 0;
       const tailwind = headwind < 0 ? Math.abs(headwind) : 0;
-      const additive = Math.min(5, (Math.max(headwind, 0) * 0.18) + (crosswind * 0.14) + (tailwind * 0.35));
-      const vref = Math.max(85, Math.min(90, 85 + additive));
-      const finalApp = Math.max(90, Math.min(95, vref + 5));
+      const windAdditive = Math.min(5, (Math.max(headwind, 0) * 0.15) + (crosswind * 0.16) + (tailwind * 0.38));
+      const vref = Math.max(85, Math.min(90, 85 + windAdditive));
+      const finalAdditive = 4 + Math.min(2, (crosswind * 0.05) + (tailwind * 0.12));
+      const finalApp = Math.max(90, Math.min(95, vref + finalAdditive));
       return {
         vrefKias: vref,
         finalApproachSpeedKias: finalApp
@@ -2071,7 +2072,9 @@ END OF REPORT`;
         over50 *= 1.15;
       }
 
-      const vrKts = shortField ? 57 : 63;
+      const baseVrKts = mphToKts(80);
+      const windVrAdditive = Math.max(0, (tailwindKt * 0.28) + (Math.max(0, crosswindAbsKt - 8) * 0.12));
+      const vrKts = Math.round(Math.max(baseVrKts, baseVrKts + windVrAdditive));
       const vxKts = mphToKts(AIRCRAFT.vxMph);
       const vyKts = mphToKts(AIRCRAFT.vyMph);
       const takeoffDistanceRequiredFt = Math.round(groundRoll * 1.1);
@@ -2102,6 +2105,7 @@ END OF REPORT`;
         messages: [
           isWetLikeCondition(perf.takeoffRunwayCondition) ? 'NON-DRY RUNWAY PENALTY APPLIED.' : 'FIELD DRY.',
           headwind > 0 ? `HEADWIND ${Math.round(headwind)} KT APPLIED.` : headwind < 0 ? `TAILWIND ${Math.round(Math.abs(headwind))} KT APPLIED.` : 'NO WIND CORRECTION.',
+          `ROTATE TARGET ${Math.round(ktsToMph(vrKts))} MPH MIN / ${Math.round(vrKts)} KIAS.`,
           crosswindAbsKt > 17 ? 'CROSSWIND ABOVE TAKEOFF LIMIT.' : 'CROSSWIND WITHIN TAKEOFF LIMIT.',
           `ACCEL-STOP ${accelerateStopFt} FT${Number.isFinite(stopMarginFt) ? ` / MARGIN ${Math.round(stopMarginFt)} FT.` : '.'}`,
           tailwindKt >= 5 ? 'TAILWIND CAUTION FOR TAKEOFF.' : 'TAILWIND WITHIN NORMAL RANGE.'
@@ -2187,6 +2191,7 @@ END OF REPORT`;
         messages: [
           isWetLikeCondition(perf.landingRunwayCondition) ? 'NON-DRY RUNWAY PENALTY APPLIED.' : 'FIELD DRY.',
           headwind > 0 ? `HEADWIND ${Math.round(headwind)} KT APPLIED.` : headwind < 0 ? `TAILWIND ${Math.round(Math.abs(headwind))} KT APPLIED.` : 'NO WIND CORRECTION.',
+          `ROTATE TARGET ${Math.round(ktsToMph(vrKts))} MPH MIN / ${Math.round(vrKts)} KIAS.`,
           crosswindAbsKt > mphToKts(AIRCRAFT.demonstratedCrosswindMph) ? 'XWIND ABOVE DEMONSTRATED VALUE.' : 'XWIND WITHIN DEMONSTRATED VALUE.',
           `AUTO VREF ${Math.round(speedTargets.vrefKias)} / FINAL ${Math.round(speedTargets.finalApproachSpeedKias)} KIAS FROM WIND.`,
           Number.isFinite(marginFt) ? `LANDING MARGIN ${Math.round(marginFt)} FT.` : 'LANDING MARGIN UNAVAILABLE.',
@@ -2237,6 +2242,52 @@ END OF REPORT`;
       return `${String(num).padStart(2, '0')}${suffix}`;
     }
 
+    function parseWindDirectionDegrees(windRaw) {
+      const text = String(windRaw || '').toUpperCase();
+      const match = text.match(/\b(\d{3}|VRB)(\d{2,3})(G\d{2,3})?KT\b/);
+      if (!match) return null;
+      if (match[1] === 'VRB') return null;
+      const deg = Number(match[1]);
+      return Number.isFinite(deg) ? deg : null;
+    }
+
+    function buildCompassRose(x, y, size, windDirectionDeg) {
+      const r = size / 2;
+      const cx = x + r;
+      const cy = y + r;
+      const labelR = r + 16;
+      const hasWind = Number.isFinite(windDirectionDeg);
+      const displayDeg = hasWind ? ((windDirectionDeg % 360) + 360) % 360 : null;
+      const arrowDeg = hasWind ? displayDeg - 90 : 0;
+      const rad = arrowDeg * Math.PI / 180;
+      const tipX = cx + Math.cos(rad) * (r - 12);
+      const tipY = cy + Math.sin(rad) * (r - 12);
+      const tailX = cx - Math.cos(rad) * (r - 28);
+      const tailY = cy - Math.sin(rad) * (r - 28);
+      const leftDeg = rad + Math.PI * 0.82;
+      const rightDeg = rad - Math.PI * 0.82;
+      const wing = 10;
+      const leftX = tipX + Math.cos(leftDeg) * wing;
+      const leftY = tipY + Math.sin(leftDeg) * wing;
+      const rightX = tipX + Math.cos(rightDeg) * wing;
+      const rightY = tipY + Math.sin(rightDeg) * wing;
+      return `
+        <g transform="translate(${x}, ${y})">
+          <rect x="0" y="0" width="${size}" height="${size + 38}" rx="14" fill="#070707" stroke="#8ec5ff" stroke-width="1.2" />
+          <circle cx="${r}" cy="${r + 4}" r="${r - 12}" fill="none" stroke="rgba(142,197,255,0.5)" stroke-width="1.4" />
+          <circle cx="${r}" cy="${r + 4}" r="3" fill="#f4f4f4" />
+          <text x="${r}" y="18" text-anchor="middle" fill="#8ec5ff" font-size="14" font-family="Courier New, monospace">N</text>
+          <text x="${size - 12}" y="${r + 10}" text-anchor="middle" fill="#8ec5ff" font-size="14" font-family="Courier New, monospace">E</text>
+          <text x="${r}" y="${size - 4}" text-anchor="middle" fill="#8ec5ff" font-size="14" font-family="Courier New, monospace">S</text>
+          <text x="12" y="${r + 10}" text-anchor="middle" fill="#8ec5ff" font-size="14" font-family="Courier New, monospace">W</text>
+          <line x1="${r}" y1="${r + 4 - (r - 24)}" x2="${r}" y2="${r + 4 + (r - 24)}" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+          <line x1="${r - (r - 24)}" y1="${r + 4}" x2="${r + (r - 24)}" y2="${r + 4}" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+          ${hasWind ? `<line x1="${tailX - x}" y1="${tailY - y}" x2="${tipX - x}" y2="${tipY - y}" stroke="#ffb15c" stroke-width="3.2" stroke-linecap="round" />
+          <polygon points="${tipX - x},${tipY - y} ${leftX - x},${leftY - y} ${rightX - x},${rightY - y}" fill="#ffb15c" />` : `<text x="${r}" y="${r + 10}" text-anchor="middle" fill="#ffb15c" font-size="16" font-family="Courier New, monospace">VRB</text>`}
+          <text x="${r}" y="${size + 24}" text-anchor="middle" fill="#ffb15c" font-size="16" font-family="Courier New, monospace">${hasWind ? `WIND ${String(Math.round(displayDeg)).padStart(3, '0')}°` : 'WIND VRB'}</text>
+        </g>`;
+    }
+
     function buildPiperFigure(x, y, scale = 1, heading = 'up') {
       const imgW = 240;
       const imgH = 190;
@@ -2276,11 +2327,11 @@ END OF REPORT`;
       const show50Segment = aircraftMode === 'DEP' && Number.isFinite(dist50Ft) && Number.isFinite(availableFt) && dist50Ft >= requiredFt;
 
       const viewW = 1080;
-      const viewH = 1180;
+      const viewH = 1280;
       const runwayW = 224;
-      const runwayH = 960;
+      const runwayH = 1040;
       const runwayX = (viewW - runwayW) / 2;
-      const runwayY = 74;
+      const runwayY = 72;
       const bottomY = runwayY + runwayH;
       const centerX = runwayX + runwayW / 2;
       const numberClearance = 118;
@@ -2329,7 +2380,7 @@ END OF REPORT`;
         : null;
 
       const progressX = 84;
-      const progressY = 1062;
+      const progressY = 1146;
       const progressW = 912;
       const progressH = 30;
       const reqBarW = Number.isFinite(requiredFt) && Number.isFinite(availableFt) && availableFt > 0
@@ -2345,8 +2396,8 @@ END OF REPORT`;
       const extraStopBarW = Math.max(0, accelerateStopBarW - Math.max(reqBarW, dist50BarW));
       const landingRemainderW = Math.max(0, progressW - reqBarW);
 
-      const aircraftStartY = aircraftMode === 'ARR' ? bottomY - 238 : bottomY - 136;
-      const mainAircraft = buildPiperFigure(centerX, aircraftStartY, aircraftMode === 'ARR' ? 1.40 : 1.48, 'up');
+      const aircraftStartY = aircraftMode === 'ARR' ? bottomY - 168 : bottomY - 136;
+      const mainAircraft = buildPiperFigure(centerX, aircraftStartY, aircraftMode === 'ARR' ? 1.34 : 1.48, 'up');
 
       const verticalMarkerLabel = aircraftMode === 'DEP' ? 'ROTATE' : 'REQUIRED DISTANCE';
       const verticalMarker = Number.isFinite(requiredY)
@@ -2386,6 +2437,8 @@ END OF REPORT`;
 
       const hw = Number(options?.headwindKt);
       const xw = Number(options?.crosswindKt);
+      const windDirectionDeg = parseWindDirectionDegrees(options?.windRaw || options?.windText || '');
+      const compassRose = buildCompassRose(850, 812, 170, windDirectionDeg);
       const headwindArrow = Number.isFinite(hw) ? (hw >= 0 ? '↓' : '↑') : '↓';
       const crosswindArrow = Number.isFinite(xw) ? (xw >= 0 ? '←' : '→') : '←';
       const headwindLabel = Number.isFinite(hw)
@@ -2414,7 +2467,7 @@ END OF REPORT`;
         { x: 404, label: aircraftMode === 'DEP' ? 'TORA' : 'LDA', value: Number.isFinite(availableFt) ? `${Math.round(availableFt)} FT` : '---', color: '#8ec5ff' },
         { x: 736, label: 'REMAIN', value: Number.isFinite(remainingFt) ? `${remainingFt >= 0 ? '+' : ''}${Math.round(remainingFt)} FT` : '---', color: marginColor }
       ].map((item) => `
-        <g transform="translate(${item.x}, 1112)">
+        <g transform="translate(${item.x}, 1200)">
           <rect x="0" y="0" width="272" height="72" rx="11" fill="#070707" stroke="${item.color}" stroke-width="1.5" />
           <text x="18" y="25" fill="#bdbdbd" font-size="14" font-family="Courier New, monospace">${item.label}</text>
           <text x="18" y="52" fill="${item.color}" font-size="24" font-family="Courier New, monospace">${item.value}</text>
@@ -2487,6 +2540,8 @@ END OF REPORT`;
             <text x="20" y="120" fill="${cautionColor}" font-size="18" font-family="Courier New, monospace">${cautionText}</text>
           </g>
 
+          ${compassRose}
+
           <g transform="translate(${progressX}, ${progressY})">
             <rect x="0" y="0" width="${progressW}" height="${progressH}" rx="8" fill="url(#${legendPrefix}-grey)" stroke="#5d5d5d" stroke-width="1.2" />
             ${aircraftMode === 'DEP'
@@ -2495,16 +2550,16 @@ END OF REPORT`;
                 <rect x="${reqBarW}" y="0" width="${extra50BarW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-yellow)" />
                 <rect x="${Math.max(reqBarW, dist50BarW)}" y="0" width="${extraStopBarW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-orange)" />`
               : (() => {
-                  const safeW = Math.max(0, Math.min(progressW, reqBarW));
+                  const safeMarkerX = Math.max(0, Math.min(progressW, reqBarW));
                   const overflowW = Math.max(0, reqBarW - progressW);
-                  const touchdownSafeW = overflowW > 0 ? Math.max(60, Math.min(progressW * 0.22, progressW * 0.32)) : safeW;
-                  const cautionW = overflowW > 0 ? Math.max(0, progressW - touchdownSafeW - 42) : 0;
-                  const dangerW = overflowW > 0 ? Math.max(42, progressW - touchdownSafeW - cautionW) : 0;
+                  const touchdownGreenW = overflowW > 0 ? Math.max(70, Math.min(progressW * 0.42, safeMarkerX || progressW * 0.42)) : safeMarkerX;
+                  const dangerW = overflowW > 0 ? Math.max(56, progressW * 0.14) : 0;
+                  const cautionW = overflowW > 0 ? Math.max(0, progressW - touchdownGreenW - dangerW) : 0;
                   return `
-                    <rect x="0" y="0" width="${overflowW > 0 ? touchdownSafeW : safeW}" height="${progressH}" rx="8" fill="url(#${legendPrefix}-green)" />
-                    ${overflowW > 0 ? `<rect x="${touchdownSafeW}" y="0" width="${cautionW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-yellow)" />` : `<rect x="${safeW}" y="0" width="${landingRemainderW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-grey)" />`}
-                    ${overflowW > 0 ? `<rect x="${touchdownSafeW + cautionW}" y="0" width="${dangerW}" height="${progressH}" rx="0" fill="#ff4d4d" />` : ''}
-                    <line x1="${Math.max(0, Math.min(progressW, reqBarW))}" y1="-8" x2="${Math.max(0, Math.min(progressW, reqBarW))}" y2="${progressH + 8}" stroke="#8ec5ff" stroke-width="3" />`;
+                    <rect x="0" y="0" width="${overflowW > 0 ? touchdownGreenW : safeMarkerX}" height="${progressH}" rx="8" fill="url(#${legendPrefix}-green)" />
+                    ${overflowW > 0 ? `<rect x="${touchdownGreenW}" y="0" width="${cautionW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-yellow)" />` : `<rect x="${safeMarkerX}" y="0" width="${landingRemainderW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-grey)" />`}
+                    ${overflowW > 0 ? `<rect x="${touchdownGreenW + cautionW}" y="0" width="${dangerW}" height="${progressH}" rx="0" fill="#ff4d4d" />` : ''}
+                    <line x1="${safeMarkerX}" y1="-8" x2="${safeMarkerX}" y2="${progressH + 8}" stroke="#8ec5ff" stroke-width="3" />`;
                 })()
             }
             <text x="0" y="-10" fill="#d7d7d7" font-size="14" font-family="Courier New, monospace">${aircraftMode === 'DEP' ? 'BRAKE RELEASE' : 'THRESHOLD'}</text>
