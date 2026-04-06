@@ -378,6 +378,8 @@
     .performance-value-warn { color: var(--warn); font-weight: 700; }
     .performance-value-danger { color: var(--danger); font-weight: 700; }
     .performance-value-info { color: var(--accent); font-weight: 700; }
+    .performance-value-caution { color: var(--warn); font-weight: 700; }
+    .performance-value-ok { color: var(--live); font-weight: 700; }
 
     .performance-row-spacer {
       visibility: hidden;
@@ -983,6 +985,17 @@
               <div class="performance-item">
                 <span class="performance-label">WIND COMP</span>
                 <span id="perfTakeoffWindComp" class="performance-value performance-value-info">HW ..... / XW .....</span>
+              </div>
+            </div>
+
+            <div class="performance-row">
+              <div class="performance-item">
+                <span class="performance-label">ACCEL-STOP</span>
+                <span id="perfTakeoffAccelStop" class="performance-value performance-value-warn">..... FT</span>
+              </div>
+              <div class="performance-item">
+                <span class="performance-label">STOP MARGIN</span>
+                <span id="perfTakeoffStopMargin" class="performance-value performance-value-info">..... FT</span>
               </div>
             </div>
           </div>
@@ -1805,6 +1818,23 @@ END OF REPORT`;
       el(id).textContent = value;
     }
 
+    function setPerformanceTone(id, tone) {
+      const node = el(id);
+      if (!node) return;
+      node.classList.remove('performance-value-live', 'performance-value-warn', 'performance-value-danger', 'performance-value-info', 'performance-value-caution', 'performance-value-ok');
+      if (tone) node.classList.add(`performance-value-${tone}`);
+    }
+
+    function applyMarginTone(id, remainingFt, tightThreshold = 400, warnThreshold = 800) {
+      if (!Number.isFinite(remainingFt)) {
+        setPerformanceTone(id, 'warn');
+        return;
+      }
+      if (remainingFt < 0 || remainingFt < tightThreshold) setPerformanceTone(id, 'danger');
+      else if (remainingFt < warnThreshold) setPerformanceTone(id, 'caution');
+      else setPerformanceTone(id, 'ok');
+    }
+
     function toDisplayValue(value, fallback = '.....') {
       const text = String(value ?? '').trim();
       return text || fallback;
@@ -2013,6 +2043,7 @@ END OF REPORT`;
       const unit = perf.takeoffSpeedUnit || 'KTS';
       const flaps = perf.takeoffFlaps || '25°';
       const shortField = flaps === '25°';
+      const runwayAvailable = Number(perf.takeoffRunwayLengthFt) || null;
 
       let groundRoll = shortField ? AIRCRAFT.takeoffGroundRoll25Ft : AIRCRAFT.takeoffGroundRoll0Ft;
       let over50 = shortField ? AIRCRAFT.takeoff50ft25Ft : AIRCRAFT.takeoff50ft0Ft;
@@ -2043,23 +2074,37 @@ END OF REPORT`;
       const vrKts = shortField ? 57 : 63;
       const vxKts = mphToKts(AIRCRAFT.vxMph);
       const vyKts = mphToKts(AIRCRAFT.vyMph);
+      const takeoffDistanceRequiredFt = Math.round(groundRoll * 1.1);
+      const distance50FtFt = Math.round(over50 * 1.1);
+      const accelerateStopFt = Math.round(Math.max(takeoffDistanceRequiredFt * 1.22, groundRoll + (vrKts * 18)));
+      const stopMarginFt = Number.isFinite(runwayAvailable) ? runwayAvailable - accelerateStopFt : null;
+      const tailwindKt = headwind < 0 ? Math.abs(headwind) : 0;
+      const crosswindAbsKt = Math.abs(crosswind);
 
       return {
         vrKias: vrKts,
         vxKias: vxKts,
         vyKias: vyKts,
         accelCheckFt: Math.round(groundRoll * 0.5),
-        rwyLimitFt: Number(perf.takeoffRunwayLengthFt) || null,
+        accelerateStopFt,
+        stopMarginFt,
+        rwyLimitFt: runwayAvailable,
         limitCode: weight > AIRCRAFT.maxTakeoffWeightLbs ? 'OVERWT' : 'MTOW',
-        takeoffDistanceRequiredFt: Math.round(groundRoll * 1.1),
-        distance50FtFt: Math.round(over50 * 1.1),
+        takeoffDistanceRequiredFt,
+        distance50FtFt,
         rotatePitch: '7–9° NOSE UP',
         xwindLimitKt: 17,
         speedUnit: unit,
+        tailwindKt,
+        crosswindAbsKt,
+        cautionTailwind: tailwindKt >= 5,
+        cautionStopMargin: Number.isFinite(stopMarginFt) && stopMarginFt < 500,
         messages: [
           isWetLikeCondition(perf.takeoffRunwayCondition) ? 'NON-DRY RUNWAY PENALTY APPLIED.' : 'FIELD DRY.',
           headwind > 0 ? `HEADWIND ${Math.round(headwind)} KT APPLIED.` : headwind < 0 ? `TAILWIND ${Math.round(Math.abs(headwind))} KT APPLIED.` : 'NO WIND CORRECTION.',
-          crosswind > 17 ? 'CROSSWIND ABOVE TAKEOFF LIMIT.' : 'CROSSWIND WITHIN TAKEOFF LIMIT.'
+          crosswindAbsKt > 17 ? 'CROSSWIND ABOVE TAKEOFF LIMIT.' : 'CROSSWIND WITHIN TAKEOFF LIMIT.',
+          `ACCEL-STOP ${accelerateStopFt} FT${Number.isFinite(stopMarginFt) ? ` / MARGIN ${Math.round(stopMarginFt)} FT.` : '.'}`,
+          tailwindKt >= 5 ? 'TAILWIND CAUTION FOR TAKEOFF.' : 'TAILWIND WITHIN NORMAL RANGE.'
         ]
       };
     }
@@ -2073,6 +2118,7 @@ END OF REPORT`;
       const crosswind = Number(aw.hwXw?.crosswindKt) || 0;
       const unit = perf.landingSpeedUnit || 'KTS';
       const flaps = perf.landingFlaps || '40°';
+      const runwayAvailable = Number(perf.landingRunwayLengthFt) || null;
 
       let groundRoll = AIRCRAFT.landingRollFt;
       let over50 = AIRCRAFT.landing50ftFt;
@@ -2115,28 +2161,39 @@ END OF REPORT`;
       }
 
       const speedTargets = computeLandingReferenceSpeeds(headwind, crosswind);
+      const landingDistanceRequiredFt = Math.round(groundRoll * 1.1);
+      const distance50FtFt = Math.round(over50 * 1.1);
+      const marginFt = Number.isFinite(runwayAvailable) ? runwayAvailable - landingDistanceRequiredFt : null;
+      const tailwindKt = headwind < 0 ? Math.abs(headwind) : 0;
+      const crosswindAbsKt = Math.abs(crosswind);
 
       return {
         approachSpeedKias: mphToKts(AIRCRAFT.approachMph),
         vrefKias: speedTargets.vrefKias,
         finalApproachSpeedKias: speedTargets.finalApproachSpeedKias,
-        landingDistanceRequiredFt: Math.round(groundRoll * 1.1),
-        distance50FtFt: Math.round(over50 * 1.1),
-        rwyLimitFt: Number(perf.landingRunwayLengthFt) || null,
+        landingDistanceRequiredFt,
+        distance50FtFt,
+        rwyLimitFt: runwayAvailable,
         limitCode: weight > AIRCRAFT.maxLandingWeightLbs ? 'OVERWT' : 'MLDW',
         braking: perf.landingBraking || (isWetLikeCondition(perf.landingRunwayCondition) ? 'MOD' : 'MAX'),
         goAroundPower: 'FULL',
         flapsUpSpeedKias: mphToKts(AIRCRAFT.flapsUpMph),
         speedUnit: unit,
+        marginFt,
+        tailwindKt,
+        crosswindAbsKt,
+        cautionTailwind: tailwindKt >= 5,
+        cautionMargin: Number.isFinite(marginFt) && marginFt < 400,
         messages: [
           isWetLikeCondition(perf.landingRunwayCondition) ? 'NON-DRY RUNWAY PENALTY APPLIED.' : 'FIELD DRY.',
           headwind > 0 ? `HEADWIND ${Math.round(headwind)} KT APPLIED.` : headwind < 0 ? `TAILWIND ${Math.round(Math.abs(headwind))} KT APPLIED.` : 'NO WIND CORRECTION.',
-          crosswind > mphToKts(AIRCRAFT.demonstratedCrosswindMph) ? 'XWIND ABOVE DEMONSTRATED VALUE.' : 'XWIND WITHIN DEMONSTRATED VALUE.',
-          `AUTO VREF ${Math.round(speedTargets.vrefKias)} / FINAL ${Math.round(speedTargets.finalApproachSpeedKias)} KIAS FROM WIND.`
+          crosswindAbsKt > mphToKts(AIRCRAFT.demonstratedCrosswindMph) ? 'XWIND ABOVE DEMONSTRATED VALUE.' : 'XWIND WITHIN DEMONSTRATED VALUE.',
+          `AUTO VREF ${Math.round(speedTargets.vrefKias)} / FINAL ${Math.round(speedTargets.finalApproachSpeedKias)} KIAS FROM WIND.`,
+          Number.isFinite(marginFt) ? `LANDING MARGIN ${Math.round(marginFt)} FT.` : 'LANDING MARGIN UNAVAILABLE.',
+          tailwindKt >= 5 ? 'TAILWIND CAUTION FOR LANDING.' : 'TAILWIND WITHIN NORMAL RANGE.'
         ]
       };
     }
-
 
     function formatSignedPercent(value) {
       if (!Number.isFinite(value)) return '0%';
@@ -2205,6 +2262,8 @@ END OF REPORT`;
       const requiredFt = Number.isFinite(requiredFtRaw) && requiredFtRaw >= 0 ? requiredFtRaw : null;
       const dist50FtRaw = Number(options?.distance50Ft);
       const dist50Ft = Number.isFinite(dist50FtRaw) && dist50FtRaw >= 0 ? dist50FtRaw : null;
+      const accelerateStopFtRaw = Number(options?.accelerateStopFt);
+      const accelerateStopFt = Number.isFinite(accelerateStopFtRaw) && accelerateStopFtRaw >= 0 ? accelerateStopFtRaw : null;
       const remainingFt = Number.isFinite(availableFt) && Number.isFinite(requiredFt) ? availableFt - requiredFt : null;
       const marginColor = getRunwayMarginColor(remainingFt);
 
@@ -2217,44 +2276,45 @@ END OF REPORT`;
       const show50Segment = aircraftMode === 'DEP' && Number.isFinite(dist50Ft) && Number.isFinite(availableFt) && dist50Ft >= requiredFt;
 
       const viewW = 1080;
-      const viewH = 1000;
-      const runwayW = 212;
-      const runwayH = 790;
+      const viewH = 1180;
+      const runwayW = 224;
+      const runwayH = 960;
       const runwayX = (viewW - runwayW) / 2;
-      const runwayY = 78;
+      const runwayY = 74;
       const bottomY = runwayY + runwayH;
       const centerX = runwayX + runwayW / 2;
-      const edgeInset = 14;
-      const numberClearance = 114;
+      const numberClearance = 118;
       const centerlineStartY = runwayY + numberClearance;
       const centerlineEndY = bottomY - numberClearance;
       const centerlineSpan = Math.max(0, centerlineEndY - centerlineStartY);
-      const dashCount = Math.max(1, Math.floor(centerlineSpan / 56));
+      const dashCount = Math.max(1, Math.floor(centerlineSpan / 64));
       const dashGap = centerlineSpan / dashCount;
       const runwayScale = Number.isFinite(availableFt) && availableFt > 0 ? runwayH / availableFt : 0;
+      const touchdownBaseY = bottomY - 132;
+      const aimingBaseY = bottomY - 198;
 
       const thresholdLineLights = (y, color) => Array.from({ length: 15 }, (_, i) => {
         const x = runwayX + 20 + i * ((runwayW - 40) / 14);
         return `<circle cx="${x}" cy="${y}" r="4.8" fill="${color}" />`;
       }).join('');
 
-      const sideLights = (x) => Array.from({ length: 28 }, (_, i) => {
-        const y = runwayY + 18 + i * ((runwayH - 36) / 27);
+      const sideLights = (x) => Array.from({ length: 34 }, (_, i) => {
+        const y = runwayY + 18 + i * ((runwayH - 36) / 33);
         return `<circle cx="${x}" cy="${y}" r="2.9" fill="#ffd84d" opacity="0.95" />`;
       }).join('');
 
       const centerline = Array.from({ length: dashCount }, (_, i) => {
         const y = centerlineStartY + i * dashGap;
-        return `<rect x="${centerX - 3.5}" y="${y}" width="7" height="30" fill="#f2f2f2" opacity="0.96" rx="2" />`;
+        return `<rect x="${centerX - 3.5}" y="${y}" width="7" height="34" fill="#f2f2f2" opacity="0.96" rx="2" />`;
       }).join('');
 
       const scaleTicks = Number.isFinite(availableFt) && availableFt > 0
-        ? [0.25, 0.5, 0.75].map((ratio) => {
+        ? [0.2, 0.4, 0.6, 0.8].map((ratio) => {
             const y = bottomY - (runwayH * ratio);
             const value = Math.round(availableFt * ratio);
             return `
-              <line x1="${runwayX - 54}" y1="${y}" x2="${runwayX - 18}" y2="${y}" stroke="rgba(142,197,255,0.65)" stroke-width="1.5" />
-              <text x="${runwayX - 60}" y="${y + 5}" text-anchor="end" fill="#8ec5ff" font-size="14" font-family="Courier New, monospace">${value} FT</text>`;
+              <line x1="${runwayX - 58}" y1="${y}" x2="${runwayX - 18}" y2="${y}" stroke="rgba(142,197,255,0.65)" stroke-width="1.5" />
+              <text x="${runwayX - 64}" y="${y + 5}" text-anchor="end" fill="#8ec5ff" font-size="14" font-family="Courier New, monospace">${value} FT</text>`;
           }).join('')
         : '';
 
@@ -2264,46 +2324,65 @@ END OF REPORT`;
       const dist50Y = show50Segment && runwayScale > 0
         ? Math.max(runwayY, Math.min(bottomY, bottomY - (dist50Ft * runwayScale)))
         : null;
+      const accelerateStopY = aircraftMode === 'DEP' && Number.isFinite(accelerateStopFt) && runwayScale > 0
+        ? Math.max(runwayY, Math.min(bottomY, bottomY - (accelerateStopFt * runwayScale)))
+        : null;
 
-      const progressX = 108;
-      const progressY = 882;
-      const progressW = 864;
-      const progressH = 28;
-      const progressEndX = progressX + progressW;
+      const progressX = 84;
+      const progressY = 1062;
+      const progressW = 912;
+      const progressH = 30;
       const reqBarW = Number.isFinite(requiredFt) && Number.isFinite(availableFt) && availableFt > 0
         ? Math.max(0, Math.min(progressW, (requiredFt / availableFt) * progressW))
         : 0;
-      const dist50BarW = show50Segment
+      const dist50BarW = show50Segment && Number.isFinite(availableFt) && availableFt > 0
         ? Math.max(0, Math.min(progressW, (dist50Ft / availableFt) * progressW))
         : 0;
+      const accelerateStopBarW = aircraftMode === 'DEP' && Number.isFinite(accelerateStopFt) && Number.isFinite(availableFt) && availableFt > 0
+        ? Math.max(0, Math.min(progressW, (accelerateStopFt / availableFt) * progressW))
+        : 0;
       const extra50BarW = Math.max(0, dist50BarW - reqBarW);
+      const extraStopBarW = Math.max(0, accelerateStopBarW - Math.max(reqBarW, dist50BarW));
       const landingRemainderW = Math.max(0, progressW - reqBarW);
 
-      const aircraftStartY = aircraftMode === 'ARR' ? runwayY + 94 : bottomY - 76;
-      const aircraftHeading = 'up';
-      const mainAircraft = buildPiperFigure(centerX, aircraftStartY, 1.56, aircraftHeading);
-
-      const touchdownMarker = aircraftMode === 'ARR'
-        ? `
-          <line x1="${runwayX - 18}" y1="${runwayY + 42}" x2="${runwayX + runwayW + 18}" y2="${runwayY + 42}" stroke="#66ff99" stroke-dasharray="5 5" stroke-width="1.6" opacity="0.85" />
-          <text x="${runwayX + runwayW + 30}" y="${runwayY + 47}" fill="#66ff99" font-size="15" font-family="Courier New, monospace">THRESHOLD / TOUCHDOWN</text>`
-        : `
-          <line x1="${runwayX - 18}" y1="${bottomY - 42}" x2="${runwayX + runwayW + 18}" y2="${bottomY - 42}" stroke="#66ff99" stroke-dasharray="5 5" stroke-width="1.6" opacity="0.85" />
-          <text x="${runwayX + runwayW + 30}" y="${bottomY - 37}" fill="#66ff99" font-size="15" font-family="Courier New, monospace">BRAKE RELEASE</text>`;
+      const aircraftStartY = aircraftMode === 'ARR' ? bottomY - 156 : bottomY - 78;
+      const mainAircraft = buildPiperFigure(centerX, aircraftStartY, aircraftMode === 'ARR' ? 1.48 : 1.56, 'up');
 
       const verticalMarkerLabel = aircraftMode === 'DEP' ? 'ROTATE' : 'REQUIRED DISTANCE';
       const verticalMarker = Number.isFinite(requiredY)
         ? `
-          <line x1="${runwayX - 38}" y1="${requiredY}" x2="${runwayX + runwayW + 38}" y2="${requiredY}" stroke="#8ec5ff" stroke-dasharray="8 6" stroke-width="2" opacity="0.95" />
-          <rect x="${runwayX + runwayW + 44}" y="${requiredY - 16}" width="10" height="32" rx="2" fill="#8ec5ff" />
-          <text x="${runwayX + runwayW + 64}" y="${requiredY + 6}" fill="#8ec5ff" font-size="18" font-family="Courier New, monospace">${verticalMarkerLabel}</text>`
+          <line x1="${runwayX - 40}" y1="${requiredY}" x2="${runwayX + runwayW + 40}" y2="${requiredY}" stroke="#8ec5ff" stroke-dasharray="8 6" stroke-width="2" opacity="0.95" />
+          <rect x="${runwayX + runwayW + 46}" y="${requiredY - 18}" width="10" height="36" rx="2" fill="#8ec5ff" />
+          <text x="${runwayX + runwayW + 66}" y="${requiredY + 6}" fill="#8ec5ff" font-size="18" font-family="Courier New, monospace">${verticalMarkerLabel}</text>`
         : '';
 
       const distance50Marker = show50Segment && Number.isFinite(dist50Y)
         ? `
-          <line x1="${runwayX - 18}" y1="${dist50Y}" x2="${runwayX + runwayW + 18}" y2="${dist50Y}" stroke="#ffd84d" stroke-dasharray="4 5" stroke-width="1.5" opacity="0.9" />
+          <line x1="${runwayX - 20}" y1="${dist50Y}" x2="${runwayX + runwayW + 20}" y2="${dist50Y}" stroke="#ffd84d" stroke-dasharray="4 5" stroke-width="1.5" opacity="0.95" />
           <text x="${runwayX + runwayW + 30}" y="${dist50Y + 5}" fill="#ffd84d" font-size="16" font-family="Courier New, monospace">50FT</text>`
         : '';
+
+      const accelerateStopMarker = aircraftMode === 'DEP' && Number.isFinite(accelerateStopY)
+        ? `
+          <line x1="${runwayX - 20}" y1="${accelerateStopY}" x2="${runwayX + runwayW + 20}" y2="${accelerateStopY}" stroke="#ff9f43" stroke-dasharray="10 6" stroke-width="1.6" opacity="0.95" />
+          <text x="${runwayX + runwayW + 30}" y="${accelerateStopY + 5}" fill="#ff9f43" font-size="15" font-family="Courier New, monospace">ACCEL-STOP</text>`
+        : '';
+
+      const aimingBlocks = `
+        <rect x="${centerX - 78}" y="${aimingBaseY}" width="28" height="86" rx="5" fill="#f6f6f6" opacity="0.96" />
+        <rect x="${centerX + 50}" y="${aimingBaseY}" width="28" height="86" rx="5" fill="#f6f6f6" opacity="0.96" />
+      `;
+      const touchdownMarkers = Array.from({ length: 3 }, (_, i) => {
+        const y = touchdownBaseY - (i * 56);
+        return `
+          <rect x="${runwayX + 26}" y="${y}" width="28" height="8" rx="2" fill="#f6f6f6" opacity="0.95" />
+          <rect x="${runwayX + runwayW - 54}" y="${y}" width="28" height="8" rx="2" fill="#f6f6f6" opacity="0.95" />`;
+      }).join('');
+
+      const thresholdLabelY = bottomY - 36;
+      const thresholdLabel = `
+        <line x1="${runwayX - 20}" y1="${thresholdLabelY}" x2="${runwayX + runwayW + 20}" y2="${thresholdLabelY}" stroke="#66ff99" stroke-dasharray="5 5" stroke-width="1.6" opacity="0.85" />
+        <text x="${runwayX + runwayW + 30}" y="${thresholdLabelY + 5}" fill="#66ff99" font-size="15" font-family="Courier New, monospace">${aircraftMode === 'ARR' ? 'THRESHOLD / TOUCHDOWN' : 'BRAKE RELEASE'}</text>`;
 
       const hw = Number(options?.headwindKt);
       const xw = Number(options?.crosswindKt);
@@ -2314,115 +2393,115 @@ END OF REPORT`;
         ? `${xw >= 0 ? '→' : '←'} CROSSWIND ${Math.round(Math.abs(xw))} KT`
         : '→ CROSSWIND -- KT';
       const windDirText = Number.isFinite(headingValue) ? `RWY ${Math.round(headingValue)}°` : headingText;
+      const slopeDirection = !Number.isFinite(slopeValue) || slopeValue === 0
+        ? 'LEVEL'
+        : slopeValue > 0
+          ? 'UPHILL TO NORTH'
+          : 'DOWNHILL TO NORTH';
+      const cautionText = (() => {
+        const tailwind = Number(options?.tailwindKt);
+        if (Number.isFinite(remainingFt) && remainingFt < 0) return 'RUNWAY EXCEEDED';
+        if (Number.isFinite(remainingFt) && remainingFt < 400) return 'TIGHT MARGIN';
+        if (Number.isFinite(tailwind) && tailwind >= 5) return 'TAILWIND CAUTION';
+        return 'NORMAL MARGIN';
+      })();
+      const cautionColor = Number.isFinite(remainingFt) && remainingFt < 400 ? '#ff6b6b' : (Number(options?.tailwindKt) >= 5 ? '#ffcc66' : '#66ff99');
 
       const perfBoxes = [
-        { x: 92, label: aircraftMode === 'DEP' ? 'TAKEOFF ROLL' : 'LAND DIST REQ', value: Number.isFinite(requiredFt) ? `${Math.round(requiredFt)} FT` : '---', color: marginColor },
-        { x: 416, label: aircraftMode === 'DEP' ? 'TORA' : 'LDA', value: Number.isFinite(availableFt) ? `${Math.round(availableFt)} FT` : '---', color: '#8ec5ff' },
-        { x: 740, label: 'REMAIN', value: Number.isFinite(remainingFt) ? `${remainingFt >= 0 ? '+' : ''}${Math.round(remainingFt)} FT` : '---', color: marginColor }
+        { x: 72, label: aircraftMode === 'DEP' ? 'TAKEOFF ROLL' : 'LAND DIST REQ', value: Number.isFinite(requiredFt) ? `${Math.round(requiredFt)} FT` : '---', color: marginColor },
+        { x: 404, label: aircraftMode === 'DEP' ? 'TORA' : 'LDA', value: Number.isFinite(availableFt) ? `${Math.round(availableFt)} FT` : '---', color: '#8ec5ff' },
+        { x: 736, label: 'REMAIN', value: Number.isFinite(remainingFt) ? `${remainingFt >= 0 ? '+' : ''}${Math.round(remainingFt)} FT` : '---', color: marginColor }
       ].map((item) => `
-        <g transform="translate(${item.x}, 932)">
-          <rect x="0" y="0" width="248" height="72" rx="11" fill="#070707" stroke="${item.color}" stroke-width="1.5" />
+        <g transform="translate(${item.x}, 1112)">
+          <rect x="0" y="0" width="272" height="72" rx="11" fill="#070707" stroke="${item.color}" stroke-width="1.5" />
           <text x="18" y="25" fill="#bdbdbd" font-size="14" font-family="Courier New, monospace">${item.label}</text>
           <text x="18" y="52" fill="${item.color}" font-size="24" font-family="Courier New, monospace">${item.value}</text>
-        </g>
-      `).join('');
+        </g>`).join('');
 
-      const slopeArrow = Number.isFinite(slopeValue) && slopeValue > 0
-        ? `<path d="M18 28 L18 10 L11 10 L22 0 L33 10 L26 10 L26 28 Z" fill="#ffcc66" />`
-        : Number.isFinite(slopeValue) && slopeValue < 0
-          ? `<path d="M18 0 L18 18 L11 18 L22 28 L33 18 L26 18 L26 0 Z" fill="#8ec5ff" />`
-          : `<rect x="8" y="12" width="28" height="4" fill="#66ff99" />`;
-
-      const bottomNumY = bottomY - 36;
-      const topNumY = runwayY + 62;
-
-      const progressModeOverlay = aircraftMode === 'ARR'
-        ? `
-          <rect x="${progressX}" y="${progressY}" width="${reqBarW}" height="${progressH}" rx="14" fill="url(#landingReqGradient)" />
-          ${landingRemainderW > 0 ? `<rect x="${progressX + reqBarW}" y="${progressY}" width="${landingRemainderW}" height="${progressH}" rx="14" fill="#2c2c2c" />` : ''}
-          ${reqBarW > 0 ? `<line x1="${progressX + reqBarW}" y1="${progressY - 8}" x2="${progressX + reqBarW}" y2="${progressY + progressH + 8}" stroke="#8ec5ff" stroke-width="2.2" />` : ''}
-          <text x="${progressX + 10}" y="${progressY + 18}" fill="#ffffff" font-size="14" font-family="Courier New, monospace">THRESHOLD TO STOP</text>
-          ${Number.isFinite(requiredFt) ? `<text x="${Math.min(progressEndX - 12, Math.max(progressX + 170, progressX + reqBarW + 12))}" y="${progressY + 18}" fill="#8ec5ff" font-size="14" font-family="Courier New, monospace">REQUIRED ${Math.round(requiredFt)} FT</text>` : ''}
-          ${landingRemainderW > 52 ? `<text x="${progressEndX - 10}" y="${progressY + 18}" text-anchor="end" fill="#bdbdbd" font-size="14" font-family="Courier New, monospace">REMAINING</text>` : ''}`
-        : `
-          <rect x="${progressX}" y="${progressY}" width="${reqBarW}" height="${progressH}" rx="14" fill="#66ff99" />
-          ${extra50BarW > 0 ? `<rect x="${progressX + reqBarW}" y="${progressY}" width="${extra50BarW}" height="${progressH}" fill="#ffd84d" />` : ''}
-          ${dist50BarW > 0 ? `<line x1="${progressX + dist50BarW}" y1="${progressY - 8}" x2="${progressX + dist50BarW}" y2="${progressY + progressH + 8}" stroke="#ffd84d" stroke-width="2.2" />` : ''}
-          <text x="${progressX + 10}" y="${progressY + 18}" fill="#ffffff" font-size="14" font-family="Courier New, monospace">TAKEOFF ROLL</text>
-          ${Number.isFinite(dist50Ft) && Number.isFinite(availableFt) ? `<text x="${Math.min(progressEndX - 12, Math.max(progressX + 132, progressX + dist50BarW + 12))}" y="${progressY + 18}" fill="#ffd84d" font-size="14" font-family="Courier New, monospace">50FT ${Math.round(dist50Ft)} FT</text>` : ''}`;
-
-      const svg = `
-        <svg viewBox="0 0 ${viewW} ${viewH}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Runway performance visual">
+      container.innerHTML = `
+        <svg viewBox="0 0 ${viewW} ${viewH}" role="img" aria-label="Runway performance visual">
           <defs>
-            <linearGradient id="runwaySurfaceGradient" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="#44464d" />
-              <stop offset="45%" stop-color="#34363b" />
-              <stop offset="100%" stop-color="#26272b" />
+            <linearGradient id="${legendPrefix}-runway-surface" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#3d3d3d" />
+              <stop offset="50%" stop-color="#252525" />
+              <stop offset="100%" stop-color="#1b1b1b" />
             </linearGradient>
-            <linearGradient id="runwayEdgeGlow" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stop-color="rgba(255,255,255,0.1)" />
-              <stop offset="50%" stop-color="rgba(255,255,255,0)" />
-              <stop offset="100%" stop-color="rgba(255,255,255,0.1)" />
+            <linearGradient id="${legendPrefix}-green" x1="0" x2="1">
+              <stop offset="0%" stop-color="#4dff88" />
+              <stop offset="100%" stop-color="#00c853" />
             </linearGradient>
-            <linearGradient id="landingReqGradient" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stop-color="#66ff99" />
-              <stop offset="55%" stop-color="#8ec5ff" />
-              <stop offset="100%" stop-color="#8ec5ff" />
+            <linearGradient id="${legendPrefix}-yellow" x1="0" x2="1">
+              <stop offset="0%" stop-color="#ffe066" />
+              <stop offset="100%" stop-color="#ffb300" />
+            </linearGradient>
+            <linearGradient id="${legendPrefix}-orange" x1="0" x2="1">
+              <stop offset="0%" stop-color="#ffbe76" />
+              <stop offset="100%" stop-color="#ff7f11" />
+            </linearGradient>
+            <linearGradient id="${legendPrefix}-grey" x1="0" x2="1">
+              <stop offset="0%" stop-color="#5c5c5c" />
+              <stop offset="100%" stop-color="#303030" />
             </linearGradient>
           </defs>
 
-          <rect x="0" y="0" width="${viewW}" height="${viewH}" fill="#020202" />
-          <rect x="26" y="22" width="${viewW - 52}" height="${viewH - 44}" rx="18" fill="none" stroke="rgba(142,197,255,0.18)" />
-
-          <g transform="translate(34,40)">
-            <rect x="-12" y="-20" width="378" height="96" rx="12" fill="#06090d" stroke="rgba(142,197,255,0.22)" />
-            <text x="0" y="8" fill="#ffb347" font-size="32" font-weight="700" font-family="Courier New, monospace">${headwindLabel}</text>
-            <text x="0" y="46" fill="#ffb347" font-size="32" font-weight="700" font-family="Courier New, monospace">${crosswindLabel}</text>
-            <text x="0" y="78" fill="#bdbdbd" font-size="19" font-family="Courier New, monospace">${windDirText}</text>
-          </g>
-
-          <g transform="translate(${viewW - 264}, 34)">
-            <rect x="0" y="0" width="230" height="58" rx="10" fill="#06090d" stroke="${marginColor}" stroke-width="1.4" />
-            <text x="16" y="22" fill="#bdbdbd" font-size="14" font-family="Courier New, monospace">RUNWAY MARGIN</text>
-            <text x="16" y="44" fill="${marginColor}" font-size="24" font-family="Courier New, monospace">${Number.isFinite(remainingFt) ? `${remainingFt >= 0 ? '+' : ''}${Math.round(remainingFt)} FT` : 'NO DATA'}</text>
-          </g>
-
-          <g transform="translate(${viewW - 182}, 112)">
-            <circle cx="18" cy="18" r="16" fill="#05090d" stroke="rgba(142,197,255,0.35)" />
-            <text x="18" y="24" text-anchor="middle" fill="#8ec5ff" font-size="18" font-family="Courier New, monospace">N</text>
-          </g>
-
+          <rect x="18" y="18" width="${viewW - 36}" height="${viewH - 36}" rx="18" fill="#030303" stroke="#151515" stroke-width="1.5" />
           ${scaleTicks}
-          <rect x="${runwayX - 10}" y="${runwayY - 10}" width="${runwayW + 20}" height="${runwayH + 20}" rx="18" fill="none" stroke="rgba(255,255,255,0.06)" />
-          <rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="12" fill="url(#runwaySurfaceGradient)" stroke="#d7d7d7" stroke-width="1.8" />
-          <rect x="${runwayX + 6}" y="${runwayY + 6}" width="${runwayW - 12}" height="${runwayH - 12}" rx="10" fill="none" stroke="url(#runwayEdgeGlow)" />
-          ${centerline}
-          ${sideLights(runwayX - edgeInset)}
-          ${sideLights(runwayX + runwayW + edgeInset)}
-          ${thresholdLineLights(bottomY + 12, '#66ff99')}
-          ${thresholdLineLights(runwayY - 12, '#ff6b6b')}
 
-          <text x="${centerX}" y="${bottomNumY}" text-anchor="middle" fill="#ffffff" font-size="58" font-weight="700" font-family="Arial Black, Courier New, monospace">${runwayIdent}</text>
-          <text x="${centerX}" y="${topNumY}" text-anchor="middle" transform="rotate(180 ${centerX} ${topNumY})" fill="#ffffff" font-size="58" font-weight="700" font-family="Arial Black, Courier New, monospace">${oppositeIdent}</text>
+          <g>
+            <rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="18" fill="url(#${legendPrefix}-runway-surface)" stroke="#7c7c7c" stroke-width="2.3" />
+            <rect x="${runwayX + 8}" y="${runwayY + 8}" width="${runwayW - 16}" height="${runwayH - 16}" rx="13" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+            ${sideLights(runwayX + 8)}
+            ${sideLights(runwayX + runwayW - 8)}
+            ${thresholdLineLights(runwayY + 14, "#ff4d4d")}
+            ${thresholdLineLights(bottomY - 14, "#4dff88")}
+            ${centerline}
+            ${aimingBlocks}
+            ${touchdownMarkers}
+          </g>
 
-          ${mainAircraft}
-          ${touchdownMarker}
+          <text x="${centerX}" y="${runwayY + 68}" text-anchor="middle" fill="#f4f4f4" font-size="42" font-weight="700" transform="rotate(180 ${centerX} ${runwayY + 68})" font-family="Courier New, monospace">${oppositeIdent || ''}</text>
+          <text x="${centerX}" y="${bottomY - 32}" text-anchor="middle" fill="#f4f4f4" font-size="44" font-weight="700" font-family="Courier New, monospace">${runwayIdent}</text>
+
+          ${thresholdLabel}
           ${verticalMarker}
           ${distance50Marker}
+          ${accelerateStopMarker}
+          ${mainAircraft}
 
-          <g transform="translate(0, 0)">
-            <rect x="${progressX}" y="${progressY}" width="${progressW}" height="${progressH}" rx="14" fill="#3a3a3a" />
-            ${progressModeOverlay}
-            <text x="${progressX + 6}" y="${progressY - 12}" fill="#66ff99" font-size="16" font-family="Courier New, monospace">REQ ${Number.isFinite(requiredFt) ? Math.round(requiredFt) : '---'} FT</text>
-            <text x="${progressX + progressW - 6}" y="${progressY - 12}" text-anchor="end" fill="#8ec5ff" font-size="16" font-family="Courier New, monospace">AVBL ${Number.isFinite(availableFt) ? Math.round(availableFt) : '---'} FT</text>
+          <g transform="translate(54, 64)">
+            <rect x="0" y="0" width="330" height="132" rx="12" fill="#070707" stroke="#8ec5ff" stroke-width="1.2" />
+            <text x="20" y="32" fill="#ffffff" font-size="30" font-family="Courier New, monospace">${headwindLabel}</text>
+            <text x="20" y="68" fill="#ffffff" font-size="30" font-family="Courier New, monospace">${crosswindLabel}</text>
+            <text x="20" y="104" fill="#8ec5ff" font-size="21" font-family="Courier New, monospace">${windDirText}</text>
           </g>
 
-          <g transform="translate(${progressX - 62}, ${progressY - 1})">${slopeArrow}</g>
+          <g transform="translate(704, 64)">
+            <rect x="0" y="0" width="320" height="132" rx="12" fill="#070707" stroke="${cautionColor}" stroke-width="1.2" />
+            <text x="20" y="32" fill="#bdbdbd" font-size="18" font-family="Courier New, monospace">RWY COND ${String(options?.conditionText || 'DRY').toUpperCase()}</text>
+            <text x="20" y="66" fill="#ffffff" font-size="22" font-family="Courier New, monospace">SLOPE ${String(options?.slopeText || '0%').toUpperCase()}</text>
+            <text x="20" y="96" fill="#8ec5ff" font-size="18" font-family="Courier New, monospace">${slopeDirection}</text>
+            <text x="20" y="120" fill="${cautionColor}" font-size="18" font-family="Courier New, monospace">${cautionText}</text>
+          </g>
+
+          <g transform="translate(${progressX}, ${progressY})">
+            <rect x="0" y="0" width="${progressW}" height="${progressH}" rx="8" fill="url(#${legendPrefix}-grey)" stroke="#5d5d5d" stroke-width="1.2" />
+            ${aircraftMode === 'DEP'
+              ? `
+                <rect x="0" y="0" width="${reqBarW}" height="${progressH}" rx="8" fill="url(#${legendPrefix}-green)" />
+                <rect x="${reqBarW}" y="0" width="${extra50BarW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-yellow)" />
+                <rect x="${Math.max(reqBarW, dist50BarW)}" y="0" width="${extraStopBarW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-orange)" />`
+              : `
+                <rect x="0" y="0" width="${reqBarW}" height="${progressH}" rx="8" fill="url(#${legendPrefix}-yellow)" />
+                <rect x="${reqBarW}" y="0" width="${landingRemainderW}" height="${progressH}" rx="0" fill="url(#${legendPrefix}-grey)" />
+                <line x1="${Math.max(0, reqBarW)}" y1="-8" x2="${Math.max(0, reqBarW)}" y2="${progressH + 8}" stroke="#8ec5ff" stroke-width="3" />`
+            }
+            <text x="0" y="-10" fill="#d7d7d7" font-size="14" font-family="Courier New, monospace">${aircraftMode === 'DEP' ? 'BRAKE RELEASE' : 'THRESHOLD'}</text>
+            <text x="${progressW - 4}" y="-10" text-anchor="end" fill="#d7d7d7" font-size="14" font-family="Courier New, monospace">${aircraftMode === 'DEP' ? 'RUNWAY END' : 'STOP END'}</text>
+          </g>
 
           ${perfBoxes}
         </svg>
       `;
-      container.innerHTML = svg;
 
       setNodeText(`${legendPrefix}Req`, formatFeet(requiredFt));
       setNodeText(`${legendPrefix}Avail`, formatFeet(availableFt));
@@ -2448,8 +2527,10 @@ function renderTakeoffRunwayVisual(data, calc) {
         slopeText: el('perfTakeoffSlope').textContent || '0%',
         slopeValue: Number(String(el('perfTakeoffSlope').textContent || '').replace(/[^0-9.\-]/g, '')),
         distance50Ft: calc?.distance50FtFt,
+        accelerateStopFt: calc?.accelerateStopFt,
         headwindKt: rw?.hwXw?.headwindKt,
-        crosswindKt: rw?.hwXw?.crosswindKt
+        crosswindKt: rw?.hwXw?.crosswindKt,
+        tailwindKt: calc?.tailwindKt
       });
     }
 
@@ -2471,8 +2552,10 @@ function renderTakeoffRunwayVisual(data, calc) {
         conditionText: el('perfLandingRwyCond').value || aw?.rwyCond || 'DRY',
         slopeText: el('perfLandingSlope').textContent || '0%',
         slopeValue: Number(String(el('perfLandingSlope').textContent || '').replace(/[^0-9.\-]/g, '')),
+        distance50Ft: calc?.distance50FtFt,
         headwindKt: aw?.hwXw?.headwindKt,
-        crosswindKt: aw?.hwXw?.crosswindKt
+        crosswindKt: aw?.hwXw?.crosswindKt,
+        tailwindKt: calc?.tailwindKt
       });
     }
 
@@ -2516,6 +2599,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         formatAcarsPair('VY', formatSpeedAcars(calc.vyKias, unit), 'RWY REMAIN', formatFeet(remain)),
         formatAcarsPair('ROTATE PITCH', '7–9° NOSE UP', '50FT DISTANCE', formatFeet(calc.distance50FtFt)),
         formatAcarsPair('XWIND LIMIT', `${calc.xwindLimitKt} KT`, 'WIND COMP', formatWindComp(rw.hwXw)),
+        formatAcarsPair('ACCEL-STOP', formatFeet(calc.accelerateStopFt), 'STOP MARGIN', formatFeet(calc.stopMarginFt)),
         '',
         'RMK:',
         messages
@@ -2642,6 +2726,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfTakeoffDist50', '..... FT');
       setNodeText('perfTakeoffRotatePitch', '7–9° NOSE UP');
       setNodeText('perfTakeoffXwindLimit', '17 KT');
+      setNodeText('perfTakeoffAccelStop', '..... FT');
+      setNodeText('perfTakeoffStopMargin', '..... FT');
       setNodeText('perfTakeoffMessages', 'NONE');
       setNodeText('perfTakeoffAcars', `TAKEOFF PERFORMANCE\n\n${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
       el('perfTakeoffVisual').innerHTML = '';
@@ -2662,7 +2748,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfLandingDensityAltitude', '..... FT');
       setNodeText('perfLandingSlope', '..... %');
       el('perfLandingFlaps').value = '';
-      el('perfLandingSpeedUnit').value = 'MPH';
+      el('perfLandingSpeedUnit').value = 'KTS';
       el('perfLandingAc').value = 'OFF';
       el('perfLandingBraking').value = 'MOD';
       setNodeText('perfLandingVref', '..... KIAS');
@@ -2874,12 +2960,18 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfTakeoffDist50', formatFeet(calc.distance50FtFt));
       setNodeText('perfTakeoffRotatePitch', calc.rotatePitch || '7–9° NOSE UP');
       setNodeText('perfTakeoffXwindLimit', `${calc.xwindLimitKt} KT`);
+      setNodeText('perfTakeoffAccelStop', formatFeet(calc.accelerateStopFt));
+      setNodeText('perfTakeoffStopMargin', formatFeet(calc.stopMarginFt));
       setNodeText('perfTakeoffMessages', Array.isArray(calc.messages) && calc.messages.length ? calc.messages.join('\n') : 'NONE');
       setNodeText('perfTakeoffWindComp', formatWindComp(rw.hwXw));
+      setPerformanceTone('perfTakeoffWindComp', calc.cautionTailwind ? 'caution' : 'info');
+      setPerformanceTone('perfTakeoffAccelStop', calc.cautionStopMargin ? 'danger' : 'warn');
+      applyMarginTone('perfTakeoffStopMargin', calc.stopMarginFt, 350, 700);
       setNodeText('perfTakeoffRwyAvail', formatFeet(Number(String(el('perfTakeoffTora').textContent || '').replace(/[^0-9]/g, '')) || rw.toraFt));
       const takeoffAvail = Number(String(el('perfTakeoffTora').textContent || '').replace(/[^0-9]/g, '')) || rw.toraFt;
       const takeoffRemain = Number.isFinite(takeoffAvail) && Number.isFinite(calc.takeoffDistanceRequiredFt) ? takeoffAvail - calc.takeoffDistanceRequiredFt : null;
       setNodeText('perfTakeoffRwyRemain', formatFeet(takeoffRemain));
+      applyMarginTone('perfTakeoffRwyRemain', takeoffRemain, 350, 700);
       setNodeText('perfTakeoffAcars', buildTakeoffAcarsBlock(data, calc));
       renderTakeoffRunwayVisual(data, calc);
     }
@@ -2923,6 +3015,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfLandingRwyAvail', formatFeet(ldaVal));
       setNodeText('perfLandingRwyRemain', formatFeet(Number.isFinite(ldaVal) && Number.isFinite(calc.landingDistanceRequiredFt) ? ldaVal - calc.landingDistanceRequiredFt : null));
       setNodeText('perfLandingWindComp', formatWindComp(aw.hwXw));
+      setPerformanceTone('perfLandingWindComp', calc.cautionTailwind ? 'caution' : 'info');
       el('perfLandingBraking').value = el('perfLandingBraking').value || calc.braking || 'MOD';
       setNodeText('perfLandingGoAroundPower', calc.goAroundPower || 'FULL');
       setNodeText('perfLandingFlapsUpSpeed', formatSpeedValue(calc.flapsUpSpeedKias, calc.speedUnit));
@@ -2931,6 +3024,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       const landingAvail = Number(String(el('perfLandingLda').textContent || '').replace(/[^0-9]/g, '')) || aw.ldaFt;
       const landingRemain = Number.isFinite(landingAvail) && Number.isFinite(calc.landingDistanceRequiredFt) ? landingAvail - calc.landingDistanceRequiredFt : null;
       setNodeText('perfLandingRwyRemain', formatFeet(landingRemain));
+      applyMarginTone('perfLandingRwyRemain', landingRemain, 400, 800);
       setNodeText('perfLandingNotes', Array.isArray(calc.messages) && calc.messages.length ? calc.messages.join('\n') : 'NONE');
       setNodeText('perfLandingAcars', buildLandingAcarsBlock(data, calc));
       renderLandingRunwayVisual(data, calc);
