@@ -1252,8 +1252,8 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
                 </select>
               </div>
               <div class="performance-item">
-                <span class="performance-label">HW/XW</span>
-                <span id="perfLandingHwXw" class="performance-value performance-value-info">...../.....</span>
+                <span class="performance-label">HDG</span>
+                <span id="perfLandingRunwayHeading" class="performance-value performance-value-warn">..... °</span>
               </div>
             </div>
 
@@ -1273,8 +1273,8 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
 
             <div class="performance-row">
               <div class="performance-item">
-                <span class="performance-label">HDG</span>
-                <span id="perfLandingRunwayHeading" class="performance-value performance-value-warn">..... °</span>
+                <span class="performance-label">HW/XW</span>
+                <span id="perfLandingHwXw" class="performance-value performance-value-info">...../.....</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">QNH</span>
@@ -2280,17 +2280,31 @@ END OF REPORT`;
     function mphToKts(mph) { return mph * 0.868976; }
     function ktsToMph(kts) { return kts / 0.868976; }
 
-    function computeLandingReferenceSpeeds(hwKt, xwKt) {
+    function computeLandingReferenceSpeeds(hwKt, xwKt, flapSetting = '40°') {
       const headwind = Number.isFinite(hwKt) ? hwKt : 0;
       const crosswind = Number.isFinite(xwKt) ? Math.abs(xwKt) : 0;
       const tailwind = headwind < 0 ? Math.abs(headwind) : 0;
-      const windAdditive = Math.min(5, (Math.max(headwind, 0) * 0.15) + (crosswind * 0.16) + (tailwind * 0.38));
-      const vref = Math.max(85, Math.min(90, 85 + windAdditive));
-      const finalAdditive = 4 + Math.min(2, (crosswind * 0.05) + (tailwind * 0.12));
-      const finalApp = Math.max(90, Math.min(95, vref + finalAdditive));
+      let baseVrefMph = 90;
+      let baseFinalMph = 95;
+
+      if (flapSetting === '25°') {
+        baseVrefMph = 92;
+        baseFinalMph = 97;
+      } else if (flapSetting === '10°') {
+        baseVrefMph = 94;
+        baseFinalMph = 99;
+      } else if (flapSetting === '0°') {
+        baseVrefMph = 95;
+        baseFinalMph = 100;
+      }
+
+      const windAdditiveMph = Math.min(2.5, (crosswind * 0.22) + (tailwind * 0.38));
+      const vrefMph = Math.max(baseVrefMph, Math.min(95, baseVrefMph + windAdditiveMph));
+      const finalAppMph = Math.max(baseFinalMph, Math.min(100, vrefMph + 5));
+
       return {
-        vrefKias: vref,
-        finalApproachSpeedKias: finalApp
+        vrefKias: mphToKts(vrefMph),
+        finalApproachSpeedKias: mphToKts(finalAppMph)
       };
     }
 
@@ -2577,14 +2591,16 @@ END OF REPORT`;
 
       const tailwindKt = headwind < 0 ? Math.abs(headwind) : 0;
       const crosswindAbsKt = Math.abs(crosswind);
-      const baseVrKts = mphToKts(80);
+      const flapVrOffsetMph = flaps === '0°' ? 5 : (flaps === '10°' ? 2 : 0);
+      const flapClimbOffsetMph = flaps === '0°' ? 3 : (flaps === '10°' ? 1 : 0);
+      const baseVrKts = mphToKts(80 + flapVrOffsetMph);
       const densityAdditive = Math.max(0, Math.min(2.2, densityAlt / 3500));
       const weightAdditive = Math.max(0, Math.min(1.8, (weightFactor - 0.94) * 10));
       const windVrAdditive = Math.max(0, (tailwindKt * 0.28) + (Math.max(0, crosswindAbsKt - 8) * 0.10));
       const vrKts = Math.round(Math.max(baseVrKts, baseVrKts + densityAdditive + weightAdditive + windVrAdditive));
 
-      const vxKts = mphToKts(AIRCRAFT.vxMph);
-      const vyKts = mphToKts(AIRCRAFT.vyMph);
+      const vxKts = mphToKts(AIRCRAFT.vxMph + flapClimbOffsetMph);
+      const vyKts = mphToKts(AIRCRAFT.vyMph + flapClimbOffsetMph);
       const takeoffDistanceRequiredFt = Math.round(groundRoll * 1.1);
       const distance50FtFt = Math.round(over50 * 1.1);
       const accelerateStopFt = Math.round(Math.max(takeoffDistanceRequiredFt * 1.22, groundRoll + (vrKts * 18)));
@@ -2669,7 +2685,7 @@ END OF REPORT`;
         over50 *= 1 + (slope * 0.05);
       }
 
-      const speedTargets = computeLandingReferenceSpeeds(headwind, crosswind);
+      const speedTargets = computeLandingReferenceSpeeds(headwind, crosswind, flaps);
       const landingDistanceRequiredFt = Math.round(groundRoll * 1.1);
       const distance50FtFt = Math.round(over50 * 1.1);
       const marginFt = Number.isFinite(runwayAvailable) ? runwayAvailable - landingDistanceRequiredFt : null;
@@ -2936,7 +2952,7 @@ END OF REPORT`;
 
       const hw = Number(options?.headwindKt);
       const xw = Number(options?.crosswindKt);
-      const headwindArrow = Number.isFinite(hw) ? (hw >= 0 ? '↑' : '↓') : '↑';
+      const headwindArrow = Number.isFinite(hw) ? (hw >= 0 ? '↓' : '↑') : '↓';
       const crosswindArrow = Number.isFinite(xw) ? (xw >= 0 ? '←' : '→') : '←';
       const headwindLabel = Number.isFinite(hw) ? `${Math.round(Math.abs(hw))} KT` : '-- KT';
       const headwindType = Number.isFinite(hw) ? (hw >= 0 ? 'HEADWIND' : 'TAILWIND') : 'HEADWIND';
@@ -2968,21 +2984,19 @@ END OF REPORT`;
       if (aircraftMode === 'ARR') {
         const reqCappedH = Number.isFinite(reqBarH) ? Math.max(0, Math.min(barH, reqBarH)) : 0;
         const remainBarH = Number.isFinite(availableFt) && Number.isFinite(requiredFt) ? Math.max(0, Math.min(barH - reqCappedH, ((availableFt - requiredFt) / availableFt) * barH)) : 0;
-        const ldaCapH = Math.max(14, Math.round(barH * 0.06));
-        landingBarMarkup = `<rect x="0" y="0" width="${barW}" height="${barH}" rx="10" fill="rgba(102,255,153,0.10)" stroke="#66ff99" stroke-width="1.2" />`;
-        if (ldaCapH > 0) {
-          landingBarMarkup += `<rect x="0" y="0" width="${barW}" height="${ldaCapH}" rx="8" fill="url(#${legendPrefix}-green)" opacity="0.98" filter="url(#${legendPrefix}-softGlow)" />`;
-        }
+        const greenCapH = Math.max(18, Math.round(barH * 0.08));
+        landingBarMarkup = `<rect x="0" y="0" width="${barW}" height="${barH}" rx="10" fill="url(#${legendPrefix}-green)" opacity="0.94" filter="url(#${legendPrefix}-softGlow)" />`;
         if (remainBarH > 0) {
-          const remainY = Math.max(ldaCapH, barH - reqCappedH - remainBarH);
+          const remainY = Math.max(greenCapH, barH - reqCappedH - remainBarH);
           const remainVisibleH = Math.max(0, barH - reqCappedH - remainY);
           if (remainVisibleH > 0) {
-            landingBarMarkup += `<rect x="0" y="${remainY}" width="${barW}" height="${remainVisibleH}" rx="0" fill="url(#${legendPrefix}-yellow)" opacity="0.96" filter="url(#${legendPrefix}-softGlow)" />`;
+            landingBarMarkup += `<rect x="0" y="${remainY}" width="${barW}" height="${remainVisibleH}" rx="0" fill="url(#${legendPrefix}-yellow)" opacity="0.97" filter="url(#${legendPrefix}-softGlow)" />`;
           }
         }
         if (reqCappedH > 0) {
-          landingBarMarkup += `<rect x="0" y="${barH - reqCappedH}" width="${barW}" height="${reqCappedH}" rx="0" fill="#ff4d4d" opacity="0.96" filter="url(#${legendPrefix}-softGlow)" />`;
+          landingBarMarkup += `<rect x="0" y="${barH - reqCappedH}" width="${barW}" height="${reqCappedH}" rx="0" fill="#ff4d4d" opacity="0.98" filter="url(#${legendPrefix}-softGlow)" />`;
         }
+        landingBarMarkup += `<rect x="0" y="0" width="${barW}" height="${greenCapH}" rx="8" fill="url(#${legendPrefix}-green)" opacity="1" filter="url(#${legendPrefix}-softGlow)" />`;
       }
 
       container.innerHTML = `<svg viewBox="0 0 ${viewW} ${viewH}" role="img" aria-label="Runway performance visual"><defs><linearGradient id="${legendPrefix}-runway-surface" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#474747" /><stop offset="44%" stop-color="#282828" /><stop offset="100%" stop-color="#191919" /></linearGradient><linearGradient id="${legendPrefix}-runway-sheen" x1="0" x2="1"><stop offset="0%" stop-color="rgba(255,255,255,0)" /><stop offset="50%" stop-color="rgba(255,255,255,0.09)" /><stop offset="100%" stop-color="rgba(255,255,255,0)" /></linearGradient><linearGradient id="${legendPrefix}-green" x1="0" x2="1"><stop offset="0%" stop-color="#66ff99" /><stop offset="100%" stop-color="#00c853" /></linearGradient><linearGradient id="${legendPrefix}-yellow" x1="0" x2="1"><stop offset="0%" stop-color="#ffe066" /><stop offset="100%" stop-color="#ffb300" /></linearGradient><linearGradient id="${legendPrefix}-orange" x1="0" x2="1"><stop offset="0%" stop-color="#ffc16a" /><stop offset="100%" stop-color="#ff7f11" /></linearGradient><linearGradient id="${legendPrefix}-grey" x1="0" x2="1"><stop offset="0%" stop-color="#5c5c5c" /><stop offset="100%" stop-color="#303030" /></linearGradient><filter id="${legendPrefix}-softGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter><filter id="${legendPrefix}-aircraftShadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.65)" /></filter></defs><rect x="18" y="18" width="${viewW - 36}" height="${viewH - 36}" rx="18" fill="#030303" stroke="#151515" stroke-width="1.5" />${scaleTicks}<g transform="translate(${barX}, ${barY})"><text x="${barW / 2}" y="-12" text-anchor="middle" fill="#d7d7d7" font-size="13" font-family="Courier New, monospace">${aircraftMode === 'DEP' ? 'ROLL' : 'STOP'}</text><rect x="0" y="0" width="${barW}" height="${barH}" rx="10" fill="url(#${legendPrefix}-grey)" stroke="#5d5d5d" stroke-width="1.2" />${aircraftMode === 'DEP' ? `<rect x="0" y="${barH - reqBarH}" width="${barW}" height="${reqBarH}" rx="8" fill="url(#${legendPrefix}-green)" filter="url(#${legendPrefix}-softGlow)" /><rect x="0" y="${barH - dist50BarH}" width="${barW}" height="${extra50BarH}" rx="0" fill="url(#${legendPrefix}-yellow)" filter="url(#${legendPrefix}-softGlow)" /><rect x="0" y="${barH - accelerateStopBarH}" width="${barW}" height="${extraStopBarH}" rx="0" fill="url(#${legendPrefix}-orange)" filter="url(#${legendPrefix}-softGlow)" />` : landingBarMarkup}${progressLabels}</g><g><rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="18" fill="url(#${legendPrefix}-runway-surface)" stroke="#7c7c7c" stroke-width="2.3" /><rect x="${runwayX + 32}" y="${runwayY + 20}" width="${runwayW - 64}" height="${runwayH - 40}" rx="20" fill="url(#${legendPrefix}-runway-sheen)" opacity="0.34" /><rect x="${runwayX + 8}" y="${runwayY + 8}" width="${runwayW - 16}" height="${runwayH - 16}" rx="13" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />${sideLights(runwayX + 8)}${sideLights(runwayX + runwayW - 8)}${thresholdLineLights(runwayY + 14, '#ff4d4d')}${thresholdLineLights(bottomY - 14, '#4dff88')}${centerline}${aimingBlocks}${touchdownMarkers}</g><text x="${centerX}" y="${runwayY + 72}" text-anchor="middle" fill="#f7f7f7" stroke="rgba(0,0,0,0.70)" stroke-width="4" paint-order="stroke fill" font-size="44" font-weight="700" transform="rotate(180 ${centerX} ${runwayY + 72})" font-family="Courier New, monospace" filter="url(#${legendPrefix}-softGlow)">${oppositeIdent || ''}</text><text x="${centerX}" y="${bottomY - 34}" text-anchor="middle" fill="#f7f7f7" stroke="rgba(0,0,0,0.72)" stroke-width="4" paint-order="stroke fill" font-size="46" font-weight="700" font-family="Courier New, monospace" filter="url(#${legendPrefix}-softGlow)">${runwayIdent}</text>${thresholdLabel}${verticalMarker}${distance50Marker}${accelerateStopMarker}${goAroundMarker}${rejectTakeoffMarker}<g data-anim="aircraft" filter="url(#${legendPrefix}-aircraftShadow)">${mainAircraft}</g><g transform="translate(54, 62)"><rect x="0" y="0" width="318" height="138" rx="14" fill="#070707" stroke="#8ec5ff" stroke-width="1.2" /><rect x="0" y="0" width="318" height="68" rx="14" fill="rgba(142,197,255,0.06)" /><rect x="0" y="70" width="318" height="68" rx="14" fill="rgba(255,159,67,0.10)" stroke="#ff9f43" stroke-width="0.8" /><text x="22" y="30" fill="#8ec5ff" font-size="22" font-family="Courier New, monospace">${headwindArrow}</text><text x="54" y="30" fill="#ffffff" font-size="22" font-family="Courier New, monospace">${headwindType}</text><text x="284" y="30" text-anchor="end" fill="#ffffff" font-size="22" font-family="Courier New, monospace">${headwindLabel}</text><text x="22" y="102" fill="#ff9f43" font-size="22" font-family="Courier New, monospace">${crosswindArrow}</text><text x="54" y="102" fill="#ffb15c" font-size="22" font-family="Courier New, monospace">CROSSWIND</text><text x="284" y="102" text-anchor="end" fill="#ffb15c" font-size="22" font-family="Courier New, monospace">${crosswindLabel}</text></g><g transform="translate(712, 64)"><rect x="0" y="0" width="312" height="128" rx="12" fill="#070707" stroke="${cautionColor}" stroke-width="1.2" /><text x="20" y="32" fill="#bdbdbd" font-size="18" font-family="Courier New, monospace">RWY COND ${String(options?.conditionText || 'DRY').toUpperCase()}</text><text x="20" y="64" fill="#ffffff" font-size="22" font-family="Courier New, monospace">SLOPE ${String(options?.slopeText || '0%').toUpperCase()}</text><text x="20" y="94" fill="#8ec5ff" font-size="18" font-family="Courier New, monospace">${slopeDirection}</text><text x="20" y="118" fill="${cautionColor}" font-size="18" font-family="Courier New, monospace">${cautionText}</text></g></svg>`;
