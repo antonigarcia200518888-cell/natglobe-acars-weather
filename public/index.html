@@ -487,7 +487,7 @@
     }
 
     .performance-inline-input.wide { width: 150px; }
-    .performance-inline-input.runway-select { width: 170px; text-align: left; }
+    .performance-inline-input.runway-select { width: 170px; text-align: left; font-weight: 700; color: #fff; }
     .performance-inline-input.locked { background: #050505; color: #d7d7d7; pointer-events: none; }
     .performance-inline-input.mode-auto { color: var(--live) !important; }
     .performance-inline-input.mode-man { color: var(--warn) !important; }
@@ -766,7 +766,7 @@
     }
 
     .performance-inline-display.oatdp {
-      width: 108px;
+      width: 86px;
       font-size: 12px;
     }
 
@@ -2556,6 +2556,60 @@ END OF REPORT`;
       };
     }
 
+    function getMetarLineFromText(sourceText, icao) {
+      const target = normalizeIcaoInputValue(icao);
+      if (!target) return '';
+      const text = String(sourceText || '');
+      if (!text) return '';
+      const lines = text.split(/\r?\n/);
+      const exactLine = lines.find((ln) => upper(ln).startsWith(`${target} `));
+      if (exactLine) return exactLine;
+      const match = text.match(new RegExp(`(?:^|\n)(${target}\s+[^\n]+)`, 'i'));
+      return match ? String(match[1] || '').trim() : '';
+    }
+
+    function getMetarTempDewFromLine(line) {
+      const m = upper(line).match(/\s(M?\d{1,2})\/(M?\d{1,2})\b/);
+      if (!m) return null;
+      const parseSigned = (token) => {
+        const s = String(token || '');
+        if (!s) return null;
+        if (s.startsWith('M')) return -Number(s.slice(1));
+        return Number(s);
+      };
+      const tempC = parseSigned(m[1]);
+      const dewC = parseSigned(m[2]);
+      return {
+        tempC: Number.isFinite(tempC) ? tempC : null,
+        dewC: Number.isFinite(dewC) ? dewC : null
+      };
+    }
+
+    function findMetarLineInObject(source, icao, depth = 0) {
+      if (!source || depth > 6) return '';
+      if (typeof source === 'string') return getMetarLineFromText(source, icao);
+      if (Array.isArray(source)) {
+        for (const item of source) {
+          const found = findMetarLineInObject(item, icao, depth + 1);
+          if (found) return found;
+        }
+        return '';
+      }
+      if (typeof source !== 'object') return '';
+      for (const value of Object.values(source)) {
+        const found = findMetarLineInObject(value, icao, depth + 1);
+        if (found) return found;
+      }
+      return '';
+    }
+
+    function getBestMetarTempDew(source, icao) {
+      const objectLine = findMetarLineInObject(source, icao);
+      const objectPair = getMetarTempDewFromLine(objectLine);
+      if (objectPair && (Number.isFinite(objectPair.tempC) || Number.isFinite(objectPair.dewC))) return objectPair;
+      return getMetarTempDewForIcao(icao);
+    }
+
     function clearRunwayVisualOutput(kind) {
       const visualId = kind === 'takeoff' ? 'perfTakeoffVisual' : 'perfLandingVisual';
       const visual = el(visualId);
@@ -3829,7 +3883,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(rw.qnhHpa)) el('perfTakeoffQnh').value = Math.round(rw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : rw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) rw.qnhHpa = effectiveQnh;
-      const takeoffMetarTempDew = getMetarTempDewForIcao(rw?.apt?.icao || fields.dep.value) || {};
+      const takeoffMetarTempDew = getBestMetarTempDew(data?.takeoff || data, rw?.apt?.icao || fields.dep.value) || {};
       syncWindOatUi('takeoff', rw.wind, rw.oatC, takeoffMetarTempDew.dewC);
       const effectiveWind = getEffectiveWind('takeoff', rw.wind, rw.hdgDeg);
       if (effectiveWind.wind) rw.wind = effectiveWind.wind;
@@ -3896,7 +3950,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(aw.qnhHpa)) el('perfLandingQnh').value = Math.round(aw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : aw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) aw.qnhHpa = effectiveQnh;
-      const landingMetarTempDew = getMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value) || {};
+      const landingMetarTempDew = getBestMetarTempDew(data?.landing || data, aw?.apt?.icao || fields.arr.value) || {};
       const landingDewPoint = Number.isFinite(aw.dpC) ? aw.dpC : landingMetarTempDew.dewC;
       if (Number.isFinite(landingDewPoint)) aw.dpC = landingDewPoint;
       syncWindOatUi('landing', aw.wind, aw.oatC, landingDewPoint);
