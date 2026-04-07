@@ -493,7 +493,7 @@
     .performance-inline-input.mode-man { color: var(--warn) !important; }
     .performance-inline-display.locked.mode-auto { color: var(--live) !important; }
     .performance-inline-display.locked.mode-man { color: var(--warn) !important; }
-    .performance-inline-input.qnh-manual { width: 86px; }
+    .performance-inline-input.qnh-manual { width: 86px; font-weight: 700; color: #fff; }
     .performance-inline-input.oatdp-compact { width: 86px; font-size: 12px; }
     .performance-inline-suffix { color: #d7d7d7; font-size: 13px; white-space: nowrap; margin-left: -4px; }
 
@@ -768,6 +768,15 @@
     .performance-inline-display.oatdp {
       width: 86px;
       font-size: 12px;
+    }
+
+
+    #perfTakeoffWeight,
+    #perfLandingWeight,
+    #perfTakeoffQnh,
+    #perfLandingQnh {
+      font-weight: 700;
+      color: #fff;
     }
 
     .performance-inline-display.locked {
@@ -1186,7 +1195,7 @@
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">TO WEIGHT</span>
-                <input id="perfTakeoffWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="....." /><span class="performance-inline-suffix">LBS</span>
+                <input id="perfTakeoffWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="...." /><span class="performance-inline-suffix">LBS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">FLAPS</span>
@@ -1414,7 +1423,7 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">LANDING WT</span>
-                <input id="perfLandingWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="....." /><span class="performance-inline-suffix">LBS</span>
+                <input id="perfLandingWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="...." /><span class="performance-inline-suffix">LBS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">FLAPS</span>
@@ -2607,6 +2616,44 @@ END OF REPORT`;
       const objectLine = findMetarLineInObject(source, icao);
       const objectPair = getMetarTempDewFromLine(objectLine);
       if (objectPair && (Number.isFinite(objectPair.tempC) || Number.isFinite(objectPair.dewC))) return objectPair;
+
+      const seen = new WeakSet();
+      function scanPair(node, depth = 0) {
+        if (!node || depth > 8) return null;
+        if (typeof node !== 'object') return null;
+        if (seen.has(node)) return null;
+        seen.add(node);
+
+        const dewCandidates = [node.dpC, node.dewC, node.dewPointC, node.dewpointC, node.dew_point_c, node.dewPoint, node.dewpoint];
+        const tempCandidates = [node.oatC, node.tempC, node.temperatureC, node.temp, node.oat];
+        const dewCandidate = dewCandidates.find((value) => Number.isFinite(Number(value)));
+        const tempCandidate = tempCandidates.find((value) => Number.isFinite(Number(value)));
+        if (dewCandidate !== undefined || tempCandidate !== undefined) {
+          const pair = {
+            tempC: tempCandidate !== undefined && Number.isFinite(Number(tempCandidate)) ? Number(tempCandidate) : null,
+            dewC: dewCandidate !== undefined && Number.isFinite(Number(dewCandidate)) ? Number(dewCandidate) : null
+          };
+          if (Number.isFinite(pair.tempC) || Number.isFinite(pair.dewC)) return pair;
+        }
+
+        if (Array.isArray(node)) {
+          for (const item of node) {
+            const found = scanPair(item, depth + 1);
+            if (found) return found;
+          }
+          return null;
+        }
+
+        for (const value of Object.values(node)) {
+          const found = scanPair(value, depth + 1);
+          if (found) return found;
+        }
+        return null;
+      }
+
+      const scannedPair = scanPair(source);
+      if (scannedPair && (Number.isFinite(scannedPair.tempC) || Number.isFinite(scannedPair.dewC))) return scannedPair;
+
       return getMetarTempDewForIcao(icao);
     }
 
