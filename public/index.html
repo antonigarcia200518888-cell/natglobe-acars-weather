@@ -801,9 +801,9 @@
     .preview-text .hl-live { color: var(--live); font-weight: 700; }
     .preview-text .hl-info { color: var(--accent); font-weight: 700; }
     .preview-text .hl-vfr { color: var(--live); font-weight: 700; }
-    .preview-text .hl-mvfr { color: #7db7ff; font-weight: 700; }
+    .preview-text .hl-mvfr { color: #66b3ff; font-weight: 700; }
     .preview-text .hl-ifr { color: var(--danger); font-weight: 700; }
-    .preview-text .hl-lifr { color: #ff7bff; font-weight: 700; }
+    .preview-text .hl-lifr { color: #ff77ff; font-weight: 700; }
 
     .history-wrap {
       border: 2px solid var(--line);
@@ -1536,11 +1536,11 @@ OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
 FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
-METAR MODE LIVE (VFR)
+METAR MODE LIVE
 EFHV 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
 ARR WX (EFHK)
-METAR MODE LIVE (MVFR)
+METAR MODE LIVE
 EFHK 051650Z 19014KT 9999 SCT018 BKN030 04/01 Q1002
 
 RMK NIL
@@ -1588,11 +1588,11 @@ OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
 FLT NG123   ORIG EFHV   DEST EFHK   ROUTE EFHV-EFHK
 
 DEP WX (EFHV)
-METAR MODE LIVE (VFR)
+METAR MODE LIVE
 EFHV 051620Z 12012KT 9999 FEW012 03/00 Q1000
 
 ARR WX (EFHK)
-METAR MODE LIVE (MVFR)
+METAR MODE LIVE
 EFHK 051650Z 19014KT 9999 SCT018 BKN030 04/01 Q1002
 
 RMK NIL
@@ -2059,68 +2059,64 @@ END OF REPORT`;
 
 
     function parseMetarVisibilityMiles(metarLine) {
-      const line = String(metarLine || '').toUpperCase();
-      const fractionSmMatch = line.match(/\b(P?)(\d+)?\s?(\d+)\/(\d+)SM\b/);
-      if (fractionSmMatch) {
-        const whole = fractionSmMatch[2] ? parseInt(fractionSmMatch[2], 10) : 0;
-        const num = parseInt(fractionSmMatch[3], 10);
-        const den = parseInt(fractionSmMatch[4], 10);
-        if (!Number.isNaN(num) && !Number.isNaN(den) && den > 0) {
-          let value = whole + (num / den);
-          if (fractionSmMatch[1] === 'P') value += 0.01;
-          return value;
+      const text = String(metarLine || '').toUpperCase();
+      if (!text) return null;
+      if (/\bCAVOK\b/.test(text)) return 6.2;
+      const smMatch = text.match(/\b(P?)(\d+)?\s?(\d\/\d)?SM\b/);
+      if (smMatch) {
+        let total = 0;
+        if (smMatch[1] === 'P') total += 6;
+        if (smMatch[2]) total += Number(smMatch[2]) || 0;
+        if (smMatch[3]) {
+          const parts = smMatch[3].split('/');
+          if (parts.length === 2 && Number(parts[1])) total += (Number(parts[0]) || 0) / Number(parts[1]);
         }
+        return total || (smMatch[1] === 'P' ? 6 : null);
       }
-      const wholeSmMatch = line.match(/\b(P?)(\d+)SM\b/);
-      if (wholeSmMatch) {
-        let value = parseInt(wholeSmMatch[2], 10);
-        if (!Number.isNaN(value)) {
-          if (wholeSmMatch[1] === 'P') value += 0.01;
-          return value;
-        }
-      }
-      const meterMatch = line.match(/(?:\s|^)(9999|\d{4})(?:\s|$)/);
+      const meterMatch = text.match(/\b(\d{4})\b/);
       if (meterMatch) {
-        const meters = parseInt(meterMatch[1], 10);
-        if (!Number.isNaN(meters)) {
-          if (meters >= 9999) return 6.21;
-          return meters / 1609.344;
-        }
+        const meters = Number(meterMatch[1]);
+        if (Number.isFinite(meters)) return meters / 1609.344;
       }
       return null;
     }
 
     function parseMetarCeilingFeet(metarLine) {
-      const line = String(metarLine || '').toUpperCase();
+      const text = String(metarLine || '').toUpperCase();
+      if (!text) return null;
       let lowest = null;
-      const ceilingRegex = /\b(BKN|OVC|VV)(\d{3})\b/g;
+      const regex = /\b(BKN|OVC|VV)(\d{3})\b/g;
       let match;
-      while ((match = ceilingRegex.exec(line)) !== null) {
-        const feet = parseInt(match[2], 10) * 100;
-        if (Number.isNaN(feet)) continue;
-        if (lowest === null || feet < lowest) lowest = feet;
+      while ((match = regex.exec(text))) {
+        const feet = Number(match[2]) * 100;
+        if (Number.isFinite(feet) && (lowest === null || feet < lowest)) lowest = feet;
       }
       return lowest;
     }
 
-    function classifyMetarFlightCategory(metarLine) {
+    function getFlightCategoryFromMetar(metarLine) {
       const visMiles = parseMetarVisibilityMiles(metarLine);
       const ceilingFt = parseMetarCeilingFeet(metarLine);
       if ((visMiles !== null && visMiles < 1) || (ceilingFt !== null && ceilingFt < 500)) return 'LIFR';
       if ((visMiles !== null && visMiles < 3) || (ceilingFt !== null && ceilingFt < 1000)) return 'IFR';
-      if ((visMiles !== null && visMiles <= 5) || (ceilingFt !== null && ceilingFt <= 3000)) return 'MVFR';
+      if ((visMiles !== null && visMiles < 5) || (ceilingFt !== null && ceilingFt <= 3000)) return 'MVFR';
       return 'VFR';
     }
 
-    function annotateMetarFlightCategories(reportText) {
+    function appendMetarFlightCategories(reportText) {
       const lines = String(reportText || '').split('\n');
-      for (let i = 0; i < lines.length - 1; i += 1) {
-        if (!/\bMETAR MODE\b/i.test(lines[i])) continue;
+      for (let i = 0; i < lines.length; i += 1) {
+        if (!/^METAR MODE\s+/i.test(lines[i])) continue;
         if (/\((VFR|MVFR|IFR|LIFR)\)\s*$/i.test(lines[i])) continue;
-        const nextLine = String(lines[i + 1] || '').trim();
-        if (!nextLine) continue;
-        const category = classifyMetarFlightCategory(nextLine);
-        lines[i] = `${lines[i]} (${category})`;
+        let metarLine = '';
+        for (let j = i + 1; j < lines.length; j += 1) {
+          const candidate = String(lines[j] || '').trim();
+          if (!candidate) continue;
+          metarLine = candidate;
+          break;
+        }
+        if (!metarLine) continue;
+        lines[i] = `${lines[i]} (${getFlightCategoryFromMetar(metarLine)})`;
       }
       return lines.join('\n');
     }
@@ -2152,6 +2148,10 @@ END OF REPORT`;
         { regex: /\bICING RISK\b/g, cls: 'hl-danger' },
         { regex: /\bSNOW\b/g, cls: 'hl-info' },
         { regex: /\bTS\b/g, cls: 'hl-danger' },
+        { regex: /\(LIFR\)/g, cls: 'hl-lifr' },
+        { regex: /\(IFR\)/g, cls: 'hl-ifr' },
+        { regex: /\(MVFR\)/g, cls: 'hl-mvfr' },
+        { regex: /\(VFR\)/g, cls: 'hl-vfr' },
         { regex: /\bPRECIP\b/g, cls: 'hl-info' },
         { regex: /\bWINDS ALOFT\b/g, cls: 'hl-info' }
       ];
@@ -2162,9 +2162,9 @@ END OF REPORT`;
     }
 
     function renderPreview(reportText) {
-      const annotatedReport = annotateMetarFlightCategories(reportText);
-      latestReportText = String(annotatedReport || '');
-      const escaped = escapeHtml(annotatedReport);
+      const normalizedReportText = appendMetarFlightCategories(String(reportText || ''));
+      latestReportText = normalizedReportText;
+      const escaped = escapeHtml(normalizedReportText);
       previewText.innerHTML = applyPreviewHighlights(escaped);
       refreshPerformancePanelIfOpen();
     }
@@ -2218,13 +2218,12 @@ END OF REPORT`;
     }
 
     function saveHistoryEntry(queryString, reportText, statusData) {
-      const annotatedReport = annotateMetarFlightCategories(reportText);
       const history = getHistory();
       history.unshift({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         savedAt: new Date().toISOString(),
         query: queryString,
-        report: annotatedReport,
+        report: reportText,
         status: statusData || null
       });
 
