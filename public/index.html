@@ -1458,7 +1458,7 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
 
             <div class="performance-row">
               <div class="performance-item">
-                <span class="performance-label">FINAL APP SPD</span>
+                <span class="performance-label">VAPP</span>
                 <span id="perfLandingFinalAppSpeed" class="performance-value performance-value-live">..... KIAS</span>
               </div>
               <div class="performance-item">
@@ -2500,8 +2500,8 @@ END OF REPORT`;
     }
 
     function formatQnhDisplay(mode, qnh) {
-      if (mode === 'MAN') return `MAN / ${Number.isFinite(qnh) ? Math.round(qnh) : '.....'}`;
-      return `AUTO / ${Number.isFinite(qnh) ? Math.round(qnh) : '.....'}`;
+      const qnhText = Number.isFinite(qnh) ? Math.round(qnh) : '.....';
+      return `${qnhText} ${mode === 'MAN' ? 'MAN' : 'AUTO'}`;
     }
 
     function formatWindComp(hwXw) {
@@ -3253,28 +3253,7 @@ END OF REPORT`;
       const slopeDirection = !Number.isFinite(slopeValue) || slopeValue === 0 ? 'LEVEL' : slopeValue > 0 ? 'UPHILL TO NORTH' : 'DOWNHILL TO NORTH';
       const cautionText = Number.isFinite(remainingFt) && remainingFt < 0 ? 'RUNWAY EXCEEDED' : Number.isFinite(remainingFt) && remainingFt < 400 ? 'TIGHT MARGIN' : Number(options?.tailwindKt) >= 5 ? 'TAILWIND CAUTION' : 'NORMAL MARGIN';
       const cautionColor = Number.isFinite(remainingFt) && remainingFt < 400 ? '#ff6b6b' : Number(options?.tailwindKt) >= 5 ? '#ffcc66' : '#66ff99';
-      const windDirectionDeg = parseWindDirectionDegrees(options?.windRaw || options?.windText || '');
       let runwayWindOverlay = '';
-      if (Number.isFinite(windDirectionDeg)) {
-        const overlayCx = centerX;
-        const overlayCy = runwayY + 220;
-        const overlayLen = 112;
-        const theta = ((windDirectionDeg - 180) - 90) * Math.PI / 180;
-        const startX = overlayCx + Math.cos(theta) * overlayLen;
-        const startY = overlayCy + Math.sin(theta) * overlayLen;
-        const endX = overlayCx;
-        const endY = overlayCy;
-        const headLen = 18;
-        const wingA = theta + Math.PI * 0.84;
-        const wingB = theta - Math.PI * 0.84;
-        const leftX = endX + Math.cos(wingA) * headLen;
-        const leftY = endY + Math.sin(wingA) * headLen;
-        const rightX = endX + Math.cos(wingB) * headLen;
-        const rightY = endY + Math.sin(wingB) * headLen;
-        runwayWindOverlay = `<g opacity="0.96"><line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" stroke="#ffb15c" stroke-width="5" stroke-linecap="round" filter="url(#${legendPrefix}-softGlow)" /><polygon points="${endX},${endY} ${leftX},${leftY} ${rightX},${rightY}" fill="#ffb15c" filter="url(#${legendPrefix}-softGlow)" /><circle cx="${overlayCx}" cy="${overlayCy}" r="5" fill="#fff4d4" opacity="0.95" /></g>`;
-      } else if (String(options?.windRaw || options?.windText || '').toUpperCase().includes('VRB')) {
-        runwayWindOverlay = `<text x="${centerX}" y="${runwayY + 228}" text-anchor="middle" fill="#ffb15c" font-size="24" font-family="Courier New, monospace" filter="url(#${legendPrefix}-softGlow)">VRB</text>`;
-      }
       const landingRemainFt = Number.isFinite(availableFt) && Number.isFinite(requiredFt) ? Math.max(0, availableFt - requiredFt) : null;
       const progressLabelsRaw = aircraftMode === 'DEP' ? [
         {y: barY + barH - reqBarH + 6, label: `TO ROLL ${Number.isFinite(requiredFt) ? Math.round(requiredFt) : '---'} FT`, color: '#66ff99'},
@@ -3459,7 +3438,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         'AIRPORT AND WEATHER:',
         formatAcarsPair('APT', shortAirportName(aw.apt), 'WIND', formatWind(aw.wind)),
         formatAcarsPair('RWY', toDisplayValue(runwayValue, '.....'), 'HDG', headingText),
-        formatAcarsPair('LDA', ldaText, 'OAT', formatTemp(aw.oatC)),
+        formatAcarsPair('LDA', ldaText, 'OAT/DP', formatTempDp(aw.oatC, Number.isFinite(aw.dpC) ? aw.dpC : getMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value).dewC)),
         formatAcarsPair('HW/XW', formatHwXwAcars(aw.hwXw), 'QNH', formatQnhDisplay(getQnhMode('landing'), qnhValue)),
         formatAcarsPair('ELEV', formatFeet(aw.elevFt), 'RWY COND', rwyCondText),
         formatAcarsPair('DENSITY ALT', formatFeet(aw.densityAltFt), 'RWY SLOPE', slopeText),
@@ -3470,7 +3449,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         '',
         'OUTPUTS:',
         formatAcarsPair('VREF', formatSpeedAcars(calc.vrefKias, unit), 'RWY AVAIL', formatFeet(avail)),
-        formatAcarsPair('FINAL APP SPD', formatSpeedAcars(calc.finalApproachSpeedKias, unit), 'RWY REMAIN', formatFeet(remain)),
+        formatAcarsPair('VAPP', formatSpeedAcars(calc.finalApproachSpeedKias, unit), 'RWY REMAIN', formatFeet(remain)),
         formatAcarsPair('LDG DIST REQ', formatFeet(calc.landingDistanceRequiredFt), 'RWY WIDTH', formatFeet(aw.widthFt)),
         formatAcarsPair('WIND COMP', formatWindComp(aw.hwXw)),
         '',
