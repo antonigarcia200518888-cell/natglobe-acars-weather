@@ -746,13 +746,27 @@
       min-width: 0;
     }
 
+    .performance-inline-pair {
+      flex-wrap: nowrap;
+      gap: 4px;
+    }
+
+    .performance-inline-pair .performance-inline-input {
+      flex: 0 0 auto;
+    }
+
     .performance-inline-display {
       width: 176px;
       text-align: left;
     }
 
     .performance-inline-display.wind {
-      width: 206px;
+      width: 170px;
+      font-size: 12px;
+    }
+
+    .performance-inline-display.oatdp {
+      width: 108px;
       font-size: 12px;
     }
 
@@ -1092,9 +1106,9 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">WIND</span>
-                <div class="performance-inline-group">
-                  <select id="perfTakeoffWindMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
+                <div class="performance-inline-group performance-inline-pair">
                   <input id="perfTakeoffWind" class="performance-inline-input performance-inline-display wind locked" type="text" placeholder="WIND" />
+                  <select id="perfTakeoffWindMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
             </div>
@@ -1119,8 +1133,8 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">OAT/DP</span>
-                <div class="performance-inline-group">
-                  <input id="perfTakeoffOat" class="performance-inline-input performance-inline-display oatdp-compact locked" type="text" inputmode="decimal" maxlength="9" placeholder="°C" />
+                <div class="performance-inline-group performance-inline-pair">
+                  <input id="perfTakeoffOat" class="performance-inline-input performance-inline-display oatdp locked" type="text" inputmode="decimal" maxlength="9" placeholder="°C" />
                   <select id="perfTakeoffOatMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
@@ -1320,9 +1334,9 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
               </div>
               <div class="performance-item">
                 <span class="performance-label">WIND</span>
-                <div class="performance-inline-group">
-                  <select id="perfLandingWindMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
+                <div class="performance-inline-group performance-inline-pair">
                   <input id="perfLandingWind" class="performance-inline-input performance-inline-display wind locked" type="text" placeholder="WIND" />
+                  <select id="perfLandingWindMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
             </div>
@@ -1347,8 +1361,8 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
               </div>
               <div class="performance-item">
                 <span class="performance-label">OAT/DP</span>
-                <div class="performance-inline-group">
-                  <input id="perfLandingOat" class="performance-inline-input performance-inline-display oatdp-compact locked" type="text" inputmode="decimal" maxlength="9" placeholder="°C" />
+                <div class="performance-inline-group performance-inline-pair">
+                  <input id="perfLandingOat" class="performance-inline-input performance-inline-display oatdp locked" type="text" inputmode="decimal" maxlength="9" placeholder="°C" />
                   <select id="perfLandingOatMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
@@ -3877,7 +3891,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       const effectiveQnh = mode === 'MAN' ? manualQnh : aw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) aw.qnhHpa = effectiveQnh;
       const landingMetarTempDew = getMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value) || {};
-      syncWindOatUi('landing', aw.wind, aw.oatC, landingMetarTempDew.dewC);
+      const landingDewPoint = Number.isFinite(aw.dpC) ? aw.dpC : landingMetarTempDew.dewC;
+      syncWindOatUi('landing', aw.wind, aw.oatC, landingDewPoint);
       const effectiveWind = getEffectiveWind('landing', aw.wind, aw.hdgDeg);
       if (effectiveWind.wind) aw.wind = effectiveWind.wind;
       if (effectiveWind.hwXw) aw.hwXw = effectiveWind.hwXw;
@@ -3892,7 +3907,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfLandingApt', formatApt(aw.apt));
       if (getWindMode('landing') === 'AUTO') getWindField('landing').value = effectiveWind.display;
       setNodeText('perfLandingHwXw', formatHwXw(aw.hwXw));
-      if (getOatMode('landing') === 'AUTO') getOatField('landing').value = formatTempDp(aw.oatC, landingMetarTempDew.dewC);
+      if (getOatMode('landing') === 'AUTO') getOatField('landing').value = formatTempDp(aw.oatC, landingDewPoint);
       if (mode === 'MAN' && Number.isFinite(manualQnh)) el('perfLandingQnh').value = Math.round(manualQnh);
       else if (mode === 'AUTO' && Number.isFinite(aw.qnhHpa)) el('perfLandingQnh').value = Math.round(aw.qnhHpa);
       setNodeText('perfLandingElevation', formatFeet(aw.elevFt));
