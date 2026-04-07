@@ -1677,6 +1677,7 @@ END OF REPORT`;
     const runwayCache = new Map();
 
     let latestDirectUrl = null;
+    let activePdfQuery = null;
     let latestReportText = '';
     let routeTouched = false;
     let liveStatusTimer = null;
@@ -2184,6 +2185,7 @@ END OF REPORT`;
       }
       renderPreview(entry.report || DEFAULT_PREVIEW);
       applyAirportStatuses(entry.status);
+      activePdfQuery = entry.query || null;
       latestDirectUrl = entry.query ? `/api/dispatch-pdf?${entry.query}&t=${Date.now()}` : null;
       lastAdviceMessage = '';
       setStatusWithAdvice('HISTORY REPORT LOADED', getStatusModeFromReport(entry.report || ''));
@@ -3500,6 +3502,7 @@ function renderTakeoffRunwayVisual(data, calc) {
 
       routeTouched = false;
       latestDirectUrl = null;
+      activePdfQuery = null;
       latestReportText = '';
       lastAdviceMessage = '';
       clearAirportTags();
@@ -3800,6 +3803,7 @@ function renderTakeoffRunwayVisual(data, calc) {
           fetchDispatchAdvice(queryString)
         ]);
 
+        activePdfQuery = queryString;
         latestDirectUrl = `/api/dispatch-pdf?${queryString}&t=${Date.now()}`;
         renderPreview(reportText);
         applyAirportStatuses(statusData);
@@ -3817,6 +3821,7 @@ function renderTakeoffRunwayVisual(data, calc) {
           renderPreview(cached.reportText);
           applyAirportStatuses(cached.statusData);
           applyAdviceToStatus(cached.advice);
+          activePdfQuery = queryString;
           latestDirectUrl = `/api/dispatch-pdf?${queryString}&t=${Date.now()}`;
           setStatusWithAdvice(`OFFLINE — USING CACHED WEATHER / ${formatCacheAge(cached.savedAt)}`, getStatusModeFromReport(cached.reportText));
           setWxMode(`MODE: CACHED WX / AGE: ${formatCacheAge(cached.savedAt)}`, 'cached');
@@ -3827,6 +3832,7 @@ function renderTakeoffRunwayVisual(data, calc) {
           if (latestHistory?.report) {
             renderPreview(latestHistory.report);
             applyAirportStatuses(latestHistory.status);
+            activePdfQuery = latestHistory.query || null;
             latestDirectUrl = latestHistory.query ? `/api/dispatch-pdf?${latestHistory.query}&t=${Date.now()}` : null;
             lastAdviceMessage = '';
             setStatusWithAdvice('OFFLINE OR API UNAVAILABLE — USING MOST RECENT HISTORY REPORT', getStatusModeFromReport(latestHistory.report));
@@ -4097,24 +4103,28 @@ function renderTakeoffRunwayVisual(data, calc) {
     });
 
     openBtn.addEventListener('click', async () => {
-      const validationError = validateInputs();
-      if (validationError) {
-        setStatusWithAdvice(validationError, 'nodata');
-        return;
+      const targetQuery = String(activePdfQuery || '');
+      if (!targetQuery) {
+        const validationError = validateInputs();
+        if (validationError) {
+          setStatusWithAdvice(validationError, 'nodata');
+          return;
+        }
       }
 
-      const queryString = buildQuery();
+      const queryString = targetQuery || buildQuery();
       const popup = window.open('', '_blank');
       if (!popup) {
         setStatusWithAdvice('POPUP BLOCKED', 'nodata');
         return;
       }
 
-      if (!latestDirectUrl) await generate();
+      if (!latestDirectUrl && !targetQuery) await generate();
 
       if (latestDirectUrl && navigator.onLine) {
         try {
           await fetchOpenAndCachePdf(latestDirectUrl, queryString, popup);
+          activePdfQuery = queryString;
           setStatusWithAdvice('PDF OPENED', 'live');
           return;
         } catch (err) {
@@ -4132,6 +4142,7 @@ function renderTakeoffRunwayVisual(data, calc) {
 
       if (latestDirectUrl && navigator.onLine) {
         popup.location.replace(latestDirectUrl);
+        activePdfQuery = queryString;
         setStatusWithAdvice('PDF OPENED', 'live');
         return;
       }
