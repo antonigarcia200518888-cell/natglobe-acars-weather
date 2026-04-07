@@ -3429,6 +3429,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       const avail = Number(String(ldaText).replace(/[^0-9]/g, ''));
       const remain = Number.isFinite(avail) && Number.isFinite(calc.landingDistanceRequiredFt) ? avail - calc.landingDistanceRequiredFt : null;
       const notes = String(el('perfLandingNotes').textContent || 'NONE').trim() || 'NONE';
+      const metarTempDew = getMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value) || {};
+      const dewPointC = Number.isFinite(aw.dpC) ? aw.dpC : (Number.isFinite(metarTempDew.dewC) ? metarTempDew.dewC : null);
 
       return [
         'LANDING PERFORMANCE',
@@ -3438,7 +3440,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         'AIRPORT AND WEATHER:',
         formatAcarsPair('APT', shortAirportName(aw.apt), 'WIND', formatWind(aw.wind)),
         formatAcarsPair('RWY', toDisplayValue(runwayValue, '.....'), 'HDG', headingText),
-        formatAcarsPair('LDA', ldaText, 'OAT/DP', formatTempDp(aw.oatC, Number.isFinite(aw.dpC) ? aw.dpC : getMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value).dewC)),
+        formatAcarsPair('LDA', ldaText, 'OAT/DP', formatTempDp(aw.oatC, dewPointC)),
         formatAcarsPair('HW/XW', formatHwXwAcars(aw.hwXw), 'QNH', formatQnhDisplay(getQnhMode('landing'), qnhValue)),
         formatAcarsPair('ELEV', formatFeet(aw.elevFt), 'RWY COND', rwyCondText),
         formatAcarsPair('DENSITY ALT', formatFeet(aw.densityAltFt), 'RWY SLOPE', slopeText),
