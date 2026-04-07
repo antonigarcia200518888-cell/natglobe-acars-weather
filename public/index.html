@@ -857,6 +857,12 @@
       white-space: nowrap;
     }
 
+    .history-btn.history-active {
+      color: var(--live);
+      border-color: var(--live);
+      box-shadow: inset 0 0 14px rgba(102,255,153,0.14);
+    }
+
     .footer-tip {
       color: #9f9f9f;
       font-size: clamp(12px, 1vw, 16px);
@@ -1800,7 +1806,7 @@ END OF REPORT`;
       const entries = getPdfCache();
       if (!entries.length) return null;
       const exact = entries.find((entry) => entry && entry.query === String(queryString || ''));
-      return exact || entries[0] || null;
+      return exact || null;
     }
 
     function openCachedPdfEntry(entry, targetWin = null) {
@@ -2190,6 +2196,7 @@ END OF REPORT`;
       lastAdviceMessage = '';
       setStatusWithAdvice('HISTORY REPORT LOADED', getStatusModeFromReport(entry.report || ''));
       setWxMode('MODE: HISTORY REPORT', 'cached');
+      renderHistory();
       refreshPerformancePanelIfOpen();
     }
 
@@ -2205,7 +2212,7 @@ END OF REPORT`;
             <div class="history-main">${escapeHtml(summarizeHistoryQuery(entry.query))}</div>
             <div class="history-sub">${escapeHtml(formatHistoryTime(entry.savedAt))}</div>
           </div>
-          <button class="history-btn" type="button" data-history-index="${index}">LOAD</button>
+          <button class="history-btn ${entry.query === activePdfQuery ? 'history-active' : ''}" type="button" data-history-index="${index}">LOAD</button>
         </div>
       `).join('');
     }
@@ -3509,6 +3516,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       renderPreview(DEFAULT_PREVIEW);
       resetPerformanceFields();
       setStatusWithAdvice('READY', 'neutral');
+      renderHistory();
       updateWxModeFromConnectivity();
       scheduleLiveStatusRefresh();
     }
@@ -4135,8 +4143,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       const cachedPdf = getBestCachedPdf(queryString);
       if (cachedPdf && openCachedPdfEntry(cachedPdf, popup)) {
         const ageText = formatCacheAge(cachedPdf.savedAt);
-        const exactMatch = cachedPdf.query === String(queryString || '');
-        setStatusWithAdvice(exactMatch ? `OPENED CACHED PDF / ${ageText}` : `OPENED MOST RECENT CACHED PDF / ${ageText}`, 'fallback');
+        setStatusWithAdvice(`OPENED CACHED PDF / ${ageText}`, 'fallback');
         return;
       }
 
@@ -4148,7 +4155,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       }
 
       if (!popup.closed) popup.close();
-      setStatusWithAdvice('NO CACHED PDF AVAILABLE', 'nodata');
+      setStatusWithAdvice('NO MATCHING CACHED PDF', 'nodata');
     });
 
     copyBtn.addEventListener('click', async () => {
