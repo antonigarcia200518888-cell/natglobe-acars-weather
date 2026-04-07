@@ -394,8 +394,7 @@
     .performance-inline-input.runway-select { width: 170px; text-align: left; }
     .performance-inline-input.locked { background: #050505; color: #d7d7d7; pointer-events: none; }
     .performance-inline-input.qnh-manual { width: 86px; }
-    .performance-inline-suffix { color: #d7d7d7; font-size: 13px; white-space: nowrap; margin-left: -4px; }
-    .performance-inline-display.oatdp { width: 92px; font-size: 12px; text-align: center; }
+    .performance-inline-suffix { color: #d7d7d7; font-size: 13px; white-space: nowrap; }
 
     .performance-messages {
       border: 1px solid #444;
@@ -653,6 +652,12 @@
       }
     }
 
+
+
+    .performance-inline-input.compact-display { width: 108px; font-size: 12px; text-align: center; }
+    .performance-inline-input.weight-input { width: 70px; }
+    .performance-inline-suffix.tight { margin-left: -2px; }
+
     @media (max-width: 1000px) {
       .options-groups { grid-template-columns: 1fr 1fr; }
     }
@@ -820,7 +825,7 @@
               <div class="performance-item">
                 <span class="performance-label">OAT/DP</span>
                 <div class="performance-inline-group">
-                  <input id="perfTakeoffOat" class="performance-inline-input performance-inline-display oatdp locked" type="text" inputmode="text" maxlength="12" placeholder="°C" readonly />
+                  <input id="perfTakeoffOat" class="performance-inline-input compact-display" type="text" maxlength="9" placeholder="...../.....°C" />
                   <select id="perfTakeoffOatMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
@@ -833,8 +838,10 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">QNH</span>
-                <select id="perfTakeoffQnhMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
-                <input id="perfTakeoffQnh" class="performance-inline-input qnh-manual" type="text" inputmode="numeric" maxlength="4" placeholder="HPA" />
+                <div class="performance-inline-group">
+                  <input id="perfTakeoffQnh" class="performance-inline-input qnh-manual" type="text" inputmode="numeric" maxlength="4" placeholder="HPA" />
+                  <select id="perfTakeoffQnhMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
+                </div>
               </div>
             </div>
 
@@ -872,7 +879,7 @@
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">TO WEIGHT</span>
-                <input id="perfTakeoffWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="....." /><span class="performance-inline-suffix">LBS</span>
+                <input id="perfTakeoffWeight" class="performance-inline-input weight-input" type="text" inputmode="numeric" maxlength="4" placeholder="....." /><span class="performance-inline-suffix tight">LBS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">FLAPS</span>
@@ -1034,7 +1041,7 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
               <div class="performance-item">
                 <span class="performance-label">OAT/DP</span>
                 <div class="performance-inline-group">
-                  <input id="perfLandingOat" class="performance-inline-input performance-inline-display oatdp locked" type="text" inputmode="text" maxlength="12" placeholder="°C" readonly />
+                  <input id="perfLandingOat" class="performance-inline-input compact-display" type="text" maxlength="9" placeholder="...../.....°C" />
                   <select id="perfLandingOatMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
@@ -1047,8 +1054,10 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
               </div>
               <div class="performance-item">
                 <span class="performance-label">QNH</span>
-                <select id="perfLandingQnhMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
-                <input id="perfLandingQnh" class="performance-inline-input qnh-manual" type="text" inputmode="numeric" maxlength="4" placeholder="HPA" />
+                <div class="performance-inline-group">
+                  <input id="perfLandingQnh" class="performance-inline-input qnh-manual" type="text" inputmode="numeric" maxlength="4" placeholder="HPA" />
+                  <select id="perfLandingQnhMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
+                </div>
               </div>
             </div>
 
@@ -1086,7 +1095,7 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">LANDING WT</span>
-                <input id="perfLandingWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="....." /><span class="performance-inline-suffix">LBS</span>
+                <input id="perfLandingWeight" class="performance-inline-input weight-input" type="text" inputmode="numeric" maxlength="4" placeholder="....." /><span class="performance-inline-suffix tight">LBS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">FLAPS</span>
@@ -1138,7 +1147,7 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
 
             <div class="performance-row">
               <div class="performance-item">
-                <span class="performance-label">VAPP</span>
+                <span class="performance-label">FINAL APP SPD</span>
                 <span id="perfLandingFinalAppSpeed" class="performance-value performance-value-warn">..... KIAS</span>
               </div>
               <div class="performance-item">
@@ -1359,14 +1368,15 @@ END OF REPORT`;
 
     const runwayCache = new Map();
 
+    let takeoffVisualCalculated = false;
+    let landingVisualCalculated = false;
+
     let latestDirectUrl = null;
     let latestReportText = '';
     let routeTouched = false;
     let liveStatusTimer = null;
     let liveStatusRequestId = 0;
     let lastAdviceMessage = '';
-    let takeoffCalculated = false;
-    let landingCalculated = false;
 
     function updateUtcClock() {
       const now = new Date();
@@ -1737,69 +1747,6 @@ END OF REPORT`;
       return `${icao}/${short || '...'}`;
     }
 
-
-    function parseSignedMetarTemp(token) {
-      const t = String(token || '').trim().toUpperCase();
-      if (!/^M?\d{2}$/.test(t)) return null;
-      const n = Number(t.replace('M', ''));
-      return t.startsWith('M') ? -n : n;
-    }
-
-    function extractMetarTempDew(icao) {
-      const code = upper(icao);
-      const report = String(latestReportText || '');
-      if (!code || !report) return { oatC: null, dewC: null };
-      const line = report.split(/\r?\n/).find((ln) => upper(ln).startsWith(code + ' '));
-      if (!line) return { oatC: null, dewC: null };
-      const m = upper(line).match(/\s(M?\d{2})\/(M?\d{2})(?:\s|$)/);
-      if (!m) return { oatC: null, dewC: null };
-      return { oatC: parseSignedMetarTemp(m[1]), dewC: parseSignedMetarTemp(m[2]) };
-    }
-
-    function formatOatDpValue(oatC, dewC) {
-      const left = Number.isFinite(oatC) ? String(Math.round(oatC)) : '.....';
-      const right = Number.isFinite(dewC) ? String(Math.round(dewC)) : '.....';
-      return `${left}/${right}°C`;
-    }
-
-    function getOatMode(kind) {
-      const node = el(kind === 'takeoff' ? 'perfTakeoffOatMode' : 'perfLandingOatMode');
-      return node ? (node.value || 'AUTO') : 'AUTO';
-    }
-
-    function getOatField(kind) {
-      return el(kind === 'takeoff' ? 'perfTakeoffOat' : 'perfLandingOat');
-    }
-
-    function getEffectiveOatDp(kind, fallbackOat) {
-      const field = getOatField(kind);
-      if (getOatMode(kind) === 'MAN') {
-        const txt = String(field?.value || '').toUpperCase().replace(/\s+/g, '');
-        const m = txt.match(/^(M?\d{1,2}|-?\d{1,2})\/(M?\d{1,2}|-?\d{1,2})°?C?$/);
-        if (m) {
-          const parse = (v) => v.startsWith('M') ? -Number(v.slice(1)) : Number(v);
-          return { oatC: parse(m[1]), dewC: parse(m[2]), manual: true };
-        }
-      }
-      const icao = kind === 'takeoff' ? normalizeIcaoInputValue(fields.dep.value) : normalizeIcaoInputValue(fields.arr.value);
-      const parsed = extractMetarTempDew(icao);
-      return { oatC: Number.isFinite(parsed.oatC) ? parsed.oatC : fallbackOat, dewC: parsed.dewC, manual: false };
-    }
-
-    function syncOatUi(kind, sourceOat) {
-      const field = getOatField(kind);
-      const mode = getOatMode(kind);
-      if (!field) return;
-      field.readOnly = mode !== 'MAN';
-      field.classList.toggle('locked', mode !== 'MAN');
-      field.classList.remove('mode-auto', 'mode-man');
-      field.classList.add(mode === 'MAN' ? 'mode-man' : 'mode-auto');
-      if (mode === 'AUTO') {
-        const auto = getEffectiveOatDp(kind, sourceOat);
-        field.value = formatOatDpValue(auto.oatC, auto.dewC);
-      }
-    }
-
     function computeDensityAltitudeFromInputs(elevFt, oatC, qnhHpa) {
       if (!Number.isFinite(elevFt) || !Number.isFinite(oatC) || !Number.isFinite(qnhHpa)) return null;
       const pressureAlt = Math.round(elevFt + ((1013.25 - qnhHpa) * 27));
@@ -1817,8 +1764,56 @@ END OF REPORT`;
     }
 
     function formatQnhDisplay(mode, qnh) {
-      const value = Number.isFinite(qnh) ? Math.round(qnh) : '.....';
-      return `${value} ${mode === 'MAN' ? 'MAN' : 'AUTO'}`;
+      return `QNH ${Number.isFinite(qnh) ? Math.round(qnh) : '.....'} ${mode === 'MAN' ? 'MAN' : 'AUTO'}`;
+    }
+
+
+    function getOatMode(kind) {
+      return el(kind === 'takeoff' ? 'perfTakeoffOatMode' : 'perfLandingOatMode').value || 'AUTO';
+    }
+
+    function getManualOatDpValue(kind) {
+      const raw = String(el(kind === 'takeoff' ? 'perfTakeoffOat' : 'perfLandingOat').value || '').trim();
+      if (!raw) return { raw: '', oatC: null, dewC: null };
+      const cleaned = raw.replace(/\s+/g, '').replace(/°C$/i, '');
+      const parts = cleaned.split('/');
+      const oat = Number(parts[0]);
+      const dew = Number(parts[1]);
+      return { raw: cleaned, oatC: Number.isFinite(oat) ? oat : null, dewC: Number.isFinite(dew) ? dew : null };
+    }
+
+    function formatOatDp(oatC, dewC) {
+      if (Number.isFinite(oatC) && Number.isFinite(dewC)) return `${Math.round(oatC)}/${Math.round(dewC)}°C`;
+      if (Number.isFinite(oatC)) return `${Math.round(oatC)}/--°C`;
+      return '...../.....°C';
+    }
+
+    function extractMetarTempDewFromReport(icao) {
+      const target = String(icao || '').trim().toUpperCase();
+      const source = String(latestReportText || previewText?.textContent || '');
+      if (!target || !source) return { oatC: null, dewC: null };
+      const lines = source.split(/\r?\n/);
+      for (const line of lines) {
+        const upperLine = line.toUpperCase();
+        if (!upperLine.startsWith(target + ' ')) continue;
+        const m = upperLine.match(/\s(M?\d{2})\/(M?\d{2})\s/);
+        if (m) {
+          const parse = (v) => v.startsWith('M') ? -Number(v.slice(1)) : Number(v);
+          return { oatC: parse(m[1]), dewC: parse(m[2]) };
+        }
+      }
+      return { oatC: null, dewC: null };
+    }
+
+    function validateWeightInput(kind) {
+      const node = el(kind === 'takeoff' ? 'perfTakeoffWeight' : 'perfLandingWeight');
+      const value = Number(String(node?.value || '').replace(/[^0-9]/g, ''));
+      if (Number.isFinite(value) && value > 2650) return `${kind === 'takeoff' ? 'TAKEOFF' : 'LANDING'} WT MAX 2650 LBS`;
+      return '';
+    }
+
+    function validatePerformanceInputs() {
+      return validateWeightInput('takeoff') || validateWeightInput('landing') || '';
     }
 
     function formatWindComp(hwXw) {
@@ -2445,7 +2440,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         'RUNWAY AND WEATHER:',
         formatAcarsPair('APT', shortAirportName(rw.apt), 'WIND', formatWind(rw.wind)),
         formatAcarsPair('RWY', toDisplayValue(runwayValue, '.....'), 'HW/XW', formatHwXwAcars(rw.hwXw)),
-        formatAcarsPair('TORA', toraText, 'OAT/DP', formatOatDpValue(getEffectiveOatDp('takeoff', rw.oatC).oatC, getEffectiveOatDp('takeoff', rw.oatC).dewC)),
+        formatAcarsPair('TORA', toraText, 'OAT/DP', el('perfTakeoffOat').value || '...../.....°C'),
         formatAcarsPair('HDG', headingText, 'QNH', formatQnhDisplay(getQnhMode('takeoff'), qnhValue)),
         formatAcarsPair('ELEV', formatFeet(rw.elevFt), 'RWY COND', rwyCondText),
         formatAcarsPair('DENSITY ALT', formatFeet(rw.densityAltFt), 'RWY SLOPE', slopeText),
@@ -2491,8 +2486,8 @@ function renderTakeoffRunwayVisual(data, calc) {
         'AIRPORT AND WEATHER:',
         formatAcarsPair('APT', shortAirportName(aw.apt), 'WIND', formatWind(aw.wind)),
         formatAcarsPair('RWY', toDisplayValue(runwayValue, '.....'), 'HDG', headingText),
-        formatAcarsPair('LDA', ldaText, 'OAT/DP', formatOatDpValue(getEffectiveOatDp('landing', aw.oatC).oatC, getEffectiveOatDp('landing', aw.oatC).dewC)),
-        formatAcarsPair('HW/XW', formatHwXwAcars(aw.hwXw), 'QNH', formatQnhDisplay(getQnhMode('landing'), qnhValue)),
+        formatAcarsPair('LDA', ldaText, 'OAT/DP', el('perfLandingOat').value || '...../.....°C'),
+        formatAcarsPair('HW/XW', formatHwXwAcars(aw.hwXw), 'QNH', formatQnhDisplay(getQnhMode('landing'), qnhValue).replace(/^QNH\s*/, '')),
         formatAcarsPair('ELEV', formatFeet(aw.elevFt), 'RWY COND', rwyCondText),
         formatAcarsPair('DENSITY ALT', formatFeet(aw.densityAltFt), 'RWY SLOPE', slopeText),
         '',
@@ -2562,8 +2557,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfTakeoffApt', '...../.....');
       setNodeText('perfTakeoffWind', '...../.....');
       setNodeText('perfTakeoffHwXw', '...../.....');
-      if (el('perfTakeoffOat')) el('perfTakeoffOat').value = '...../.....°C';
-      if (el('perfTakeoffOatMode')) el('perfTakeoffOatMode').value = 'AUTO';
+      el('perfTakeoffOat').value = '...../.....°C';
+      el('perfTakeoffOatMode').value = 'AUTO';
       el('perfTakeoffQnhMode').value = 'AUTO';
       el('perfTakeoffQnh').value = '';
       setNodeText('perfTakeoffWindComp', 'HW ..... / XW .....');
@@ -2589,6 +2584,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfTakeoffXwindLimit', '17 KT');
       setNodeText('perfTakeoffMessages', 'NONE');
       setNodeText('perfTakeoffAcars', `TAKEOFF PERFORMANCE\n\n${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
+      takeoffVisualCalculated = false;
       el('perfTakeoffVisual').innerHTML = '';
       setNodeText('perfTakeoffVisualReq', '..... FT');
       setNodeText('perfTakeoffVisualAvail', '..... FT');
@@ -2597,8 +2593,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfLandingApt', '...../.....');
       setNodeText('perfLandingWind', '...../.....');
       setNodeText('perfLandingHwXw', '...../.....');
-      if (el('perfLandingOat')) el('perfLandingOat').value = '...../.....°C';
-      if (el('perfLandingOatMode')) el('perfLandingOatMode').value = 'AUTO';
+      el('perfLandingOat').value = '...../.....°C';
+      el('perfLandingOatMode').value = 'AUTO';
       el('perfLandingQnhMode').value = 'AUTO';
       el('perfLandingQnh').value = '';
       setNodeText('perfLandingWindComp', 'HW ..... / XW .....');
@@ -2624,6 +2620,10 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfLandingFlapsUpSpeed', '..... KIAS');
       setNodeText('perfLandingNotes', 'NONE');
       setNodeText('perfLandingAcars', `LANDING PERFORMANCE\n\n${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
+
+      landingVisualCalculated = false;
+
+      syncPerfModeUi();
 
       [
 
@@ -2783,8 +2783,6 @@ function renderTakeoffRunwayVisual(data, calc) {
       const inputs = takeoff.inputs || {};
 
       if (!el('perfTakeoffWeight').value) el('perfTakeoffWeight').value = inputs.weightLbs || '';
-      const takeoffWeightNow = Number(el('perfTakeoffWeight').value);
-      if (Number.isFinite(takeoffWeightNow) && takeoffWeightNow > 2650) throw new Error('TAKEOFF WEIGHT EXCEEDS 2650 LBS');
       if (!el('perfTakeoffRwyCond').value) el('perfTakeoffRwyCond').value = rw.rwyCond || 'DRY';
       if (Number.isFinite(rw.toraFt)) el('perfTakeoffTora').textContent = `${rw.toraFt} FT`;
       if (Number.isFinite(rw.hdgDeg)) el('perfTakeoffRunwayHeading').textContent = `${rw.hdgDeg} °`;
@@ -2799,15 +2797,20 @@ function renderTakeoffRunwayVisual(data, calc) {
       const toraVal = Number(String(el('perfTakeoffTora').textContent).replace(/[^0-9]/g, '')) || rw.toraFt || null;
       const densOverride = computeDensityAltitudeFromInputs(rw.elevFt, rw.oatC, rw.qnhHpa);
       if (Number.isFinite(densOverride)) rw.densityAltFt = densOverride;
-      syncOatUi('takeoff', rw.oatC);
-      const takeoffAuto = getEffectiveOatDp('takeoff', rw.oatC);
-      if (Number.isFinite(takeoffAuto.oatC)) rw.oatC = takeoffAuto.oatC;
       const calc = computeTakeoffOutputs(data);
 
       setNodeText('perfTakeoffApt', formatApt(rw.apt));
       setNodeText('perfTakeoffWind', formatWind(rw.wind));
       setNodeText('perfTakeoffHwXw', formatHwXw(rw.hwXw));
-      if (el('perfTakeoffOat')) el('perfTakeoffOat').value = formatOatDpValue(takeoffAuto.oatC, takeoffAuto.dewC);
+      const takeoffMetarTemps = extractMetarTempDewFromReport(rw?.apt?.icao || fields.dep.value);
+      const takeoffOatMode = getOatMode('takeoff');
+      const takeoffManualOat = getManualOatDpValue('takeoff');
+      if (takeoffOatMode === 'MAN') {
+        if (Number.isFinite(takeoffManualOat.oatC)) rw.oatC = takeoffManualOat.oatC;
+        el('perfTakeoffOat').value = takeoffManualOat.raw ? `${takeoffManualOat.raw}°C`.replace('°C°C','°C') : formatOatDp(rw.oatC, takeoffManualOat.dewC);
+      } else {
+        el('perfTakeoffOat').value = formatOatDp(rw.oatC, takeoffMetarTemps.dewC);
+      }
       if (mode === 'MAN' && Number.isFinite(manualQnh)) el('perfTakeoffQnh').value = Math.round(manualQnh);
       else if (mode === 'AUTO' && Number.isFinite(rw.qnhHpa)) el('perfTakeoffQnh').value = Math.round(rw.qnhHpa);
       setNodeText('perfTakeoffElevation', formatFeet(rw.elevFt));
@@ -2832,8 +2835,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       const takeoffRemain = Number.isFinite(takeoffAvail) && Number.isFinite(calc.takeoffDistanceRequiredFt) ? takeoffAvail - calc.takeoffDistanceRequiredFt : null;
       setNodeText('perfTakeoffRwyRemain', formatFeet(takeoffRemain));
       setNodeText('perfTakeoffAcars', buildTakeoffAcarsBlock(data, calc));
-      if (takeoffCalculated) renderTakeoffRunwayVisual(data, calc);
-      else { el('perfTakeoffVisual').innerHTML = ''; setNodeText('perfTakeoffVisualReq', '..... FT'); setNodeText('perfTakeoffVisualAvail', '..... FT'); setNodeText('perfTakeoffVisualRemain', '..... FT'); }
+      if (takeoffVisualCalculated) renderTakeoffRunwayVisual(data, calc);
+      else el('perfTakeoffVisual').innerHTML = '';
     }
 
     function applyLandingPerformance(data) {
@@ -2842,8 +2845,6 @@ function renderTakeoffRunwayVisual(data, calc) {
       const inputs = landing.inputs || {};
 
       if (!el('perfLandingWeight').value) el('perfLandingWeight').value = inputs.landingWeightLbs || '';
-      const landingWeightNow = Number(el('perfLandingWeight').value);
-      if (Number.isFinite(landingWeightNow) && landingWeightNow > 2650) throw new Error('LANDING WEIGHT EXCEEDS 2650 LBS');
       if (!el('perfLandingRwyCond').value) el('perfLandingRwyCond').value = aw.rwyCond || 'DRY';
       if (Number.isFinite(aw.ldaFt)) el('perfLandingLda').textContent = `${aw.ldaFt} FT`;
       if (Number.isFinite(aw.hdgDeg)) el('perfLandingRunwayHeading').textContent = `${aw.hdgDeg} °`;
@@ -2858,15 +2859,20 @@ function renderTakeoffRunwayVisual(data, calc) {
       const ldaVal = Number(String(el('perfLandingLda').textContent).replace(/[^0-9]/g, '')) || aw.ldaFt || null;
       const densOverride = computeDensityAltitudeFromInputs(aw.elevFt, aw.oatC, aw.qnhHpa);
       if (Number.isFinite(densOverride)) aw.densityAltFt = densOverride;
-      syncOatUi('landing', aw.oatC);
-      const landingAuto = getEffectiveOatDp('landing', aw.oatC);
-      if (Number.isFinite(landingAuto.oatC)) aw.oatC = landingAuto.oatC;
       const calc = computeLandingOutputs(data);
 
       setNodeText('perfLandingApt', formatApt(aw.apt));
       setNodeText('perfLandingWind', formatWind(aw.wind));
       setNodeText('perfLandingHwXw', formatHwXw(aw.hwXw));
-      if (el('perfLandingOat')) el('perfLandingOat').value = formatOatDpValue(landingAuto.oatC, landingAuto.dewC);
+      const landingMetarTemps = extractMetarTempDewFromReport(aw?.apt?.icao || fields.arr.value);
+      const landingOatMode = getOatMode('landing');
+      const landingManualOat = getManualOatDpValue('landing');
+      if (landingOatMode === 'MAN') {
+        if (Number.isFinite(landingManualOat.oatC)) aw.oatC = landingManualOat.oatC;
+        el('perfLandingOat').value = landingManualOat.raw ? `${landingManualOat.raw}°C`.replace('°C°C','°C') : formatOatDp(aw.oatC, landingManualOat.dewC);
+      } else {
+        el('perfLandingOat').value = formatOatDp(aw.oatC, landingMetarTemps.dewC);
+      }
       if (mode === 'MAN' && Number.isFinite(manualQnh)) el('perfLandingQnh').value = Math.round(manualQnh);
       else if (mode === 'AUTO' && Number.isFinite(aw.qnhHpa)) el('perfLandingQnh').value = Math.round(aw.qnhHpa);
       setNodeText('perfLandingElevation', formatFeet(aw.elevFt));
@@ -2890,8 +2896,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfLandingRwyRemain', formatFeet(landingRemain));
       setNodeText('perfLandingNotes', Array.isArray(calc.messages) && calc.messages.length ? calc.messages.join('\n') : 'NONE');
       setNodeText('perfLandingAcars', buildLandingAcarsBlock(data, calc));
-      if (landingCalculated) renderLandingRunwayVisual(data, calc);
-      else { el('perfLandingVisual').innerHTML = ''; setNodeText('perfLandingVisualLda', '..... FT'); setNodeText('perfLandingVisualReq', '..... FT'); setNodeText('perfLandingVisualAvail', '..... FT'); setNodeText('perfLandingVisualRemain', '..... FT'); }
+      if (landingVisualCalculated) renderLandingRunwayVisual(data, calc);
+      else el('perfLandingVisual').innerHTML = '';
     }
 
     async function loadPerformancePanelData() {
@@ -2904,6 +2910,9 @@ function renderTakeoffRunwayVisual(data, calc) {
 
       await syncRunwaySelectionsFromInputs();
 
+      const perfValidationError = validatePerformanceInputs();
+      if (perfValidationError) throw new Error(perfValidationError);
+
       const data = await fetchPerformanceData(buildPerformanceQueryString());
       applyTakeoffPerformance(data);
       applyLandingPerformance(data);
@@ -2912,6 +2921,19 @@ function renderTakeoffRunwayVisual(data, calc) {
     function refreshPerformancePanelIfOpen() {
       if (performancePanel.style.display !== 'block') return;
       loadPerformancePanelData().catch((err) => console.error(err));
+    }
+
+    function syncPerfModeUi() {
+      [['takeoff','perfTakeoffOat','perfTakeoffOatMode'],['landing','perfLandingOat','perfLandingOatMode']].forEach((entry) => {
+        const input = el(entry[1]); const mode = el(entry[2]).value;
+        input.readOnly = mode !== 'MAN';
+        input.classList.toggle('locked', mode !== 'MAN');
+      });
+      [['takeoff','perfTakeoffQnh','perfTakeoffQnhMode'],['landing','perfLandingQnh','perfLandingQnhMode']].forEach((entry) => {
+        const input = el(entry[1]); const mode = el(entry[2]).value;
+        input.readOnly = mode !== 'MAN';
+        input.classList.toggle('locked', mode !== 'MAN');
+      });
     }
 
     async function generate() {
@@ -3075,9 +3097,9 @@ function renderTakeoffRunwayVisual(data, calc) {
     });
 
 
-    ['perfTakeoffWeight', 'perfLandingWeight', 'perfTakeoffQnh', 'perfLandingQnh'].forEach((id) => {
+    ['perfTakeoffWeight', 'perfLandingWeight', 'perfTakeoffQnh', 'perfLandingQnh', 'perfTakeoffOat', 'perfLandingOat'].forEach((id) => {
       el(id).addEventListener('input', () => {
-        el(id).value = normalizeNumericInputValue(el(id).value, 4);
+        el(id).value = normalizeNumericInputValue(el(id).value);
         refreshPerformancePanelIfOpen();
       });
     });
@@ -3102,12 +3124,21 @@ function renderTakeoffRunwayVisual(data, calc) {
       });
     });
 
+
+    ['perfTakeoffOat', 'perfLandingOat'].forEach((id) => {
+      el(id).addEventListener('input', () => {
+        el(id).value = String(el(id).value || '').replace(/[^0-9M\-\/+]/gi, '').replace(/M/gi, '-');
+        syncPerfModeUi();
+        refreshPerformancePanelIfOpen();
+      });
+    });
+
+    syncPerfModeUi();
+
     performanceBtn.addEventListener('click', async () => {
       const isOpen = performancePanel.style.display === 'block';
       performancePanel.style.display = isOpen ? 'none' : 'block';
       if (!isOpen) {
-        takeoffCalculated = false;
-        landingCalculated = false;
         try { await loadPerformancePanelData(); } catch (err) { console.error(err); }
       }
     });
@@ -3118,7 +3149,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       perfTakeoffCalcBtn.textContent = 'CALCULATING...';
       setStatusWithAdvice('CALCULATING TAKEOFF PERFORMANCE...', 'live');
       try {
-        takeoffCalculated = true;
+        takeoffVisualCalculated = true;
         await loadPerformancePanelData();
         setStatusWithAdvice('TAKEOFF PERFORMANCE CALCULATED', 'live');
       } catch (err) {
@@ -3136,7 +3167,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       perfLandingCalcBtn.textContent = 'CALCULATING...';
       setStatusWithAdvice('CALCULATING LANDING PERFORMANCE...', 'live');
       try {
-        landingCalculated = true;
+        takeoffVisualCalculated = true;
         await loadPerformancePanelData();
         setStatusWithAdvice('LANDING PERFORMANCE CALCULATED', 'live');
       } catch (err) {
@@ -3177,8 +3208,6 @@ function renderTakeoffRunwayVisual(data, calc) {
           setStatusWithAdvice('LANDING PERFORMANCE LOAD FAILED', 'nodata');
         });
     });
-
-    ['perfTakeoffOat','perfLandingOat'].forEach((id) => { const n = el(id); if (n) n.addEventListener('input', () => refreshPerformancePanelIfOpen()); });
 
     generateBtn.addEventListener('click', async () => { await generate(); });
 
