@@ -2353,6 +2353,42 @@ END OF REPORT`;
       return Number.isFinite(value) ? `${rounded(value)} °C` : '..... °C';
     }
 
+    function formatTempDp(tempC, dewC) {
+      const tempText = Number.isFinite(tempC) ? `${rounded(tempC)}°C` : '.....°C';
+      const dewText = Number.isFinite(dewC) ? `${rounded(dewC)}°C` : '.....°C';
+      return `${tempText}/${dewText}`;
+    }
+
+    function getMetarTempDewForIcao(icao) {
+      const target = String(icao || '').trim().toUpperCase();
+      if (!target) return null;
+      const sources = [];
+      try {
+        const currentPreview = String(previewText?.textContent || '');
+        if (currentPreview) sources.push(currentPreview);
+      } catch {}
+      try {
+        const history = Array.isArray(getHistory()) ? getHistory() : [];
+        for (const item of history) {
+          const txt = String(item?.report || item?.text || '');
+          if (txt) sources.push(txt);
+        }
+      } catch {}
+      const re = new RegExp(`(?:^|\n)${target}\s+[^\n]*?\s(M?\d{2})\/(M?\d{2})(?:\s|$)`, 'i');
+      for (const src of sources) {
+        const m = re.exec(src);
+        if (!m) continue;
+        const parse = (v) => {
+          const s = String(v || '').toUpperCase();
+          const n = Number(s.replace('M',''));
+          if (!Number.isFinite(n)) return null;
+          return s.startsWith('M') ? -n : n;
+        };
+        return { tempC: parse(m[1]), dewC: parse(m[2]) };
+      }
+      return null;
+    }
+
     function shortAirportName(apt) {
       const icao = apt?.icao || '.....';
       const raw = String(apt?.name || apt?.municipality || '').trim().toUpperCase();
