@@ -494,7 +494,7 @@
     .performance-inline-display.locked.mode-auto { color: var(--live) !important; }
     .performance-inline-display.locked.mode-man { color: var(--warn) !important; }
     .performance-inline-input.qnh-manual { width: 86px; }
-    .performance-inline-input.oatdp-compact { width: 132px; font-size: 12px; }
+    .performance-inline-input.oatdp-compact { width: 86px; font-size: 12px; }
     .performance-inline-suffix { color: #d7d7d7; font-size: 13px; white-space: nowrap; margin-left: -4px; }
 
     .performance-messages {
@@ -4204,7 +4204,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       }
       showPerformanceView();
       try {
-        takeoffVisualCalculated = true;
+        takeoffVisualCalculated = false;
+        landingVisualCalculated = false;
         await loadPerformancePanelData();
         setStatusWithAdvice('PERFORMANCE PANEL READY', 'live');
       } catch (err) {
@@ -4237,7 +4238,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       perfLandingCalcBtn.textContent = 'CALCULATING...';
       setStatusWithAdvice('CALCULATING LANDING PERFORMANCE...', 'live');
       try {
-        takeoffVisualCalculated = true;
+        landingVisualCalculated = true;
         await loadPerformancePanelData();
         setStatusWithAdvice('LANDING PERFORMANCE CALCULATED', 'live');
       } catch (err) {
@@ -4407,7 +4408,13 @@ function renderTakeoffRunwayVisual(data, calc) {
       renderPreview(DEFAULT_PREVIEW);
       clearAirportTags();
       renderHistory();
-      updateConnectionBadge();
+  
+    takeoffVisualCalculated = false;
+    landingVisualCalculated = false;
+    clearRunwayVisualOutput('takeoff');
+    clearRunwayVisualOutput('landing');
+
+    updateConnectionBadge();
       updateWxModeFromConnectivity();
       scheduleLiveStatusRefresh();
       resetPerformanceFields();
