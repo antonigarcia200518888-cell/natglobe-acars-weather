@@ -345,7 +345,7 @@
 
     .utility-actions {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
@@ -1117,10 +1117,10 @@
                 <span id="perfTakeoffTora" class="performance-value performance-value-warn">..... FT</span>
               </div>
               <div class="performance-item">
-                <span class="performance-label">OAT</span>
+                <span class="performance-label">OAT/DP</span>
                 <div class="performance-inline-group">
+                  <input id="perfTakeoffOat" class="performance-inline-input performance-inline-display locked mode-auto" type="text" inputmode="decimal" maxlength="16" placeholder="...../.....°C" />
                   <select id="perfTakeoffOatMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
-                  <input id="perfTakeoffOat" class="performance-inline-input performance-inline-display locked" type="text" inputmode="decimal" maxlength="6" placeholder="°C" />
                 </div>
               </div>
             </div>
@@ -1132,8 +1132,8 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">QNH</span>
-                <select id="perfTakeoffQnhMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 <input id="perfTakeoffQnh" class="performance-inline-input qnh-manual" type="text" inputmode="numeric" maxlength="4" placeholder="HPA" />
+                <select id="perfTakeoffQnhMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
               </div>
             </div>
 
@@ -1345,10 +1345,10 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
                 <span id="perfLandingLda" class="performance-value performance-value-warn">..... FT</span>
               </div>
               <div class="performance-item">
-                <span class="performance-label">OAT</span>
+                <span class="performance-label">OAT/DP</span>
                 <div class="performance-inline-group">
+                  <input id="perfLandingOat" class="performance-inline-input performance-inline-display locked mode-auto" type="text" inputmode="decimal" maxlength="16" placeholder="...../.....°C" />
                   <select id="perfLandingOatMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
-                  <input id="perfLandingOat" class="performance-inline-input performance-inline-display locked" type="text" inputmode="decimal" maxlength="6" placeholder="°C" />
                 </div>
               </div>
             </div>
@@ -1360,8 +1360,8 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
               </div>
               <div class="performance-item">
                 <span class="performance-label">QNH</span>
-                <select id="perfLandingQnhMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 <input id="perfLandingQnh" class="performance-inline-input qnh-manual" type="text" inputmode="numeric" maxlength="4" placeholder="HPA" />
+                <select id="perfLandingQnhMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
               </div>
             </div>
 
@@ -1552,7 +1552,6 @@ END OF REPORT</pre>
       <button id="openBtn" class="btn">Open PDF</button>
       <button id="copyBtn" class="btn">Copy Report</button>
       <button id="copyPdfLinkBtn" class="btn">Copy PDF Link</button>
-      <button id="lastDispatchBtn" class="btn">Last Dispatch</button>
     </div>
 
     <div class="history-wrap">
@@ -1668,7 +1667,6 @@ END OF REPORT`;
     const openBtn = el('openBtn');
     const copyBtn = el('copyBtn');
     const copyPdfLinkBtn = el('copyPdfLinkBtn');
-    const lastDispatchBtn = el('lastDispatchBtn');
     const resetBtn = el('resetBtn');
     const notamsBtn = el('notamsBtn');
     const printBtn = el('printBtn');
@@ -1696,6 +1694,8 @@ END OF REPORT`;
     let liveStatusTimer = null;
     let liveStatusRequestId = 0;
     let lastAdviceMessage = '';
+    let takeoffVisualCalculated = false;
+    let landingVisualCalculated = false;
     const WX_CACHE_KEY = 'ng_dispatch_weather_cache_v1';
     const PERF_CACHE_KEY = 'ng_dispatch_perf_cache_v1';
     const PDF_CACHE_KEY = 'ng_dispatch_pdf_cache_v1';
@@ -2307,17 +2307,6 @@ END OF REPORT`;
       `).join('');
     }
 
-    function loadLastDispatchPackage() {
-      const history = getHistory();
-      if (!history.length) {
-        setStatusWithAdvice('NO SAVED DISPATCH PACKAGE', 'nodata');
-        return;
-      }
-      loadHistoryEntry(0);
-      setActiveNavButton('wx');
-      setStatusWithAdvice('LAST DISPATCH LOADED', 'fallback');
-    }
-
     function performanceInputValues() {
       return {
         takeoffRunway: upper(el('perfTakeoffRunway').value),
@@ -2353,42 +2342,6 @@ END OF REPORT`;
       return Number.isFinite(value) ? `${rounded(value)} °C` : '..... °C';
     }
 
-    function formatTempDp(tempC, dewC) {
-      const tempText = Number.isFinite(tempC) ? `${rounded(tempC)}°C` : '.....°C';
-      const dewText = Number.isFinite(dewC) ? `${rounded(dewC)}°C` : '.....°C';
-      return `${tempText}/${dewText}`;
-    }
-
-    function getMetarTempDewForIcao(icao) {
-      const target = String(icao || '').trim().toUpperCase();
-      if (!target) return null;
-      const sources = [];
-      try {
-        const currentPreview = String(previewText?.textContent || '');
-        if (currentPreview) sources.push(currentPreview);
-      } catch {}
-      try {
-        const history = Array.isArray(getHistory()) ? getHistory() : [];
-        for (const item of history) {
-          const txt = String(item?.report || item?.text || '');
-          if (txt) sources.push(txt);
-        }
-      } catch {}
-      const re = new RegExp(`(?:^|\n)${target}\s+[^\n]*?\s(M?\d{2})\/(M?\d{2})(?:\s|$)`, 'i');
-      for (const src of sources) {
-        const m = re.exec(src);
-        if (!m) continue;
-        const parse = (v) => {
-          const s = String(v || '').toUpperCase();
-          const n = Number(s.replace('M',''));
-          if (!Number.isFinite(n)) return null;
-          return s.startsWith('M') ? -n : n;
-        };
-        return { tempC: parse(m[1]), dewC: parse(m[2]) };
-      }
-      return null;
-    }
-
     function shortAirportName(apt) {
       const icao = apt?.icao || '.....';
       const raw = String(apt?.name || apt?.municipality || '').trim().toUpperCase();
@@ -2411,6 +2364,72 @@ END OF REPORT`;
     function getManualQnhValue(kind) {
       const v = Number(el(kind === 'takeoff' ? 'perfTakeoffQnh' : 'perfLandingQnh').value);
       return Number.isFinite(v) ? v : null;
+    }
+
+    function getOatMode(kind) {
+      return el(kind === 'takeoff' ? 'perfTakeoffOatMode' : 'perfLandingOatMode')?.value || 'AUTO';
+    }
+
+    function getOatField(kind) {
+      return el(kind === 'takeoff' ? 'perfTakeoffOat' : 'perfLandingOat');
+    }
+
+    function getManualOatValue(kind) {
+      const raw = String(getOatField(kind)?.value || '').replace(',', '.');
+      const first = raw.split('/')[0];
+      const v = Number(first.replace(/[^0-9.\-]/g, ''));
+      return Number.isFinite(v) ? v : null;
+    }
+
+    function setFieldModeVisual(node, mode, manual) {
+      if (!node) return;
+      node.classList.toggle('locked', !manual);
+      node.readOnly = !manual;
+      node.classList.remove('mode-auto', 'mode-man');
+      node.classList.add(mode === 'MAN' ? 'mode-man' : 'mode-auto');
+    }
+
+    function parseMetarTempDew(raw) {
+      const txt = String(raw || '').toUpperCase();
+      const match = txt.match(/\s(M?\d{2})\/(M?\d{2})(?=\s|$)/);
+      if (!match) return { oatC: null, dewC: null };
+      const cv = (token) => token.startsWith('M') ? -Number(token.slice(1)) : Number(token);
+      const oatC = cv(match[1]);
+      const dewC = cv(match[2]);
+      return { oatC: Number.isFinite(oatC) ? oatC : null, dewC: Number.isFinite(dewC) ? dewC : null };
+    }
+
+    function findMetarTempDewForIcao(icao) {
+      const target = String(icao || '').trim().toUpperCase();
+      if (!target) return { oatC: null, dewC: null };
+      const preview = String(previewText?.textContent || '');
+      const lines = preview.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim().toUpperCase();
+        if (!trimmed.startsWith(target + ' ')) continue;
+        const parsed = parseMetarTempDew(trimmed);
+        if (Number.isFinite(parsed.oatC) || Number.isFinite(parsed.dewC)) return parsed;
+      }
+      return { oatC: null, dewC: null };
+    }
+
+    function formatOatDp(oatC, dewC) {
+      const left = Number.isFinite(oatC) ? String(Math.round(oatC)) : '.....';
+      const right = Number.isFinite(dewC) ? String(Math.round(dewC)) : '.....';
+      return `${left}/${right}°C`;
+    }
+
+    function syncOatField(kind, oatC, dewC) {
+      const mode = getOatMode(kind);
+      const field = getOatField(kind);
+      const manual = mode === 'MAN';
+      setFieldModeVisual(field, mode, manual);
+      if (!field) return;
+      if (manual) {
+        field.value = formatOatDp(getManualOatValue(kind), dewC);
+      } else {
+        field.value = formatOatDp(oatC, dewC);
+      }
     }
 
     function getWindMode(kind) {
@@ -2536,8 +2555,7 @@ END OF REPORT`;
     }
 
     function formatQnhDisplay(mode, qnh) {
-      const qnhText = Number.isFinite(qnh) ? Math.round(qnh) : '.....';
-      return `${qnhText} ${mode === 'MAN' ? 'MAN' : 'AUTO'}`;
+      return `${Number.isFinite(qnh) ? Math.round(qnh) : '.....'} ${mode === 'MAN' ? 'MAN' : 'AUTO'}`;
     }
 
     function formatWindComp(hwXw) {
@@ -3289,7 +3307,6 @@ END OF REPORT`;
       const slopeDirection = !Number.isFinite(slopeValue) || slopeValue === 0 ? 'LEVEL' : slopeValue > 0 ? 'UPHILL TO NORTH' : 'DOWNHILL TO NORTH';
       const cautionText = Number.isFinite(remainingFt) && remainingFt < 0 ? 'RUNWAY EXCEEDED' : Number.isFinite(remainingFt) && remainingFt < 400 ? 'TIGHT MARGIN' : Number(options?.tailwindKt) >= 5 ? 'TAILWIND CAUTION' : 'NORMAL MARGIN';
       const cautionColor = Number.isFinite(remainingFt) && remainingFt < 400 ? '#ff6b6b' : Number(options?.tailwindKt) >= 5 ? '#ffcc66' : '#66ff99';
-      let runwayWindOverlay = '';
       const landingRemainFt = Number.isFinite(availableFt) && Number.isFinite(requiredFt) ? Math.max(0, availableFt - requiredFt) : null;
       const progressLabelsRaw = aircraftMode === 'DEP' ? [
         {y: barY + barH - reqBarH + 6, label: `TO ROLL ${Number.isFinite(requiredFt) ? Math.round(requiredFt) : '---'} FT`, color: '#66ff99'},
@@ -3329,7 +3346,7 @@ END OF REPORT`;
         landingBarMarkup += `<rect data-anim="bar" x="0" y="0" width="${barW}" height="${greenCapH}" rx="8" fill="url(#${legendPrefix}-green)" opacity="1" filter="url(#${legendPrefix}-softGlow)" />`;
       }
 
-      container.innerHTML = `<svg viewBox="0 0 ${viewW} ${viewH}" role="img" aria-label="Runway performance visual"><defs><linearGradient id="${legendPrefix}-runway-surface" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#474747" /><stop offset="44%" stop-color="#282828" /><stop offset="100%" stop-color="#191919" /></linearGradient><linearGradient id="${legendPrefix}-runway-sheen" x1="0" x2="1"><stop offset="0%" stop-color="rgba(255,255,255,0)" /><stop offset="50%" stop-color="rgba(255,255,255,0.09)" /><stop offset="100%" stop-color="rgba(255,255,255,0)" /></linearGradient><linearGradient id="${legendPrefix}-green" x1="0" x2="1"><stop offset="0%" stop-color="#66ff99" /><stop offset="100%" stop-color="#00c853" /></linearGradient><linearGradient id="${legendPrefix}-yellow" x1="0" x2="1"><stop offset="0%" stop-color="#ffe066" /><stop offset="100%" stop-color="#ffb300" /></linearGradient><linearGradient id="${legendPrefix}-orange" x1="0" x2="1"><stop offset="0%" stop-color="#ffc16a" /><stop offset="100%" stop-color="#ff7f11" /></linearGradient><linearGradient id="${legendPrefix}-grey" x1="0" x2="1"><stop offset="0%" stop-color="#5c5c5c" /><stop offset="100%" stop-color="#303030" /></linearGradient><filter id="${legendPrefix}-softGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter><filter id="${legendPrefix}-aircraftShadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.65)" /></filter></defs><rect x="18" y="18" width="${viewW - 36}" height="${viewH - 36}" rx="18" fill="#030303" stroke="#151515" stroke-width="1.5" />${scaleTicks}<g transform="translate(${barX}, ${barY})"><text x="${barW / 2}" y="-12" text-anchor="middle" fill="#d7d7d7" font-size="13" font-family="Courier New, monospace">${aircraftMode === 'DEP' ? 'ROLL' : 'STOP'}</text><rect x="0" y="0" width="${barW}" height="${barH}" rx="10" fill="url(#${legendPrefix}-grey)" stroke="#5d5d5d" stroke-width="1.2" />${aircraftMode === 'DEP' ? `<rect data-anim="bar" x="0" y="${barH - reqBarH}" width="${barW}" height="${reqBarH}" rx="8" fill="url(#${legendPrefix}-green)" filter="url(#${legendPrefix}-softGlow)" /><rect data-anim="bar" x="0" y="${barH - dist50BarH}" width="${barW}" height="${extra50BarH}" rx="0" fill="url(#${legendPrefix}-yellow)" filter="url(#${legendPrefix}-softGlow)" /><rect data-anim="bar" x="0" y="${barH - accelerateStopBarH}" width="${barW}" height="${extraStopBarH}" rx="0" fill="url(#${legendPrefix}-orange)" filter="url(#${legendPrefix}-softGlow)" />` : landingBarMarkup}${progressLabels}</g><g><rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="18" fill="url(#${legendPrefix}-runway-surface)" stroke="#7c7c7c" stroke-width="2.3" /><rect x="${runwayX + 32}" y="${runwayY + 20}" width="${runwayW - 64}" height="${runwayH - 40}" rx="20" fill="url(#${legendPrefix}-runway-sheen)" opacity="0.34" /><rect x="${runwayX + 8}" y="${runwayY + 8}" width="${runwayW - 16}" height="${runwayH - 16}" rx="13" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />${sideLights(runwayX + 8)}${sideLights(runwayX + runwayW - 8)}${thresholdLineLights(runwayY + 14, '#ff4d4d')}${thresholdLineLights(bottomY - 14, '#4dff88')}${centerline}${runwayWindOverlay}${aimingBlocks}${touchdownMarkers}</g><text x="${centerX}" y="${runwayY + 72}" text-anchor="middle" fill="#f7f7f7" stroke="rgba(0,0,0,0.70)" stroke-width="4" paint-order="stroke fill" font-size="44" font-weight="700" transform="rotate(180 ${centerX} ${runwayY + 72})" font-family="Courier New, monospace" filter="url(#${legendPrefix}-softGlow)">${oppositeIdent || ''}</text><text x="${centerX}" y="${bottomY - 34}" text-anchor="middle" fill="#f7f7f7" stroke="rgba(0,0,0,0.72)" stroke-width="4" paint-order="stroke fill" font-size="46" font-weight="700" font-family="Courier New, monospace" filter="url(#${legendPrefix}-softGlow)">${runwayIdent}</text>${thresholdLabel}${verticalMarker}${distance50Marker}${accelerateStopMarker}${goAroundMarker}${rejectTakeoffMarker}<g data-anim="aircraft" filter="url(#${legendPrefix}-aircraftShadow)">${mainAircraft}</g><g transform="translate(54, 62)"><rect x="0" y="0" width="318" height="138" rx="14" fill="#070707" stroke="#8ec5ff" stroke-width="1.2" /><rect x="0" y="0" width="318" height="68" rx="14" fill="rgba(142,197,255,0.06)" /><rect x="0" y="70" width="318" height="68" rx="14" fill="rgba(255,159,67,0.10)" stroke="#ff9f43" stroke-width="0.8" /><text x="22" y="30" fill="#8ec5ff" font-size="22" font-family="Courier New, monospace">${headwindArrow}</text><text x="54" y="30" fill="#ffffff" font-size="22" font-family="Courier New, monospace">${headwindType}</text><text x="284" y="30" text-anchor="end" fill="#ffffff" font-size="22" font-family="Courier New, monospace">${headwindLabel}</text><text x="22" y="102" fill="#ff9f43" font-size="22" font-family="Courier New, monospace">${crosswindArrow}</text><text x="54" y="102" fill="#ffb15c" font-size="22" font-family="Courier New, monospace">CROSSWIND</text><text x="284" y="102" text-anchor="end" fill="#ffb15c" font-size="22" font-family="Courier New, monospace">${crosswindLabel}</text></g><g transform="translate(712, 64)"><rect x="0" y="0" width="312" height="128" rx="12" fill="#070707" stroke="${cautionColor}" stroke-width="1.2" /><text x="20" y="32" fill="#bdbdbd" font-size="18" font-family="Courier New, monospace">RWY COND ${String(options?.conditionText || 'DRY').toUpperCase()}</text><text x="20" y="64" fill="#ffffff" font-size="22" font-family="Courier New, monospace">SLOPE ${String(options?.slopeText || '0%').toUpperCase()}</text><text x="20" y="94" fill="#8ec5ff" font-size="18" font-family="Courier New, monospace">${slopeDirection}</text><text x="20" y="118" fill="${cautionColor}" font-size="18" font-family="Courier New, monospace">${cautionText}</text></g></svg>`;
+      container.innerHTML = `<svg viewBox="0 0 ${viewW} ${viewH}" role="img" aria-label="Runway performance visual"><defs><linearGradient id="${legendPrefix}-runway-surface" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#474747" /><stop offset="44%" stop-color="#282828" /><stop offset="100%" stop-color="#191919" /></linearGradient><linearGradient id="${legendPrefix}-runway-sheen" x1="0" x2="1"><stop offset="0%" stop-color="rgba(255,255,255,0)" /><stop offset="50%" stop-color="rgba(255,255,255,0.09)" /><stop offset="100%" stop-color="rgba(255,255,255,0)" /></linearGradient><linearGradient id="${legendPrefix}-green" x1="0" x2="1"><stop offset="0%" stop-color="#66ff99" /><stop offset="100%" stop-color="#00c853" /></linearGradient><linearGradient id="${legendPrefix}-yellow" x1="0" x2="1"><stop offset="0%" stop-color="#ffe066" /><stop offset="100%" stop-color="#ffb300" /></linearGradient><linearGradient id="${legendPrefix}-orange" x1="0" x2="1"><stop offset="0%" stop-color="#ffc16a" /><stop offset="100%" stop-color="#ff7f11" /></linearGradient><linearGradient id="${legendPrefix}-grey" x1="0" x2="1"><stop offset="0%" stop-color="#5c5c5c" /><stop offset="100%" stop-color="#303030" /></linearGradient><filter id="${legendPrefix}-softGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter><filter id="${legendPrefix}-aircraftShadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.65)" /></filter></defs><rect x="18" y="18" width="${viewW - 36}" height="${viewH - 36}" rx="18" fill="#030303" stroke="#151515" stroke-width="1.5" />${scaleTicks}<g transform="translate(${barX}, ${barY})"><text x="${barW / 2}" y="-12" text-anchor="middle" fill="#d7d7d7" font-size="13" font-family="Courier New, monospace">${aircraftMode === 'DEP' ? 'ROLL' : 'STOP'}</text><rect x="0" y="0" width="${barW}" height="${barH}" rx="10" fill="url(#${legendPrefix}-grey)" stroke="#5d5d5d" stroke-width="1.2" />${aircraftMode === 'DEP' ? `<rect data-anim="bar" x="0" y="${barH - reqBarH}" width="${barW}" height="${reqBarH}" rx="8" fill="url(#${legendPrefix}-green)" filter="url(#${legendPrefix}-softGlow)" /><rect data-anim="bar" x="0" y="${barH - dist50BarH}" width="${barW}" height="${extra50BarH}" rx="0" fill="url(#${legendPrefix}-yellow)" filter="url(#${legendPrefix}-softGlow)" /><rect data-anim="bar" x="0" y="${barH - accelerateStopBarH}" width="${barW}" height="${extraStopBarH}" rx="0" fill="url(#${legendPrefix}-orange)" filter="url(#${legendPrefix}-softGlow)" />` : landingBarMarkup}${progressLabels}</g><g><rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="18" fill="url(#${legendPrefix}-runway-surface)" stroke="#7c7c7c" stroke-width="2.3" /><rect x="${runwayX + 32}" y="${runwayY + 20}" width="${runwayW - 64}" height="${runwayH - 40}" rx="20" fill="url(#${legendPrefix}-runway-sheen)" opacity="0.34" /><rect x="${runwayX + 8}" y="${runwayY + 8}" width="${runwayW - 16}" height="${runwayH - 16}" rx="13" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />${sideLights(runwayX + 8)}${sideLights(runwayX + runwayW - 8)}${thresholdLineLights(runwayY + 14, '#ff4d4d')}${thresholdLineLights(bottomY - 14, '#4dff88')}${centerline}${aimingBlocks}${touchdownMarkers}</g><text x="${centerX}" y="${runwayY + 72}" text-anchor="middle" fill="#f7f7f7" stroke="rgba(0,0,0,0.70)" stroke-width="4" paint-order="stroke fill" font-size="44" font-weight="700" transform="rotate(180 ${centerX} ${runwayY + 72})" font-family="Courier New, monospace" filter="url(#${legendPrefix}-softGlow)">${oppositeIdent || ''}</text><text x="${centerX}" y="${bottomY - 34}" text-anchor="middle" fill="#f7f7f7" stroke="rgba(0,0,0,0.72)" stroke-width="4" paint-order="stroke fill" font-size="46" font-weight="700" font-family="Courier New, monospace" filter="url(#${legendPrefix}-softGlow)">${runwayIdent}</text>${thresholdLabel}${verticalMarker}${distance50Marker}${accelerateStopMarker}${goAroundMarker}${rejectTakeoffMarker}<g data-anim="aircraft" filter="url(#${legendPrefix}-aircraftShadow)">${mainAircraft}</g><g transform="translate(54, 62)"><rect x="0" y="0" width="318" height="138" rx="14" fill="#070707" stroke="#8ec5ff" stroke-width="1.2" /><rect x="0" y="0" width="318" height="68" rx="14" fill="rgba(142,197,255,0.06)" /><rect x="0" y="70" width="318" height="68" rx="14" fill="rgba(255,159,67,0.10)" stroke="#ff9f43" stroke-width="0.8" /><text x="22" y="30" fill="#8ec5ff" font-size="22" font-family="Courier New, monospace">${headwindArrow}</text><text x="54" y="30" fill="#ffffff" font-size="22" font-family="Courier New, monospace">${headwindType}</text><text x="284" y="30" text-anchor="end" fill="#ffffff" font-size="22" font-family="Courier New, monospace">${headwindLabel}</text><text x="22" y="102" fill="#ff9f43" font-size="22" font-family="Courier New, monospace">${crosswindArrow}</text><text x="54" y="102" fill="#ffb15c" font-size="22" font-family="Courier New, monospace">CROSSWIND</text><text x="284" y="102" text-anchor="end" fill="#ffb15c" font-size="22" font-family="Courier New, monospace">${crosswindLabel}</text></g><g transform="translate(712, 64)"><rect x="0" y="0" width="312" height="128" rx="12" fill="#070707" stroke="${cautionColor}" stroke-width="1.2" /><text x="20" y="32" fill="#bdbdbd" font-size="18" font-family="Courier New, monospace">RWY COND ${String(options?.conditionText || 'DRY').toUpperCase()}</text><text x="20" y="64" fill="#ffffff" font-size="22" font-family="Courier New, monospace">SLOPE ${String(options?.slopeText || '0%').toUpperCase()}</text><text x="20" y="94" fill="#8ec5ff" font-size="18" font-family="Courier New, monospace">${slopeDirection}</text><text x="20" y="118" fill="${cautionColor}" font-size="18" font-family="Courier New, monospace">${cautionText}</text></g></svg>`;
       const reqNode = document.getElementById(`${legendPrefix}Req`);
       const availNode = document.getElementById(`${legendPrefix}Avail`);
       const remainNode = document.getElementById(`${legendPrefix}Remain`);
@@ -3427,7 +3444,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         'RUNWAY AND WEATHER:',
         formatAcarsPair('APT', shortAirportName(rw.apt), 'WIND', formatWind(rw.wind)),
         formatAcarsPair('RWY', toDisplayValue(runwayValue, '.....'), 'HW/XW', formatHwXwAcars(rw.hwXw)),
-        formatAcarsPair('TORA', toraText, 'OAT', formatTemp(rw.oatC)),
+        formatAcarsPair('TORA', toraText, 'OAT/DP', formatOatDp(rw.oatC, findMetarTempDewForIcao(rw?.apt?.icao || fields.dep.value).dewC)),
         formatAcarsPair('HDG', headingText, 'QNH', formatQnhDisplay(getQnhMode('takeoff'), qnhValue)),
         formatAcarsPair('ELEV', formatFeet(rw.elevFt), 'RWY COND', rwyCondText),
         formatAcarsPair('DENSITY ALT', formatFeet(rw.densityAltFt), 'RWY SLOPE', slopeText),
@@ -3465,8 +3482,6 @@ function renderTakeoffRunwayVisual(data, calc) {
       const avail = Number(String(ldaText).replace(/[^0-9]/g, ''));
       const remain = Number.isFinite(avail) && Number.isFinite(calc.landingDistanceRequiredFt) ? avail - calc.landingDistanceRequiredFt : null;
       const notes = String(el('perfLandingNotes').textContent || 'NONE').trim() || 'NONE';
-      const metarTempDew = getMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value) || {};
-      const dewPointC = Number.isFinite(aw.dpC) ? aw.dpC : (Number.isFinite(metarTempDew.dewC) ? metarTempDew.dewC : null);
 
       return [
         'LANDING PERFORMANCE',
@@ -3476,7 +3491,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         'AIRPORT AND WEATHER:',
         formatAcarsPair('APT', shortAirportName(aw.apt), 'WIND', formatWind(aw.wind)),
         formatAcarsPair('RWY', toDisplayValue(runwayValue, '.....'), 'HDG', headingText),
-        formatAcarsPair('LDA', ldaText, 'OAT/DP', formatTempDp(aw.oatC, dewPointC)),
+        formatAcarsPair('LDA', ldaText, 'OAT/DP', formatOatDp(aw.oatC, findMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value).dewC)),
         formatAcarsPair('HW/XW', formatHwXwAcars(aw.hwXw), 'QNH', formatQnhDisplay(getQnhMode('landing'), qnhValue)),
         formatAcarsPair('ELEV', formatFeet(aw.elevFt), 'RWY COND', rwyCondText),
         formatAcarsPair('DENSITY ALT', formatFeet(aw.densityAltFt), 'RWY SLOPE', slopeText),
@@ -3552,6 +3567,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       getOatField('takeoff').value = '..... °C';
       el('perfTakeoffQnhMode').value = 'AUTO';
       el('perfTakeoffQnh').value = '';
+      el('perfTakeoffOatMode').value = 'AUTO';
       setNodeText('perfTakeoffRwyAvail', '..... FT');
       setNodeText('perfTakeoffRwyRemain', '..... FT');
       setNodeText('perfTakeoffElevation', '..... FT');
@@ -3576,6 +3592,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfTakeoffDerived', 'CALCULATED FROM  RWY -- / WIND -- / WT -- / COND -- / SLOPE --');
       setPerformanceStatusBadge('perfTakeoffStatus', 'ok', 'READY');
       setNodeText('perfTakeoffAcars', `TAKEOFF PERFORMANCE\n\n${AIRCRAFT.ident}  ${AIRCRAFT.type}`);
+      takeoffVisualCalculated = false;
       renderRunwayPlaceholder('perfTakeoffVisual', 'DEP');
       setNodeText('perfTakeoffVisualTora', '..... FT');
       setNodeText('perfTakeoffVisualRoll', '..... FT');
@@ -3590,6 +3607,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       getOatField('landing').value = '..... °C';
       el('perfLandingQnhMode').value = 'AUTO';
       el('perfLandingQnh').value = '';
+      el('perfLandingOatMode').value = 'AUTO';
       setNodeText('perfLandingRwyAvail', '..... FT');
       setNodeText('perfLandingRwyRemain', '..... FT');
       setNodeText('perfLandingElevation', '..... FT');
@@ -3834,7 +3852,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       applyMarginTone('perfTakeoffStopMargin', calc.stopMarginFt, 500, 900);
       setPerformanceStatusBadge('perfTakeoffStatus', !Number.isFinite(calc.stopMarginFt) ? 'ok' : (calc.stopMarginFt < 0 || calc.crosswindAbsKt > calc.xwindLimitKt ? 'danger' : (calc.stopMarginFt < 900 || calc.cautionTailwind ? 'caution' : 'ok')), !Number.isFinite(calc.stopMarginFt) ? 'READY' : (calc.stopMarginFt < 0 || calc.crosswindAbsKt > calc.xwindLimitKt ? 'LIMIT' : (calc.stopMarginFt < 900 || calc.cautionTailwind ? 'CAUTION' : 'OK')));
       setNodeText('perfTakeoffAcars', buildTakeoffAcarsBlock(data, calc));
-      renderTakeoffRunwayVisual(data, calc);
+      if (takeoffVisualCalculated) renderTakeoffRunwayVisual(data, calc);
+      else renderRunwayPlaceholder('perfTakeoffVisual', 'DEP');
     }
 
     function applyLandingPerformance(data) {
@@ -3894,7 +3913,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfLandingDerived', buildDerivedStripText('landing', { rwy: aw.rwy, wind: aw.wind, rwyCond: el('perfLandingRwyCond').value || aw.rwyCond, rwySlopePct: aw.rwySlopePct }, calc));
       setPerformanceStatusBadge('perfLandingStatus', !Number.isFinite(landingRemain) ? 'ok' : (landingRemain < 0 || calc.crosswindAbsKt > mphToKts(AIRCRAFT.demonstratedCrosswindMph) ? 'danger' : (landingRemain < 900 || calc.cautionTailwind ? 'caution' : 'ok')), !Number.isFinite(landingRemain) ? 'READY' : (landingRemain < 0 || calc.crosswindAbsKt > mphToKts(AIRCRAFT.demonstratedCrosswindMph) ? 'LIMIT' : (landingRemain < 900 || calc.cautionTailwind ? 'CAUTION' : 'OK')));
       setNodeText('perfLandingAcars', buildLandingAcarsBlock(data, calc));
-      renderLandingRunwayVisual(data, calc);
+      if (landingVisualCalculated) renderLandingRunwayVisual(data, calc);
+      else renderRunwayPlaceholder('perfLandingVisual', 'ARR');
     }
 
     async function loadPerformancePanelData() {
@@ -4117,9 +4137,14 @@ function renderTakeoffRunwayVisual(data, calc) {
     });
 
 
-    ['perfTakeoffWeight', 'perfLandingWeight', 'perfTakeoffQnh', 'perfLandingQnh'].forEach((id) => {
+    ['perfTakeoffWeight', 'perfLandingWeight', 'perfTakeoffQnh', 'perfLandingQnh', 'perfTakeoffOat', 'perfLandingOat'].forEach((id) => {
       el(id).addEventListener('input', () => {
-        el(id).value = normalizeNumericInputValue(el(id).value);
+        if (id.includes('Oat')) {
+          const manual = String(el(id).value || '').replace(',', '.').split('/')[0].replace(/[^0-9.\-]/g, '');
+          el(id).value = manual;
+        } else {
+          el(id).value = normalizeNumericInputValue(el(id).value);
+        }
         refreshPerformancePanelIfOpen();
       });
     });
@@ -4160,7 +4185,9 @@ function renderTakeoffRunwayVisual(data, calc) {
       'perfTakeoffAc',
       'perfLandingAc',
       'perfTakeoffQnhMode',
-      'perfLandingQnhMode'
+      'perfLandingQnhMode',
+      'perfTakeoffOatMode',
+      'perfLandingOatMode'
     ].forEach((id) => {
       el(id).addEventListener('change', () => {
         refreshPerformancePanelIfOpen();
@@ -4190,6 +4217,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       perfTakeoffCalcBtn.textContent = 'CALCULATING...';
       setStatusWithAdvice('CALCULATING TAKEOFF PERFORMANCE...', 'live');
       try {
+        takeoffVisualCalculated = true;
         await loadPerformancePanelData();
         setStatusWithAdvice('TAKEOFF PERFORMANCE CALCULATED', 'live');
       } catch (err) {
@@ -4207,6 +4235,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       perfLandingCalcBtn.textContent = 'CALCULATING...';
       setStatusWithAdvice('CALCULATING LANDING PERFORMANCE...', 'live');
       try {
+        landingVisualCalculated = true;
         await loadPerformancePanelData();
         setStatusWithAdvice('LANDING PERFORMANCE CALCULATED', 'live');
       } catch (err) {
@@ -4337,10 +4366,6 @@ function renderTakeoffRunwayVisual(data, calc) {
         console.error(err);
         setStatusWithAdvice('PDF LINK COPY FAILED', 'nodata');
       }
-    });
-
-    lastDispatchBtn.addEventListener('click', () => {
-      loadLastDispatchPackage();
     });
 
     swapMiniBtn.addEventListener('click', swapDepArr);
