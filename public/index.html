@@ -800,8 +800,10 @@
     .preview-text .hl-danger { color: var(--danger); font-weight: 700; }
     .preview-text .hl-live { color: var(--live); font-weight: 700; }
     .preview-text .hl-info { color: var(--accent); font-weight: 700; }
-    .preview-text .hl-mvfr { color: #4da3ff; font-weight: 700; }
-    .preview-text .hl-lifr { color: #ff66cc; font-weight: 700; }
+    .preview-text .hl-vfr { color: var(--live); font-weight: 700; }
+    .preview-text .hl-mvfr { color: #66b3ff; font-weight: 700; }
+    .preview-text .hl-ifr { color: var(--danger); font-weight: 700; }
+    .preview-text .hl-lifr { color: #ff77ff; font-weight: 700; }
 
     .history-wrap {
       border: 2px solid var(--line);
@@ -2055,59 +2057,68 @@ END OF REPORT`;
         .replace(/>/g, '&gt;');
     }
 
-    function classifyFlightCategoryFromMetar(metarLine) {
+
+    function parseMetarVisibilityMiles(metarLine) {
       const text = String(metarLine || '').toUpperCase();
       if (!text) return null;
-
-      let visibilitySm = null;
-      const visMetersMatch = text.match(/(\d{4})/);
-      if (visMetersMatch) {
-        const meters = Number(visMetersMatch[1]);
-        if (Number.isFinite(meters)) visibilitySm = meters / 1609.344;
-      }
-      const wholeFracVisMatch = text.match(/(\d+) (\d)\/(\d)SM/);
-      if (wholeFracVisMatch) {
-        visibilitySm = Number(wholeFracVisMatch[1]) + (Number(wholeFracVisMatch[2]) / Number(wholeFracVisMatch[3]));
-      } else {
-        const fracVisMatch = text.match(/(\d)\/(\d)SM/);
-        if (fracVisMatch) visibilitySm = Number(fracVisMatch[1]) / Number(fracVisMatch[2]);
-        const wholeVisMatch = text.match(/(P?)(\d+)SM/);
-        if (wholeVisMatch) {
-          visibilitySm = Number(wholeVisMatch[2]);
-          if (wholeVisMatch[1] === 'P') visibilitySm += 0.1;
+      if (/\bCAVOK\b/.test(text)) return 6.2;
+      const smMatch = text.match(/\b(P?)(\d+)?\s?(\d\/\d)?SM\b/);
+      if (smMatch) {
+        let total = 0;
+        if (smMatch[1] === 'P') total += 6;
+        if (smMatch[2]) total += Number(smMatch[2]) || 0;
+        if (smMatch[3]) {
+          const parts = smMatch[3].split('/');
+          if (parts.length === 2 && Number(parts[1])) total += (Number(parts[0]) || 0) / Number(parts[1]);
         }
+        return total || (smMatch[1] === 'P' ? 6 : null);
       }
+      const meterMatch = text.match(/\b(\d{4})\b/);
+      if (meterMatch) {
+        const meters = Number(meterMatch[1]);
+        if (Number.isFinite(meters)) return meters / 1609.344;
+      }
+      return null;
+    }
 
-      let ceilingFt = Infinity;
-      const cloudRegex = /(BKN|OVC|VV)(\d{3})/g;
+    function parseMetarCeilingFeet(metarLine) {
+      const text = String(metarLine || '').toUpperCase();
+      if (!text) return null;
+      let lowest = null;
+      const regex = /\b(BKN|OVC|VV)(\d{3})\b/g;
       let match;
-      while ((match = cloudRegex.exec(text)) !== null) {
+      while ((match = regex.exec(text))) {
         const feet = Number(match[2]) * 100;
-        if (Number.isFinite(feet) && feet < ceilingFt) ceilingFt = feet;
+        if (Number.isFinite(feet) && (lowest === null || feet < lowest)) lowest = feet;
       }
+      return lowest;
+    }
 
-      const vis = Number.isFinite(visibilitySm) ? visibilitySm : Infinity;
-      const ceiling = Number.isFinite(ceilingFt) ? ceilingFt : Infinity;
-
-      if (ceiling < 500 || vis < 1) return 'LIFR';
-      if (ceiling < 1000 || vis < 3) return 'IFR';
-      if (ceiling <= 3000 || vis <= 5) return 'MVFR';
+    function getFlightCategoryFromMetar(metarLine) {
+      const visMiles = parseMetarVisibilityMiles(metarLine);
+      const ceilingFt = parseMetarCeilingFeet(metarLine);
+      if ((visMiles !== null && visMiles < 1) || (ceilingFt !== null && ceilingFt < 500)) return 'LIFR';
+      if ((visMiles !== null && visMiles < 3) || (ceilingFt !== null && ceilingFt < 1000)) return 'IFR';
+      if ((visMiles !== null && visMiles < 5) || (ceilingFt !== null && ceilingFt <= 3000)) return 'MVFR';
       return 'VFR';
     }
 
-    function annotateMetarFlightCategory(reportText) {
-      const text = String(reportText || '');
-      if (!text) return text;
-      const lines = text.split(/?
-/);
-      for (let i = 0; i < lines.length - 1; i += 1) {
-        if (!/METAR MODE (LIVE|FALLBACK|NO DATA)/.test(lines[i])) continue;
-        if (/\((VFR|MVFR|IFR|LIFR)\)/.test(lines[i])) continue;
-        const category = classifyFlightCategoryFromMetar(lines[i + 1]);
-        if (category) lines[i] = `${lines[i]} (${category})`;
+    function appendMetarFlightCategories(reportText) {
+      const lines = String(reportText || '').split('\n');
+      for (let i = 0; i < lines.length; i += 1) {
+        if (!/^METAR MODE\s+/i.test(lines[i])) continue;
+        if (/\((VFR|MVFR|IFR|LIFR)\)\s*$/i.test(lines[i])) continue;
+        let metarLine = '';
+        for (let j = i + 1; j < lines.length; j += 1) {
+          const candidate = String(lines[j] || '').trim();
+          if (!candidate) continue;
+          metarLine = candidate;
+          break;
+        }
+        if (!metarLine) continue;
+        lines[i] = `${lines[i]} (${getFlightCategoryFromMetar(metarLine)})`;
       }
-      return lines.join('
-');
+      return lines.join('\n');
     }
 
     function applyPreviewHighlights(escapedText) {
@@ -2120,10 +2131,6 @@ END OF REPORT`;
         { regex: /\bTAF MODE NO DATA\b/g, cls: 'hl-danger' },
         { regex: /\bMETAR MODE LIVE\b/g, cls: 'hl-live' },
         { regex: /\bTAF MODE LIVE\b/g, cls: 'hl-live' },
-        { regex: /\(VFR\)/g, cls: 'hl-live' },
-        { regex: /\(MVFR\)/g, cls: 'hl-mvfr' },
-        { regex: /\(IFR\)/g, cls: 'hl-danger' },
-        { regex: /\(LIFR\)/g, cls: 'hl-lifr' },
         { regex: /\bMETAR SRC [A-Z]{4}\/\d+NM\b/g, cls: 'hl-warn' },
         { regex: /\bTAF SRC [A-Z]{4}\/\d+NM\b/g, cls: 'hl-warn' },
         { regex: /\bALTN REQUIRED\b/g, cls: 'hl-danger' },
@@ -2141,6 +2148,10 @@ END OF REPORT`;
         { regex: /\bICING RISK\b/g, cls: 'hl-danger' },
         { regex: /\bSNOW\b/g, cls: 'hl-info' },
         { regex: /\bTS\b/g, cls: 'hl-danger' },
+        { regex: /\(LIFR\)/g, cls: 'hl-lifr' },
+        { regex: /\(IFR\)/g, cls: 'hl-ifr' },
+        { regex: /\(MVFR\)/g, cls: 'hl-mvfr' },
+        { regex: /\(VFR\)/g, cls: 'hl-vfr' },
         { regex: /\bPRECIP\b/g, cls: 'hl-info' },
         { regex: /\bWINDS ALOFT\b/g, cls: 'hl-info' }
       ];
@@ -2151,9 +2162,9 @@ END OF REPORT`;
     }
 
     function renderPreview(reportText) {
-      const annotatedReport = annotateMetarFlightCategory(reportText);
-      latestReportText = String(annotatedReport || '');
-      const escaped = escapeHtml(annotatedReport);
+      const normalizedReportText = appendMetarFlightCategories(String(reportText || ''));
+      latestReportText = normalizedReportText;
+      const escaped = escapeHtml(normalizedReportText);
       previewText.innerHTML = applyPreviewHighlights(escaped);
       refreshPerformancePanelIfOpen();
     }
@@ -3883,13 +3894,12 @@ function renderTakeoffRunwayVisual(data, calc) {
       clearAirportTags();
 
       try {
-        const [reportTextRaw, statusData, advice] = await Promise.all([
+        const [reportText, statusData, advice] = await Promise.all([
           fetchText(queryString),
           fetchAirportStatuses(queryString),
           fetchDispatchAdvice(queryString)
         ]);
 
-        const reportText = annotateMetarFlightCategory(reportTextRaw);
         activePdfQuery = queryString;
         latestDirectUrl = `/api/dispatch-pdf?${queryString}&t=${Date.now()}`;
         renderPreview(reportText);
