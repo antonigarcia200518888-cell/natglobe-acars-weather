@@ -1684,6 +1684,7 @@ END OF REPORT`;
 
     let latestDirectUrl = null;
     let activePdfQuery = null;
+    let activeHistoryId = null;
     let latestReportText = '';
     let routeTouched = false;
     let liveStatusTimer = null;
@@ -1777,8 +1778,10 @@ END OF REPORT`;
     }
 
     function buildPdfCacheMeta(queryString) {
+      const historyEntry = getLatestHistoryEntryByQuery(queryString);
       return {
         query: String(queryString || ''),
+        historyId: historyEntry?.id || null,
         dep: normalizeIcaoInputValue(fields.dep.value),
         arr: normalizeIcaoInputValue(fields.arr.value),
         callsign: normalizeFlightInputValue(fields.flight.value),
@@ -1802,9 +1805,14 @@ END OF REPORT`;
       savePdfCache(deduped);
     }
 
-    function getBestCachedPdf(queryString) {
+    function getBestCachedPdf(queryString, historyId = null) {
       const entries = getPdfCache();
       if (!entries.length) return null;
+      const targetHistoryId = String(historyId || '');
+      if (targetHistoryId) {
+        const historyMatch = entries.find((entry) => entry && String(entry.historyId || '') === targetHistoryId);
+        if (historyMatch) return historyMatch;
+      }
       const exact = entries.find((entry) => entry && entry.query === String(queryString || ''));
       return exact || null;
     }
@@ -2164,6 +2172,12 @@ END OF REPORT`;
       return history.length ? history[0] : null;
     }
 
+    function getLatestHistoryEntryByQuery(queryString) {
+      const target = String(queryString || '');
+      if (!target) return null;
+      return getHistory().find((entry) => entry && entry.query === target) || null;
+    }
+
     function formatHistoryTime(iso) {
       const d = new Date(iso);
       if (Number.isNaN(d.getTime())) return 'UNKNOWN TIME';
@@ -2192,6 +2206,7 @@ END OF REPORT`;
       renderPreview(entry.report || DEFAULT_PREVIEW);
       applyAirportStatuses(entry.status);
       activePdfQuery = entry.query || null;
+      activeHistoryId = entry.id || null;
       latestDirectUrl = entry.query ? `/api/dispatch-pdf?${entry.query}&t=${Date.now()}` : null;
       lastAdviceMessage = '';
       setStatusWithAdvice('HISTORY REPORT LOADED', getStatusModeFromReport(entry.report || ''));
@@ -2212,7 +2227,7 @@ END OF REPORT`;
             <div class="history-main">${escapeHtml(summarizeHistoryQuery(entry.query))}</div>
             <div class="history-sub">${escapeHtml(formatHistoryTime(entry.savedAt))}</div>
           </div>
-          <button class="history-btn ${entry.query === activePdfQuery ? 'history-active' : ''}" type="button" data-history-index="${index}">LOAD</button>
+          <button class="history-btn ${entry.id === activeHistoryId ? 'history-active' : ''}" type="button" data-history-index="${index}">LOAD</button>
         </div>
       `).join('');
     }
@@ -3510,6 +3525,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       routeTouched = false;
       latestDirectUrl = null;
       activePdfQuery = null;
+      activeHistoryId = null;
       latestReportText = '';
       lastAdviceMessage = '';
       clearAirportTags();
@@ -3817,6 +3833,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         applyAirportStatuses(statusData);
         applyAdviceToStatus(advice);
         saveHistoryEntry(queryString, reportText, statusData);
+        activeHistoryId = getLatestHistoryEntryByQuery(queryString)?.id || null;
         saveWeatherCache(queryString, { reportText, statusData, advice });
         setStatusWithAdvice('DONE — REPORT GENERATED', getStatusModeFromReport(reportText));
         setWxMode('MODE: LIVE WX', 'live');
@@ -3830,6 +3847,7 @@ function renderTakeoffRunwayVisual(data, calc) {
           applyAirportStatuses(cached.statusData);
           applyAdviceToStatus(cached.advice);
           activePdfQuery = queryString;
+          activeHistoryId = getLatestHistoryEntryByQuery(queryString)?.id || null;
           latestDirectUrl = `/api/dispatch-pdf?${queryString}&t=${Date.now()}`;
           setStatusWithAdvice(`OFFLINE — USING CACHED WEATHER / ${formatCacheAge(cached.savedAt)}`, getStatusModeFromReport(cached.reportText));
           setWxMode(`MODE: CACHED WX / AGE: ${formatCacheAge(cached.savedAt)}`, 'cached');
@@ -3841,6 +3859,7 @@ function renderTakeoffRunwayVisual(data, calc) {
             renderPreview(latestHistory.report);
             applyAirportStatuses(latestHistory.status);
             activePdfQuery = latestHistory.query || null;
+            activeHistoryId = latestHistory.id || null;
             latestDirectUrl = latestHistory.query ? `/api/dispatch-pdf?${latestHistory.query}&t=${Date.now()}` : null;
             lastAdviceMessage = '';
             setStatusWithAdvice('OFFLINE OR API UNAVAILABLE — USING MOST RECENT HISTORY REPORT', getStatusModeFromReport(latestHistory.report));
@@ -4112,6 +4131,7 @@ function renderTakeoffRunwayVisual(data, calc) {
 
     openBtn.addEventListener('click', async () => {
       const targetQuery = String(activePdfQuery || '');
+      const targetHistoryId = String(activeHistoryId || '');
       if (!targetQuery) {
         const validationError = validateInputs();
         if (validationError) {
@@ -4133,6 +4153,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         try {
           await fetchOpenAndCachePdf(latestDirectUrl, queryString, popup);
           activePdfQuery = queryString;
+          activeHistoryId = getLatestHistoryEntryByQuery(queryString)?.id || activeHistoryId;
           setStatusWithAdvice('PDF OPENED', 'live');
           return;
         } catch (err) {
@@ -4140,8 +4161,10 @@ function renderTakeoffRunwayVisual(data, calc) {
         }
       }
 
-      const cachedPdf = getBestCachedPdf(queryString);
+      const cachedPdf = getBestCachedPdf(queryString, targetHistoryId);
       if (cachedPdf && openCachedPdfEntry(cachedPdf, popup)) {
+        activePdfQuery = cachedPdf.query || queryString;
+        activeHistoryId = cachedPdf.historyId || activeHistoryId;
         const ageText = formatCacheAge(cachedPdf.savedAt);
         setStatusWithAdvice(`OPENED CACHED PDF / ${ageText}`, 'fallback');
         return;
@@ -4150,6 +4173,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (latestDirectUrl && navigator.onLine) {
         popup.location.replace(latestDirectUrl);
         activePdfQuery = queryString;
+        activeHistoryId = getLatestHistoryEntryByQuery(queryString)?.id || activeHistoryId;
         setStatusWithAdvice('PDF OPENED', 'live');
         return;
       }
