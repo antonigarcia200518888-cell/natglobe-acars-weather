@@ -487,13 +487,13 @@
     }
 
     .performance-inline-input.wide { width: 150px; }
-    .performance-inline-input.runway-select { width: 170px; text-align: left; }
+    .performance-inline-input.runway-select { width: 170px; text-align: left; font-weight: 700; color: #fff; }
     .performance-inline-input.locked { background: #050505; color: #d7d7d7; pointer-events: none; }
     .performance-inline-input.mode-auto { color: var(--live) !important; }
     .performance-inline-input.mode-man { color: var(--warn) !important; }
     .performance-inline-display.locked.mode-auto { color: var(--live) !important; }
     .performance-inline-display.locked.mode-man { color: var(--warn) !important; }
-    .performance-inline-input.qnh-manual { width: 86px; }
+    .performance-inline-input.qnh-manual { width: 86px; font-weight: 700; color: #fff; }
     .performance-inline-input.oatdp-compact { width: 86px; font-size: 12px; }
     .performance-inline-suffix { color: #d7d7d7; font-size: 13px; white-space: nowrap; margin-left: -4px; }
 
@@ -746,14 +746,37 @@
       min-width: 0;
     }
 
+    .performance-inline-pair {
+      flex-wrap: nowrap;
+      gap: 4px;
+    }
+
+    .performance-inline-pair .performance-inline-input {
+      flex: 0 0 auto;
+    }
+
     .performance-inline-display {
       width: 176px;
       text-align: left;
     }
 
     .performance-inline-display.wind {
-      width: 206px;
+      width: 86px;
       font-size: 12px;
+    }
+
+    .performance-inline-display.oatdp {
+      width: 86px;
+      font-size: 12px;
+    }
+
+
+    #perfTakeoffWeight,
+    #perfLandingWeight,
+    #perfTakeoffQnh,
+    #perfLandingQnh {
+      font-weight: 700;
+      color: #fff;
     }
 
     .performance-inline-display.locked {
@@ -1092,9 +1115,9 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">WIND</span>
-                <div class="performance-inline-group">
-                  <select id="perfTakeoffWindMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
+                <div class="performance-inline-group performance-inline-pair">
                   <input id="perfTakeoffWind" class="performance-inline-input performance-inline-display wind locked" type="text" placeholder="WIND" />
+                  <select id="perfTakeoffWindMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
             </div>
@@ -1119,8 +1142,8 @@
               </div>
               <div class="performance-item">
                 <span class="performance-label">OAT/DP</span>
-                <div class="performance-inline-group">
-                  <input id="perfTakeoffOat" class="performance-inline-input performance-inline-display oatdp-compact locked" type="text" inputmode="decimal" maxlength="9" placeholder="°C" />
+                <div class="performance-inline-group performance-inline-pair">
+                  <input id="perfTakeoffOat" class="performance-inline-input performance-inline-display oatdp locked" type="text" inputmode="decimal" maxlength="9" placeholder="°C" />
                   <select id="perfTakeoffOatMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
@@ -1172,7 +1195,7 @@
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">TO WEIGHT</span>
-                <input id="perfTakeoffWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="....." /><span class="performance-inline-suffix">LBS</span>
+                <input id="perfTakeoffWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="...." /><span class="performance-inline-suffix">LBS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">FLAPS</span>
@@ -1320,9 +1343,9 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
               </div>
               <div class="performance-item">
                 <span class="performance-label">WIND</span>
-                <div class="performance-inline-group">
-                  <select id="perfLandingWindMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
+                <div class="performance-inline-group performance-inline-pair">
                   <input id="perfLandingWind" class="performance-inline-input performance-inline-display wind locked" type="text" placeholder="WIND" />
+                  <select id="perfLandingWindMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
             </div>
@@ -1347,8 +1370,8 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
               </div>
               <div class="performance-item">
                 <span class="performance-label">OAT/DP</span>
-                <div class="performance-inline-group">
-                  <input id="perfLandingOat" class="performance-inline-input performance-inline-display oatdp-compact locked" type="text" inputmode="decimal" maxlength="9" placeholder="°C" />
+                <div class="performance-inline-group performance-inline-pair">
+                  <input id="perfLandingOat" class="performance-inline-input performance-inline-display oatdp locked" type="text" inputmode="decimal" maxlength="9" placeholder="°C" />
                   <select id="perfLandingOatMode" class="performance-inline-input" style="width:72px;"><option value="AUTO">AUTO</option><option value="MAN">MAN</option></select>
                 </div>
               </div>
@@ -1400,7 +1423,7 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
             <div class="performance-row">
               <div class="performance-item">
                 <span class="performance-label">LANDING WT</span>
-                <input id="perfLandingWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="....." /><span class="performance-inline-suffix">LBS</span>
+                <input id="perfLandingWeight" class="performance-inline-input" type="text" inputmode="numeric" maxlength="4" placeholder="...." /><span class="performance-inline-suffix">LBS</span>
               </div>
               <div class="performance-item">
                 <span class="performance-label">FLAPS</span>
@@ -2520,66 +2543,144 @@ END OF REPORT`;
       return `${t}/${d}°C`;
     }
 
-    function getMetarTempDewFromLine(line) {
-      const text = upper(line);
-      if (!text) return null;
-      const match = text.match(/\s(M?\d{1,2})\/(M?\d{1,2})\b/);
-      if (!match) return null;
+    function getMetarTempDewForIcao(icao) {
+      const target = normalizeIcaoInputValue(icao);
+      if (!target) return null;
+      const reportText = String(previewText?.textContent || latestReportText || '');
+      const line = reportText.split(/\r?\n/).find((ln) => upper(ln).startsWith(target + ' '));
+      if (!line) return null;
+      const m = upper(line).match(/\s(M?\d{1,2})\/(M?\d{1,2})\b/);
+      if (!m) return null;
       const parseSigned = (token) => {
         const s = String(token || '');
         if (!s) return null;
         if (s.startsWith('M')) return -Number(s.slice(1));
         return Number(s);
       };
-      const tempC = parseSigned(match[1]);
-      const dewC = parseSigned(match[2]);
+      const tempC = parseSigned(m[1]);
+      const dewC = parseSigned(m[2]);
       return {
         tempC: Number.isFinite(tempC) ? tempC : null,
         dewC: Number.isFinite(dewC) ? dewC : null
       };
     }
 
-    function getMetarTempDewForIcao(icao) {
+    function getMetarLineFromText(sourceText, icao) {
       const target = normalizeIcaoInputValue(icao);
-      if (!target) return null;
-      const reportText = String(previewText?.textContent || latestReportText || '');
-      const line = reportText.split(/\r?\n/).find((ln) => upper(ln).startsWith(target + ' '));
-      return getMetarTempDewFromLine(line);
+      if (!target) return '';
+      const text = String(sourceText || '');
+      if (!text) return '';
+      const lines = text.split(/\r?\n/);
+      const exactLine = lines.find((ln) => upper(ln).startsWith(`${target} `));
+      if (exactLine) return exactLine;
+            const match = text.match(new RegExp(`(?:^|\n)(${target}\s+[^\n]+)`, 'i'));
+      return match ? String(match[1] || '').trim() : '';
     }
 
-    function getTempDewFromPerformanceSource(source, fallbackIcao = '') {
-      const stack = [source];
-      const seen = new Set();
-      while (stack.length) {
-        const node = stack.shift();
-        if (!node || typeof node !== 'object' || seen.has(node)) continue;
-        seen.add(node);
+    function getMetarTempDewFromLine(line) {
+      const m = upper(line).match(/\s(M?\d{1,2})\/(M?\d{1,2})/);
+      if (!m) return null;
+      const parseSigned = (token) => {
+        const s = String(token || '');
+        if (!s) return null;
+        if (s.startsWith('M')) return -Number(s.slice(1));
+        return Number(s);
+      };
+      const tempC = parseSigned(m[1]);
+      const dewC = parseSigned(m[2]);
+      return {
+        tempC: Number.isFinite(tempC) ? tempC : null,
+        dewC: Number.isFinite(dewC) ? dewC : null
+      };
+    }
 
-        const directTemp = Number(node.oatC ?? node.tempC ?? node.temperatureC);
-        const directDew = Number(node.dpC ?? node.dewC ?? node.dewpointC ?? node.dewPointC ?? node.dew_point_c ?? node.dewpoint_c);
-        if (Number.isFinite(directTemp) || Number.isFinite(directDew)) {
-          return {
-            tempC: Number.isFinite(directTemp) ? directTemp : null,
-            dewC: Number.isFinite(directDew) ? directDew : null
-          };
+    function getTempDewFromAnyString(value) {
+      const text = upper(String(value || ''));
+      if (!text) return null;
+      const m = text.match(/(M?\d{1,2})\/(M?\d{1,2})/);
+      if (!m) return null;
+      const parseSigned = (token) => {
+        const s = String(token || '');
+        if (!s) return null;
+        if (s.startsWith('M')) return -Number(s.slice(1));
+        return Number(s);
+      };
+      const tempC = parseSigned(m[1]);
+      const dewC = parseSigned(m[2]);
+      return {
+        tempC: Number.isFinite(tempC) ? tempC : null,
+        dewC: Number.isFinite(dewC) ? dewC : null
+      };
+    }
+
+    function findMetarLineInObject(source, icao, depth = 0) {
+      if (!source || depth > 6) return '';
+      if (typeof source === 'string') return getMetarLineFromText(source, icao);
+      if (Array.isArray(source)) {
+        for (const item of source) {
+          const found = findMetarLineInObject(item, icao, depth + 1);
+          if (found) return found;
+        }
+        return '';
+      }
+      if (typeof source !== 'object') return '';
+      for (const value of Object.values(source)) {
+        const found = findMetarLineInObject(value, icao, depth + 1);
+        if (found) return found;
+      }
+      return '';
+    }
+
+    function getBestMetarTempDew(source, icao) {
+      const objectLine = findMetarLineInObject(source, icao);
+      const objectPair = getMetarTempDewFromLine(objectLine);
+      if (objectPair && (Number.isFinite(objectPair.tempC) || Number.isFinite(objectPair.dewC))) return objectPair;
+
+      const seen = new WeakSet();
+      function scanPair(node, depth = 0) {
+        if (node == null || depth > 8) return null;
+
+        if (typeof node === 'string') {
+          const stringPair = getTempDewFromAnyString(node);
+          if (stringPair && (Number.isFinite(stringPair.tempC) || Number.isFinite(stringPair.dewC))) return stringPair;
+          return null;
         }
 
-        for (const key of ['metar', 'metarRaw', 'rawMetar', 'metarText', 'raw', 'rawText', 'weatherRaw']) {
-          const parsed = getMetarTempDewFromLine(node[key]);
-          if (parsed && (Number.isFinite(parsed.tempC) || Number.isFinite(parsed.dewC))) return parsed;
+        if (typeof node !== 'object') return null;
+        if (seen.has(node)) return null;
+        seen.add(node);
+
+        const dewCandidates = [node.dpC, node.dewC, node.dewPointC, node.dewpointC, node.dew_point_c, node.dewPoint, node.dewpoint, node.dewPtC, node.dew_pt_c];
+        const tempCandidates = [node.oatC, node.tempC, node.temperatureC, node.temp, node.oat, node.airTempC, node.airTemperatureC];
+        const dewCandidate = dewCandidates.find((value) => Number.isFinite(Number(value)));
+        const tempCandidate = tempCandidates.find((value) => Number.isFinite(Number(value)));
+        if (dewCandidate !== undefined || tempCandidate !== undefined) {
+          const pair = {
+            tempC: tempCandidate !== undefined && Number.isFinite(Number(tempCandidate)) ? Number(tempCandidate) : null,
+            dewC: dewCandidate !== undefined && Number.isFinite(Number(dewCandidate)) ? Number(dewCandidate) : null
+          };
+          if (Number.isFinite(pair.tempC) || Number.isFinite(pair.dewC)) return pair;
+        }
+
+        if (Array.isArray(node)) {
+          for (const item of node) {
+            const found = scanPair(item, depth + 1);
+            if (found) return found;
+          }
+          return null;
         }
 
         for (const value of Object.values(node)) {
-          if (typeof value === 'string') {
-            const parsed = getMetarTempDewFromLine(value);
-            if (parsed && (Number.isFinite(parsed.tempC) || Number.isFinite(parsed.dewC))) return parsed;
-          } else if (value && typeof value === 'object') {
-            stack.push(value);
-          }
+          const found = scanPair(value, depth + 1);
+          if (found) return found;
         }
+        return null;
       }
 
-      return getMetarTempDewForIcao(fallbackIcao);
+      const scannedPair = scanPair(source);
+      if (scannedPair && (Number.isFinite(scannedPair.tempC) || Number.isFinite(scannedPair.dewC))) return scannedPair;
+
+      return getMetarTempDewForIcao(icao);
     }
 
     function clearRunwayVisualOutput(kind) {
@@ -2613,8 +2714,8 @@ END OF REPORT`;
       return `${hw} / ${xw}`;
     }
 
-    function formatApt(apt) {
-      const icao = apt?.icao || '.....';
+    function formatApt(apt, fallbackIcao = '') {
+      const icao = apt?.icao || normalizeIcaoInputValue(fallbackIcao) || '.....';
       const name = apt?.name || '.....';
       return `${icao}/${name}`;
     }
@@ -3532,8 +3633,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       const avail = Number(String(ldaText).replace(/[^0-9]/g, ''));
       const remain = Number.isFinite(avail) && Number.isFinite(calc.landingDistanceRequiredFt) ? avail - calc.landingDistanceRequiredFt : null;
       const notes = String(el('perfLandingNotes').textContent || 'NONE').trim() || 'NONE';
-      const landingTempDew = getTempDewFromPerformanceSource(aw, aw?.apt?.icao || fields.arr.value) || {};
-      const dewPointC = Number.isFinite(aw.dpC) ? aw.dpC : (Number.isFinite(landingTempDew.dewC) ? landingTempDew.dewC : null);
+      const metarTempDew = getMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value) || {};
+      const dewPointC = Number.isFinite(aw.dpC) ? aw.dpC : (Number.isFinite(metarTempDew.dewC) ? metarTempDew.dewC : null);
 
       return [
         'LANDING PERFORMANCE',
@@ -3616,7 +3717,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       getWindField('takeoff').value = '.....';
       setNodeText('perfTakeoffHwXw', '...../.....');
       el('perfTakeoffOatMode').value = 'AUTO';
-      getOatField('takeoff').value = '...../.....°C';
+      getOatField('takeoff').value = '../..°C';
       el('perfTakeoffQnhMode').value = 'AUTO';
       el('perfTakeoffQnh').value = '';
       setNodeText('perfTakeoffRwyAvail', '..... FT');
@@ -3651,7 +3752,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       getWindField('landing').value = '.....';
       setNodeText('perfLandingHwXw', '...../.....');
       el('perfLandingOatMode').value = 'AUTO';
-      getOatField('landing').value = '...../.....°C';
+      getOatField('landing').value = '../..°C';
       el('perfLandingQnhMode').value = 'AUTO';
       el('perfLandingQnh').value = '';
       setNodeText('perfLandingRwyAvail', '..... FT');
@@ -3855,8 +3956,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(rw.qnhHpa)) el('perfTakeoffQnh').value = Math.round(rw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : rw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) rw.qnhHpa = effectiveQnh;
-      const takeoffTempDew = getTempDewFromPerformanceSource(rw, rw?.apt?.icao || fields.dep.value) || {};
-      const takeoffDewPoint = Number.isFinite(rw.dpC) ? rw.dpC : takeoffTempDew.dewC;
+      const takeoffMetarTempDew = getBestMetarTempDew(data?.takeoff || data, rw?.apt?.icao || fields.dep.value) || {};
+      const takeoffDewPoint = Number.isFinite(rw.dpC) ? rw.dpC : takeoffMetarTempDew.dewC;
       if (Number.isFinite(takeoffDewPoint)) rw.dpC = takeoffDewPoint;
       syncWindOatUi('takeoff', rw.wind, rw.oatC, takeoffDewPoint);
       const effectiveWind = getEffectiveWind('takeoff', rw.wind, rw.hdgDeg);
@@ -3870,7 +3971,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       const calc = computeTakeoffOutputs(data);
       calc.messages = buildMinimalRemarks('takeoff', calc, { condition: el('perfTakeoffRwyCond').value || rw.rwyCond, densityAltFt: rw.densityAltFt, airportIcao: rw?.apt?.icao || fields.dep.value });
 
-      setNodeText('perfTakeoffApt', formatApt(rw.apt));
+      setNodeText('perfTakeoffApt', formatApt(rw.apt, fields.dep.value));
       if (getWindMode('takeoff') === 'AUTO') getWindField('takeoff').value = effectiveWind.display;
       setNodeText('perfTakeoffHwXw', formatHwXw(rw.hwXw));
       if (getOatMode('takeoff') === 'AUTO') getOatField('takeoff').value = formatPerfTempDp(rw.oatC, takeoffDewPoint);
@@ -3924,8 +4025,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(aw.qnhHpa)) el('perfLandingQnh').value = Math.round(aw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : aw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) aw.qnhHpa = effectiveQnh;
-      const landingTempDew = getTempDewFromPerformanceSource(aw, aw?.apt?.icao || fields.arr.value) || {};
-      const landingDewPoint = Number.isFinite(aw.dpC) ? aw.dpC : landingTempDew.dewC;
+      const landingMetarTempDew = getBestMetarTempDew(data?.landing || data, aw?.apt?.icao || fields.arr.value) || {};
+      const landingDewPoint = Number.isFinite(aw.dpC) ? aw.dpC : landingMetarTempDew.dewC;
       if (Number.isFinite(landingDewPoint)) aw.dpC = landingDewPoint;
       syncWindOatUi('landing', aw.wind, aw.oatC, landingDewPoint);
       const effectiveWind = getEffectiveWind('landing', aw.wind, aw.hdgDeg);
@@ -3939,7 +4040,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       const calc = computeLandingOutputs(data);
       calc.messages = buildMinimalRemarks('landing', calc, { condition: el('perfLandingRwyCond').value || aw.rwyCond, densityAltFt: aw.densityAltFt, airportIcao: aw?.apt?.icao || fields.arr.value });
 
-      setNodeText('perfLandingApt', formatApt(aw.apt));
+      setNodeText('perfLandingApt', formatApt(aw.apt, fields.arr.value));
       if (getWindMode('landing') === 'AUTO') getWindField('landing').value = effectiveWind.display;
       setNodeText('perfLandingHwXw', formatHwXw(aw.hwXw));
       if (getOatMode('landing') === 'AUTO') getOatField('landing').value = formatPerfTempDp(aw.oatC, landingDewPoint);
