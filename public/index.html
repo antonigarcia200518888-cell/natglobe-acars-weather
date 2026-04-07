@@ -761,7 +761,7 @@
     }
 
     .performance-inline-display.wind {
-      width: 170px;
+      width: 86px;
       font-size: 12px;
     }
 
@@ -2514,7 +2514,7 @@ END OF REPORT`;
       applyOverrideFieldVisual(windField, windMode);
       applyOverrideFieldVisual(oatField, oatMode);
       if (windMode === 'AUTO' && windField) windField.value = formatWindAutoDisplay(sourceWind);
-      if (oatMode === 'AUTO' && oatField) oatField.value = formatTempDp(sourceOat, sourceDew);
+      if (oatMode === 'AUTO' && oatField) oatField.value = formatPerfTempDp(sourceOat, sourceDew);
     }
 
     function formatQnhDisplay(mode, qnh) {
@@ -2525,6 +2525,12 @@ END OF REPORT`;
     function formatTempDp(tempC, dewC) {
       const t = Number.isFinite(tempC) ? Math.round(tempC) : '.....';
       const d = Number.isFinite(dewC) ? Math.round(dewC) : '.....';
+      return `${t}/${d}°C`;
+    }
+
+    function formatPerfTempDp(tempC, dewC) {
+      const t = Number.isFinite(tempC) ? Math.round(tempC) : '..';
+      const d = Number.isFinite(dewC) ? Math.round(dewC) : '..';
       return `${t}/${d}°C`;
     }
 
@@ -2581,8 +2587,8 @@ END OF REPORT`;
       return `${hw} / ${xw}`;
     }
 
-    function formatApt(apt) {
-      const icao = apt?.icao || '.....';
+    function formatApt(apt, fallbackIcao = '') {
+      const icao = apt?.icao || normalizeIcaoInputValue(fallbackIcao) || '.....';
       const name = apt?.name || '.....';
       return `${icao}/${name}`;
     }
@@ -3584,7 +3590,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       getWindField('takeoff').value = '.....';
       setNodeText('perfTakeoffHwXw', '...../.....');
       el('perfTakeoffOatMode').value = 'AUTO';
-      getOatField('takeoff').value = '...../.....°C';
+      getOatField('takeoff').value = '../..°C';
       el('perfTakeoffQnhMode').value = 'AUTO';
       el('perfTakeoffQnh').value = '';
       setNodeText('perfTakeoffRwyAvail', '..... FT');
@@ -3619,7 +3625,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       getWindField('landing').value = '.....';
       setNodeText('perfLandingHwXw', '...../.....');
       el('perfLandingOatMode').value = 'AUTO';
-      getOatField('landing').value = '...../.....°C';
+      getOatField('landing').value = '../..°C';
       el('perfLandingQnhMode').value = 'AUTO';
       el('perfLandingQnh').value = '';
       setNodeText('perfLandingRwyAvail', '..... FT');
@@ -3836,10 +3842,10 @@ function renderTakeoffRunwayVisual(data, calc) {
       const calc = computeTakeoffOutputs(data);
       calc.messages = buildMinimalRemarks('takeoff', calc, { condition: el('perfTakeoffRwyCond').value || rw.rwyCond, densityAltFt: rw.densityAltFt, airportIcao: rw?.apt?.icao || fields.dep.value });
 
-      setNodeText('perfTakeoffApt', formatApt(rw.apt));
+      setNodeText('perfTakeoffApt', formatApt(rw.apt, fields.dep.value));
       if (getWindMode('takeoff') === 'AUTO') getWindField('takeoff').value = effectiveWind.display;
       setNodeText('perfTakeoffHwXw', formatHwXw(rw.hwXw));
-      if (getOatMode('takeoff') === 'AUTO') getOatField('takeoff').value = formatTempDp(rw.oatC, takeoffMetarTempDew.dewC);
+      if (getOatMode('takeoff') === 'AUTO') getOatField('takeoff').value = formatPerfTempDp(rw.oatC, takeoffMetarTempDew.dewC);
       if (mode === 'MAN' && Number.isFinite(manualQnh)) el('perfTakeoffQnh').value = Math.round(manualQnh);
       else if (mode === 'AUTO' && Number.isFinite(rw.qnhHpa)) el('perfTakeoffQnh').value = Math.round(rw.qnhHpa);
       setNodeText('perfTakeoffElevation', formatFeet(rw.elevFt));
@@ -3892,6 +3898,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (Number.isFinite(effectiveQnh)) aw.qnhHpa = effectiveQnh;
       const landingMetarTempDew = getMetarTempDewForIcao(aw?.apt?.icao || fields.arr.value) || {};
       const landingDewPoint = Number.isFinite(aw.dpC) ? aw.dpC : landingMetarTempDew.dewC;
+      if (Number.isFinite(landingDewPoint)) aw.dpC = landingDewPoint;
       syncWindOatUi('landing', aw.wind, aw.oatC, landingDewPoint);
       const effectiveWind = getEffectiveWind('landing', aw.wind, aw.hdgDeg);
       if (effectiveWind.wind) aw.wind = effectiveWind.wind;
@@ -3904,10 +3911,10 @@ function renderTakeoffRunwayVisual(data, calc) {
       const calc = computeLandingOutputs(data);
       calc.messages = buildMinimalRemarks('landing', calc, { condition: el('perfLandingRwyCond').value || aw.rwyCond, densityAltFt: aw.densityAltFt, airportIcao: aw?.apt?.icao || fields.arr.value });
 
-      setNodeText('perfLandingApt', formatApt(aw.apt));
+      setNodeText('perfLandingApt', formatApt(aw.apt, fields.arr.value));
       if (getWindMode('landing') === 'AUTO') getWindField('landing').value = effectiveWind.display;
       setNodeText('perfLandingHwXw', formatHwXw(aw.hwXw));
-      if (getOatMode('landing') === 'AUTO') getOatField('landing').value = formatTempDp(aw.oatC, landingDewPoint);
+      if (getOatMode('landing') === 'AUTO') getOatField('landing').value = formatPerfTempDp(aw.oatC, landingDewPoint);
       if (mode === 'MAN' && Number.isFinite(manualQnh)) el('perfLandingQnh').value = Math.round(manualQnh);
       else if (mode === 'AUTO' && Number.isFinite(aw.qnhHpa)) el('perfLandingQnh').value = Math.round(aw.qnhHpa);
       setNodeText('perfLandingElevation', formatFeet(aw.elevFt));
