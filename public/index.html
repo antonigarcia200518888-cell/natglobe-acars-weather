@@ -2605,6 +2605,26 @@ END OF REPORT`;
       };
     }
 
+    function getSectionMetarTempDew(sectionLabel, icao) {
+      const target = normalizeIcaoInputValue(icao);
+      if (!target) return null;
+      const reportText = String(previewText?.textContent || latestReportText || '');
+      if (!reportText) return null;
+      const lines = reportText.split(/?
+/);
+      const sectionNeedle = upper(`${sectionLabel} (${target})`);
+      const startIndex = lines.findIndex((ln) => upper(String(ln || '').trim()) === sectionNeedle);
+      if (startIndex < 0) return null;
+      for (let i = startIndex + 1; i < lines.length; i += 1) {
+        const line = String(lines[i] || '').trim();
+        const upperLine = upper(line);
+        if (!line) continue;
+        if (/^[A-Z ]+ WX \([A-Z]{4}\)$/.test(upperLine) || upperLine === 'RMK NIL' || upperLine.startsWith('RMK ')) break;
+        if (upperLine.startsWith(`${target} `)) return getMetarTempDewFromLine(line);
+      }
+      return null;
+    }
+
     function getMetarLineFromText(sourceText, icao) {
       const target = normalizeIcaoInputValue(icao);
       if (!target) return '';
@@ -4078,7 +4098,11 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(aw.qnhHpa)) el('perfLandingQnh').value = Math.round(aw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : aw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) aw.qnhHpa = effectiveQnh;
-      const landingMetarTempDew = getBestMetarTempDew([aw, data?.landing, data], aw?.apt?.icao || fields.arr.value) || {};
+      const landingIcao = aw?.apt?.icao || fields.arr.value;
+      const landingMetarTempDew = getBestMetarTempDew([aw, data?.landing, data], landingIcao)
+        || getSectionMetarTempDew('ARR WX', landingIcao)
+        || getMetarTempDewForIcao(landingIcao)
+        || {};
       const landingDewPoint = Number.isFinite(Number(aw.dpC)) ? Number(aw.dpC) : landingMetarTempDew.dewC;
       if (Number.isFinite(landingDewPoint)) aw.dpC = landingDewPoint;
       syncWindOatUi('landing', aw.wind, aw.oatC, landingDewPoint);
