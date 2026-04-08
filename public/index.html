@@ -2438,19 +2438,31 @@ END OF REPORT`;
       if (!raw) return '.....';
       const compact = raw.replace(/\s+/g, ' ');
       const match = compact.match(/(\d{3}|VRB)(\d{2,3})(G(\d{2,3}))?KT(?:\s+(\d{3})V(\d{3}))?/);
-      if (!match) {
-        const fallback = compact
-          .replace(/KTS/g, 'KT')
-          .replace(/^(\d{3})(?=\/)/, '$1°')
-          .replace(/^(\d{3})(\d{2,3}KT)/, '$1°/$2');
-        return fallback;
+      if (match) {
+        const dir = match[1] === 'VRB' ? 'VRB' : `${match[1]}°`;
+        const spd = `${Number(match[2])}KT`;
+        const gust = match[4] ? ` G${Number(match[4])}` : '';
+        const vrb = match[5] && match[6] ? ` ${match[5]}°/${match[6]}°` : '';
+        return `${dir}/${spd}${gust}${vrb}`;
       }
-      const dir = match[1] === 'VRB' ? 'VRB' : `${match[1]}°`;
-      const spd = `${Number(match[2])}KT`;
-      const gust = match[4] ? ` G${Number(match[4])}` : '';
-      const vrb = match[5] && match[6] ? ` VRB ${match[5]}/${match[6]}` : '';
-      return `${dir}/${spd}${gust}${vrb}`;
+
+      const slashMatch = compact.match(/^(VRB|\d{3})(?:°)?\s*\/\s*(\d{1,3})(?:\s*KT)?$/);
+      if (slashMatch) {
+        const dir = slashMatch[1] === 'VRB' ? 'VRB' : `${slashMatch[1]}°`;
+        return `${dir}/${Number(slashMatch[2])}KT`;
+      }
+
+      const packedMatch = compact.match(/^(\d{3})(\d{2,3})KT$/);
+      if (packedMatch) {
+        return `${packedMatch[1]}°/${Number(packedMatch[2])}KT`;
+      }
+
+      return compact
+        .replace(/KTS/g, 'KT')
+        .replace(/^(\d{3})(?=\/)/, '$1°')
+        .replace(/^(\d{3})(\d{2,3}KT)/, '$1°/$2');
     }
+
 
 
     function buildManualWindMaskedState(value) {
