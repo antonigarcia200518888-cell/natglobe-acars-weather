@@ -2446,10 +2446,24 @@ END OF REPORT`;
       return `${dir}/${spd}${gust}${vrb}`;
     }
 
+    function formatManualWindField(value) {
+      const raw = upper(String(value || ''));
+      const dirMatch = raw.match(/\bVRB\b|\d{1,3}/);
+      const speedMatches = raw.match(/\d{1,3}/g) || [];
+      let dirToken = dirMatch ? dirMatch[0] : '';
+      let speedToken = '';
+      if (dirToken === 'VRB') speedToken = speedMatches[0] || '';
+      else speedToken = speedMatches.length > 1 ? speedMatches[1] : '';
+      if (dirToken && dirToken !== 'VRB') dirToken = String(Number(dirToken)).padStart(3, '0');
+      if (speedToken) speedToken = String(Number(speedToken)).slice(0, 3);
+      const left = dirToken === 'VRB' ? 'VRB' : `${dirToken}${dirToken ? '°' : ''}`;
+      return `${left}/${speedToken}KT`;
+    }
+
     function parseManualWindValue(value) {
-      const text = upper(value).replace(/KTS/g, '').replace(/KT/g, '').replace(/\s+/g, ' ').trim();
+      const text = upper(value).replace(/°/g, '').replace(/KTS/g, '').replace(/KT/g, '').replace(/\s+/g, ' ').trim();
       if (!text) return null;
-      const match = text.match(/^(VRB|\d{3})\s*\/\s*(\d{1,3})(?:\s*G\s*(\d{1,3}))?(?:\s*VRB\s*(\d{3})\s*\/\s*(\d{3}))?$/);
+      const match = text.match(/^(VRB|\d{1,3})\s*\/\s*(\d{1,3})(?:\s*G\s*(\d{1,3}))?(?:\s*VRB\s*(\d{1,3})\s*\/\s*(\d{1,3}))?$/);
       if (!match) return null;
       const dirToken = match[1];
       const speedKt = Number(match[2]);
@@ -2500,6 +2514,15 @@ END OF REPORT`;
         display: formatWindAutoDisplay(sourceWind),
         manual: false
       };
+    }
+
+    function formatManualOatDpField(value) {
+      const text = String(value || '');
+      const matches = text.match(/-?\d{0,2}/g) || [];
+      const parts = matches.filter((token) => token !== '').slice(0, 2);
+      const temp = parts[0] || '';
+      const dew = parts[1] || '';
+      return `${temp}/${dew}°C`;
     }
 
     function getEffectiveOat(kind, sourceOat) {
@@ -2668,8 +2691,8 @@ END OF REPORT`;
         if (seen.has(node)) return;
         seen.add(node);
 
-        const dewCandidates = [node.dpC, node.dewC, node.dewPointC, node.dewpointC, node.dew_point_c, node.dewPoint, node.dewpoint, node.dewPtC, node.dew_pt_c];
-        const tempCandidates = [node.oatC, node.tempC, node.temperatureC, node.temp, node.oat, node.airTempC, node.airTemperatureC];
+        const dewCandidates = [node.dpC, node.dp, node.dewC, node.dew, node.dewPointC, node.dewpointC, node.dew_point_c, node.dewPoint, node.dewpoint, node.dewPtC, node.dew_pt_c, node.dewptC, node.dewpt, node.dew_point, node.dewPointTempC];
+        const tempCandidates = [node.oatC, node.tempC, node.temperatureC, node.temp, node.oat, node.airTempC, node.airTemperatureC, node.temperature, node.airTemp, node.temp_c];
         const dewCandidate = dewCandidates.find((value) => Number.isFinite(Number(value)));
         const tempCandidate = tempCandidates.find((value) => Number.isFinite(Number(value)));
         if (dewCandidate !== undefined || tempCandidate !== undefined) {
@@ -3969,8 +3992,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(rw.qnhHpa)) el('perfTakeoffQnh').value = Math.round(rw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : rw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) rw.qnhHpa = effectiveQnh;
-      const takeoffMetarTempDew = getBestMetarTempDew(data?.takeoff || data, rw?.apt?.icao || fields.dep.value) || {};
-      const takeoffDewPoint = Number.isFinite(rw.dpC) ? rw.dpC : takeoffMetarTempDew.dewC;
+      const takeoffMetarTempDew = getBestMetarTempDew([rw, data?.takeoff, data], rw?.apt?.icao || fields.dep.value) || {};
+      const takeoffDewPoint = Number.isFinite(Number(rw.dpC)) ? Number(rw.dpC) : takeoffMetarTempDew.dewC;
       if (Number.isFinite(takeoffDewPoint)) rw.dpC = takeoffDewPoint;
       syncWindOatUi('takeoff', rw.wind, rw.oatC, takeoffDewPoint);
       const effectiveWind = getEffectiveWind('takeoff', rw.wind, rw.hdgDeg);
@@ -4038,8 +4061,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(aw.qnhHpa)) el('perfLandingQnh').value = Math.round(aw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : aw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) aw.qnhHpa = effectiveQnh;
-      const landingMetarTempDew = getBestMetarTempDew(data?.landing || data, aw?.apt?.icao || fields.arr.value) || {};
-      const landingDewPoint = Number.isFinite(aw.dpC) ? aw.dpC : landingMetarTempDew.dewC;
+      const landingMetarTempDew = getBestMetarTempDew([aw, data?.landing, data], aw?.apt?.icao || fields.arr.value) || {};
+      const landingDewPoint = Number.isFinite(Number(aw.dpC)) ? Number(aw.dpC) : landingMetarTempDew.dewC;
       if (Number.isFinite(landingDewPoint)) aw.dpC = landingDewPoint;
       syncWindOatUi('landing', aw.wind, aw.oatC, landingDewPoint);
       const effectiveWind = getEffectiveWind('landing', aw.wind, aw.hdgDeg);
@@ -4327,7 +4350,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       el(id).addEventListener('input', () => {
         const modeId = id.includes('Takeoff') ? 'perfTakeoffWindMode' : 'perfLandingWindMode';
         if (el(modeId).value !== 'MAN') return;
-        el(id).value = upper(el(id).value).replace(/[^A-Z0-9\/ .°-]/g, '').replace(/\s+/g, ' ').slice(0, 28);
+        el(id).value = formatManualWindField(el(id).value);
         refreshPerformancePanelIfOpen();
       });
     });
@@ -4336,7 +4359,7 @@ function renderTakeoffRunwayVisual(data, calc) {
       el(id).addEventListener('input', () => {
         const modeId = id.includes('Takeoff') ? 'perfTakeoffOatMode' : 'perfLandingOatMode';
         if (el(modeId).value !== 'MAN') return;
-        el(id).value = String(el(id).value || '').replace(/[^0-9.\-\/]/g, '').slice(0, 9);
+        el(id).value = formatManualOatDpField(el(id).value);
         refreshPerformancePanelIfOpen();
       });
     });
