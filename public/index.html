@@ -2590,15 +2590,22 @@ END OF REPORT`;
       return `${qnhText} ${mode === 'MAN' ? 'MAN' : 'AUTO'}`;
     }
 
+    function formatMetarSignedTemp(value, fallback) {
+      if (!Number.isFinite(value)) return fallback;
+      const rounded = Math.round(value);
+      const absText = String(Math.abs(rounded)).padStart(2, '0');
+      return rounded < 0 ? `M${absText}` : absText;
+    }
+
     function formatTempDp(tempC, dewC) {
-      const t = Number.isFinite(tempC) ? Math.round(tempC) : '.....';
-      const d = Number.isFinite(dewC) ? Math.round(dewC) : '.....';
+      const t = formatMetarSignedTemp(tempC, '.....');
+      const d = formatMetarSignedTemp(dewC, '.....');
       return `${t}/${d}°C`;
     }
 
     function formatPerfTempDp(tempC, dewC) {
-      const t = Number.isFinite(tempC) ? Math.round(tempC) : '..';
-      const d = Number.isFinite(dewC) ? Math.round(dewC) : '..';
+      const t = formatMetarSignedTemp(tempC, '..');
+      const d = formatMetarSignedTemp(dewC, '..');
       return `${t}/${d}°C`;
     }
 
