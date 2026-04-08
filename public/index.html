@@ -2573,12 +2573,12 @@ END OF REPORT`;
       const lines = text.split(/\r?\n/);
       const exactLine = lines.find((ln) => upper(ln).startsWith(`${target} `));
       if (exactLine) return exactLine;
-            const match = text.match(new RegExp(`(?:^|\n)(${target}\s+[^\n]+)`, 'i'));
+      const match = text.match(new RegExp(`(?:^|\\n)(${target}\\s+[^\\n]+)`, 'i'));
       return match ? String(match[1] || '').trim() : '';
     }
 
     function getMetarTempDewFromLine(line) {
-      const m = upper(line).match(/\s(M?\d{1,2})\/(M?\d{1,2})/);
+      const m = upper(String(line || '')).match(/\s(M?\d{1,2})\/(M?\d{1,2})\b/);
       if (!m) return null;
       const parseSigned = (token) => {
         const s = String(token || '');
@@ -2597,7 +2597,7 @@ END OF REPORT`;
     function getTempDewFromAnyString(value) {
       const text = upper(String(value || ''));
       if (!text) return null;
-      const m = text.match(/(M?\d{1,2})\/(M?\d{1,2})/);
+      const m = text.match(/\b(M?\d{1,2})\/(M?\d{1,2})\b/);
       if (!m) return null;
       const parseSigned = (token) => {
         const s = String(token || '');
@@ -2634,20 +2634,38 @@ END OF REPORT`;
     function getBestMetarTempDew(source, icao) {
       const objectLine = findMetarLineInObject(source, icao);
       const objectPair = getMetarTempDewFromLine(objectLine);
-      if (objectPair && (Number.isFinite(objectPair.tempC) || Number.isFinite(objectPair.dewC))) return objectPair;
+      if (objectPair && Number.isFinite(objectPair.dewC)) return objectPair;
 
       const seen = new WeakSet();
+      let bestPair = objectPair && (Number.isFinite(objectPair.tempC) || Number.isFinite(objectPair.dewC)) ? objectPair : null;
+
+      function considerPair(pair) {
+        if (!pair || (!Number.isFinite(pair.tempC) && !Number.isFinite(pair.dewC))) return;
+        if (!bestPair) {
+          bestPair = pair;
+          return;
+        }
+        const bestHasDew = Number.isFinite(bestPair.dewC);
+        const pairHasDew = Number.isFinite(pair.dewC);
+        if (pairHasDew && !bestHasDew) {
+          bestPair = pair;
+          return;
+        }
+        const bestHasTemp = Number.isFinite(bestPair.tempC);
+        const pairHasTemp = Number.isFinite(pair.tempC);
+        if (pairHasDew === bestHasDew && pairHasTemp && !bestHasTemp) bestPair = pair;
+      }
+
       function scanPair(node, depth = 0) {
-        if (node == null || depth > 8) return null;
+        if (node == null || depth > 8) return;
 
         if (typeof node === 'string') {
-          const stringPair = getTempDewFromAnyString(node);
-          if (stringPair && (Number.isFinite(stringPair.tempC) || Number.isFinite(stringPair.dewC))) return stringPair;
-          return null;
+          considerPair(getTempDewFromAnyString(node));
+          return;
         }
 
-        if (typeof node !== 'object') return null;
-        if (seen.has(node)) return null;
+        if (typeof node !== 'object') return;
+        if (seen.has(node)) return;
         seen.add(node);
 
         const dewCandidates = [node.dpC, node.dewC, node.dewPointC, node.dewpointC, node.dew_point_c, node.dewPoint, node.dewpoint, node.dewPtC, node.dew_pt_c];
@@ -2655,32 +2673,27 @@ END OF REPORT`;
         const dewCandidate = dewCandidates.find((value) => Number.isFinite(Number(value)));
         const tempCandidate = tempCandidates.find((value) => Number.isFinite(Number(value)));
         if (dewCandidate !== undefined || tempCandidate !== undefined) {
-          const pair = {
+          considerPair({
             tempC: tempCandidate !== undefined && Number.isFinite(Number(tempCandidate)) ? Number(tempCandidate) : null,
             dewC: dewCandidate !== undefined && Number.isFinite(Number(dewCandidate)) ? Number(dewCandidate) : null
-          };
-          if (Number.isFinite(pair.tempC) || Number.isFinite(pair.dewC)) return pair;
+          });
         }
 
         if (Array.isArray(node)) {
-          for (const item of node) {
-            const found = scanPair(item, depth + 1);
-            if (found) return found;
-          }
-          return null;
+          for (const item of node) scanPair(item, depth + 1);
+          return;
         }
 
-        for (const value of Object.values(node)) {
-          const found = scanPair(value, depth + 1);
-          if (found) return found;
-        }
-        return null;
+        for (const value of Object.values(node)) scanPair(value, depth + 1);
       }
 
-      const scannedPair = scanPair(source);
-      if (scannedPair && (Number.isFinite(scannedPair.tempC) || Number.isFinite(scannedPair.dewC))) return scannedPair;
+      scanPair(source);
+      if (bestPair && Number.isFinite(bestPair.dewC)) return bestPair;
 
-      return getMetarTempDewForIcao(icao);
+      const previewPair = getMetarTempDewForIcao(icao);
+      if (previewPair && Number.isFinite(previewPair.dewC)) return previewPair;
+
+      return bestPair || previewPair;
     }
 
     function clearRunwayVisualOutput(kind) {
