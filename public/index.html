@@ -2438,13 +2438,20 @@ END OF REPORT`;
       if (!raw) return '.....';
       const compact = raw.replace(/\s+/g, ' ');
       const match = compact.match(/(\d{3}|VRB)(\d{2,3})(G(\d{2,3}))?KT(?:\s+(\d{3})V(\d{3}))?/);
-      if (!match) return compact.replace(/KTS/g, 'KT');
+      if (!match) {
+        const fallback = compact
+          .replace(/KTS/g, 'KT')
+          .replace(/^(\d{3})(?=\/)/, '$1°')
+          .replace(/^(\d{3})(\d{2,3}KT)/, '$1°/$2');
+        return fallback;
+      }
       const dir = match[1] === 'VRB' ? 'VRB' : `${match[1]}°`;
       const spd = `${Number(match[2])}KT`;
       const gust = match[4] ? ` G${Number(match[4])}` : '';
       const vrb = match[5] && match[6] ? ` VRB ${match[5]}/${match[6]}` : '';
       return `${dir}/${spd}${gust}${vrb}`;
     }
+
 
     function buildManualWindMaskedState(value) {
       const raw = upper(String(value || ''));
@@ -2605,26 +2612,6 @@ END OF REPORT`;
       };
     }
 
-    function getSectionMetarTempDew(sectionLabel, icao) {
-      const target = normalizeIcaoInputValue(icao);
-      if (!target) return null;
-      const reportText = String(previewText?.textContent || latestReportText || '');
-      if (!reportText) return null;
-      const lines = reportText.split(/?
-/);
-      const sectionNeedle = upper(`${sectionLabel} (${target})`);
-      const startIndex = lines.findIndex((ln) => upper(String(ln || '').trim()) === sectionNeedle);
-      if (startIndex < 0) return null;
-      for (let i = startIndex + 1; i < lines.length; i += 1) {
-        const line = String(lines[i] || '').trim();
-        const upperLine = upper(line);
-        if (!line) continue;
-        if (/^[A-Z ]+ WX \([A-Z]{4}\)$/.test(upperLine) || upperLine === 'RMK NIL' || upperLine.startsWith('RMK ')) break;
-        if (upperLine.startsWith(`${target} `)) return getMetarTempDewFromLine(line);
-      }
-      return null;
-    }
-
     function getMetarLineFromText(sourceText, icao) {
       const target = normalizeIcaoInputValue(icao);
       if (!target) return '';
@@ -2754,6 +2741,15 @@ END OF REPORT`;
       if (previewPair && Number.isFinite(previewPair.dewC)) return previewPair;
 
       return bestPair || previewPair;
+    }
+
+
+    function getResolvedPerfTempDew(kind, source, primaryTempC, primaryDewC) {
+      const icao = normalizeIcaoInputValue(kind === 'takeoff' ? fields.dep.value : fields.arr.value);
+      const metarPair = getBestMetarTempDew(source, icao) || {};
+      const tempC = Number.isFinite(Number(primaryTempC)) ? Number(primaryTempC) : (Number.isFinite(Number(metarPair.tempC)) ? Number(metarPair.tempC) : null);
+      const dewC = Number.isFinite(Number(primaryDewC)) ? Number(primaryDewC) : (Number.isFinite(Number(metarPair.dewC)) ? Number(metarPair.dewC) : null);
+      return { tempC, dewC };
     }
 
     function clearRunwayVisualOutput(kind) {
@@ -4029,8 +4025,9 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(rw.qnhHpa)) el('perfTakeoffQnh').value = Math.round(rw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : rw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) rw.qnhHpa = effectiveQnh;
-      const takeoffMetarTempDew = getBestMetarTempDew([rw, data?.takeoff, data], rw?.apt?.icao || fields.dep.value) || {};
-      const takeoffDewPoint = Number.isFinite(Number(rw.dpC)) ? Number(rw.dpC) : takeoffMetarTempDew.dewC;
+      const takeoffTempDew = getResolvedPerfTempDew('takeoff', [rw, data?.takeoff, data], rw.oatC, rw.dpC);
+      const takeoffDewPoint = takeoffTempDew.dewC;
+      if (Number.isFinite(takeoffTempDew.tempC)) rw.oatC = takeoffTempDew.tempC;
       if (Number.isFinite(takeoffDewPoint)) rw.dpC = takeoffDewPoint;
       syncWindOatUi('takeoff', rw.wind, rw.oatC, takeoffDewPoint);
       const effectiveWind = getEffectiveWind('takeoff', rw.wind, rw.hdgDeg);
@@ -4098,12 +4095,9 @@ function renderTakeoffRunwayVisual(data, calc) {
       if (mode === 'AUTO' && Number.isFinite(aw.qnhHpa)) el('perfLandingQnh').value = Math.round(aw.qnhHpa);
       const effectiveQnh = mode === 'MAN' ? manualQnh : aw.qnhHpa;
       if (Number.isFinite(effectiveQnh)) aw.qnhHpa = effectiveQnh;
-      const landingIcao = aw?.apt?.icao || fields.arr.value;
-      const landingMetarTempDew = getBestMetarTempDew([aw, data?.landing, data], landingIcao)
-        || getSectionMetarTempDew('ARR WX', landingIcao)
-        || getMetarTempDewForIcao(landingIcao)
-        || {};
-      const landingDewPoint = Number.isFinite(Number(aw.dpC)) ? Number(aw.dpC) : landingMetarTempDew.dewC;
+      const landingTempDew = getResolvedPerfTempDew('landing', [aw, data?.landing, data], aw.oatC, aw.dpC);
+      const landingDewPoint = landingTempDew.dewC;
+      if (Number.isFinite(landingTempDew.tempC)) aw.oatC = landingTempDew.tempC;
       if (Number.isFinite(landingDewPoint)) aw.dpC = landingDewPoint;
       syncWindOatUi('landing', aw.wind, aw.oatC, landingDewPoint);
       const effectiveWind = getEffectiveWind('landing', aw.wind, aw.hdgDeg);
