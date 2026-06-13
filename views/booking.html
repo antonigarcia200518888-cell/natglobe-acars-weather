@@ -602,31 +602,19 @@
 
   <script>
     const FALLBACK_AIRPORTS = [
+      { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
+      { icao: 'EFHF', short: 'HEM', name: 'Helsinki-Malmi', city: 'Helsinki-Malmi', country: 'Finland', lat: 60.2546, lon: 25.0428 },
       { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkää', country: 'Finland', lat: 60.6544, lon: 24.8811 },
-      { icao: 'EFHN', short: 'HKO', name: 'Hanko', city: 'Hanko', country: 'Finland', lat: 59.8489, lon: 23.0836 },
       { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', lat: 60.3339, lon: 24.2964 },
       { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtää', country: 'Finland', lat: 60.4844, lon: 26.5439 },
+      { icao: 'EFHN', short: 'HKO', name: 'Hanko', city: 'Hanko', country: 'Finland', lat: 59.8489, lon: 23.0836 },
       { icao: 'EFRY', short: 'RAY', name: 'Rayskala', city: 'Räyskälä', country: 'Finland', lat: 60.7447, lon: 24.1078 },
       { icao: 'EFLA', short: 'LAH', name: 'Lahti-Vesivehmaa', city: 'Lahti', country: 'Finland', lat: 61.1442, lon: 25.6935 },
-      { icao: 'EFIK', short: 'KIK', name: 'Kiikala', city: 'Salo', country: 'Finland', lat: 60.4625, lon: 23.6525 },
-      { icao: 'EFFO', short: 'FOR', name: 'Forssa', city: 'Forssa', country: 'Finland', lat: 60.8019, lon: 23.6450 },
-      { icao: 'EFOP', short: 'ORI', name: 'Oripaa', city: 'Oripää', country: 'Finland', lat: 60.8764, lon: 22.7453 },
-      { icao: 'EFKY', short: 'KYM', name: 'Kymi', city: 'Kotka', country: 'Finland', lat: 60.5714, lon: 26.8961 },
-      { icao: 'EFIM', short: 'IMM', name: 'Immola', city: 'Imatra', country: 'Finland', lat: 61.2492, lon: 28.9036 },
-      { icao: 'EFHF', short: 'HEM', name: 'Helsinki-Malmi', city: 'Helsinki', country: 'Finland', lat: 60.2546, lon: 25.0428 },
-      { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
       { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', lat: 60.5141, lon: 22.2628 },
       { icao: 'EFTP', short: 'TMP', name: 'Tampere-Pirkkala', city: 'Tampere', country: 'Finland', lat: 61.4141, lon: 23.6044 },
-      { icao: 'EFPO', short: 'POR', name: 'Pori', city: 'Pori', country: 'Finland', lat: 61.4617, lon: 21.7999 },
-      { icao: 'EFLP', short: 'LPP', name: 'Lappeenranta', city: 'Lappeenranta', country: 'Finland', lat: 61.0446, lon: 28.1444 },
-      { icao: 'EFJY', short: 'JYV', name: 'Jyvaskyla', city: 'Jyvaskyla', country: 'Finland', lat: 62.3995, lon: 25.6783 },
-      { icao: 'EFJO', short: 'JOE', name: 'Joensuu', city: 'Joensuu', country: 'Finland', lat: 62.6629, lon: 29.6075 },
       { icao: 'EETN', short: 'TLL', name: 'Tallinn', city: 'Tallinn', country: 'Estonia', lat: 59.4133, lon: 24.8328 },
-      { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Saaremaa', country: 'Estonia', lat: 58.2300, lon: 22.5095 },
-      { icao: 'EEKA', short: 'KDL', name: 'Kardla', city: 'Hiiumaa', country: 'Estonia', lat: 58.9908, lon: 22.8307 },
-      { icao: 'EEPU', short: 'EPU', name: 'Parnu', city: 'Parnu', country: 'Estonia', lat: 58.4189, lon: 24.4728 },
-      { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', lat: 59.3544, lon: 17.9417 },
-      { icao: 'ESSV', short: 'VBY', name: 'Visby', city: 'Gotland', country: 'Sweden', lat: 57.6628, lon: 18.3462 }
+      { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Kuressaare', country: 'Estonia', lat: 58.2300, lon: 22.5095 },
+      { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', lat: 59.3544, lon: 17.9417 }
     ];
 
     const PASSPORT_COUNTRIES = [

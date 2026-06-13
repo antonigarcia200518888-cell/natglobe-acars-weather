@@ -89,46 +89,19 @@ const costShareFlights = [
 const bookingRequests = [];
 
 const bookingAirports = [
-  { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkaa', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFHN', short: 'HKO', name: 'Hanko', city: 'Hanko', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtaa', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFRY', short: 'RAY', name: 'Rayskala', city: 'Loppi', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFLA', short: 'LAH', name: 'Lahti-Vesivehmaa', city: 'Lahti', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFIK', short: 'KIK', name: 'Kiikala', city: 'Salo', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFFO', short: 'FOR', name: 'Forssa', city: 'Forssa', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFOP', short: 'ORI', name: 'Oripaa', city: 'Oripaa', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFKY', short: 'KYM', name: 'Kymi', city: 'Kotka', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFIM', short: 'IMM', name: 'Immola', city: 'Imatra', country: 'Finland', type: 'GA / uncontrolled' },
-  { icao: 'EFHF', short: 'HEM', name: 'Helsinki-Malmi', city: 'Helsinki', country: 'Finland', type: 'GA' },
-  { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', type: 'controlled' },
-  { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', type: 'controlled' },
-  { icao: 'EFTP', short: 'TMP', name: 'Tampere-Pirkkala', city: 'Tampere', country: 'Finland', type: 'controlled' },
-  { icao: 'EFPO', short: 'POR', name: 'Pori', city: 'Pori', country: 'Finland', type: 'regional' },
-  { icao: 'EFLP', short: 'LPP', name: 'Lappeenranta', city: 'Lappeenranta', country: 'Finland', type: 'regional' },
-  { icao: 'EFUT', short: 'UTI', name: 'Utti', city: 'Kouvola', country: 'Finland', type: 'GA / military' },
-  { icao: 'EFMI', short: 'MIK', name: 'Mikkeli', city: 'Mikkeli', country: 'Finland', type: 'regional' },
-  { icao: 'EFSA', short: 'SVL', name: 'Savonlinna', city: 'Savonlinna', country: 'Finland', type: 'regional' },
-  { icao: 'EFJO', short: 'JOE', name: 'Joensuu', city: 'Joensuu', country: 'Finland', type: 'regional' },
-  { icao: 'EFJY', short: 'JYV', name: 'Jyvaskyla', city: 'Jyvaskyla', country: 'Finland', type: 'regional' },
-  { icao: 'EFKU', short: 'KUO', name: 'Kuopio', city: 'Kuopio', country: 'Finland', type: 'regional' },
-  { icao: 'EFKI', short: 'KAJ', name: 'Kajaani', city: 'Kajaani', country: 'Finland', type: 'regional' },
-  { icao: 'EFOU', short: 'OUL', name: 'Oulu', city: 'Oulu', country: 'Finland', type: 'controlled' },
-  { icao: 'EFRO', short: 'RVN', name: 'Rovaniemi', city: 'Rovaniemi', country: 'Finland', type: 'controlled' },
-  { icao: 'EFIV', short: 'IVL', name: 'Ivalo', city: 'Ivalo', country: 'Finland', type: 'regional' },
-  { icao: 'EFKT', short: 'KTT', name: 'Kittila', city: 'Kittila', country: 'Finland', type: 'regional' },
-  { icao: 'EFKS', short: 'KAO', name: 'Kuusamo', city: 'Kuusamo', country: 'Finland', type: 'regional' },
-  { icao: 'EFKE', short: 'KEM', name: 'Kemi-Tornio', city: 'Kemi', country: 'Finland', type: 'regional' },
-  { icao: 'EFVA', short: 'VAA', name: 'Vaasa', city: 'Vaasa', country: 'Finland', type: 'regional' },
-  { icao: 'EFSI', short: 'SJY', name: 'Seinajoki', city: 'Seinajoki', country: 'Finland', type: 'regional' },
-  { icao: 'EFYL', short: 'YLI', name: 'Ylivieska', city: 'Ylivieska', country: 'Finland', type: 'GA' },
-  { icao: 'EFKM', short: 'KHJ', name: 'Kemijarvi', city: 'Kemijarvi', country: 'Finland', type: 'GA' },
-  { icao: 'EETN', short: 'TLL', name: 'Tallinn', city: 'Tallinn', country: 'Estonia', type: 'controlled' },
-  { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Saaremaa', country: 'Estonia', type: 'regional / GA' },
-  { icao: 'EEKA', short: 'KDL', name: 'Kardla', city: 'Hiiumaa', country: 'Estonia', type: 'regional / GA' },
-  { icao: 'EEPU', short: 'EPU', name: 'Parnu', city: 'Parnu', country: 'Estonia', type: 'GA' },
-  { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', type: 'controlled / GA' },
-  { icao: 'ESSV', short: 'VBY', name: 'Visby', city: 'Gotland', country: 'Sweden', type: 'regional / GA' }
+  { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', type: 'controlled', lat: 60.3172, lon: 24.9633 },
+  { icao: 'EFHF', short: 'HEM', name: 'Helsinki-Malmi', city: 'Helsinki-Malmi', country: 'Finland', type: 'GA', lat: 60.2546, lon: 25.0428 },
+  { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.6544, lon: 24.8811 },
+  { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', type: 'GA / uncontrolled', lat: 60.3339, lon: 24.2964 },
+  { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.4844, lon: 26.5439 },
+  { icao: 'EFHN', short: 'HKO', name: 'Hanko', city: 'Hanko', country: 'Finland', type: 'GA / uncontrolled', lat: 59.8489, lon: 23.0836 },
+  { icao: 'EFRY', short: 'RAY', name: 'Rayskala', city: 'Rayskala', country: 'Finland', type: 'GA / uncontrolled', lat: 60.7447, lon: 24.1078 },
+  { icao: 'EFLA', short: 'LAH', name: 'Lahti-Vesivehmaa', city: 'Lahti', country: 'Finland', type: 'GA / uncontrolled', lat: 61.1442, lon: 25.6935 },
+  { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', type: 'controlled', lat: 60.5141, lon: 22.2628 },
+  { icao: 'EFTP', short: 'TMP', name: 'Tampere-Pirkkala', city: 'Tampere', country: 'Finland', type: 'controlled', lat: 61.4141, lon: 23.6044 },
+  { icao: 'EETN', short: 'TLL', name: 'Tallinn', city: 'Tallinn', country: 'Estonia', type: 'controlled', lat: 59.4133, lon: 24.8328 },
+  { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Kuressaare', country: 'Estonia', type: 'regional / GA', lat: 58.2300, lon: 22.5095 },
+  { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', type: 'controlled / GA', lat: 59.3544, lon: 17.9417 }
 ];
 
 const EUROPE_COUNTRIES = new Set([
@@ -341,38 +314,7 @@ function publicFlightView(flight) {
 }
 
 async function getBookingAirportCatalog() {
-  try {
-    const airportDb = await loadAirportDatabase();
-    const finnishAirports = airportDb
-      .filter(airport => airport.country === 'FI')
-      .map(airport => ({
-        icao: airport.icao,
-        short: airport.icao.slice(2),
-        name: airport.name || airport.icao,
-        city: airport.municipality || airport.name || airport.icao,
-        country: 'Finland',
-        type: airport.type || 'airport',
-        lat: airport.lat,
-        lon: airport.lon
-      }));
-
-    const merged = new Map();
-    for (const airport of [...finnishAirports, ...bookingAirports]) {
-      const existing = merged.get(airport.icao) || {};
-      merged.set(airport.icao, {
-        ...existing,
-        ...airport,
-        lat: airport.lat ?? existing.lat,
-        lon: airport.lon ?? existing.lon
-      });
-    }
-
-    return Array.from(merged.values())
-      .sort((a, b) => `${a.country} ${a.city} ${a.icao}`.localeCompare(`${b.country} ${b.city} ${b.icao}`));
-  } catch (err) {
-    console.warn('Booking airport catalog fallback:', err.message);
-    return bookingAirports;
-  }
+  return bookingAirports;
 }
 
 async function getBookingAirport(icao) {
