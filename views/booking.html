@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NatGlobe Aviation / Private Flight Booking</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --fg: #f2f2f2;
+      --muted: #cfcfcf;
+      --line: #ffffff;
+      --button-bg: #d0d0d0;
+      --button-fg: #000000;
+      --live: #66ff99;
+      --warn: #ffcc66;
+      --danger: #ff6b6b;
+      --accent: #8ec5ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 32px 18px;
+    }
+
+    .frame {
+      width: min(1120px, 100%);
+      border: 2px solid var(--line);
+      padding: 22px 20px 18px;
+      background: #000;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .title {
+      font-size: clamp(20px, 2.8vw, 32px);
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .connection-badge {
+      min-height: 32px;
+      border: 2px solid currentColor;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: clamp(12px, 1.1vw, 16px);
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+      line-height: 1;
+      background: #000;
+      margin-top: 2px;
+    }
+
+    .connection-wifi {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wifi-icon {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
+    .connection-badge.conn-good { color: var(--live); }
+    .connection-badge.conn-weak { color: var(--warn); }
+    .connection-badge.conn-offline { color: var(--danger); }
+
+    .clock {
+      font-size: clamp(14px, 1.4vw, 18px);
+      color: #bdbdbd;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    .intro {
+      color: #bdbdbd;
+      font-size: clamp(12px, 1.3vw, 17px);
+      line-height: 1.35;
+      margin-bottom: 18px;
+    }
+
+    .mode {
+      border: 1px solid rgba(102,255,153,0.55);
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, #050505 0%, #0b0b0b 100%);
+      color: var(--live);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-size: 14px;
+    }
+
+    .search-card, .card {
+      background: #000;
+      border: 2px solid var(--line);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .search-grid { grid-template-columns: 1.1fr 1.1fr 0.8fr 0.7fr 0.6fr; }
+    .two { grid-template-columns: 1fr 1fr; }
+    .three { grid-template-columns: repeat(3, 1fr); }
+    .passenger-main-grid { grid-template-columns: minmax(0, 1fr) 128px; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 52px;
+      border: 2px solid var(--line);
+      border-radius: 0;
+      background: #000;
+      color: #fff;
+      padding: 10px 12px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(15px, 1.45vw, 20px);
+      text-transform: uppercase;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 14px rgba(142,197,255,0.12);
+    }
+
+    input.compact-number {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .input-unit {
+      position: relative;
+    }
+
+    .input-unit input {
+      padding-right: 52px;
+    }
+
+    .unit {
+      position: absolute;
+      right: 10px;
+      bottom: 15px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .btn {
+      min-height: 52px;
+      border: 2px solid var(--line);
+      border-radius: 0;
+      background: var(--button-bg);
+      color: var(--button-fg);
+      padding: 10px 12px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(15px, 1.45vw, 20px);
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--accent) inset;
+    }
+
+    .btn.secondary {
+      background: #000;
+      color: #fff;
+    }
+
+    .status {
+      margin-top: 12px;
+      min-height: 42px;
+      border: 2px solid #666;
+      background: #000;
+      color: #d7d7d7;
+      padding: 10px 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .status.ok { color: var(--live); border-color: var(--live); }
+    .status.err { color: var(--danger); border-color: var(--danger); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(340px, 0.55fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .route-summary {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .route-box {
+      border: 1px solid #666;
+      border-radius: 0;
+      padding: 14px;
+      background: #050505;
+    }
+
+    .route-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 19px;
+      text-transform: uppercase;
+    }
+
+    .airport-name {
+      color: #bdbdbd;
+      font-size: 13px;
+      margin-top: 3px;
+      text-transform: uppercase;
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .summary-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 9px;
+      color: #bdbdbd;
+      text-transform: uppercase;
+    }
+
+    .summary-list strong { color: #fff; text-align: right; }
+
+    .consent {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .passenger-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .passenger-card {
+      border: 1px solid #666;
+      padding: 12px;
+      background: #050505;
+    }
+
+    .passenger-title {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .question-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .declaration {
+      border: 1px solid #666;
+      padding: 10px;
+      background: #050505;
+      color: #d7d7d7;
+      font-size: 13px;
+      line-height: 1.35;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .declaration strong {
+      color: var(--accent);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .question-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .check {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      border: 1px solid #666;
+      padding: 8px;
+      color: #d7d7d7;
+      font-size: 14px;
+      line-height: 1.35;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin: 0;
+    }
+
+    .check input { width: auto; min-height: auto; margin-top: 2px; }
+
+    .confirmation {
+      display: none;
+      border: 2px solid var(--live);
+      background: #000;
+      color: var(--live);
+      border-radius: 0;
+      padding: 16px;
+      margin-bottom: 12px;
+      font-weight: 700;
+      line-height: 1.45;
+      text-transform: uppercase;
+    }
+
+    .confirmation.show { display: block; }
+
+    .fine-print {
+      color: #8d8d8d;
+      font-size: 13px;
+      line-height: 1.45;
+      text-transform: uppercase;
+    }
+
+    .submit-footer {
+      border: 2px solid var(--line);
+      padding: 12px;
+      background: #000;
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr minmax(260px, 0.35fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .submit-note {
+      color: #bdbdbd;
+      font-size: 13px;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 900px) {
+      .search-grid, .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer { grid-template-columns: 1fr; }
+      .route-line { align-items: flex-start; flex-direction: column; }
+      .title-row { flex-direction: column; }
+      .connection-badge { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <div class="title-row">
+      <div class="title">NATGLOBE AVIATION / PRIVATE FLIGHT BOOKING</div>
+      <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
+        <span class="connection-wifi" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="wifi-icon">
+            <path d="M2 8.5C7.5 4.5 16.5 4.5 22 8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M5 12C8.8 9.2 15.2 9.2 19 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8.5 15.5C10.5 14 13.5 14 15.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="19" r="1.6" fill="currentColor"/>
+          </svg>
+        </span>
+        <span id="connectionText">OFFLINE</span>
+      </div>
+    </div>
+
+    <div id="clock" class="clock">UTC --:--:--</div>
+    <div class="intro">
+      Request a private shared-cost flight. Choose your route, passenger details, safety declarations, and baggage. Crew reviews everything before confirmation.
+    </div>
+    <div id="mode" class="mode">MODE: PRIVATE FLIGHT REQUEST / PILOT REVIEW REQUIRED</div>
+
+    <form id="bookingForm">
+      <section class="search-card">
+        <div class="grid search-grid">
+          <div>
+            <label for="dep">From</label>
+            <select id="dep" required></select>
+          </div>
+          <div>
+            <label for="arr">To</label>
+            <select id="arr" required></select>
+          </div>
+          <div>
+            <label for="requestDate">Date</label>
+            <select id="requestDate" required></select>
+          </div>
+          <div>
+            <label for="requestTime">Departure time</label>
+            <select id="requestTime" required></select>
+          </div>
+          <div>
+            <label for="seats">Passengers</label>
+            <select id="seats">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+        </div>
+        <div id="statusBox" class="status">Choose your flight details</div>
+      </section>
+
+      <div id="confirmation" class="confirmation"></div>
+
+      <div class="layout">
+        <section>
+          <div class="card">
+            <h2 class="section-title">Passenger details</h2>
+            <div id="passengerList" class="passenger-list"></div>
+          </div>
+
+          <div class="card">
+            <h2 class="section-title">Travel and safety information</h2>
+            <div class="declaration">
+              <strong>Passenger safety declaration</strong>
+              Please read before answering. Declare any respiratory illness, circulatory issue, seizure history, panic attacks, recent surgery/procedure, alcohol, sedatives, cannabis, or anything that may affect safe flight. The pilot may ask follow-up questions before accepting the request.
+            </div>
+            <div class="consent" style="margin-bottom:12px;">
+              <label class="check"><input id="medicalReadConsent" type="checkbox" required /> I have read the medical and safety declaration above.</label>
+              <label class="check"><input id="symptomConsent" type="checkbox" required /> I will tell the pilot immediately if I feel dizzy, nauseous, anxious, unwell, or hypoxic.</label>
+            </div>
+            <div class="question-grid">
+              <div>
+                <div class="question-label">Any medical condition to declare?</div>
+                <select id="medicalStatus">
+                  <option value="NONE DECLARED">No</option>
+                  <option value="RESPIRATORY / CIRCULATORY / SEIZURE / PANIC ISSUE DECLARED">Yes - respiratory/circulatory/seizure/panic</option>
+                  <option value="RECENT SURGERY OR PROCEDURE DECLARED">Yes - recent surgery/procedure</option>
+                </select>
+              </div>
+              <div>
+                <div class="question-label">Alcohol/sedatives/cannabis in last 24h?</div>
+                <select id="substancesStatus">
+                  <option value="NONE DECLARED">No</option>
+                  <option value="DECLARED TO PILOT">Yes - declare to pilot</option>
+                </select>
+              </div>
+              <div>
+                <div class="question-label">Supplemental oxygen available?</div>
+                <select id="oxygenConsentSelect">
+                  <option value="ACKNOWLEDGED">No - I understand</option>
+                  <option value="QUESTION">I have a question</option>
+                </select>
+              </div>
+              <div>
+                <div class="question-label">Will you follow pilot instructions?</div>
+                <select id="pilotInstructions">
+                  <option value="ACCEPTED">Yes</option>
+                  <option value="QUESTION">I have a question</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="section-title">Baggage</h2>
+            <div class="declaration">
+              <strong>Baggage declaration</strong>
+              Bags are subject to aircraft weight and balance and pilot approval. Declare power banks/lithium batteries. Do not bring prohibited dangerous goods such as flammable liquids, fireworks, firearms, corrosives, toxic chemicals, pressurized containers, or unsecured lithium batteries.
+            </div>
+            <div class="question-grid">
+              <div>
+                <div class="question-label">Will you bring bags?</div>
+                <select id="carryOnBags"><option value="NO">No</option><option value="YES">Yes</option></select>
+              </div>
+              <div class="input-unit"><label for="baggageWeightKg">Total baggage weight</label><input id="baggageWeightKg" class="compact-number" type="number" min="0" max="50" inputmode="decimal" placeholder="0" /><span class="unit">KG</span></div>
+              <div>
+                <div class="question-label">Power banks / lithium batteries?</div>
+                <select id="powerBanks"><option value="NO">No</option><option value="YES">Yes</option></select>
+              </div>
+              <div>
+                <div class="question-label">Number of bags</div>
+                <select id="bagCount"><option value="0">0 bags</option><option value="1">1 bag</option><option value="2">2 bags</option><option value="3">3 bags</option></select>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <label for="bagType">Bag type / dimensions</label>
+              <input id="bagType" type="text" placeholder="Soft backpack, small duffel, dimensions if known" />
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="section-title">Message and consent</h2>
+            <div style="margin-top:12px;">
+              <label for="message">Message to pilot</label>
+              <textarea id="message" placeholder="Flexible dates, preferred sightseeing route, accessibility needs, or other notes"></textarea>
+            </div>
+            <div class="consent">
+              <label class="check"><input id="fitConsent" type="checkbox" required /> I confirm I am fit to fly and will notify the pilot if symptoms occur.</label>
+              <label class="check"><input id="rulesConsent" type="checkbox" required /> I understand the pilot’s safety decisions are final.</label>
+              <label class="check"><input id="oxygenConsent" type="checkbox" required /> I acknowledge no supplemental oxygen is available.</label>
+              <label class="check"><input id="paymentConsent" type="checkbox" required /> I understand payment/refund terms and pilot confirmation are required.</label>
+            </div>
+          </div>
+        </section>
+
+        <aside>
+          <div class="card">
+            <h2 class="section-title">Trip summary</h2>
+            <div class="route-summary">
+              <div class="route-box">
+                <div class="route-line"><span id="depCode">----</span><span>to</span><span id="arrCode">----</span></div>
+                <div id="routeNames" class="airport-name">Select airports to build your trip.</div>
+              </div>
+            </div>
+            <ul class="summary-list">
+              <li><span>Date</span><strong id="summaryDate">----</strong></li>
+              <li><span>Departure</span><strong id="summaryTime">----</strong></li>
+              <li><span>Est. flight time</span><strong id="summaryFlightTime">----</strong></li>
+              <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
+              <li><span>Aircraft</span><strong>OH-PMK / PA-28R</strong></li>
+              <li><span>Cost share</span><strong id="summaryCost">Pilot confirms</strong></li>
+            </ul>
+          </div>
+          <div class="card fine-print">
+            This is not a ticket purchase. It creates a request that the pilot or dispatch team reviews. Weather, aircraft status, weight and balance, legal limits, and pilot decision determine whether a flight can operate.
+          </div>
+        </aside>
+      </div>
+
+      <div class="submit-footer">
+        <div class="submit-note">Final step: send this booking request to NatGlobe operations. A pilot or dispatcher will review route, weather, aircraft status, passenger details, and weight and balance.</div>
+        <button class="btn" type="submit">Request booking</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const FALLBACK_AIRPORTS = [
+      { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkää', country: 'Finland', lat: 60.6544, lon: 24.8811 },
+      { icao: 'EFHN', short: 'HKO', name: 'Hanko', city: 'Hanko', country: 'Finland', lat: 59.8489, lon: 23.0836 },
+      { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', lat: 60.3339, lon: 24.2964 },
+      { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtää', country: 'Finland', lat: 60.4844, lon: 26.5439 },
+      { icao: 'EFRY', short: 'RAY', name: 'Rayskala', city: 'Räyskälä', country: 'Finland', lat: 60.7447, lon: 24.1078 },
+      { icao: 'EFLA', short: 'LAH', name: 'Lahti-Vesivehmaa', city: 'Lahti', country: 'Finland', lat: 61.1442, lon: 25.6935 },
+      { icao: 'EFIK', short: 'KIK', name: 'Kiikala', city: 'Salo', country: 'Finland', lat: 60.4625, lon: 23.6525 },
+      { icao: 'EFFO', short: 'FOR', name: 'Forssa', city: 'Forssa', country: 'Finland', lat: 60.8019, lon: 23.6450 },
+      { icao: 'EFOP', short: 'ORI', name: 'Oripaa', city: 'Oripää', country: 'Finland', lat: 60.8764, lon: 22.7453 },
+      { icao: 'EFKY', short: 'KYM', name: 'Kymi', city: 'Kotka', country: 'Finland', lat: 60.5714, lon: 26.8961 },
+      { icao: 'EFIM', short: 'IMM', name: 'Immola', city: 'Imatra', country: 'Finland', lat: 61.2492, lon: 28.9036 },
+      { icao: 'EFHF', short: 'HEM', name: 'Helsinki-Malmi', city: 'Helsinki', country: 'Finland', lat: 60.2546, lon: 25.0428 },
+      { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
+      { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', lat: 60.5141, lon: 22.2628 },
+      { icao: 'EFTP', short: 'TMP', name: 'Tampere-Pirkkala', city: 'Tampere', country: 'Finland', lat: 61.4141, lon: 23.6044 },
+      { icao: 'EFPO', short: 'POR', name: 'Pori', city: 'Pori', country: 'Finland', lat: 61.4617, lon: 21.7999 },
+      { icao: 'EFLP', short: 'LPP', name: 'Lappeenranta', city: 'Lappeenranta', country: 'Finland', lat: 61.0446, lon: 28.1444 },
+      { icao: 'EFJY', short: 'JYV', name: 'Jyvaskyla', city: 'Jyvaskyla', country: 'Finland', lat: 62.3995, lon: 25.6783 },
+      { icao: 'EFJO', short: 'JOE', name: 'Joensuu', city: 'Joensuu', country: 'Finland', lat: 62.6629, lon: 29.6075 },
+      { icao: 'EETN', short: 'TLL', name: 'Tallinn', city: 'Tallinn', country: 'Estonia', lat: 59.4133, lon: 24.8328 },
+      { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Saaremaa', country: 'Estonia', lat: 58.2300, lon: 22.5095 },
+      { icao: 'EEKA', short: 'KDL', name: 'Kardla', city: 'Hiiumaa', country: 'Estonia', lat: 58.9908, lon: 22.8307 },
+      { icao: 'EEPU', short: 'EPU', name: 'Parnu', city: 'Parnu', country: 'Estonia', lat: 58.4189, lon: 24.4728 },
+      { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', lat: 59.3544, lon: 17.9417 },
+      { icao: 'ESSV', short: 'VBY', name: 'Visby', city: 'Gotland', country: 'Sweden', lat: 57.6628, lon: 18.3462 }
+    ];
+
+    const PASSPORT_COUNTRIES = [
+      ['Finland', '🇫🇮 Finland'],
+      ['Estonia', '🇪🇪 Estonia'],
+      ['Sweden', '🇸🇪 Sweden'],
+      ['Norway', '🇳🇴 Norway'],
+      ['Denmark', '🇩🇰 Denmark'],
+      ['Germany', '🇩🇪 Germany'],
+      ['France', '🇫🇷 France'],
+      ['Spain', '🇪🇸 Spain'],
+      ['Italy', '🇮🇹 Italy'],
+      ['Netherlands', '🇳🇱 Netherlands'],
+      ['Poland', '🇵🇱 Poland'],
+      ['United Kingdom', '🇬🇧 United Kingdom'],
+      ['Ireland', '🇮🇪 Ireland'],
+      ['United States', '🇺🇸 United States'],
+      ['Canada', '🇨🇦 Canada'],
+      ['Other', '🌐 Other']
+    ];
+
+    const el = (id) => document.getElementById(id);
+    const clock = el('clock');
+    const mode = el('mode');
+    const connectionBadge = el('connectionBadge');
+    const connectionText = el('connectionText');
+    const statusBox = el('statusBox');
+    const confirmation = el('confirmation');
+    const form = el('bookingForm');
+    const passengerList = el('passengerList');
+    const PA28_CRUISE_KT = 115;
+
+    let airports = [];
+
+    function pad(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function tick() {
+      clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;
+    }
+
+    function setStatus(text, type = '') {
+      statusBox.className = `status ${type}`;
+      statusBox.textContent = text;
+    }
+
+    function setConnectionState(state, text) {
+      connectionBadge.classList.remove('conn-good', 'conn-weak', 'conn-offline');
+      connectionBadge.classList.add(`conn-${state}`);
+      connectionText.textContent = text;
+    }
+
+    function updateConnectionBadge() {
+      if (!navigator.onLine) {
+        setConnectionState('offline', 'OFFLINE');
+        return;
+      }
+
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) {
+        setConnectionState('weak', 'WEAK');
+        return;
+      }
+
+      setConnectionState('good', 'CONNECTED');
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[ch]));
+    }
+
+    function airportLabel(airport) {
+      return `(${airport.short || airport.city}) ${airport.city}, ${airport.country}`;
+    }
+
+    function selectedAirport(id) {
+      const icao = el(id).value;
+      return airports.find(airport => airport.icao === icao) || null;
+    }
+
+    function toRad(value) {
+      return (Number(value) * Math.PI) / 180;
+    }
+
+    function distanceNm(a, b) {
+      const lat1 = Number(a?.lat);
+      const lon1 = Number(a?.lon);
+      const lat2 = Number(b?.lat);
+      const lon2 = Number(b?.lon);
+      if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) return null;
+
+      const earthRadiusNm = 3440.065;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const x =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      return 2 * earthRadiusNm * Math.asin(Math.sqrt(x));
+    }
+
+    function formatFlightTime(dep, arr) {
+      if (!dep || !arr || dep.icao === arr.icao) return '----';
+      const nm = distanceNm(dep, arr);
+      if (!Number.isFinite(nm)) return 'Pilot confirms';
+      const mins = Math.max(10, Math.round((nm / PA28_CRUISE_KT) * 60));
+      const hours = Math.floor(mins / 60);
+      const minutes = mins % 60;
+      return `${String(hours).padStart(2, '0')}H ${String(minutes).padStart(2, '0')}M`;
+    }
+
+    function fillPickerWheels() {
+      const today = new Date();
+      el('requestDate').innerHTML = Array.from({ length: 120 }, (_, index) => {
+        const date = new Date(today);
+        date.setDate(today.getDate() + index);
+        const value = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        const label = `${date.toLocaleDateString('en-GB', { weekday: 'short' })} ${date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+        return `<option value="${value}">${label}</option>`;
+      }).join('');
+
+      const times = [];
+      for (let hour = 6; hour <= 22; hour++) {
+        for (const minute of [0, 15, 30, 45]) times.push(`${pad(hour)}:${pad(minute)}`);
+      }
+      el('requestTime').innerHTML = times.map(time => `<option value="${time}">${time}</option>`).join('');
+      el('requestTime').value = '10:00';
+    }
+
+    function routePrice(dep, arr) {
+      if (!dep || !arr) return 'Pilot confirms';
+      if (dep.icao === arr.icao) return 'Choose different airports';
+      const international = dep.country !== arr.country;
+      return international ? 'From EUR 145 / pax' : 'From EUR 95 / pax';
+    }
+
+    function refreshSummary() {
+      const dep = selectedAirport('dep');
+      const arr = selectedAirport('arr');
+      el('depCode').textContent = dep?.city || '----';
+      el('arrCode').textContent = arr?.city || '----';
+      el('routeNames').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
+      el('summaryDate').textContent = el('requestDate').value || '----';
+      el('summaryTime').textContent = el('requestTime').value || '----';
+      el('summaryFlightTime').textContent = formatFlightTime(dep, arr);
+      el('summarySeats').textContent = el('seats').value || '1';
+      el('summaryCost').textContent = routePrice(dep, arr);
+      if (dep && arr && dep.icao === arr.icao) setStatus('Choose different departure and destination airports', 'err');
+      else if (dep && arr) setStatus('Route selected / Complete passenger manifest and declarations', 'ok');
+    }
+
+    function renderPassengerFields() {
+      const count = Number(el('seats').value || 1);
+      const existing = collectPassengers(false);
+      passengerList.innerHTML = Array.from({ length: count }, (_, index) => {
+        const passenger = existing[index] || {};
+        const lead = index === 0;
+        const countryOptions = PASSPORT_COUNTRIES.map(([value, label]) =>
+          `<option value="${escapeHtml(value)}" ${passenger.passportCountry === value ? 'selected' : ''}>${escapeHtml(label)}</option>`
+        ).join('');
+        return `
+          <div class="passenger-card" data-passenger="${index}">
+            <div class="passenger-title">${lead ? 'Lead passenger' : `Passenger ${index + 1}`}</div>
+            <div class="grid passenger-main-grid">
+              <div><label for="pax${index}Name">Full name</label><input id="pax${index}Name" data-pax-field="name" type="text" autocomplete="${lead ? 'name' : 'off'}" value="${escapeHtml(passenger.name)}" required /></div>
+              <div class="input-unit"><label for="pax${index}Weight">Weight</label><input id="pax${index}Weight" class="compact-number" data-pax-field="weightKg" type="number" min="1" max="250" inputmode="numeric" value="${escapeHtml(passenger.weightKg)}" required /><span class="unit">KG</span></div>
+            </div>
+            <div class="grid three" style="margin-top:12px;">
+              <div><label for="pax${index}Email">Email</label><input id="pax${index}Email" data-pax-field="email" type="email" autocomplete="${lead ? 'email' : 'off'}" value="${escapeHtml(passenger.email)}" required /></div>
+              <div><label for="pax${index}Phone">Mobile</label><input id="pax${index}Phone" data-pax-field="phone" type="tel" autocomplete="${lead ? 'tel' : 'off'}" value="${escapeHtml(passenger.phone)}" required /></div>
+              <div><label for="pax${index}Dob">Date of birth</label><input id="pax${index}Dob" data-pax-field="dob" type="text" placeholder="DD.MM.YYYY" value="${escapeHtml(passenger.dob)}" required /></div>
+            </div>
+            <div class="grid two" style="margin-top:12px;">
+              <div><label for="pax${index}PassportCountry">Passport country</label><select id="pax${index}PassportCountry" data-pax-field="passportCountry" required>${countryOptions}</select></div>
+              <div><label for="pax${index}Id">Identity / passport number</label><input id="pax${index}Id" data-pax-field="nationalId" type="text" value="${escapeHtml(passenger.nationalId)}" required /></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function collectPassengers(requireCurrent = true) {
+      const cards = passengerList ? [...passengerList.querySelectorAll('.passenger-card')] : [];
+      if (!cards.length && requireCurrent) return [];
+      return cards.map(card => {
+        const passenger = {};
+        card.querySelectorAll('[data-pax-field]').forEach(input => {
+          passenger[input.getAttribute('data-pax-field')] = input.value;
+        });
+        return passenger;
+      });
+    }
+
+    function populateAirports(list) {
+      airports = list && list.length ? list : FALLBACK_AIRPORTS;
+      const options = airports.map(airport =>
+        `<option value="${escapeHtml(airport.icao)}">${escapeHtml(airportLabel(airport))}</option>`
+      ).join('');
+      el('dep').innerHTML = options;
+      el('arr').innerHTML = options;
+      el('dep').value = airports.some(airport => airport.icao === 'EFHV') ? 'EFHV' : airports[0]?.icao || '';
+      el('arr').value = airports.some(airport => airport.icao === 'EETN') ? 'EETN' : airports.find(airport => airport.icao !== el('dep').value)?.icao || '';
+      refreshSummary();
+    }
+
+    function updateBaggageFields() {
+      const hasBags = el('carryOnBags').value === 'YES';
+      el('baggageWeightKg').disabled = !hasBags;
+      el('baggageWeightKg').required = hasBags;
+      el('bagCount').disabled = !hasBags;
+      el('bagType').disabled = !hasBags;
+      if (!hasBags) {
+        el('baggageWeightKg').value = '';
+        el('bagCount').value = '0';
+        el('bagType').value = 'N/A';
+      } else if (el('bagType').value === 'N/A') {
+        el('bagType').value = '';
+      }
+    }
+
+    async function loadAirports() {
+      mode.textContent = 'MODE: PREPARING PRIVATE ROUTE NETWORK';
+      const res = await fetch('/api/booking-airports', { cache: 'no-store' });
+      if (res.status === 401) {
+        window.location.href = '/booking';
+        return;
+      }
+      const data = await res.json();
+      populateAirports(data.airports || []);
+      mode.textContent = 'MODE: PRIVATE ROUTE NETWORK ONLINE / REQUEST READY';
+    }
+
+    form.addEventListener('change', refreshSummary);
+    form.addEventListener('input', refreshSummary);
+    el('carryOnBags').addEventListener('change', updateBaggageFields);
+    el('seats').addEventListener('change', () => {
+      renderPassengerFields();
+      refreshSummary();
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      confirmation.className = 'confirmation';
+      setStatus('Transmitting request to NatGlobe operations...');
+
+      try {
+        const res = await fetch('/api/booking-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dep: el('dep').value,
+            arr: el('arr').value,
+            requestDate: el('requestDate').value,
+            requestTime: el('requestTime').value,
+            seats: el('seats').value,
+            passengers: collectPassengers(),
+            emergencyName: '',
+            emergencyPhone: '',
+            medicalStatus: el('medicalStatus').value,
+            substancesStatus: el('substancesStatus').value,
+            carryOnBags: el('carryOnBags').value,
+            baggageWeightKg: el('carryOnBags').value === 'YES' ? el('baggageWeightKg').value : 'N/A',
+            bagType: `${el('bagCount').value} BAG(S) / ${el('bagType').value}`,
+            powerBanks: el('powerBanks').value,
+            message: el('message').value
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+
+        setStatus('Request received', 'ok');
+        const leadName = collectPassengers()[0]?.name || '';
+        confirmation.textContent = `Thanks ${leadName}. Your request ${data.request.id} was sent to NatGlobe operations. A pilot or dispatcher will review the route, aircraft, weather and weight/balance before confirming.`;
+        confirmation.className = 'confirmation show';
+        mode.textContent = 'MODE: REQUEST TRANSMITTED / CREW REVIEW PENDING';
+      } catch (err) {
+        setStatus(err.message || 'Request failed', 'err');
+      }
+    });
+
+    fillPickerWheels();
+    populateAirports(FALLBACK_AIRPORTS);
+    renderPassengerFields();
+    updateBaggageFields();
+    updateConnectionBadge();
+    tick();
+    setInterval(tick, 1000);
+    window.addEventListener('online', updateConnectionBadge);
+    window.addEventListener('offline', updateConnectionBadge);
+    if (navigator.connection) navigator.connection.addEventListener('change', updateConnectionBadge);
+    loadAirports().catch(() => {
+      mode.textContent = 'MODE: PRIVATE ROUTE REQUEST READY';
+      setStatus('Route selector ready / Complete passenger manifest', 'ok');
+    });
+  </script>
+</body>
+</html>

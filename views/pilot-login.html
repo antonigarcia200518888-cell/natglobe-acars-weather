@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NatGlobe Aviation / Pilot Access</title>
+  <style>
+    :root {
+      --bg: #000;
+      --fg: #f2f2f2;
+      --muted: #cfcfcf;
+      --line: #fff;
+      --live: #66ff99;
+      --warn: #ffcc66;
+      --danger: #ff6b6b;
+      --accent: #8ec5ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    body {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 18px;
+    }
+
+    .frame {
+      width: min(760px, 100%);
+      border: 2px solid var(--line);
+      padding: 22px 20px 18px;
+      background: #000;
+    }
+
+    .title {
+      font-size: clamp(20px, 3vw, 30px);
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .clock, .intro {
+      color: #bdbdbd;
+      font-size: clamp(13px, 1.5vw, 17px);
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
+    .clock { margin-bottom: 16px; }
+
+    .mode {
+      border: 1px solid rgba(255,204,102,0.65);
+      color: var(--warn);
+      padding: 9px 12px;
+      margin: 18px 0 12px;
+      text-transform: uppercase;
+      background: #050505;
+    }
+
+    .field, .btn {
+      min-height: 52px;
+      border: 2px solid var(--line);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(15px, 1.8vw, 22px);
+      width: 100%;
+    }
+
+    .field {
+      background: #000;
+      color: #fff;
+      padding: 10px 12px;
+      text-transform: uppercase;
+      outline: none;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      background: #d0d0d0;
+      color: #000;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .status {
+      min-height: 42px;
+      border: 2px solid #666;
+      padding: 10px 12px;
+      margin-top: 12px;
+      color: #d7d7d7;
+      text-transform: uppercase;
+    }
+
+    .status.ok { color: var(--live); border-color: var(--live); }
+    .status.err { color: var(--danger); border-color: var(--danger); }
+
+    .hint {
+      margin-top: 18px;
+      color: #8d8d8d;
+      font-size: 13px;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <div class="title">NATGLOBE AVIATION / PILOT OPS ACCESS</div>
+    <div id="clock" class="clock">UTC --:--:--</div>
+    <div class="intro">Booking request board for pilots and dispatch. Contains passenger declarations and ACARS booking messages.</div>
+    <div class="mode">MODE: PILOT CODE REQUIRED</div>
+
+    <form id="loginForm">
+      <input id="code" class="field" type="password" autocomplete="current-password" placeholder="PILOT ACCESS CODE" autofocus />
+      <button class="btn" type="submit">OPEN BOOKING OPS</button>
+    </form>
+
+    <div id="status" class="status">READY</div>
+    <div class="hint">Local test pilot code is NATGLOBEOPS unless PILOT_ACCESS_CODE is set on Render.</div>
+  </main>
+
+  <script>
+    const clock = document.getElementById('clock');
+    const statusBox = document.getElementById('status');
+    const form = document.getElementById('loginForm');
+    const code = document.getElementById('code');
+
+    function tick() {
+      clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;
+    }
+
+    function setStatus(text, type = '') {
+      statusBox.className = `status ${type}`;
+      statusBox.textContent = text;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setStatus('CHECKING PILOT CODE');
+
+      try {
+        const res = await fetch('/api/pilot-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code.value })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'ACCESS DENIED');
+        setStatus('ACCESS GRANTED', 'ok');
+        window.location.href = '/booking-ops';
+      } catch (err) {
+        setStatus(err.message || 'ACCESS DENIED', 'err');
+      }
+    });
+
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>

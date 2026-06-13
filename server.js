@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { randomUUID } from 'crypto';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { airports as bundledAirports } from './data/airports.js';
 
@@ -9,6 +10,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const PILOT_ACCESS_CODE = process.env.PILOT_ACCESS_CODE || 'NATGLOBEOPS';
+const PILOT_COOKIE_NAME = 'ng_pilot_access';
+const BOOKING_COOKIE_VALUE = 'enabled';
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -27,6 +31,105 @@ const SUGGESTED_ALTN_LIMIT = 12;
 
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
 const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/runways.csv';
+
+const costShareFlights = [
+  {
+    id: 'NG-CS-241',
+    date: '2026-07-04',
+    timeUtc: '0900Z',
+    title: 'Helsinki Archipelago Scenic',
+    dep: 'EFHV',
+    arr: 'EFHV',
+    route: 'EFHV - PORVOO - LOVIISA - SIPOO - EFHV',
+    aircraft: 'OH-PMK / Piper PA-28R-200 Arrow II',
+    duration: '01H15',
+    seatsTotal: 3,
+    seatsAvailable: 2,
+    costPerSeatEur: 95,
+    status: 'OPEN',
+    highlights: ['COASTAL VFR', 'WINDOW SEATS', 'PHOTO ORBITS IF WX ALLOWS'],
+    notes: 'Shared-cost private flight. Final go/no-go depends on pilot, weather, aircraft status, and passenger fit.'
+  },
+  {
+    id: 'NG-CS-242',
+    date: '2026-07-11',
+    timeUtc: '1000Z',
+    title: 'Tallinn Lunch Hop',
+    dep: 'EFHK',
+    arr: 'EETN',
+    route: 'EFHK - GULF OF FINLAND - EETN',
+    aircraft: 'OH-PMK / Piper PA-28R-200 Arrow II',
+    duration: '00H55 EACH WAY',
+    seatsTotal: 3,
+    seatsAvailable: 3,
+    costPerSeatEur: 145,
+    status: 'INTEREST',
+    highlights: ['CROSS-BORDER', 'PASSPORT REQUIRED', 'DAY RETURN'],
+    notes: 'Expression of interest only until schedule, handling, customs, and weather are confirmed.'
+  },
+  {
+    id: 'NG-CS-243',
+    date: '2026-07-19',
+    timeUtc: '1200Z',
+    title: 'Lake Finland Discovery',
+    dep: 'EFHF',
+    arr: 'EFJO',
+    route: 'EFHF - LAHTI - JYVASKYLA - EFJO',
+    aircraft: 'OH-PMK / Piper PA-28R-200 Arrow II',
+    duration: '01H40',
+    seatsTotal: 3,
+    seatsAvailable: 1,
+    costPerSeatEur: 130,
+    status: 'LIMITED',
+    highlights: ['LAKES ROUTE', 'ONE-WAY OPTION', 'LIGHT BAG ONLY'],
+    notes: 'Best suited for flexible passengers; return arrangements are separate unless added by pilot.'
+  }
+];
+
+const bookingRequests = [];
+
+const bookingAirports = [
+  { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkaa', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFHN', short: 'HKO', name: 'Hanko', city: 'Hanko', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtaa', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFRY', short: 'RAY', name: 'Rayskala', city: 'Loppi', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFLA', short: 'LAH', name: 'Lahti-Vesivehmaa', city: 'Lahti', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFIK', short: 'KIK', name: 'Kiikala', city: 'Salo', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFFO', short: 'FOR', name: 'Forssa', city: 'Forssa', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFOP', short: 'ORI', name: 'Oripaa', city: 'Oripaa', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFKY', short: 'KYM', name: 'Kymi', city: 'Kotka', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFIM', short: 'IMM', name: 'Immola', city: 'Imatra', country: 'Finland', type: 'GA / uncontrolled' },
+  { icao: 'EFHF', short: 'HEM', name: 'Helsinki-Malmi', city: 'Helsinki', country: 'Finland', type: 'GA' },
+  { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', type: 'controlled' },
+  { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', type: 'controlled' },
+  { icao: 'EFTP', short: 'TMP', name: 'Tampere-Pirkkala', city: 'Tampere', country: 'Finland', type: 'controlled' },
+  { icao: 'EFPO', short: 'POR', name: 'Pori', city: 'Pori', country: 'Finland', type: 'regional' },
+  { icao: 'EFLP', short: 'LPP', name: 'Lappeenranta', city: 'Lappeenranta', country: 'Finland', type: 'regional' },
+  { icao: 'EFUT', short: 'UTI', name: 'Utti', city: 'Kouvola', country: 'Finland', type: 'GA / military' },
+  { icao: 'EFMI', short: 'MIK', name: 'Mikkeli', city: 'Mikkeli', country: 'Finland', type: 'regional' },
+  { icao: 'EFSA', short: 'SVL', name: 'Savonlinna', city: 'Savonlinna', country: 'Finland', type: 'regional' },
+  { icao: 'EFJO', short: 'JOE', name: 'Joensuu', city: 'Joensuu', country: 'Finland', type: 'regional' },
+  { icao: 'EFJY', short: 'JYV', name: 'Jyvaskyla', city: 'Jyvaskyla', country: 'Finland', type: 'regional' },
+  { icao: 'EFKU', short: 'KUO', name: 'Kuopio', city: 'Kuopio', country: 'Finland', type: 'regional' },
+  { icao: 'EFKI', short: 'KAJ', name: 'Kajaani', city: 'Kajaani', country: 'Finland', type: 'regional' },
+  { icao: 'EFOU', short: 'OUL', name: 'Oulu', city: 'Oulu', country: 'Finland', type: 'controlled' },
+  { icao: 'EFRO', short: 'RVN', name: 'Rovaniemi', city: 'Rovaniemi', country: 'Finland', type: 'controlled' },
+  { icao: 'EFIV', short: 'IVL', name: 'Ivalo', city: 'Ivalo', country: 'Finland', type: 'regional' },
+  { icao: 'EFKT', short: 'KTT', name: 'Kittila', city: 'Kittila', country: 'Finland', type: 'regional' },
+  { icao: 'EFKS', short: 'KAO', name: 'Kuusamo', city: 'Kuusamo', country: 'Finland', type: 'regional' },
+  { icao: 'EFKE', short: 'KEM', name: 'Kemi-Tornio', city: 'Kemi', country: 'Finland', type: 'regional' },
+  { icao: 'EFVA', short: 'VAA', name: 'Vaasa', city: 'Vaasa', country: 'Finland', type: 'regional' },
+  { icao: 'EFSI', short: 'SJY', name: 'Seinajoki', city: 'Seinajoki', country: 'Finland', type: 'regional' },
+  { icao: 'EFYL', short: 'YLI', name: 'Ylivieska', city: 'Ylivieska', country: 'Finland', type: 'GA' },
+  { icao: 'EFKM', short: 'KHJ', name: 'Kemijarvi', city: 'Kemijarvi', country: 'Finland', type: 'GA' },
+  { icao: 'EETN', short: 'TLL', name: 'Tallinn', city: 'Tallinn', country: 'Estonia', type: 'controlled' },
+  { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Saaremaa', country: 'Estonia', type: 'regional / GA' },
+  { icao: 'EEKA', short: 'KDL', name: 'Kardla', city: 'Hiiumaa', country: 'Estonia', type: 'regional / GA' },
+  { icao: 'EEPU', short: 'EPU', name: 'Parnu', city: 'Parnu', country: 'Estonia', type: 'GA' },
+  { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', type: 'controlled / GA' },
+  { icao: 'ESSV', short: 'VBY', name: 'Visby', city: 'Gotland', country: 'Sweden', type: 'regional / GA' }
+];
 
 const EUROPE_COUNTRIES = new Set([
   'AL', 'AD', 'AT', 'BE', 'BA', 'BG', 'BY', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE',
@@ -166,6 +269,151 @@ function normalizeDecimal(input, digits = 2) {
 
 function parseBoolean(v) {
   return String(v).toLowerCase() === 'true';
+}
+
+function parseCookies(req) {
+  return String(req.headers.cookie || '')
+    .split(';')
+    .map(part => part.trim())
+    .filter(Boolean)
+    .reduce((cookies, part) => {
+      const eq = part.indexOf('=');
+      if (eq === -1) return cookies;
+      cookies[decodeURIComponent(part.slice(0, eq))] = decodeURIComponent(part.slice(eq + 1));
+      return cookies;
+    }, {});
+}
+
+function hasPilotAccess(req) {
+  const cookies = parseCookies(req);
+  return cookies[PILOT_COOKIE_NAME] === BOOKING_COOKIE_VALUE;
+}
+
+function requirePilotAccess(req, res, next) {
+  if (hasPilotAccess(req)) return next();
+  return res.status(401).json({ error: 'PILOT ACCESS REQUIRED' });
+}
+
+function pilotCookieOptions() {
+  const secure = process.env.NODE_ENV === 'production';
+  return [
+    `${PILOT_COOKIE_NAME}=${BOOKING_COOKIE_VALUE}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    'Max-Age=2592000',
+    secure ? 'Secure' : ''
+  ].filter(Boolean).join('; ');
+}
+
+function normalizeBookingText(input, max = 80) {
+  return String(input || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .slice(0, max);
+}
+
+function normalizeBookingEmail(input) {
+  return String(input || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9@._+\-]/g, '')
+    .slice(0, 120);
+}
+
+function normalizeBookingSeats(input) {
+  const seats = Number(input);
+  if (!Number.isFinite(seats)) return 1;
+  return Math.max(1, Math.min(3, Math.round(seats)));
+}
+
+function publicFlightView(flight) {
+  const bookedSeats = bookingRequests
+    .filter(req => req.flightId === flight.id && req.status !== 'CANCELLED')
+    .reduce((sum, req) => sum + req.seats, 0);
+  const seatsAvailable = Math.max(0, flight.seatsAvailable - bookedSeats);
+
+  return {
+    ...flight,
+    seatsAvailable,
+    bookingMode: seatsAvailable > 0 ? 'REQUEST AVAILABLE' : 'WAITLIST'
+  };
+}
+
+async function getBookingAirportCatalog() {
+  try {
+    const airportDb = await loadAirportDatabase();
+    const finnishAirports = airportDb
+      .filter(airport => airport.country === 'FI')
+      .map(airport => ({
+        icao: airport.icao,
+        short: airport.icao.slice(2),
+        name: airport.name || airport.icao,
+        city: airport.municipality || airport.name || airport.icao,
+        country: 'Finland',
+        type: airport.type || 'airport',
+        lat: airport.lat,
+        lon: airport.lon
+      }));
+
+    const merged = new Map();
+    for (const airport of [...finnishAirports, ...bookingAirports]) {
+      const existing = merged.get(airport.icao) || {};
+      merged.set(airport.icao, {
+        ...existing,
+        ...airport,
+        lat: airport.lat ?? existing.lat,
+        lon: airport.lon ?? existing.lon
+      });
+    }
+
+    return Array.from(merged.values())
+      .sort((a, b) => `${a.country} ${a.city} ${a.icao}`.localeCompare(`${b.country} ${b.city} ${b.icao}`));
+  } catch (err) {
+    console.warn('Booking airport catalog fallback:', err.message);
+    return bookingAirports;
+  }
+}
+
+async function getBookingAirport(icao) {
+  const normalized = normalizeIcao(icao);
+  const catalog = await getBookingAirportCatalog();
+  return catalog.find(airport => airport.icao === normalized) || null;
+}
+
+function formatBookingAcarsMessage(request) {
+  const passengerLines = (request.passengers?.length ? request.passengers : [{
+    number: 1,
+    name: request.name,
+    weightKg: request.weightKg,
+    dob: request.dob,
+    nationalId: request.nationalId,
+    email: request.email,
+    phone: request.phone
+  }]).flatMap(passenger => [
+    `PAX${passenger.number || 1} ${String(passenger.name || 'NIL').toUpperCase()}   WT ${passenger.weightKg || 'NIL'}KG`,
+    `DOB ${passenger.dob || 'NIL'}   PPT CTRY ${passenger.passportCountry || 'NIL'}   ID ${passenger.nationalId || 'NIL'}   TEL ${passenger.phone || 'NIL'}   EMAIL ${passenger.email || 'NIL'}`
+  ]);
+
+  return [
+    'NATGLOBE BOOKING REQUEST',
+    '------------------------',
+    `REF ${request.id}   STATUS ${request.status}`,
+    `FLT ${request.flightId}   ${request.dep}-${request.arr}   ${request.requestDate} ${request.requestTime}`,
+    `TITLE ${String(request.flightTitle || 'CUSTOM ROUTE').toUpperCase()}`,
+    `A/C ${String(request.aircraft || AIRCRAFT_PROFILE.registration + ' / ' + AIRCRAFT_PROFILE.type).toUpperCase()}`,
+    `PAX COUNT ${request.seats}`,
+    ...passengerLines,
+    `EMERG ${request.emergencyName || 'NIL'} / ${request.emergencyPhone || 'NIL'}`,
+    `MED ${request.medicalStatus || 'NIL'}   SUBST ${request.substancesStatus || 'NIL'}`,
+    `BAG ${request.carryOnBags || 'NIL'}   WT ${request.baggageWeightKg || '0'}KG   PWRBANK ${request.powerBanks || 'NIL'}`,
+    `BAG TYPE ${request.bagType || 'NIL'}`,
+    `COST SHARE EUR ${request.costPerSeatEur || 'TBD'} / PAX`,
+    '',
+    'CONSENT FIT/RULES/OXYGEN/PAYMENT REQUIRED BEFORE SEND.',
+    `RMK ${request.message || 'PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'}`,
+    'END OF MESSAGE'
+  ].join('\n');
 }
 
 function haversineKm(a, b) {
@@ -1770,6 +2018,208 @@ async function dispatchToPdfBuffer(data) {
 
   return Buffer.from(await pdfDoc.save());
 }
+
+app.get('/booking', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'booking.html'));
+});
+
+app.get('/booking-start', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'booking-login.html'));
+});
+
+app.get('/booking-portal', (req, res) => {
+  res.redirect('/booking-start');
+});
+
+app.get('/booking-login', (req, res) => {
+  res.redirect('/booking-start');
+});
+
+app.get('/portal', (req, res) => {
+  res.redirect('/booking-start');
+});
+
+app.get('/booking-ops', (req, res) => {
+  const fileName = hasPilotAccess(req) ? 'booking-ops.html' : 'pilot-login.html';
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', fileName));
+});
+
+app.post('/api/pilot-login', (req, res) => {
+  const code = String(req.body?.code || '').trim();
+  if (code !== PILOT_ACCESS_CODE) {
+    return res.status(401).json({ error: 'INVALID PILOT CODE' });
+  }
+
+  res.setHeader('Set-Cookie', pilotCookieOptions());
+  res.json({ ok: true });
+});
+
+app.post('/api/pilot-logout', (req, res) => {
+  res.setHeader('Set-Cookie', `${PILOT_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+  res.json({ ok: true });
+});
+
+app.get('/api/booking-airports', async (req, res) => {
+  try {
+    const airports = await getBookingAirportCatalog();
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.json({ airports });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ airports: bookingAirports });
+  }
+});
+
+app.get('/api/cost-share-flights', (req, res) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    flights: costShareFlights.map(publicFlightView),
+    requests: bookingRequests.slice(-8).reverse()
+  });
+});
+
+app.get('/api/booking-ops/requests', requirePilotAccess, (req, res) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    requests: bookingRequests.slice().reverse().map(request => ({
+      ...request,
+      acarsMessage: formatBookingAcarsMessage(request)
+    }))
+  });
+});
+
+app.post('/api/booking-requests', async (req, res) => {
+  const flight = costShareFlights.find(item => item.id === String(req.body?.flightId || ''));
+  const [depAirport, arrAirport] = await Promise.all([
+    getBookingAirport(req.body?.dep || flight?.dep),
+    getBookingAirport(req.body?.arr || flight?.arr)
+  ]);
+  if (!depAirport || !arrAirport) return res.status(400).json({ error: 'VALID DEPARTURE AND DESTINATION REQUIRED' });
+  if (depAirport.icao === arrAirport.icao) return res.status(400).json({ error: 'CHOOSE DIFFERENT DEPARTURE AND DESTINATION' });
+
+  const seats = normalizeBookingSeats(req.body?.seats);
+  const view = flight ? publicFlightView(flight) : null;
+  if (view && view.seatsAvailable > 0 && seats > view.seatsAvailable) {
+    return res.status(400).json({ error: `ONLY ${view.seatsAvailable} SEAT(S) AVAILABLE` });
+  }
+
+  const submittedPassengers = Array.isArray(req.body?.passengers) ? req.body.passengers : [];
+  const passengers = submittedPassengers.length ? submittedPassengers.slice(0, seats).map((passenger, index) => ({
+    number: index + 1,
+    name: normalizeBookingText(passenger?.name, 60),
+    email: normalizeBookingEmail(passenger?.email),
+    phone: normalizeBookingText(passenger?.phone, 40),
+    dob: normalizeBookingText(passenger?.dob, 20),
+    weightKg: normalizeBookingText(passenger?.weightKg, 8),
+    passportCountry: normalizeBookingText(passenger?.passportCountry, 40),
+    nationalId: normalizeBookingText(passenger?.nationalId, 60)
+  })) : [{
+    number: 1,
+    name: normalizeBookingText(req.body?.name, 60),
+    email: normalizeBookingEmail(req.body?.email),
+    phone: normalizeBookingText(req.body?.phone, 40),
+    dob: normalizeBookingText(req.body?.dob, 20),
+    weightKg: normalizeBookingText(req.body?.weightKg, 8),
+    passportCountry: normalizeBookingText(req.body?.passportCountry, 40),
+    nationalId: normalizeBookingText(req.body?.nationalId, 60)
+  }];
+
+  while (passengers.length < seats) {
+    passengers.push({ number: passengers.length + 1, name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '' });
+  }
+
+  const leadPassenger = passengers[0] || {};
+  const name = leadPassenger.name;
+  const email = leadPassenger.email;
+  const phone = leadPassenger.phone;
+  const message = normalizeBookingText(req.body?.message, 180);
+  const requestDate = normalizeBookingText(req.body?.requestDate, 20);
+  const requestTime = normalizeBookingText(req.body?.requestTime, 16);
+  const dob = leadPassenger.dob;
+  const weightKg = leadPassenger.weightKg;
+  const nationalId = leadPassenger.nationalId;
+  const emergencyName = normalizeBookingText(req.body?.emergencyName, 60);
+  const emergencyPhone = normalizeBookingText(req.body?.emergencyPhone, 40);
+  const carryOnBags = normalizeBookingText(req.body?.carryOnBags, 8);
+  const baggageWeightKg = normalizeBookingText(req.body?.baggageWeightKg, 8);
+  const bagType = normalizeBookingText(req.body?.bagType, 60);
+  const powerBanks = normalizeBookingText(req.body?.powerBanks, 8);
+  const medicalStatus = normalizeBookingText(req.body?.medicalStatus, 80);
+  const substancesStatus = normalizeBookingText(req.body?.substancesStatus, 80);
+
+  if (!name || !email || !email.includes('@')) {
+    return res.status(400).json({ error: 'LEAD PASSENGER NAME AND VALID EMAIL REQUIRED' });
+  }
+
+  const missingPassenger = passengers.find(passenger => (
+    !passenger.name ||
+    !passenger.email ||
+    !passenger.email.includes('@') ||
+    !passenger.phone ||
+    !passenger.dob ||
+    !passenger.weightKg ||
+    !passenger.passportCountry ||
+    !passenger.nationalId
+  ));
+  if (missingPassenger) {
+    return res.status(400).json({ error: `PASSENGER ${missingPassenger.number} DETAILS INCOMPLETE` });
+  }
+
+  if (!requestDate || !requestTime || !weightKg) {
+    return res.status(400).json({ error: 'DATE, ETD, AND WEIGHT REQUIRED' });
+  }
+
+  if (carryOnBags === 'YES' && (!baggageWeightKg || baggageWeightKg === 'N/A')) {
+    return res.status(400).json({ error: 'BAGGAGE WEIGHT REQUIRED WHEN BAGS ARE YES' });
+  }
+
+  const request = {
+    id: `BRQ-${randomUUID().slice(0, 8).toUpperCase()}`,
+    flightId: flight?.id || `NG-RQ-${Date.now().toString().slice(-5)}`,
+    flightTitle: flight?.title || `${depAirport.city} to ${arrAirport.city}`,
+    route: `${depAirport.icao}-${arrAirport.icao}`,
+    dep: depAirport.icao,
+    arr: arrAirport.icao,
+    depName: depAirport.name,
+    arrName: arrAirport.name,
+    aircraft: flight?.aircraft || `${AIRCRAFT_PROFILE.registration} / ${AIRCRAFT_PROFILE.type}`,
+    costPerSeatEur: flight?.costPerSeatEur || 'TBD',
+    requestDate,
+    requestTime,
+    seats,
+    passengers,
+    name,
+    email,
+    phone,
+    dob,
+    weightKg,
+    nationalId,
+    emergencyName,
+    emergencyPhone,
+    carryOnBags,
+    baggageWeightKg,
+    bagType,
+    powerBanks,
+    medicalStatus,
+    substancesStatus,
+    message,
+    status: !view || view.seatsAvailable > 0 ? 'REQUESTED' : 'WAITLIST',
+    createdAt: new Date().toISOString()
+  };
+
+  bookingRequests.push(request);
+
+  res.status(201).json({
+    request,
+    confirmationText: 'REQUEST RECEIVED. PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'
+  });
+});
 
 app.get('/api/airport-runways', async (req, res) => {
   try {

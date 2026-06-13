@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NatGlobe Aviation / Booking Ops</title>
+  <style>
+    :root {
+      --bg: #000;
+      --fg: #f2f2f2;
+      --muted: #cfcfcf;
+      --line: #fff;
+      --live: #66ff99;
+      --warn: #ffcc66;
+      --danger: #ff6b6b;
+      --accent: #8ec5ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 32px 18px;
+    }
+
+    .frame {
+      width: min(1180px, 100%);
+      border: 2px solid var(--line);
+      padding: 22px 20px 18px;
+      background: #000;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .title {
+      font-size: clamp(20px, 2.8vw, 32px);
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .badge {
+      min-height: 32px;
+      border: 2px solid var(--live);
+      color: var(--live);
+      padding: 6px 10px;
+      font-size: clamp(12px, 1.1vw, 16px);
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .clock, .intro {
+      color: #bdbdbd;
+      font-size: clamp(13px, 1.35vw, 17px);
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
+    .clock { margin-bottom: 14px; }
+    .intro { margin-bottom: 18px; }
+
+    .mode {
+      border: 1px solid rgba(102,255,153,0.55);
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, #050505 0%, #0b0b0b 100%);
+      color: var(--live);
+      text-transform: uppercase;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(290px, 0.55fr) minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      padding: 12px;
+      background: #000;
+      min-width: 0;
+    }
+
+    .panel-title {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .request-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .request {
+      border: 1px solid #555;
+      padding: 9px;
+      cursor: pointer;
+      color: #d7d7d7;
+      text-transform: uppercase;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .request.selected {
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .meta {
+      border: 1px solid #444;
+      padding: 8px;
+      min-width: 0;
+      text-transform: uppercase;
+    }
+
+    .meta span {
+      display: block;
+      color: #8d8d8d;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .meta strong {
+      display: block;
+      color: #fff;
+      overflow-wrap: anywhere;
+    }
+
+    .acars {
+      border: 2px solid var(--line);
+      padding: 12px;
+      min-height: 420px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      color: #fff;
+      background: #000;
+      font-size: 15px;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      min-height: 52px;
+      border: 2px solid var(--line);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+      width: 100%;
+      background: #d0d0d0;
+      color: #000;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .btn.ghost {
+      background: #000;
+      color: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .title-row, .layout, .meta-grid { grid-template-columns: 1fr; }
+      .title-row { flex-direction: column; }
+      .badge { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <div class="title-row">
+      <div class="title">NATGLOBE AVIATION / BOOKING OPS</div>
+      <div class="badge">PILOT / DISPATCH</div>
+    </div>
+
+    <div id="clock" class="clock">UTC --:--:--</div>
+    <div class="intro">Customer-facing booking requests converted into ACARS-style ops messages.</div>
+    <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
+
+    <div class="layout">
+      <aside class="panel">
+        <div class="panel-title">REQUEST QUEUE</div>
+        <div id="requestList" class="request-list"></div>
+      </aside>
+
+      <section>
+        <div class="panel">
+          <div class="panel-title">REQUEST SUMMARY</div>
+          <div class="meta-grid">
+            <div class="meta"><span>REF</span><strong id="ref">.....</strong></div>
+            <div class="meta"><span>ROUTE</span><strong id="route">.....</strong></div>
+            <div class="meta"><span>PAX</span><strong id="pax">.....</strong></div>
+            <div class="meta"><span>STATUS</span><strong id="status">.....</strong></div>
+          </div>
+          <pre id="acars" class="acars">NATGLOBE BOOKING REQUEST
+------------------------
+NO REQUEST SELECTED
+
+END OF MESSAGE</pre>
+          <button id="copyBtn" class="btn" type="button">COPY ACARS BOOKING</button>
+          <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
+          <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const clock = el('clock');
+    const mode = el('mode');
+    const requestList = el('requestList');
+    const acars = el('acars');
+    const copyBtn = el('copyBtn');
+    const refreshBtn = el('refreshBtn');
+    const logoutBtn = el('logoutBtn');
+
+    let requests = [];
+    let selected = null;
+
+    function tick() {
+      clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[ch]));
+    }
+
+    function renderList() {
+      requestList.innerHTML = requests.map(req => `
+        <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
+          <strong>${escapeHtml(req.id)}</strong><br>
+          ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
+          ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}
+        </div>
+      `).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
+    }
+
+    function selectRequest(req) {
+      selected = req;
+      el('ref').textContent = req.id || '.....';
+      el('route').textContent = req.route || '.....';
+      el('pax').textContent = `${req.name || '.....'} / ${req.seats || '?'} PAX`;
+      el('status').textContent = req.status || '.....';
+      acars.textContent = req.acarsMessage || 'NO ACARS MESSAGE';
+      renderList();
+    }
+
+    async function loadRequests() {
+      mode.textContent = 'MODE: FETCHING BOOKING REQUESTS';
+      const res = await fetch('/api/booking-ops/requests', { cache: 'no-store' });
+      if (res.status === 401) {
+        window.location.href = '/booking-ops';
+        return;
+      }
+      const data = await res.json();
+      requests = data.requests || [];
+      renderList();
+      if (requests[0]) selectRequest(requests[0]);
+      mode.textContent = 'MODE: BOOKING OPS LIVE';
+    }
+
+    requestList.addEventListener('click', (event) => {
+      const row = event.target.closest('[data-id]');
+      if (!row) return;
+      const req = requests.find(item => item.id === row.getAttribute('data-id'));
+      if (req) selectRequest(req);
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(acars.textContent);
+      mode.textContent = 'MODE: ACARS BOOKING COPIED';
+    });
+
+    refreshBtn.addEventListener('click', () => loadRequests());
+
+    logoutBtn.addEventListener('click', async () => {
+      await fetch('/api/pilot-logout', { method: 'POST' });
+      window.location.href = '/booking-ops';
+    });
+
+    tick();
+    setInterval(tick, 1000);
+    loadRequests().catch(() => {
+      mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE';
+    });
+  </script>
+</body>
+</html>
