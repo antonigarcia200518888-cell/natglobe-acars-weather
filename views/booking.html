@@ -129,7 +129,7 @@
       gap: 12px;
     }
 
-    .search-grid { grid-template-columns: 1.1fr 1.1fr 0.8fr 0.7fr 0.6fr; }
+    .search-grid { grid-template-columns: 1.1fr 1.1fr 0.75fr 0.7fr 0.7fr 0.55fr; }
     .two { grid-template-columns: 1fr 1fr; }
     .three { grid-template-columns: repeat(3, 1fr); }
     .passenger-main-grid { grid-template-columns: minmax(0, 1fr) 128px; }
@@ -464,6 +464,13 @@
             <select id="requestTime" required></select>
           </div>
           <div>
+            <label for="tripType">Trip type</label>
+            <select id="tripType">
+              <option value="ONE_WAY">One way</option>
+              <option value="ROUNDTRIP">Roundtrip</option>
+            </select>
+          </div>
+          <div>
             <label for="seats">Passengers</label>
             <select id="seats">
               <option value="1">1</option>
@@ -578,6 +585,7 @@
             <ul class="summary-list">
               <li><span>Date</span><strong id="summaryDate">----</strong></li>
               <li><span>Departure</span><strong id="summaryTime">----</strong></li>
+              <li><span>Trip type</span><strong id="summaryTripType">One way</strong></li>
               <li><span>Est. flight time</span><strong id="summaryFlightTime">----</strong></li>
               <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
               <li><span>Baggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
@@ -644,6 +652,13 @@
     const form = el('bookingForm');
     const passengerList = el('passengerList');
     const PA28_CRUISE_KT = 115;
+    const OPERATING_COST_EUR_PER_HOUR = 300;
+    const FIXED_ROUTE_PRICES = {
+      'EFHV-EFHN': { oneWay: 100, roundtrip: 200, label: 'Fixed Hyvinkää-Hanko' },
+      'EFHN-EFHV': { oneWay: 100, roundtrip: 200, label: 'Fixed Hanko-Hyvinkää' },
+      'EFHK-EFHN': { oneWay: 1500, roundtrip: 3000, label: 'Fixed Helsinki-Hanko' },
+      'EFHN-EFHK': { oneWay: 1500, roundtrip: 3000, label: 'Fixed Hanko-Helsinki' }
+    };
 
     let airports = [];
 
@@ -720,14 +735,23 @@
       return 2 * earthRadiusNm * Math.asin(Math.sqrt(x));
     }
 
-    function formatFlightTime(dep, arr) {
+    function flightMinutes(dep, arr) {
       if (!dep || !arr || dep.icao === arr.icao) return '----';
       const nm = distanceNm(dep, arr);
       if (!Number.isFinite(nm)) return 'Pilot confirms';
-      const mins = Math.max(10, Math.round((nm / PA28_CRUISE_KT) * 60));
+      return Math.max(10, Math.round((nm / PA28_CRUISE_KT) * 60));
+    }
+
+    function formatMinutes(mins) {
+      if (!Number.isFinite(mins)) return mins || '----';
       const hours = Math.floor(mins / 60);
       const minutes = mins % 60;
       return `${String(hours).padStart(2, '0')}H ${String(minutes).padStart(2, '0')}M`;
+    }
+
+    function formatFlightTime(dep, arr) {
+      const mins = flightMinutes(dep, arr);
+      return Number.isFinite(mins) ? formatMinutes(mins) : mins;
     }
 
     function fillPickerWheels() {
@@ -751,8 +775,19 @@
     function routePrice(dep, arr) {
       if (!dep || !arr) return 'Pilot confirms';
       if (dep.icao === arr.icao) return 'Choose different airports';
-      const international = dep.country !== arr.country;
-      return international ? 'From EUR 145 / pax' : 'From EUR 95 / pax';
+      const seats = Number(el('seats').value || 1);
+      const roundtrip = el('tripType').value === 'ROUNDTRIP';
+      const fixed = FIXED_ROUTE_PRICES[`${dep.icao}-${arr.icao}`];
+      if (fixed) {
+        const price = roundtrip ? fixed.roundtrip : fixed.oneWay;
+        return `EUR ${price} / pax`;
+      }
+      const mins = flightMinutes(dep, arr);
+      if (!Number.isFinite(mins)) return 'Pilot confirms';
+      const pricedMinutes = roundtrip ? mins * 2 : mins;
+      const total = Math.ceil(((pricedMinutes / 60) * OPERATING_COST_EUR_PER_HOUR) / 5) * 5;
+      const perPax = Math.ceil((total / Math.max(1, seats)) / 5) * 5;
+      return `Est. EUR ${perPax} / pax`;
     }
 
     function baggageSummary() {
@@ -771,6 +806,7 @@
       el('routeNames').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
       el('summaryDate').textContent = el('requestDate').value || '----';
       el('summaryTime').textContent = el('requestTime').value || '----';
+      el('summaryTripType').textContent = el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way';
       el('summaryFlightTime').textContent = formatFlightTime(dep, arr);
       el('summarySeats').textContent = el('seats').value || '1';
       el('summaryBaggage').textContent = baggageSummary();
@@ -884,6 +920,7 @@
             arr: el('arr').value,
             requestDate: el('requestDate').value,
             requestTime: el('requestTime').value,
+            tripType: el('tripType').value,
             seats: el('seats').value,
             passengers: collectPassengers(),
             emergencyName: '',

@@ -31,6 +31,13 @@ const SUGGESTED_ALTN_LIMIT = 12;
 
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
 const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/runways.csv';
+const OPERATING_COST_EUR_PER_HOUR = 300;
+const FIXED_BOOKING_ROUTE_PRICES = {
+  'EFHV-EFHN': { oneWay: 100, roundtrip: 200, label: 'FIXED HYVINKAA-HANKO' },
+  'EFHN-EFHV': { oneWay: 100, roundtrip: 200, label: 'FIXED HANKO-HYVINKAA' },
+  'EFHK-EFHN': { oneWay: 1500, roundtrip: 3000, label: 'FIXED HELSINKI-HANKO' },
+  'EFHN-EFHK': { oneWay: 1500, roundtrip: 3000, label: 'FIXED HANKO-HELSINKI' }
+};
 
 const costShareFlights = [
   {
@@ -323,7 +330,37 @@ async function getBookingAirport(icao) {
   return catalog.find(airport => airport.icao === normalized) || null;
 }
 
-function formatBookingAcarsMessage(request) {
+function estimateBookingPrice(depAirport, arrAirport, seats, tripType) {
+  if (!depAirport || !arrAirport || depAirport.icao === arrAirport.icao) {
+    return { perPassengerEur: 'TBD', totalEur: 'TBD', note: 'PILOT CONFIRMS' };
+  }
+
+  const roundtrip = tripType === 'ROUNDTRIP';
+  const fixed = FIXED_BOOKING_ROUTE_PRICES[`${depAirport.icao}-${arrAirport.icao}`];
+  if (fixed) {
+    const perPassengerEur = roundtrip ? fixed.roundtrip : fixed.oneWay;
+    return {
+      perPassengerEur,
+      totalEur: perPassengerEur * Math.max(1, seats),
+      note: fixed.label
+    };
+  }
+
+  const distanceKm = haversineKm(depAirport, arrAirport);
+  const distanceNm = kmToNm(distanceKm);
+  const oneWayMinutes = Math.max(10, Math.round((distanceNm / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
+  const pricedMinutes = roundtrip ? oneWayMinutes * 2 : oneWayMinutes;
+  const totalEur = Math.ceil(((pricedMinutes / 60) * OPERATING_COST_EUR_PER_HOUR) / 5) * 5;
+  const perPassengerEur = Math.ceil((totalEur / Math.max(1, seats)) / 5) * 5;
+
+  return {
+    perPassengerEur,
+    totalEur,
+    note: `ESTIMATE ${OPERATING_COST_EUR_PER_HOUR} EUR/HR / ${AIRCRAFT_PROFILE.cruiseTasKt}KT`
+  };
+}
+
+function formatBookingMessage(request) {
   const passengerLines = (request.passengers?.length ? request.passengers : [{
     number: 1,
     name: request.name,
@@ -350,7 +387,8 @@ function formatBookingAcarsMessage(request) {
     `MED ${request.medicalStatus || 'NIL'}   SUBST ${request.substancesStatus || 'NIL'}`,
     `BAG ${request.carryOnBags || 'NIL'}   WT ${request.baggageWeightKg || '0'}KG   PWRBANK ${request.powerBanks || 'NIL'}`,
     `BAG TYPE ${request.bagType || 'NIL'}`,
-    `COST SHARE EUR ${request.costPerSeatEur || 'TBD'} / PAX`,
+    `TRIP ${request.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY'}   PRICE EUR ${request.costPerSeatEur || 'TBD'} / PAX   TOTAL EUR ${request.estimatedTotalEur || 'TBD'}`,
+    `PRICE NOTE ${request.priceNote || 'PILOT CONFIRMS FINAL PRICE'}`,
     '',
     `AGREEMENT ${request.contractAccepted ? 'ACCEPTED' : 'NOT ACCEPTED'} / RULES SAFETY PAYMENT PILOT CONFIRM REQUIRED.`,
     `RMK ${request.message || 'PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'}`,
@@ -2031,7 +2069,7 @@ app.get('/api/booking-ops/requests', requirePilotAccess, (req, res) => {
   res.json({
     requests: bookingRequests.slice().reverse().map(request => ({
       ...request,
-      acarsMessage: formatBookingAcarsMessage(request)
+      bookingMessage: formatBookingMessage(request)
     }))
   });
 });
@@ -2083,6 +2121,7 @@ app.post('/api/booking-requests', async (req, res) => {
   const message = normalizeBookingText(req.body?.message, 180);
   const requestDate = normalizeBookingText(req.body?.requestDate, 20);
   const requestTime = normalizeBookingText(req.body?.requestTime, 16);
+  const tripType = req.body?.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
   const dob = leadPassenger.dob;
   const weightKg = leadPassenger.weightKg;
   const nationalId = leadPassenger.nationalId;
@@ -2126,6 +2165,8 @@ app.post('/api/booking-requests', async (req, res) => {
     return res.status(400).json({ error: 'CONTRACT AGREEMENT MUST BE ACCEPTED' });
   }
 
+  const priceEstimate = estimateBookingPrice(depAirport, arrAirport, seats, tripType);
+
   const request = {
     id: `BRQ-${randomUUID().slice(0, 8).toUpperCase()}`,
     flightId: flight?.id || `NG-RQ-${Date.now().toString().slice(-5)}`,
@@ -2136,9 +2177,12 @@ app.post('/api/booking-requests', async (req, res) => {
     depName: depAirport.name,
     arrName: arrAirport.name,
     aircraft: flight?.aircraft || `${AIRCRAFT_PROFILE.registration} / ${AIRCRAFT_PROFILE.type}`,
-    costPerSeatEur: flight?.costPerSeatEur || 'TBD',
+    costPerSeatEur: flight?.costPerSeatEur || priceEstimate.perPassengerEur,
+    estimatedTotalEur: flight?.costPerSeatEur ? flight.costPerSeatEur * seats : priceEstimate.totalEur,
+    priceNote: flight?.costPerSeatEur ? 'PUBLISHED SHARED-COST FLIGHT' : priceEstimate.note,
     requestDate,
     requestTime,
+    tripType,
     seats,
     passengers,
     name,
