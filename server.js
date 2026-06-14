@@ -352,7 +352,7 @@ function formatBookingAcarsMessage(request) {
     `BAG TYPE ${request.bagType || 'NIL'}`,
     `COST SHARE EUR ${request.costPerSeatEur || 'TBD'} / PAX`,
     '',
-    'CONSENT FIT/RULES/OXYGEN/PAYMENT REQUIRED BEFORE SEND.',
+    `AGREEMENT ${request.contractAccepted ? 'ACCEPTED' : 'NOT ACCEPTED'} / RULES SAFETY PAYMENT PILOT CONFIRM REQUIRED.`,
     `RMK ${request.message || 'PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'}`,
     'END OF MESSAGE'
   ].join('\n');
@@ -2094,6 +2094,7 @@ app.post('/api/booking-requests', async (req, res) => {
   const powerBanks = normalizeBookingText(req.body?.powerBanks, 8);
   const medicalStatus = normalizeBookingText(req.body?.medicalStatus, 80);
   const substancesStatus = normalizeBookingText(req.body?.substancesStatus, 80);
+  const contractAccepted = req.body?.contractAccepted === true || req.body?.contractAccepted === 'true';
 
   if (!name || !email || !email.includes('@')) {
     return res.status(400).json({ error: 'LEAD PASSENGER NAME AND VALID EMAIL REQUIRED' });
@@ -2119,6 +2120,10 @@ app.post('/api/booking-requests', async (req, res) => {
 
   if (carryOnBags === 'YES' && (!baggageWeightKg || baggageWeightKg === 'N/A')) {
     return res.status(400).json({ error: 'BAGGAGE WEIGHT REQUIRED WHEN BAGS ARE YES' });
+  }
+
+  if (!contractAccepted) {
+    return res.status(400).json({ error: 'CONTRACT AGREEMENT MUST BE ACCEPTED' });
   }
 
   const request = {
@@ -2150,6 +2155,7 @@ app.post('/api/booking-requests', async (req, res) => {
     powerBanks,
     medicalStatus,
     substancesStatus,
+    contractAccepted,
     message,
     status: !view || view.seatsAvailable > 0 ? 'REQUESTED' : 'WAITLIST',
     createdAt: new Date().toISOString()

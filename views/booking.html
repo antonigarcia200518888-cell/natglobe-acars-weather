@@ -15,7 +15,7 @@
       --live: #66ff99;
       --warn: #ffcc66;
       --danger: #ff6b6b;
-      --accent: #8ec5ff;
+      --accent: #d7d7d7;
     }
 
     * { box-sizing: border-box; }
@@ -160,7 +160,7 @@
 
     input:focus, select:focus, textarea:focus {
       border-color: var(--accent);
-      box-shadow: inset 0 0 14px rgba(142,197,255,0.12);
+      box-shadow: inset 0 0 14px rgba(255,255,255,0.12);
     }
 
     input.compact-number {
@@ -180,7 +180,7 @@
       position: absolute;
       right: 10px;
       bottom: 15px;
-      color: var(--accent);
+      color: #d7d7d7;
       font-size: 13px;
       font-weight: 700;
       pointer-events: none;
@@ -209,7 +209,7 @@
 
     .btn:hover {
       background: #fff;
-      box-shadow: 0 0 0 2px var(--accent) inset;
+      box-shadow: 0 0 0 2px #777 inset;
     }
 
     .btn.secondary {
@@ -267,7 +267,7 @@
       gap: 12px;
       align-items: center;
       font-weight: 700;
-      color: var(--accent);
+      color: #fff;
       font-size: 19px;
       text-transform: uppercase;
     }
@@ -317,7 +317,7 @@
     }
 
     .passenger-title {
-      color: var(--accent);
+      color: #fff;
       font-size: 13px;
       font-weight: 700;
       text-transform: uppercase;
@@ -343,7 +343,7 @@
     }
 
     .declaration strong {
-      color: var(--accent);
+      color: #fff;
       display: block;
       margin-bottom: 6px;
     }
@@ -487,12 +487,8 @@
           <div class="card">
             <h2 class="section-title">Travel and safety information</h2>
             <div class="declaration">
-              <strong>Passenger safety declaration</strong>
-              Please read before answering. Declare any respiratory illness, circulatory issue, seizure history, panic attacks, recent surgery/procedure, alcohol, sedatives, cannabis, or anything that may affect safe flight. The pilot may ask follow-up questions before accepting the request.
-            </div>
-            <div class="consent" style="margin-bottom:12px;">
-              <label class="check"><input id="medicalReadConsent" type="checkbox" required /> I have read the medical and safety declaration above.</label>
-              <label class="check"><input id="symptomConsent" type="checkbox" required /> I will tell the pilot immediately if I feel dizzy, nauseous, anxious, unwell, or hypoxic.</label>
+              <strong>Passenger declaration</strong>
+              Please read this before sending. You must declare any respiratory illness, circulatory issue, seizure history, panic attacks, recent surgery/procedure, alcohol, sedatives, cannabis, or anything that may affect safe flight. You must tell the pilot immediately if you feel dizzy, nauseous, anxious, unwell, or hypoxic before or during the flight. The pilot may ask follow-up questions before accepting the request.
             </div>
             <div class="question-grid">
               <div>
@@ -555,16 +551,17 @@
           </div>
 
           <div class="card">
-            <h2 class="section-title">Message and consent</h2>
+            <h2 class="section-title">Message and agreement</h2>
             <div style="margin-top:12px;">
               <label for="message">Message to pilot</label>
               <textarea id="message" placeholder="Flexible dates, preferred sightseeing route, accessibility needs, or other notes"></textarea>
             </div>
+            <div class="declaration" style="margin-top:12px;">
+              <strong>Contract agreement and flight rules</strong>
+              By sending this request, I confirm that all passenger and baggage information is correct, I am fit to fly, I understand no supplemental oxygen is available, I will follow pilot instructions, and I understand the pilot's safety decisions are final. I understand this is a booking request only, not a confirmed ticket, and payment/refund terms plus pilot confirmation are required before any flight is booked.
+            </div>
             <div class="consent">
-              <label class="check"><input id="fitConsent" type="checkbox" required /> I confirm I am fit to fly and will notify the pilot if symptoms occur.</label>
-              <label class="check"><input id="rulesConsent" type="checkbox" required /> I understand the pilot’s safety decisions are final.</label>
-              <label class="check"><input id="oxygenConsent" type="checkbox" required /> I acknowledge no supplemental oxygen is available.</label>
-              <label class="check"><input id="paymentConsent" type="checkbox" required /> I understand payment/refund terms and pilot confirmation are required.</label>
+              <label class="check"><input id="contractAgreement" type="checkbox" required /> I have read and accept the contract agreement, flight rules, safety declaration, and booking conditions.</label>
             </div>
           </div>
         </section>
@@ -583,6 +580,7 @@
               <li><span>Departure</span><strong id="summaryTime">----</strong></li>
               <li><span>Est. flight time</span><strong id="summaryFlightTime">----</strong></li>
               <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
+              <li><span>Baggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
               <li><span>Aircraft</span><strong>OH-PMK / PA-28R</strong></li>
               <li><span>Cost share</span><strong id="summaryCost">Pilot confirms</strong></li>
             </ul>
@@ -757,6 +755,14 @@
       return international ? 'From EUR 145 / pax' : 'From EUR 95 / pax';
     }
 
+    function baggageSummary() {
+      if (el('carryOnBags').value !== 'YES') return 'No carry-on bags';
+      const count = Number(el('bagCount').value || 0);
+      const bagLabel = count === 1 ? '1 carry-on bag' : `${count || 1} carry-on bags`;
+      const weight = el('baggageWeightKg').value ? `${el('baggageWeightKg').value} KG` : 'weight pending';
+      return `${bagLabel} / ${weight}`;
+    }
+
     function refreshSummary() {
       const dep = selectedAirport('dep');
       const arr = selectedAirport('arr');
@@ -767,6 +773,7 @@
       el('summaryTime').textContent = el('requestTime').value || '----';
       el('summaryFlightTime').textContent = formatFlightTime(dep, arr);
       el('summarySeats').textContent = el('seats').value || '1';
+      el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
       if (dep && arr && dep.icao === arr.icao) setStatus('Choose different departure and destination airports', 'err');
       else if (dep && arr) setStatus('Route selected / Complete passenger manifest and declarations', 'ok');
@@ -836,9 +843,11 @@
         el('baggageWeightKg').value = '';
         el('bagCount').value = '0';
         el('bagType').value = 'N/A';
-      } else if (el('bagType').value === 'N/A') {
-        el('bagType').value = '';
+      } else {
+        if (el('bagType').value === 'N/A') el('bagType').value = '';
+        if (el('bagCount').value === '0') el('bagCount').value = '1';
       }
+      refreshSummary();
     }
 
     async function loadAirports() {
@@ -885,6 +894,7 @@
             baggageWeightKg: el('carryOnBags').value === 'YES' ? el('baggageWeightKg').value : 'N/A',
             bagType: `${el('bagCount').value} BAG(S) / ${el('bagType').value}`,
             powerBanks: el('powerBanks').value,
+            contractAccepted: el('contractAgreement').checked,
             message: el('message').value
           })
         });
