@@ -133,7 +133,7 @@
 
     .meta-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
@@ -171,6 +171,27 @@
       margin-bottom: 10px;
     }
 
+    .ops-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .ops-controls select {
+      width: 100%;
+      min-height: 52px;
+      border: 2px solid var(--line);
+      border-radius: 0;
+      background: #000;
+      color: #fff;
+      padding: 10px 12px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 15px;
+      text-transform: uppercase;
+      outline: none;
+    }
+
     .btn {
       min-height: 52px;
       border: 2px solid var(--line);
@@ -191,7 +212,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls { grid-template-columns: 1fr; }
       .title-row { flex-direction: column; }
       .badge { white-space: normal; }
     }
@@ -222,12 +243,25 @@
             <div class="meta"><span>ROUTE</span><strong id="route">.....</strong></div>
             <div class="meta"><span>PAX</span><strong id="pax">.....</strong></div>
             <div class="meta"><span>STATUS</span><strong id="status">.....</strong></div>
+            <div class="meta"><span>DECISION</span><strong id="decision">.....</strong></div>
+            <div class="meta"><span>PAYMENT</span><strong id="payment">.....</strong></div>
           </div>
           <pre id="bookingMessage" class="booking-message">NATGLOBE BOOKING REQUEST
 ------------------------
 NO REQUEST SELECTED
 
 END OF MESSAGE</pre>
+          <div class="ops-controls">
+            <select id="paymentStatus">
+              <option value="UNPAID">Payment: unpaid</option>
+              <option value="DEPOSIT PAID">Payment: deposit paid</option>
+              <option value="PAID">Payment: paid</option>
+              <option value="REFUNDED">Payment: refunded</option>
+            </select>
+            <button id="approveBtn" class="btn" type="button">APPROVE</button>
+            <button id="needsInfoBtn" class="btn ghost" type="button">NEEDS INFO</button>
+            <button id="declineBtn" class="btn ghost" type="button">DECLINE</button>
+          </div>
           <button id="copyBtn" class="btn" type="button">COPY BOOKING MESSAGE</button>
           <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
           <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
@@ -245,6 +279,10 @@ END OF MESSAGE</pre>
     const copyBtn = el('copyBtn');
     const refreshBtn = el('refreshBtn');
     const logoutBtn = el('logoutBtn');
+    const paymentStatus = el('paymentStatus');
+    const approveBtn = el('approveBtn');
+    const needsInfoBtn = el('needsInfoBtn');
+    const declineBtn = el('declineBtn');
 
     let requests = [];
     let selected = null;
@@ -268,7 +306,8 @@ END OF MESSAGE</pre>
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
           <strong>${escapeHtml(req.id)}</strong><br>
           ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
-          ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}
+          ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
+          ${escapeHtml(req.pilotDecision || 'PENDING')} / ${escapeHtml(req.paymentStatus || 'UNPAID')}
         </div>
       `).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
     }
@@ -279,8 +318,37 @@ END OF MESSAGE</pre>
       el('route').textContent = req.route || '.....';
       el('pax').textContent = `${req.name || '.....'} / ${req.seats || '?'} PAX`;
       el('status').textContent = req.status || '.....';
+      el('decision').textContent = req.pilotDecision || 'PENDING';
+      el('payment').textContent = req.paymentStatus || 'UNPAID';
+      paymentStatus.value = req.paymentStatus || 'UNPAID';
       bookingMessage.textContent = req.bookingMessage || 'NO BOOKING MESSAGE';
       renderList();
+    }
+
+    function replaceRequest(req) {
+      requests = requests.map(item => item.id === req.id ? req : item);
+      selectRequest(req);
+    }
+
+    async function updateSelected(payload) {
+      if (!selected) {
+        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
+        return;
+      }
+
+      mode.textContent = 'MODE: UPDATING BOOKING REQUEST';
+      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        mode.textContent = `MODE: ${data.error || 'UPDATE FAILED'}`;
+        return;
+      }
+      replaceRequest(data.request);
+      mode.textContent = 'MODE: BOOKING REQUEST UPDATED';
     }
 
     async function loadRequests() {
@@ -308,6 +376,11 @@ END OF MESSAGE</pre>
       await navigator.clipboard.writeText(bookingMessage.textContent);
       mode.textContent = 'MODE: BOOKING MESSAGE COPIED';
     });
+
+    paymentStatus.addEventListener('change', () => updateSelected({ paymentStatus: paymentStatus.value }));
+    approveBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'APPROVED' }));
+    needsInfoBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'NEEDS INFO' }));
+    declineBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'DECLINED' }));
 
     refreshBtn.addEventListener('click', () => loadRequests());
 

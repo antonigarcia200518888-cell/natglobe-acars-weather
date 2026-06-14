@@ -524,7 +524,7 @@
             <h2 class="section-title">Travel and safety information</h2>
             <div class="declaration">
               <strong>Passenger declaration</strong>
-              Please read this before sending. You must declare any respiratory illness, circulatory issue, seizure history, panic attacks, recent surgery/procedure, alcohol, sedatives, cannabis, or anything that may affect safe flight. You must tell the pilot immediately if you feel dizzy, nauseous, anxious, unwell, or hypoxic before or during the flight. The pilot may ask follow-up questions before accepting the request.
+              Please tell us about anything that could affect your flight safety, including medical conditions, recent surgery, anxiety or panic, alcohol, sedatives, cannabis, or feeling unwell. The pilot may ask follow-up questions and makes the final safety decision before the flight.
             </div>
             <div class="question-grid">
               <div>
@@ -638,7 +638,6 @@
   <script>
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
-      { icao: 'EFHF', short: 'HEM', name: 'Helsinki-Malmi', city: 'Helsinki-Malmi', country: 'Finland', lat: 60.2546, lon: 25.0428 },
       { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkää', country: 'Finland', lat: 60.6544, lon: 24.8811 },
       { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', lat: 60.3339, lon: 24.2964 },
       { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtää', country: 'Finland', lat: 60.4844, lon: 26.5439 },
@@ -736,7 +735,7 @@
     }
 
     function airportLabel(airport) {
-      return `(${airport.short || airport.city}) ${airport.city}, ${airport.country}`;
+      return `${airport.city}, ${airport.country}`;
     }
 
     function selectedAirport(id) {

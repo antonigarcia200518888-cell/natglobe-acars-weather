@@ -79,9 +79,9 @@ const costShareFlights = [
     date: '2026-07-19',
     timeUtc: '1200Z',
     title: 'Lake Finland Discovery',
-    dep: 'EFHF',
+    dep: 'EFHV',
     arr: 'EFJO',
-    route: 'EFHF - LAHTI - JYVASKYLA - EFJO',
+    route: 'EFHV - LAHTI - JYVASKYLA - EFJO',
     aircraft: 'OH-PMK / Piper PA-28R-200 Arrow II',
     duration: '01H40',
     seatsTotal: 3,
@@ -97,7 +97,6 @@ const bookingRequests = [];
 
 const bookingAirports = [
   { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', type: 'controlled', lat: 60.3172, lon: 24.9633 },
-  { icao: 'EFHF', short: 'HEM', name: 'Helsinki-Malmi', city: 'Helsinki-Malmi', country: 'Finland', type: 'GA', lat: 60.2546, lon: 25.0428 },
   { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.6544, lon: 24.8811 },
   { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', type: 'GA / uncontrolled', lat: 60.3339, lon: 24.2964 },
   { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.4844, lon: 26.5439 },
@@ -389,6 +388,7 @@ function formatBookingMessage(request) {
     `BAG TYPE ${request.bagType || 'NIL'}`,
     `TRIP ${request.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY'}   PRICE EUR ${request.costPerSeatEur || 'TBD'} / PAX   TOTAL EUR ${request.estimatedTotalEur || 'TBD'}`,
     `PRICE NOTE ${request.priceNote || 'PILOT CONFIRMS FINAL PRICE'}`,
+    `PILOT DECISION ${request.pilotDecision || 'PENDING'}   PAYMENT ${request.paymentStatus || 'UNPAID'}`,
     '',
     `AGREEMENT ${request.contractAccepted ? 'ACCEPTED' : 'NOT ACCEPTED'} / RULES SAFETY PAYMENT PILOT CONFIRM REQUIRED.`,
     `RMK ${request.message || 'PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'}`,
@@ -2074,6 +2074,37 @@ app.get('/api/booking-ops/requests', requirePilotAccess, (req, res) => {
   });
 });
 
+app.patch('/api/booking-ops/requests/:id', requirePilotAccess, (req, res) => {
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+
+  const paymentStatus = String(req.body?.paymentStatus || '').trim().toUpperCase();
+  const pilotDecision = String(req.body?.pilotDecision || '').trim().toUpperCase();
+
+  if (paymentStatus) {
+    const allowedPayments = new Set(['UNPAID', 'DEPOSIT PAID', 'PAID', 'REFUNDED']);
+    if (!allowedPayments.has(paymentStatus)) return res.status(400).json({ error: 'INVALID PAYMENT STATUS' });
+    request.paymentStatus = paymentStatus;
+  }
+
+  if (pilotDecision) {
+    const allowedDecisions = new Set(['PENDING', 'APPROVED', 'NEEDS INFO', 'DECLINED']);
+    if (!allowedDecisions.has(pilotDecision)) return res.status(400).json({ error: 'INVALID PILOT DECISION' });
+    request.pilotDecision = pilotDecision;
+    if (pilotDecision === 'APPROVED') request.status = 'CONFIRMED';
+    if (pilotDecision === 'NEEDS INFO') request.status = 'NEEDS INFO';
+    if (pilotDecision === 'DECLINED') request.status = 'DECLINED';
+    if (pilotDecision === 'PENDING') request.status = 'REQUESTED';
+  }
+
+  res.json({
+    request: {
+      ...request,
+      bookingMessage: formatBookingMessage(request)
+    }
+  });
+});
+
 app.post('/api/booking-requests', async (req, res) => {
   const flight = costShareFlights.find(item => item.id === String(req.body?.flightId || ''));
   const [depAirport, arrAirport] = await Promise.all([
@@ -2200,6 +2231,8 @@ app.post('/api/booking-requests', async (req, res) => {
     medicalStatus,
     substancesStatus,
     contractAccepted,
+    pilotDecision: 'PENDING',
+    paymentStatus: 'UNPAID',
     message,
     status: !view || view.seatsAvailable > 0 ? 'REQUESTED' : 'WAITLIST',
     createdAt: new Date().toISOString()
