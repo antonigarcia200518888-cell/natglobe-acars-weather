@@ -129,7 +129,7 @@
       gap: 12px;
     }
 
-    .search-grid { grid-template-columns: 1.1fr 1.1fr 0.75fr 0.7fr 0.7fr 0.55fr; }
+    .search-grid { grid-template-columns: 1.05fr 54px 1.05fr 0.78fr 0.72fr 0.68fr 0.55fr; }
     .two { grid-template-columns: 1fr 1fr; }
     .three { grid-template-columns: repeat(3, 1fr); }
     .passenger-main-grid { grid-template-columns: minmax(0, 1fr) 128px; }
@@ -215,6 +215,31 @@
     .btn.secondary {
       background: #000;
       color: #fff;
+    }
+
+    .swap-field {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .swap-btn {
+      min-height: 52px;
+      border: 2px solid var(--line);
+      background: #000;
+      color: #fff;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .swap-btn:hover,
+    .swap-btn:focus {
+      background: #fff;
+      color: #000;
+      outline: none;
     }
 
     .status {
@@ -451,9 +476,20 @@
             <label for="dep">From</label>
             <select id="dep" required></select>
           </div>
+          <div class="swap-field">
+            <label aria-hidden="true">&nbsp;</label>
+            <button id="swapRoute" class="swap-btn" type="button" title="Swap departure and destination" aria-label="Swap departure and destination">↔</button>
+          </div>
           <div>
             <label for="arr">To</label>
             <select id="arr" required></select>
+          </div>
+          <div>
+            <label for="tripType">Trip type</label>
+            <select id="tripType">
+              <option value="ONE_WAY">One way</option>
+              <option value="ROUNDTRIP">Roundtrip</option>
+            </select>
           </div>
           <div>
             <label for="requestDate">Date</label>
@@ -462,13 +498,6 @@
           <div>
             <label for="requestTime">Departure time</label>
             <select id="requestTime" required></select>
-          </div>
-          <div>
-            <label for="tripType">Trip type</label>
-            <select id="tripType">
-              <option value="ONE_WAY">One way</option>
-              <option value="ROUNDTRIP">Roundtrip</option>
-            </select>
           </div>
           <div>
             <label for="seats">Passengers</label>
@@ -900,6 +929,12 @@
 
     form.addEventListener('change', refreshSummary);
     form.addEventListener('input', refreshSummary);
+    el('swapRoute').addEventListener('click', () => {
+      const depValue = el('dep').value;
+      el('dep').value = el('arr').value;
+      el('arr').value = depValue;
+      refreshSummary();
+    });
     el('carryOnBags').addEventListener('change', updateBaggageFields);
     el('seats').addEventListener('change', () => {
       renderPassengerFields();
