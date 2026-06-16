@@ -483,6 +483,50 @@
 
     .confirmation.show { display: block; }
 
+    .status-tracker {
+      display: none;
+      border: 2px solid var(--line);
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #000;
+      text-transform: uppercase;
+    }
+
+    .status-tracker.show { display: block; }
+
+    .status-ref {
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    .status-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .status-step {
+      border: 1px solid #555;
+      padding: 9px 10px;
+      color: #8d8d8d;
+      background: #050505;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .status-step.active {
+      border-color: var(--live);
+      color: var(--live);
+    }
+
+    .status-step strong {
+      display: block;
+      color: inherit;
+      margin-bottom: 3px;
+    }
+
     .fine-print {
       color: #8d8d8d;
       font-size: 13px;
@@ -511,7 +555,7 @@
     @media (max-width: 900px) {
       body { padding: 14px 10px; }
       .frame { padding: 16px 12px 14px; }
-      .service-strip, .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer { grid-template-columns: 1fr; }
+      .service-strip, .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps { grid-template-columns: 1fr; }
       .search-grid {
         grid-template-columns: 1fr 46px 1fr;
         gap: 10px;
@@ -624,6 +668,15 @@
       </section>
 
       <div id="confirmation" class="confirmation"></div>
+      <div id="bookingStatusTracker" class="status-tracker" aria-live="polite">
+        <div id="bookingStatusRef" class="status-ref">REQUEST RECEIVED</div>
+        <div class="status-steps">
+          <div class="status-step active"><strong>Request received</strong>NatGlobe has your details.</div>
+          <div class="status-step active"><strong>Pilot review pending</strong>Route, weather, aircraft, and load are checked.</div>
+          <div class="status-step"><strong>Payment pending</strong>Payment is handled after approval.</div>
+          <div class="status-step"><strong>Confirmed</strong>Final flight confirmation is issued by operations.</div>
+        </div>
+      </div>
 
       <div class="layout">
         <section>
@@ -700,6 +753,32 @@
 
           <div class="card">
             <h2 class="section-title">Message and agreement</h2>
+            <div class="grid two">
+              <div>
+                <label for="flightPurpose">Purpose of flight</label>
+                <select id="flightPurpose">
+                  <option value="LEISURE">Leisure</option>
+                  <option value="BUSINESS">Business</option>
+                  <option value="AIRPORT TRANSFER">Airport transfer</option>
+                  <option value="SIGHTSEEING">Sightseeing</option>
+                  <option value="SPECIAL OCCASION">Special occasion</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label for="scheduleFlexibility">Schedule flexibility</label>
+                <select id="scheduleFlexibility">
+                  <option value="FLEXIBLE">Flexible</option>
+                  <option value="SAME DAY ONLY">Same day only</option>
+                  <option value="TIME CRITICAL">Time critical</option>
+                  <option value="PILOT MAY SUGGEST BETTER TIME">Pilot may suggest better time</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <label for="conciergeNotes">Concierge notes</label>
+              <textarea id="conciergeNotes" placeholder="Ground transport, celebration details, preferred routing, photos, accessibility, or timing preferences"></textarea>
+            </div>
             <div style="margin-top:12px;">
               <label for="message">Message to pilot</label>
               <textarea id="message" placeholder="Flexible dates, preferred sightseeing route, accessibility needs, or other notes"></textarea>
@@ -738,6 +817,9 @@
           </div>
           <div class="card fine-print">
             This is not a ticket purchase. It creates a request that the pilot or dispatch team reviews. Weather, aircraft status, weight and balance, legal limits, and pilot decision determine whether a flight can operate.
+          </div>
+          <div class="card fine-print">
+            SIMPLE AND SAFE PROCESS: SEND A REQUEST, OPERATIONS REVIEWS IT, THE PILOT CONFIRMS IF IT CAN OPERATE, THEN PAYMENT AND FINAL BOOKING ARE COMPLETED. YOU ARE NOT CHARGED BY THIS FORM.
           </div>
         </aside>
       </div>
@@ -791,6 +873,8 @@
     const connectionText = el('connectionText');
     const statusBox = el('statusBox');
     const confirmation = el('confirmation');
+    const bookingStatusTracker = el('bookingStatusTracker');
+    const bookingStatusRef = el('bookingStatusRef');
     const form = el('bookingForm');
     const passengerList = el('passengerList');
     const PA28_CRUISE_KT = 115;
@@ -1079,6 +1163,9 @@
             baggageWeightKg: el('carryOnBags').value === 'YES' ? el('baggageWeightKg').value : 'N/A',
             bagType: `${el('bagCount').value} BAG(S) / ${el('bagType').value}`,
             powerBanks: el('powerBanks').value,
+            flightPurpose: el('flightPurpose').value,
+            scheduleFlexibility: el('scheduleFlexibility').value,
+            conciergeNotes: el('conciergeNotes').value,
             contractAccepted: el('contractAgreement').checked,
             message: el('message').value
           })
@@ -1090,6 +1177,8 @@
         const leadName = collectPassengers()[0]?.name || '';
         confirmation.textContent = `Thanks ${leadName}. Your request ${data.request.id} was sent to NatGlobe operations. A pilot or dispatcher will review the route, aircraft, weather and weight/balance before confirming.`;
         confirmation.className = 'confirmation show';
+        bookingStatusRef.textContent = `REFERENCE ${data.request.id} / STATUS PILOT REVIEW PENDING`;
+        bookingStatusTracker.classList.add('show');
         mode.textContent = 'MODE: REQUEST TRANSMITTED / CREW REVIEW PENDING';
       } catch (err) {
         setStatus(err.message || 'Request failed', 'err');
