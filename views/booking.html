@@ -287,29 +287,6 @@
       outline: none;
     }
 
-    .booking-progress {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin: 12px 0 0;
-    }
-
-    .progress-item {
-      border: 1px solid #444;
-      padding: 8px 10px;
-      color: #d7d7d7;
-      font-size: 12px;
-      text-transform: uppercase;
-      background: #050505;
-    }
-
-    .progress-item strong {
-      display: block;
-      color: #fff;
-      font-size: 13px;
-      margin-bottom: 2px;
-    }
-
     .status {
       margin-top: 12px;
       min-height: 42px;
@@ -550,7 +527,6 @@
         gap: 6px;
       }
       .booking-note { text-align: left; max-width: none; }
-      .booking-progress { grid-template-columns: 1fr 1fr; }
       .summary-card { position: static; }
       .route-line { align-items: flex-start; flex-direction: column; }
       .title-row { flex-direction: column; }
@@ -570,7 +546,6 @@
       }
       .swap-field label { display: none; }
       .swap-btn { min-height: 44px; }
-      .booking-progress { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -644,12 +619,6 @@
               <option value="3">3</option>
             </select>
           </div>
-        </div>
-        <div class="booking-progress" aria-label="Booking steps">
-          <div class="progress-item"><strong>01 Route</strong>Preferred departure and destination</div>
-          <div class="progress-item"><strong>02 Manifest</strong>Passenger and weight details</div>
-          <div class="progress-item"><strong>03 Review</strong>Pilot checks safety and weather</div>
-          <div class="progress-item"><strong>04 Confirm</strong>Payment and final booking</div>
         </div>
         <div id="statusBox" class="status">Choose your flight details</div>
       </section>
