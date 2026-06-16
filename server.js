@@ -391,7 +391,6 @@ function formatBookingMessage(request) {
     `PRICE NOTE ${request.priceNote || 'PILOT CONFIRMS FINAL PRICE'}`,
     `PILOT DECISION ${request.pilotDecision || 'PENDING'}   PAYMENT ${request.paymentStatus || 'UNPAID'}`,
     '',
-    `CONCIERGE ${request.conciergeNotes || 'NIL'}`,
     `AGREEMENT ${request.contractAccepted ? 'ACCEPTED' : 'NOT ACCEPTED'} / RULES SAFETY PAYMENT PILOT CONFIRM REQUIRED.`,
     `RMK ${request.message || 'PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'}`,
     'END OF MESSAGE'
@@ -2168,7 +2167,6 @@ app.post('/api/booking-requests', async (req, res) => {
   const substancesStatus = normalizeBookingText(req.body?.substancesStatus, 80);
   const flightPurpose = normalizeBookingText(req.body?.flightPurpose, 40);
   const scheduleFlexibility = normalizeBookingText(req.body?.scheduleFlexibility, 60);
-  const conciergeNotes = normalizeBookingText(req.body?.conciergeNotes, 180);
   const contractAccepted = req.body?.contractAccepted === true || req.body?.contractAccepted === 'true';
 
   if (!name || !email || !email.includes('@')) {
@@ -2237,7 +2235,6 @@ app.post('/api/booking-requests', async (req, res) => {
     substancesStatus,
     flightPurpose,
     scheduleFlexibility,
-    conciergeNotes,
     contractAccepted,
     pilotDecision: 'PENDING',
     paymentStatus: 'UNPAID',
