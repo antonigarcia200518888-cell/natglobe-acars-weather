@@ -103,23 +103,6 @@
       margin-bottom: 12px;
     }
 
-    .service-strip {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .service-chip {
-      border: 1px solid #555;
-      padding: 8px 10px;
-      color: #d7d7d7;
-      text-transform: uppercase;
-      font-size: 12px;
-      line-height: 1.25;
-      background: #050505;
-    }
-
     .mode {
       border: 1px solid rgba(102,255,153,0.55);
       min-height: 42px;
@@ -139,6 +122,79 @@
       border: 2px solid var(--line);
       padding: 12px;
       margin-bottom: 12px;
+    }
+
+    .route-map-card {
+      border: 2px solid var(--line);
+      background: #000;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .route-map-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      border-bottom: 1px solid #555;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+
+    .route-map-title {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .route-map-meta {
+      color: #8d8d8d;
+      font-size: 12px;
+      line-height: 1.35;
+      text-align: right;
+      text-transform: uppercase;
+    }
+
+    .route-map-shell {
+      position: relative;
+      min-height: 240px;
+      border: 1px solid #555;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        radial-gradient(circle at 70% 20%, rgba(255,255,255,0.08), transparent 28%),
+        #050505;
+      background-size: 42px 42px, 42px 42px, auto, auto;
+      overflow: hidden;
+    }
+
+    .route-map-shell::before {
+      content: "";
+      position: absolute;
+      inset: 18px 24px;
+      border: 1px dashed #333;
+      transform: skewX(-10deg);
+      pointer-events: none;
+    }
+
+    .route-map-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .route-map-label {
+      position: absolute;
+      left: 12px;
+      bottom: 10px;
+      color: #bdbdbd;
+      font-size: 12px;
+      text-transform: uppercase;
+      pointer-events: none;
     }
 
     .booking-panel-head {
@@ -555,7 +611,7 @@
     @media (max-width: 900px) {
       body { padding: 14px 10px; }
       .frame { padding: 16px 12px 14px; }
-      .service-strip, .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps { grid-template-columns: 1fr; }
+      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps { grid-template-columns: 1fr; }
       .search-grid {
         grid-template-columns: 1fr 46px 1fr;
         gap: 10px;
@@ -570,6 +626,12 @@
         display: grid;
         gap: 6px;
       }
+      .route-map-head {
+        display: grid;
+        gap: 6px;
+      }
+      .route-map-meta { text-align: left; }
+      .route-map-shell { min-height: 210px; }
       .booking-note { text-align: left; max-width: none; }
       .summary-card { position: static; }
       .route-line { align-items: flex-start; flex-direction: column; }
@@ -614,14 +676,28 @@
     <div class="intro">
       Request a private shared-cost flight with pilot review, aircraft availability check, and final confirmation before booking.
     </div>
-    <div class="service-strip" aria-label="Private flight service highlights">
-      <div class="service-chip">Private aircraft request</div>
-      <div class="service-chip">Pilot reviewed route</div>
-      <div class="service-chip">Passenger manifest required</div>
-    </div>
     <div id="mode" class="mode">MODE: PRIVATE FLIGHT REQUEST / PILOT REVIEW REQUIRED</div>
 
     <form id="bookingForm">
+      <section class="route-map-card" aria-label="Selected flight route map">
+        <div class="route-map-head">
+          <div class="route-map-title">Selected route map</div>
+          <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
+        </div>
+        <div class="route-map-shell">
+          <svg id="routeMapSvg" class="route-map-svg" viewBox="0 0 1000 420" role="img" aria-label="Selected route map">
+            <path d="M130 340 C230 265 280 190 385 205 C500 222 535 120 650 105 C760 90 820 170 900 125" fill="none" stroke="#2f2f2f" stroke-width="18" stroke-linecap="round"/>
+            <path d="M90 90 C180 130 235 80 320 112 C420 150 505 72 610 92 C720 112 810 66 930 92" fill="none" stroke="#242424" stroke-width="12" stroke-linecap="round"/>
+            <line id="routeLine" x1="0" y1="0" x2="0" y2="0" stroke="#ffffff" stroke-width="3" stroke-dasharray="10 8" opacity="0"/>
+            <circle id="depPin" cx="0" cy="0" r="0" fill="#000" stroke="#ffffff" stroke-width="3"/>
+            <circle id="arrPin" cx="0" cy="0" r="0" fill="#ffffff" stroke="#ffffff" stroke-width="3"/>
+            <text id="depMapLabel" x="0" y="0" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="24" font-weight="700">----</text>
+            <text id="arrMapLabel" x="0" y="0" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="24" font-weight="700">----</text>
+          </svg>
+          <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
+        </div>
+      </section>
+
       <section class="search-card">
         <div class="booking-panel-head">
           <div class="booking-kicker">Flight request details</div>
@@ -873,6 +949,13 @@
     const bookingStatusRef = el('bookingStatusRef');
     const form = el('bookingForm');
     const passengerList = el('passengerList');
+    const routeLine = el('routeLine');
+    const depPin = el('depPin');
+    const arrPin = el('arrPin');
+    const depMapLabel = el('depMapLabel');
+    const arrMapLabel = el('arrMapLabel');
+    const routeMapMeta = el('routeMapMeta');
+    const routeMapLabel = el('routeMapLabel');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -935,6 +1018,57 @@
     function selectedAirport(id) {
       const icao = el(id).value;
       return airports.find(airport => airport.icao === icao) || null;
+    }
+
+    function mapPoint(airport) {
+      const lonMin = 16.8;
+      const lonMax = 29.6;
+      const latMin = 57.5;
+      const latMax = 61.7;
+      const lon = Number(airport?.lon);
+      const lat = Number(airport?.lat);
+      if (![lon, lat].every(Number.isFinite)) return null;
+      return {
+        x: 70 + ((lon - lonMin) / (lonMax - lonMin)) * 860,
+        y: 365 - ((lat - latMin) / (latMax - latMin)) * 310
+      };
+    }
+
+    function setSvgPoint(node, point, radius) {
+      node.setAttribute('cx', point.x.toFixed(1));
+      node.setAttribute('cy', point.y.toFixed(1));
+      node.setAttribute('r', radius);
+    }
+
+    function updateRouteMap(dep, arr) {
+      const depPoint = mapPoint(dep);
+      const arrPoint = mapPoint(arr);
+      if (!dep || !arr || !depPoint || !arrPoint || dep.icao === arr.icao) {
+        routeLine.setAttribute('opacity', '0');
+        depPin.setAttribute('r', '0');
+        arrPin.setAttribute('r', '0');
+        depMapLabel.textContent = '----';
+        arrMapLabel.textContent = '----';
+        routeMapMeta.textContent = 'Choose departure and destination to draw route.';
+        routeMapLabel.textContent = 'Route preview awaiting selection';
+        return;
+      }
+
+      routeLine.setAttribute('x1', depPoint.x.toFixed(1));
+      routeLine.setAttribute('y1', depPoint.y.toFixed(1));
+      routeLine.setAttribute('x2', arrPoint.x.toFixed(1));
+      routeLine.setAttribute('y2', arrPoint.y.toFixed(1));
+      routeLine.setAttribute('opacity', '1');
+      setSvgPoint(depPin, depPoint, '9');
+      setSvgPoint(arrPin, arrPoint, '9');
+      depMapLabel.setAttribute('x', Math.min(depPoint.x + 14, 900).toFixed(1));
+      depMapLabel.setAttribute('y', Math.max(depPoint.y - 12, 30).toFixed(1));
+      arrMapLabel.setAttribute('x', Math.min(arrPoint.x + 14, 900).toFixed(1));
+      arrMapLabel.setAttribute('y', Math.max(arrPoint.y - 12, 30).toFixed(1));
+      depMapLabel.textContent = dep.city.toUpperCase();
+      arrMapLabel.textContent = arr.city.toUpperCase();
+      routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
+      routeMapLabel.textContent = `${dep.country} / ${arr.country} route preview`;
     }
 
     function toRad(value) {
@@ -1033,6 +1167,7 @@
       el('summarySeats').textContent = el('seats').value || '1';
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
+      updateRouteMap(dep, arr);
       if (dep && arr && dep.icao === arr.icao) setStatus('Choose different departure and destination airports', 'err');
       else if (dep && arr) setStatus('Route selected / Complete passenger manifest and declarations', 'ok');
     }
