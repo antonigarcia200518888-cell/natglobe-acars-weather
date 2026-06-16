@@ -100,7 +100,24 @@
       color: #bdbdbd;
       font-size: clamp(12px, 1.3vw, 17px);
       line-height: 1.35;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
+    }
+
+    .service-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .service-chip {
+      border: 1px solid #555;
+      padding: 8px 10px;
+      color: #d7d7d7;
+      text-transform: uppercase;
+      font-size: 12px;
+      line-height: 1.25;
+      background: #050505;
     }
 
     .mode {
@@ -124,12 +141,40 @@
       margin-bottom: 12px;
     }
 
+    .booking-panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      border-bottom: 1px solid #555;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+
+    .booking-kicker {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .booking-note {
+      color: #8d8d8d;
+      font-size: 12px;
+      line-height: 1.35;
+      text-transform: uppercase;
+      max-width: 420px;
+      text-align: right;
+    }
+
     .grid {
       display: grid;
       gap: 12px;
     }
 
     .search-grid { grid-template-columns: 1.05fr 54px 1.05fr 0.78fr 0.72fr 0.68fr 0.55fr; }
+    .route-field { min-width: 0; }
     .two { grid-template-columns: 1fr 1fr; }
     .three { grid-template-columns: repeat(3, 1fr); }
     .passenger-main-grid { grid-template-columns: minmax(0, 1fr) 128px; }
@@ -242,6 +287,29 @@
       outline: none;
     }
 
+    .booking-progress {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 12px 0 0;
+    }
+
+    .progress-item {
+      border: 1px solid #444;
+      padding: 8px 10px;
+      color: #d7d7d7;
+      font-size: 12px;
+      text-transform: uppercase;
+      background: #050505;
+    }
+
+    .progress-item strong {
+      display: block;
+      color: #fff;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
     .status {
       margin-top: 12px;
       min-height: 42px;
@@ -262,6 +330,11 @@
       grid-template-columns: minmax(0, 0.9fr) minmax(340px, 0.55fr);
       gap: 12px;
       align-items: start;
+    }
+
+    .summary-card {
+      position: sticky;
+      top: 16px;
     }
 
     .section-title {
@@ -293,8 +366,18 @@
       align-items: center;
       font-weight: 700;
       color: #fff;
-      font-size: 19px;
+      font-size: clamp(18px, 2.2vw, 25px);
       text-transform: uppercase;
+    }
+
+    .quote-label {
+      border: 1px solid #666;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      color: #d7d7d7;
+      text-transform: uppercase;
+      font-size: 12px;
+      background: #050505;
     }
 
     .airport-name {
@@ -323,6 +406,16 @@
     }
 
     .summary-list strong { color: #fff; text-align: right; }
+
+    .summary-footnote {
+      border-top: 1px solid #333;
+      margin-top: 12px;
+      padding-top: 10px;
+      color: #8d8d8d;
+      font-size: 12px;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
 
     .consent {
       display: grid;
@@ -439,10 +532,45 @@
     }
 
     @media (max-width: 900px) {
-      .search-grid, .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer { grid-template-columns: 1fr; }
+      body { padding: 14px 10px; }
+      .frame { padding: 16px 12px 14px; }
+      .service-strip, .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer { grid-template-columns: 1fr; }
+      .search-grid {
+        grid-template-columns: 1fr 46px 1fr;
+        gap: 10px;
+      }
+      .search-grid .trip-field,
+      .search-grid .date-field,
+      .search-grid .time-field,
+      .search-grid .seat-field {
+        grid-column: span 3;
+      }
+      .booking-panel-head {
+        display: grid;
+        gap: 6px;
+      }
+      .booking-note { text-align: left; max-width: none; }
+      .booking-progress { grid-template-columns: 1fr 1fr; }
+      .summary-card { position: static; }
       .route-line { align-items: flex-start; flex-direction: column; }
       .title-row { flex-direction: column; }
       .connection-badge { white-space: normal; }
+      input, select, textarea, .btn { font-size: 16px; }
+      .swap-btn { min-height: 52px; font-size: 18px; }
+    }
+
+    @media (max-width: 520px) {
+      .search-grid { grid-template-columns: 1fr; }
+      .swap-field,
+      .search-grid .trip-field,
+      .search-grid .date-field,
+      .search-grid .time-field,
+      .search-grid .seat-field {
+        grid-column: auto;
+      }
+      .swap-field label { display: none; }
+      .swap-btn { min-height: 44px; }
+      .booking-progress { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -465,14 +593,23 @@
 
     <div id="clock" class="clock">UTC --:--:--</div>
     <div class="intro">
-      Request a private shared-cost flight. Choose your route, passenger details, safety declarations, and baggage. Crew reviews everything before confirmation.
+      Request a private shared-cost flight with pilot review, aircraft availability check, and final confirmation before booking.
+    </div>
+    <div class="service-strip" aria-label="Private flight service highlights">
+      <div class="service-chip">Private aircraft request</div>
+      <div class="service-chip">Pilot reviewed route</div>
+      <div class="service-chip">Passenger manifest required</div>
     </div>
     <div id="mode" class="mode">MODE: PRIVATE FLIGHT REQUEST / PILOT REVIEW REQUIRED</div>
 
     <form id="bookingForm">
       <section class="search-card">
+        <div class="booking-panel-head">
+          <div class="booking-kicker">Flight request details</div>
+          <div class="booking-note">Choose your preferred routing. No flight is confirmed until pilot, weather, aircraft, and payment checks are complete.</div>
+        </div>
         <div class="grid search-grid">
-          <div>
+          <div class="route-field">
             <label for="dep">From</label>
             <select id="dep" required></select>
           </div>
@@ -480,26 +617,26 @@
             <label aria-hidden="true">&nbsp;</label>
             <button id="swapRoute" class="swap-btn" type="button" title="Swap departure and destination" aria-label="Swap departure and destination">↔</button>
           </div>
-          <div>
+          <div class="route-field">
             <label for="arr">To</label>
             <select id="arr" required></select>
           </div>
-          <div>
+          <div class="trip-field">
             <label for="tripType">Trip type</label>
             <select id="tripType">
               <option value="ONE_WAY">One way</option>
               <option value="ROUNDTRIP">Roundtrip</option>
             </select>
           </div>
-          <div>
+          <div class="date-field">
             <label for="requestDate">Date</label>
             <select id="requestDate" required></select>
           </div>
-          <div>
+          <div class="time-field">
             <label for="requestTime">Departure time</label>
             <select id="requestTime" required></select>
           </div>
-          <div>
+          <div class="seat-field">
             <label for="seats">Passengers</label>
             <select id="seats">
               <option value="1">1</option>
@@ -507,6 +644,12 @@
               <option value="3">3</option>
             </select>
           </div>
+        </div>
+        <div class="booking-progress" aria-label="Booking steps">
+          <div class="progress-item"><strong>01 Route</strong>Preferred departure and destination</div>
+          <div class="progress-item"><strong>02 Manifest</strong>Passenger and weight details</div>
+          <div class="progress-item"><strong>03 Review</strong>Pilot checks safety and weather</div>
+          <div class="progress-item"><strong>04 Confirm</strong>Payment and final booking</div>
         </div>
         <div id="statusBox" class="status">Choose your flight details</div>
       </section>
@@ -603,8 +746,9 @@
         </section>
 
         <aside>
-          <div class="card">
+          <div class="card summary-card">
             <h2 class="section-title">Trip summary</h2>
+            <div class="quote-label">Private flight request preview</div>
             <div class="route-summary">
               <div class="route-box">
                 <div class="route-line"><span id="depCode">----</span><span>to</span><span id="arrCode">----</span></div>
@@ -619,8 +763,9 @@
               <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
               <li><span>Baggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
               <li><span>Aircraft</span><strong>OH-PMK / PA-28R</strong></li>
-              <li><span>Cost share</span><strong id="summaryCost">Pilot confirms</strong></li>
+              <li><span>Estimated share</span><strong id="summaryCost">Pilot confirms</strong></li>
             </ul>
+            <div class="summary-footnote">Estimate only. Pilot confirmation, aircraft availability, weight and balance, weather, and payment are required before final booking.</div>
           </div>
           <div class="card fine-print">
             This is not a ticket purchase. It creates a request that the pilot or dispatch team reviews. Weather, aircraft status, weight and balance, legal limits, and pilot decision determine whether a flight can operate.
