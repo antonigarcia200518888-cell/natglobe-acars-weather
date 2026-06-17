@@ -355,6 +355,175 @@
       display: grid;
     }
 
+    .aircraft-showcase {
+      border: 2px solid var(--line);
+      background: #000;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .aircraft-showcase-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .aircraft-visual {
+      position: relative;
+      min-height: 330px;
+      border: 1px solid #555;
+      overflow: hidden;
+      background: #050505;
+    }
+
+    .aircraft-visual img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(0.9) contrast(1.12) brightness(0.78);
+      transform: scale(1.01);
+    }
+
+    .aircraft-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.10) 46%, rgba(0,0,0,0.55) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.76) 100%);
+      pointer-events: none;
+    }
+
+    .aircraft-badge {
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      z-index: 2;
+      border: 1px solid #fff;
+      background: rgba(0,0,0,0.78);
+      padding: 10px 12px;
+      text-transform: uppercase;
+      max-width: min(360px, calc(100% - 36px));
+    }
+
+    .aircraft-badge strong {
+      display: block;
+      color: #fff;
+      font-size: clamp(18px, 2.3vw, 30px);
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .aircraft-badge span {
+      color: #d7d7d7;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .aircraft-status-strip {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .aircraft-status {
+      border: 1px solid rgba(255,255,255,0.72);
+      background: rgba(0,0,0,0.78);
+      padding: 9px 10px;
+      text-transform: uppercase;
+    }
+
+    .aircraft-status span {
+      display: block;
+      color: #8d8d8d;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .aircraft-status strong {
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .aircraft-details-panel {
+      border: 1px solid #555;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 330px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 36%),
+        #030303;
+    }
+
+    .aircraft-eyebrow {
+      color: var(--live);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .aircraft-title {
+      color: #fff;
+      font-size: clamp(18px, 2vw, 26px);
+      font-weight: 700;
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .aircraft-copy {
+      color: #bdbdbd;
+      font-size: 13px;
+      line-height: 1.45;
+      text-transform: uppercase;
+    }
+
+    .aircraft-spec-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .aircraft-spec {
+      border: 1px solid #444;
+      padding: 9px;
+      min-height: 58px;
+      text-transform: uppercase;
+    }
+
+    .aircraft-spec span {
+      display: block;
+      color: #8d8d8d;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .aircraft-spec strong {
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .aircraft-note {
+      border-top: 1px solid #444;
+      padding-top: 10px;
+      color: #8d8d8d;
+      font-size: 12px;
+      line-height: 1.4;
+      text-transform: uppercase;
+      margin-top: auto;
+    }
+
     .booking-panel-head {
       display: flex;
       justify-content: space-between;
@@ -920,7 +1089,7 @@
     @media (max-width: 900px) {
       body { padding: 14px 10px; }
       .frame { padding: 16px 12px 14px; }
-      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options, .extras-grid { grid-template-columns: 1fr; }
+      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options, .extras-grid, .aircraft-showcase-grid, .aircraft-spec-grid, .aircraft-status-strip { grid-template-columns: 1fr; }
       .search-grid {
         grid-template-columns: 1fr 46px 1fr;
         gap: 10px;
@@ -941,6 +1110,9 @@
       }
       .route-map-meta { text-align: left; }
       .route-map-shell { height: 240px; }
+      .aircraft-visual { min-height: 270px; }
+      .aircraft-status-strip { position: relative; left: auto; right: auto; bottom: auto; margin: 12px; padding-top: 210px; }
+      .aircraft-badge { right: 18px; }
       .booking-note { text-align: left; max-width: none; }
       .summary-card { position: static; }
       .route-line { align-items: flex-start; flex-direction: column; }
@@ -961,6 +1133,8 @@
       }
       .swap-field label { display: none; }
       .swap-btn { min-height: 44px; }
+      .aircraft-visual { min-height: 360px; }
+      .aircraft-status-strip { padding-top: 236px; }
     }
   </style>
 </head>
@@ -1009,6 +1183,47 @@
           <div class="route-map-compass">N</div>
           <div id="routeRange" class="route-range">DISTANCE / TIME PENDING</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
+        </div>
+      </section>
+
+      <section class="aircraft-showcase" aria-label="Aircraft for this booking request">
+        <div class="booking-panel-head">
+          <div class="booking-kicker">Aircraft for this request</div>
+          <div class="booking-note">Aircraft shown for passenger orientation. Final aircraft and seating are confirmed by pilot review.</div>
+        </div>
+        <div class="aircraft-showcase-grid">
+          <div class="aircraft-visual">
+            <img src="/aircraft-pa28r-showcase.png" alt="Piper PA-28R style aircraft for private shared-cost flight request" loading="lazy" />
+            <div class="aircraft-badge">
+              <strong>OH-PMK / PA-28R</strong>
+              <span>Piper Arrow-style light aircraft for private shared-cost flights</span>
+            </div>
+            <div class="aircraft-status-strip">
+              <div class="aircraft-status"><span>Cabin</span><strong>2 passenger seats</strong></div>
+              <div class="aircraft-status"><span>Cruise</span><strong>Approx. 115 KTAS</strong></div>
+              <div class="aircraft-status"><span>Booking</span><strong>Pilot reviewed</strong></div>
+            </div>
+          </div>
+          <div class="aircraft-details-panel">
+            <div>
+              <div class="aircraft-eyebrow">Selected aircraft profile</div>
+              <div class="aircraft-title">Private light aircraft access without private jet pricing.</div>
+            </div>
+            <div class="aircraft-copy">
+              A compact business-aviation style request flow for regional flights, sightseeing, and airport transfers. Every request is checked for weather, aircraft availability, passenger fit, baggage, and weight and balance before confirmation.
+            </div>
+            <div class="aircraft-spec-grid">
+              <div class="aircraft-spec"><span>Aircraft</span><strong>Piper PA-28R-200 Arrow II</strong></div>
+              <div class="aircraft-spec"><span>Registration</span><strong>OH-PMK</strong></div>
+              <div class="aircraft-spec"><span>Passenger seats</span><strong>Rear left / rear right</strong></div>
+              <div class="aircraft-spec"><span>Baggage</span><strong>Soft bags preferred</strong></div>
+              <div class="aircraft-spec"><span>Flight type</span><strong>Shared-cost private request</strong></div>
+              <div class="aircraft-spec"><span>Confirmation</span><strong>Pilot decision required</strong></div>
+            </div>
+            <div class="aircraft-note">
+              Photos and aircraft profile are for booking orientation. Final availability, seating, baggage, route, and departure time are confirmed only after NatGlobe operations and the pilot review the request.
+            </div>
+          </div>
         </div>
       </section>
 
