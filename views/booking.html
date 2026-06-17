@@ -324,17 +324,17 @@
 
     .aircraft-feature {
       display: grid;
-      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1fr);
+      grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1fr);
       gap: 12px;
       align-items: stretch;
     }
 
     .aircraft-photo {
-      min-height: 260px;
+      min-height: 190px;
       border: 1px solid #555;
       background:
-        radial-gradient(circle at 50% 78%, rgba(255,255,255,0.18), transparent 32%),
-        linear-gradient(180deg, #d7d7d7 0%, #9f9f9f 100%);
+        radial-gradient(circle at 50% 78%, rgba(255,255,255,0.16), transparent 35%),
+        linear-gradient(180deg, #1b1b1b 0%, #090909 100%);
       overflow: hidden;
       display: grid;
       place-items: center;
@@ -343,10 +343,10 @@
     .aircraft-photo img {
       width: 100%;
       height: 100%;
-      min-height: 260px;
+      min-height: 190px;
       object-fit: contain;
       display: block;
-      padding: 18px;
+      padding: 10px;
       filter: drop-shadow(0 22px 24px rgba(0,0,0,0.28));
     }
 
@@ -360,13 +360,6 @@
       gap: 12px;
       align-content: start;
       text-transform: uppercase;
-    }
-
-    .aircraft-feature-copy h2 {
-      margin: 0;
-      color: #fff;
-      font-size: clamp(18px, 2vw, 25px);
-      line-height: 1.08;
     }
 
     .aircraft-feature-copy p {
@@ -1091,7 +1084,6 @@
         <div class="aircraft-feature-copy">
           <div>
             <div class="booking-kicker">Aircraft for this request</div>
-            <h2>Grey and orange Piper PA-28R-200 Arrow</h2>
           </div>
           <p>Final aircraft assignment is confirmed by pilot and operations after route, weather, aircraft status, baggage, and weight and balance review.</p>
           <div class="amenity-grid">
@@ -1408,13 +1400,13 @@
         .atmosphereAltitude(0.13)
         .arcColor(() => '#ffffff')
         .arcAltitude(0.11)
-        .arcStroke(0.08)
+        .arcStroke(null)
         .pointColor(() => '#ffffff')
-        .pointAltitude(0.02)
-        .pointRadius(0.18)
+        .pointAltitude(0.018)
+        .pointRadius(0.08)
         .labelText(item => item.label)
-        .labelSize(0.32)
-        .labelDotRadius(0.18)
+        .labelSize(0.18)
+        .labelDotRadius(0.08)
         .labelColor(() => '#ffffff')
         .labelResolution(2);
 
@@ -1452,14 +1444,9 @@
           { lat: depLat, lng: depLng, label: dep.city },
           { lat: arrLat, lng: arrLng, label: arr.city }
         ])
-        .labelsData([
-          { lat: depLat, lng: depLng, label: dep.city },
-          { lat: arrLat, lng: arrLng, label: arr.city }
-        ])
+        .labelsData([])
         .pointLat(item => item.lat)
-        .pointLng(item => item.lng)
-        .labelLat(item => item.lat)
-        .labelLng(item => item.lng);
+        .pointLng(item => item.lng);
 
       routeGlobe.pointOfView({
         lat: (depLat + arrLat) / 2,
