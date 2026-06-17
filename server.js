@@ -387,6 +387,8 @@ function formatBookingMessage(request) {
     `MED ${request.medicalStatus || 'NIL'}   SUBST ${request.substancesStatus || 'NIL'}`,
     `BAG ${request.carryOnBags || 'NIL'}   WT ${request.baggageWeightKg || '0'}KG   PWRBANK ${request.powerBanks || 'NIL'}`,
     `BAG TYPE ${request.bagType || 'NIL'}`,
+    `SEAT PREF ${request.seatPreference || 'NO PREFERENCE'}`,
+    `EXTRAS ${request.extras || 'NIL'}   EXTRA RMK ${request.extrasNotes || 'NIL'}`,
     `TRIP ${request.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY'}   PRICE EUR ${request.costPerSeatEur || 'TBD'} / PAX   TOTAL EUR ${request.estimatedTotalEur || 'TBD'}`,
     `PRICE NOTE ${request.priceNote || 'PILOT CONFIRMS FINAL PRICE'}`,
     `PILOT DECISION ${request.pilotDecision || 'PENDING'}   PAYMENT ${request.paymentStatus || 'UNPAID'}`,
@@ -2163,6 +2165,11 @@ app.post('/api/booking-requests', async (req, res) => {
   const baggageWeightKg = normalizeBookingText(req.body?.baggageWeightKg, 8);
   const bagType = normalizeBookingText(req.body?.bagType, 60);
   const powerBanks = normalizeBookingText(req.body?.powerBanks, 8);
+  const seatPreference = normalizeBookingText(req.body?.seatPreference, 40);
+  const extras = Array.isArray(req.body?.extras)
+    ? req.body.extras.map(item => normalizeBookingText(item, 40)).filter(Boolean).join(' / ')
+    : normalizeBookingText(req.body?.extras, 160);
+  const extrasNotes = normalizeBookingText(req.body?.extrasNotes, 140);
   const medicalStatus = normalizeBookingText(req.body?.medicalStatus, 80);
   const substancesStatus = normalizeBookingText(req.body?.substancesStatus, 80);
   const flightPurpose = normalizeBookingText(req.body?.flightPurpose, 40);
@@ -2231,6 +2238,9 @@ app.post('/api/booking-requests', async (req, res) => {
     baggageWeightKg,
     bagType,
     powerBanks,
+    seatPreference,
+    extras,
+    extrasNotes,
     medicalStatus,
     substancesStatus,
     flightPurpose,

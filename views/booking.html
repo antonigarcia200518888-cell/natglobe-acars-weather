@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NatGlobe Aviation / Private Flight Booking</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ6jMtKZA9ftFECeW6gIkU5HkN2aD4o=" crossorigin="" />
   <style>
     :root {
       --bg: #000000;
@@ -160,84 +159,24 @@
 
     .route-map-shell {
       position: relative;
-      height: 300px;
+      height: 320px;
       border: 1px solid #555;
-      background: #050505;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        radial-gradient(circle at 78% 24%, rgba(255,255,255,0.08), transparent 18%),
+        #050505;
+      background-size: 48px 48px, 48px 48px, auto, auto;
       overflow: hidden;
     }
 
-    .route-map {
-      width: 100%;
-      height: 100%;
-      background: #050505;
-    }
-
-    .route-map .leaflet-tile-pane { opacity: 0.95; }
-
-    .route-map .leaflet-control-zoom {
-      border: 1px solid #555;
-    }
-
-    .route-map .leaflet-control-zoom a {
-      background: #000;
-      color: #fff;
-      border-bottom: 1px solid #555;
-      font-family: "Courier New", Courier, monospace;
-    }
-
-    .route-map .leaflet-control-zoom a:hover {
-      background: #fff;
-      color: #000;
-    }
-
-    .route-map .leaflet-control-attribution {
-      background: rgba(0,0,0,0.7);
-      color: #8d8d8d;
-      font-family: "Courier New", Courier, monospace;
-      font-size: 10px;
-      text-transform: uppercase;
-    }
-
-    .route-map .leaflet-control-attribution a { color: #d7d7d7; }
-
-    .route-marker {
-      border: 2px solid #fff;
-      background: #000;
-      color: #fff;
-      width: 74px;
-      min-height: 34px;
-      display: grid;
-      place-items: center;
-      font-family: "Courier New", Courier, monospace;
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.05;
-      text-align: center;
-      text-transform: uppercase;
-      box-shadow: 0 0 0 2px rgba(0,0,0,0.7);
-    }
-
-    .route-marker.arrival {
-      background: #fff;
-      color: #000;
-    }
-
-    .route-map-fallback {
+    .route-map-svg {
       position: absolute;
       inset: 0;
-      display: none;
-      place-items: center;
-      color: #bdbdbd;
-      background: #050505;
-      padding: 18px;
-      text-align: center;
-      text-transform: uppercase;
-      font-size: 13px;
-      line-height: 1.4;
-      z-index: 500;
+      width: 100%;
+      height: 100%;
+      display: block;
     }
-
-    .route-map-shell.map-fallback .route-map-fallback { display: grid; }
 
     .route-map-label {
       position: absolute;
@@ -247,6 +186,22 @@
       font-size: 12px;
       text-transform: uppercase;
       pointer-events: none;
+    }
+
+    .route-map-compass {
+      position: absolute;
+      right: 12px;
+      top: 10px;
+      width: 42px;
+      height: 42px;
+      border: 1px solid #666;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.62);
     }
 
     .booking-panel-head {
@@ -534,6 +489,93 @@
       margin-bottom: 14px;
     }
 
+    .seat-map {
+      border: 1px solid #666;
+      padding: 12px;
+      background: #050505;
+      display: grid;
+      gap: 10px;
+    }
+
+    .seat-map-shell {
+      border: 1px solid #555;
+      padding: 16px 12px;
+      background: #000;
+      display: grid;
+      place-items: center;
+      perspective: 520px;
+    }
+
+    .cabin-visual {
+      width: min(320px, 100%);
+      border: 2px solid #777;
+      border-radius: 46% 46% 18px 18px / 18% 18% 14px 14px;
+      padding: 18px 16px 20px;
+      background: linear-gradient(180deg, #111 0%, #050505 100%);
+      transform: rotateX(10deg);
+      box-shadow: inset 0 18px 28px rgba(255,255,255,0.06), 0 18px 24px rgba(0,0,0,0.45);
+    }
+
+    .cabin-row {
+      display: grid;
+      grid-template-columns: 1fr 42px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .seat-visual {
+      border: 1px solid #777;
+      min-height: 58px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(180deg, #242424 0%, #090909 100%);
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: inset 0 8px 12px rgba(255,255,255,0.07);
+    }
+
+    .aisle-label,
+    .cockpit-label {
+      color: #8d8d8d;
+      text-align: center;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .cockpit-label {
+      border-bottom: 1px solid #333;
+      padding-bottom: 8px;
+    }
+
+    .seat-options,
+    .extras-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .extra-option,
+    .seat-option {
+      border: 1px solid #666;
+      padding: 9px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: #d7d7d7;
+      text-transform: uppercase;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .extra-option input,
+    .seat-option input {
+      width: auto;
+      min-height: auto;
+    }
+
     .declaration {
       border: 1px solid #666;
       padding: 10px;
@@ -663,7 +705,7 @@
     @media (max-width: 900px) {
       body { padding: 14px 10px; }
       .frame { padding: 16px 12px 14px; }
-      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps { grid-template-columns: 1fr; }
+      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options, .extras-grid { grid-template-columns: 1fr; }
       .search-grid {
         grid-template-columns: 1fr 46px 1fr;
         gap: 10px;
@@ -737,8 +779,24 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
-          <div id="routeMap" class="route-map" role="img" aria-label="Selected route map"></div>
-          <div id="routeMapFallback" class="route-map-fallback">Map unavailable. Route details and flight time remain active in the trip summary.</div>
+          <svg id="routeMapSvg" class="route-map-svg" viewBox="0 0 1000 420" role="img" aria-label="Selected route map">
+            <defs>
+              <marker id="routeArrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+                <path d="M0 0 L10 5.5 L0 11 Z" fill="#ffffff"></path>
+              </marker>
+            </defs>
+            <path d="M58 188 C155 151 222 159 306 134 C394 108 506 78 610 98 C728 121 805 93 941 125" fill="none" stroke="#303030" stroke-width="14" stroke-linecap="round"></path>
+            <path d="M105 322 C207 292 295 254 366 263 C461 273 526 222 617 219 C730 216 799 261 910 233" fill="none" stroke="#282828" stroke-width="18" stroke-linecap="round"></path>
+            <text x="76" y="75" fill="#5f5f5f" font-family="Courier New, Courier, monospace" font-size="20" font-weight="700">SWEDEN</text>
+            <text x="402" y="54" fill="#5f5f5f" font-family="Courier New, Courier, monospace" font-size="20" font-weight="700">FINLAND</text>
+            <text x="520" y="382" fill="#5f5f5f" font-family="Courier New, Courier, monospace" font-size="20" font-weight="700">ESTONIA</text>
+            <line id="routeLine" x1="0" y1="0" x2="0" y2="0" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-dasharray="14 10" marker-end="url(#routeArrow)" opacity="0"></line>
+            <circle id="depPin" cx="0" cy="0" r="0" fill="#000000" stroke="#ffffff" stroke-width="4"></circle>
+            <circle id="arrPin" cx="0" cy="0" r="0" fill="#ffffff" stroke="#ffffff" stroke-width="4"></circle>
+            <text id="depMapLabel" x="0" y="0" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="22" font-weight="700">----</text>
+            <text id="arrMapLabel" x="0" y="0" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="22" font-weight="700">----</text>
+          </svg>
+          <div class="route-map-compass">N</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
         </div>
       </section>
@@ -845,6 +903,49 @@
           </div>
 
           <div class="card">
+            <h2 class="section-title">Seat preference and extras</h2>
+            <div class="seat-map">
+              <div class="declaration">
+                <strong>PA-28R-200 cabin preference</strong>
+                Seat preference is requested only. Final seating depends on pilot command, aircraft loading, weight and balance, and safety requirements.
+              </div>
+              <div class="seat-map-shell" aria-label="PA-28R-200 seat map">
+                <div class="cabin-visual">
+                  <div class="cockpit-label">PA-28R-200 cockpit</div>
+                  <div class="cabin-row">
+                    <div class="seat-visual">Left</div>
+                    <div class="aisle-label">Cabin</div>
+                    <div class="seat-visual">Right</div>
+                  </div>
+                </div>
+              </div>
+              <div class="seat-options">
+                <label class="seat-option"><input type="radio" name="seatPreference" value="LEFT WINDOW" checked /> Left window</label>
+                <label class="seat-option"><input type="radio" name="seatPreference" value="RIGHT WINDOW" /> Right window</label>
+                <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /> No preference</label>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <label>Extras requested</label>
+              <div class="extras-grid">
+                <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /> Wine</label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /> Champagne</label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /> Beer</label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="LONG DRINKS" /> Long drinks</label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /> Airport transfers</label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /> Soft drinks / water</label>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <label for="extrasNotes">Extras notes</label>
+              <input id="extrasNotes" type="text" placeholder="Preferred drink, transfer location, timing, or other request" />
+            </div>
+            <div class="fine-print" style="margin-top:10px;">
+              Extras are requests only. Alcohol service is subject to pilot approval, local rules, passenger fitness, and safety. Airport transfers require separate confirmation.
+            </div>
+          </div>
+
+          <div class="card">
             <h2 class="section-title">Message and agreement</h2>
             <div class="grid two">
               <div>
@@ -920,7 +1021,6 @@
     </form>
   </main>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
@@ -967,8 +1067,11 @@
     const bookingStatusRef = el('bookingStatusRef');
     const form = el('bookingForm');
     const passengerList = el('passengerList');
-    const routeMapShell = el('routeMapShell');
-    const routeMapFallback = el('routeMapFallback');
+    const routeLine = el('routeLine');
+    const depPin = el('depPin');
+    const arrPin = el('arrPin');
+    const depMapLabel = el('depMapLabel');
+    const arrMapLabel = el('arrMapLabel');
     const routeMapMeta = el('routeMapMeta');
     const routeMapLabel = el('routeMapLabel');
     const PA28_CRUISE_KT = 115;
@@ -981,10 +1084,6 @@
     };
 
     let airports = [];
-    let routeMap = null;
-    let routeLayer = null;
-    let depMarker = null;
-    let arrMarker = null;
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -1039,95 +1138,55 @@
       return airports.find(airport => airport.icao === icao) || null;
     }
 
-    function airportLatLng(airport) {
-      const lat = Number(airport?.lat);
+    function mapPoint(airport) {
+      const lonMin = 16.5;
+      const lonMax = 29.5;
+      const latMin = 57.2;
+      const latMax = 61.8;
       const lon = Number(airport?.lon);
-      if (![lat, lon].every(Number.isFinite)) return null;
-      return [lat, lon];
+      const lat = Number(airport?.lat);
+      if (![lon, lat].every(Number.isFinite)) return null;
+      return {
+        x: 70 + ((lon - lonMin) / (lonMax - lonMin)) * 860,
+        y: 365 - ((lat - latMin) / (latMax - latMin)) * 310
+      };
     }
 
-    function markerIcon(airport, arrival = false) {
-      const label = airport?.short || airport?.city || 'APT';
-      return L.divIcon({
-        className: '',
-        html: `<div class="route-marker ${arrival ? 'arrival' : ''}">${escapeHtml(label)}</div>`,
-        iconSize: [74, 34],
-        iconAnchor: [37, 17]
-      });
+    function setMapCircle(node, point, radius) {
+      node.setAttribute('cx', point.x.toFixed(1));
+      node.setAttribute('cy', point.y.toFixed(1));
+      node.setAttribute('r', radius);
     }
 
-    function showRouteMapFallback(text) {
-      routeMapFallback.textContent = text;
-      routeMapShell.classList.add('map-fallback');
-    }
-
-    function hideRouteMapFallback() {
-      routeMapShell.classList.remove('map-fallback');
-    }
-
-    function initRouteMap() {
-      if (routeMap || typeof L === 'undefined') return;
-      hideRouteMapFallback();
-      routeMap = L.map('routeMap', {
-        zoomControl: true,
-        attributionControl: true,
-        scrollWheelZoom: false,
-        dragging: true,
-        doubleClickZoom: false,
-        boxZoom: false,
-        keyboard: false
-      }).setView([60.25, 24.95], 6);
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 18,
-        detectRetina: true,
-        attribution: '&copy; OpenStreetMap &copy; CARTO'
-      }).addTo(routeMap);
-      setTimeout(() => routeMap.invalidateSize(), 80);
-    }
-
-    function clearRouteMap() {
-      if (!routeMap) return;
-      [routeLayer, depMarker, arrMarker].forEach(layer => {
-        if (layer) routeMap.removeLayer(layer);
-      });
-      routeLayer = null;
-      depMarker = null;
-      arrMarker = null;
+    function placeMapLabel(node, point, airport, direction = 1) {
+      node.setAttribute('x', Math.min(Math.max(point.x + 14, 24), 880).toFixed(1));
+      node.setAttribute('y', Math.min(Math.max(point.y + direction * 24, 34), 392).toFixed(1));
+      node.textContent = airport.city.toUpperCase();
     }
 
     function updateRouteMap(dep, arr) {
-      if (typeof L === 'undefined') {
-        showRouteMapFallback('Map unavailable. Route details and flight time remain active in the trip summary.');
-        routeMapMeta.textContent = 'Map loading unavailable / route summary active.';
-        routeMapLabel.textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Route preview awaiting selection';
-        return;
-      }
-
-      initRouteMap();
-      if (!routeMap) return;
-      hideRouteMapFallback();
-      const depLatLng = airportLatLng(dep);
-      const arrLatLng = airportLatLng(arr);
-      if (!dep || !arr || !depLatLng || !arrLatLng || dep.icao === arr.icao) {
-        clearRouteMap();
+      const depPoint = mapPoint(dep);
+      const arrPoint = mapPoint(arr);
+      if (!dep || !arr || !depPoint || !arrPoint || dep.icao === arr.icao) {
+        routeLine.setAttribute('opacity', '0');
+        depPin.setAttribute('r', '0');
+        arrPin.setAttribute('r', '0');
+        depMapLabel.textContent = '----';
+        arrMapLabel.textContent = '----';
         routeMapMeta.textContent = 'Choose departure and destination to draw route.';
         routeMapLabel.textContent = 'Route preview awaiting selection';
         return;
       }
 
-      clearRouteMap();
-      depMarker = L.marker(depLatLng, { icon: markerIcon(dep) }).addTo(routeMap);
-      arrMarker = L.marker(arrLatLng, { icon: markerIcon(arr, true) }).addTo(routeMap);
-      routeLayer = L.polyline([depLatLng, arrLatLng], {
-        color: '#ffffff',
-        weight: 4,
-        opacity: 0.95,
-        dashArray: '12 8'
-      }).addTo(routeMap);
-
-      routeMap.invalidateSize();
-      routeMap.fitBounds(routeLayer.getBounds().pad(0.38), { animate: false });
+      routeLine.setAttribute('x1', depPoint.x.toFixed(1));
+      routeLine.setAttribute('y1', depPoint.y.toFixed(1));
+      routeLine.setAttribute('x2', arrPoint.x.toFixed(1));
+      routeLine.setAttribute('y2', arrPoint.y.toFixed(1));
+      routeLine.setAttribute('opacity', '1');
+      setMapCircle(depPin, depPoint, '11');
+      setMapCircle(arrPin, arrPoint, '11');
+      placeMapLabel(depMapLabel, depPoint, dep, -1);
+      placeMapLabel(arrMapLabel, arrPoint, arr, 1);
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
       routeMapLabel.textContent = `${dep.country} / ${arr.country} route preview`;
     }
@@ -1275,6 +1334,14 @@
       });
     }
 
+    function checkedValue(name, fallback = '') {
+      return form.querySelector(`input[name="${name}"]:checked`)?.value || fallback;
+    }
+
+    function checkedValues(name) {
+      return [...form.querySelectorAll(`input[name="${name}"]:checked`)].map(input => input.value);
+    }
+
     function populateAirports(list) {
       airports = list && list.length ? list : FALLBACK_AIRPORTS;
       const options = airports.map(airport =>
@@ -1355,6 +1422,9 @@
             baggageWeightKg: el('carryOnBags').value === 'YES' ? el('baggageWeightKg').value : 'N/A',
             bagType: `${el('bagCount').value} BAG(S) / ${el('bagType').value}`,
             powerBanks: el('powerBanks').value,
+            seatPreference: checkedValue('seatPreference', 'NO PREFERENCE'),
+            extras: checkedValues('extras'),
+            extrasNotes: el('extrasNotes').value,
             flightPurpose: el('flightPurpose').value,
             scheduleFlexibility: el('scheduleFlexibility').value,
             contractAccepted: el('contractAgreement').checked,
