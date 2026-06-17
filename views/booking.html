@@ -159,21 +159,22 @@
 
     .route-map-shell {
       position: relative;
-      height: 320px;
+      min-height: 340px;
       border: 1px solid #555;
-      background: #050505;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255,255,255,0.10), transparent 18%),
+        linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.055) 1px, transparent 1px),
+        #050505;
+      background-size: auto, 46px 46px, 46px 46px, auto;
       overflow: hidden;
     }
 
-    .route-map-image {
+    .route-board {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      filter: grayscale(1) invert(1) brightness(0.56) contrast(1.5);
-      opacity: 0.72;
-      pointer-events: none;
     }
 
     .route-map-svg {
@@ -186,6 +187,39 @@
         linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
         linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px);
       background-size: 48px 48px;
+    }
+
+    .route-terminal {
+      position: absolute;
+      top: 26px;
+      width: min(270px, 34%);
+      border: 2px solid #fff;
+      background: rgba(0,0,0,0.86);
+      padding: 12px;
+      text-transform: uppercase;
+      z-index: 2;
+    }
+
+    .route-terminal.dep { left: 18px; }
+    .route-terminal.arr { right: 18px; text-align: right; }
+
+    .terminal-kicker {
+      color: #8d8d8d;
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+
+    .terminal-code {
+      color: #fff;
+      font-size: clamp(22px, 4vw, 42px);
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .terminal-place {
+      color: #d7d7d7;
+      font-size: 13px;
+      margin-top: 5px;
     }
 
     .route-map-label {
@@ -201,7 +235,7 @@
     .route-map-compass {
       position: absolute;
       right: 12px;
-      top: 10px;
+      bottom: 12px;
       width: 42px;
       height: 42px;
       border: 1px solid #666;
@@ -212,6 +246,19 @@
       font-weight: 700;
       text-transform: uppercase;
       background: rgba(0,0,0,0.62);
+    }
+
+    .route-range {
+      position: absolute;
+      left: 12px;
+      bottom: 40px;
+      color: #fff;
+      font-size: 13px;
+      text-transform: uppercase;
+      border: 1px solid #666;
+      padding: 7px 9px;
+      background: rgba(0,0,0,0.72);
+      z-index: 2;
     }
 
     .booking-panel-head {
@@ -509,7 +556,7 @@
 
     .seat-map-shell {
       border: 1px solid #555;
-      padding: 16px 12px;
+      padding: 18px 12px;
       background: #000;
       display: grid;
       place-items: center;
@@ -519,7 +566,7 @@
     .cabin-visual {
       width: min(320px, 100%);
       border: 2px solid #777;
-      border-radius: 46% 46% 18px 18px / 18% 18% 14px 14px;
+      border-radius: 48% 48% 24px 24px / 18% 18% 16px 16px;
       padding: 18px 16px 22px;
       background:
         radial-gradient(circle at 22% 28%, rgba(255,255,255,0.28), transparent 8%),
@@ -543,6 +590,17 @@
       pointer-events: none;
     }
 
+    .nose-label {
+      color: #fff;
+      font-size: 11px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
     .cabin-row {
       display: grid;
       grid-template-columns: 1fr 42px 1fr;
@@ -555,7 +613,7 @@
 
     .seat-visual {
       border: 1px solid #777;
-      min-height: 58px;
+      min-height: 62px;
       display: grid;
       place-items: center;
       color: #fff;
@@ -565,6 +623,8 @@
       font-weight: 700;
       box-shadow: inset 0 8px 12px rgba(255,255,255,0.07);
       position: relative;
+      font-family: "Courier New", Courier, monospace;
+      cursor: default;
     }
 
     .seat-visual::before {
@@ -576,6 +636,24 @@
       height: 9px;
       border-radius: 999px;
       background: rgba(255,255,255,0.18);
+    }
+
+    .seat-visual.blocked {
+      color: #8d8d8d;
+      border-color: #444;
+      background: linear-gradient(180deg, #151515 0%, #050505 100%);
+    }
+
+    .seat-visual.selectable {
+      cursor: pointer;
+    }
+
+    .seat-visual.selectable:hover,
+    .seat-visual.selectable.selected {
+      color: #000;
+      background: #fff;
+      border-color: #fff;
+      box-shadow: 0 0 0 2px #777 inset, 0 0 20px rgba(255,255,255,0.18);
     }
 
     .aisle-label,
@@ -597,6 +675,8 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
+
+    .seat-options { display: none; }
 
     .extra-option,
     .seat-option {
@@ -820,25 +900,33 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
-          <img id="routeMapImage" class="route-map-image" alt="" src="https://staticmap.openstreetmap.de/staticmap.php?center=59.65,23.9&zoom=6&size=1000x420&maptype=mapnik" />
+          <div class="route-terminal dep">
+            <div class="terminal-kicker">Departure</div>
+            <div id="depTerminalCode" class="terminal-code">----</div>
+            <div id="depTerminalPlace" class="terminal-place">Choose departure</div>
+          </div>
+          <div class="route-terminal arr">
+            <div class="terminal-kicker">Arrival</div>
+            <div id="arrTerminalCode" class="terminal-code">----</div>
+            <div id="arrTerminalPlace" class="terminal-place">Choose destination</div>
+          </div>
           <svg id="routeMapSvg" class="route-map-svg" viewBox="0 0 1000 420" role="img" aria-label="Selected route map">
             <defs>
-              <marker id="routeArrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+              <marker id="routeArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
                 <path d="M0 0 L10 5.5 L0 11 Z" fill="#ffffff"></path>
               </marker>
             </defs>
-            <path d="M58 188 C155 151 222 159 306 134 C394 108 506 78 610 98 C728 121 805 93 941 125" fill="none" stroke="#303030" stroke-width="14" stroke-linecap="round"></path>
-            <path d="M105 322 C207 292 295 254 366 263 C461 273 526 222 617 219 C730 216 799 261 910 233" fill="none" stroke="#282828" stroke-width="18" stroke-linecap="round"></path>
-            <text x="76" y="75" fill="#5f5f5f" font-family="Courier New, Courier, monospace" font-size="20" font-weight="700">SWEDEN</text>
-            <text x="402" y="54" fill="#5f5f5f" font-family="Courier New, Courier, monospace" font-size="20" font-weight="700">FINLAND</text>
-            <text x="520" y="382" fill="#5f5f5f" font-family="Courier New, Courier, monospace" font-size="20" font-weight="700">ESTONIA</text>
-            <line id="routeLine" x1="0" y1="0" x2="0" y2="0" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-dasharray="14 10" marker-end="url(#routeArrow)" opacity="0"></line>
-            <circle id="depPin" cx="0" cy="0" r="0" fill="#000000" stroke="#ffffff" stroke-width="4"></circle>
-            <circle id="arrPin" cx="0" cy="0" r="0" fill="#ffffff" stroke="#ffffff" stroke-width="4"></circle>
-            <text id="depMapLabel" x="0" y="0" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="22" font-weight="700">----</text>
-            <text id="arrMapLabel" x="0" y="0" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="22" font-weight="700">----</text>
+            <ellipse cx="500" cy="230" rx="350" ry="112" fill="none" stroke="#242424" stroke-width="2"></ellipse>
+            <ellipse cx="500" cy="230" rx="255" ry="78" fill="none" stroke="#222" stroke-width="1"></ellipse>
+            <path id="routeArcShadow" d="M220 250 C360 90 640 90 780 250" fill="none" stroke="#2b2b2b" stroke-width="18" stroke-linecap="round" opacity="0.9"></path>
+            <path id="routeArc" d="M220 250 C360 90 640 90 780 250" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-dasharray="16 11" marker-end="url(#routeArrow)" opacity="0"></path>
+            <circle id="depPin" cx="220" cy="250" r="0" fill="#000000" stroke="#ffffff" stroke-width="4"></circle>
+            <circle id="arrPin" cx="780" cy="250" r="0" fill="#ffffff" stroke="#ffffff" stroke-width="4"></circle>
+            <text x="500" y="218" text-anchor="middle" fill="#777" font-family="Courier New, Courier, monospace" font-size="18" font-weight="700">DIRECT ROUTE</text>
+            <text id="routeCenterLabel" x="500" y="248" text-anchor="middle" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="32" font-weight="700">SELECT ROUTE</text>
           </svg>
           <div class="route-map-compass">N</div>
+          <div id="routeRange" class="route-range">DISTANCE / TIME PENDING</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
         </div>
       </section>
@@ -953,17 +1041,25 @@
               </div>
               <div class="seat-map-shell" aria-label="PA-28R-200 seat map">
                 <div class="cabin-visual">
-                  <div class="cockpit-label">PA-28R-200 cockpit</div>
+                  <div class="nose-label">PA-28R-200</div>
+                  <div class="cockpit-label">Forward seats</div>
                   <div class="cabin-row">
-                    <div class="seat-visual">Left</div>
-                    <div class="aisle-label">Cabin</div>
-                    <div class="seat-visual">Right</div>
+                    <button class="seat-visual blocked" type="button" disabled>Pilot</button>
+                    <div class="aisle-label">Panel</div>
+                    <button class="seat-visual blocked" type="button" disabled>Crew</button>
+                  </div>
+                  <div class="cockpit-label" style="margin-top:12px;">Passenger cabin</div>
+                  <div class="cabin-row">
+                    <button class="seat-visual selectable selected" type="button" data-seat-choice="REAR LEFT WINDOW">Rear left</button>
+                    <div class="aisle-label">Seat</div>
+                    <button class="seat-visual selectable" type="button" data-seat-choice="REAR RIGHT WINDOW">Rear right</button>
                   </div>
                 </div>
               </div>
+              <input id="seatPreference" type="hidden" value="REAR LEFT WINDOW" />
               <div class="seat-options">
-                <label class="seat-option"><input type="radio" name="seatPreference" value="LEFT WINDOW" checked /> Left window</label>
-                <label class="seat-option"><input type="radio" name="seatPreference" value="RIGHT WINDOW" /> Right window</label>
+                <label class="seat-option"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /> Rear left</label>
+                <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /> Rear right</label>
                 <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /> No preference</label>
               </div>
             </div>
@@ -1109,11 +1205,15 @@
     const bookingStatusRef = el('bookingStatusRef');
     const form = el('bookingForm');
     const passengerList = el('passengerList');
-    const routeLine = el('routeLine');
+    const routeArc = el('routeArc');
     const depPin = el('depPin');
     const arrPin = el('arrPin');
-    const depMapLabel = el('depMapLabel');
-    const arrMapLabel = el('arrMapLabel');
+    const depTerminalCode = el('depTerminalCode');
+    const arrTerminalCode = el('arrTerminalCode');
+    const depTerminalPlace = el('depTerminalPlace');
+    const arrTerminalPlace = el('arrTerminalPlace');
+    const routeCenterLabel = el('routeCenterLabel');
+    const routeRange = el('routeRange');
     const routeMapMeta = el('routeMapMeta');
     const routeMapLabel = el('routeMapLabel');
     const PA28_CRUISE_KT = 115;
@@ -1180,66 +1280,32 @@
       return airports.find(airport => airport.icao === icao) || null;
     }
 
-    function mapPoint(airport) {
-      const mapCenter = { lat: 59.65, lon: 23.9 };
-      const zoom = 6;
-      const tileSize = 256;
-      const width = 1000;
-      const height = 420;
-      const lon = Number(airport?.lon);
-      const lat = Number(airport?.lat);
-      if (![lon, lat].every(Number.isFinite)) return null;
-      const scale = tileSize * 2 ** zoom;
-      const project = (latValue, lonValue) => {
-        const sinLat = Math.sin((latValue * Math.PI) / 180);
-        return {
-          x: ((lonValue + 180) / 360) * scale,
-          y: (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale
-        };
-      };
-      const center = project(mapCenter.lat, mapCenter.lon);
-      const point = project(lat, lon);
-      return {
-        x: width / 2 + (point.x - center.x),
-        y: height / 2 + (point.y - center.y)
-      };
-    }
-
-    function setMapCircle(node, point, radius) {
-      node.setAttribute('cx', point.x.toFixed(1));
-      node.setAttribute('cy', point.y.toFixed(1));
-      node.setAttribute('r', radius);
-    }
-
-    function placeMapLabel(node, point, airport, direction = 1) {
-      node.setAttribute('x', Math.min(Math.max(point.x + 14, 24), 880).toFixed(1));
-      node.setAttribute('y', Math.min(Math.max(point.y + direction * 24, 34), 392).toFixed(1));
-      node.textContent = airport.city.toUpperCase();
-    }
-
     function updateRouteMap(dep, arr) {
-      const depPoint = mapPoint(dep);
-      const arrPoint = mapPoint(arr);
-      if (!dep || !arr || !depPoint || !arrPoint || dep.icao === arr.icao) {
-        routeLine.setAttribute('opacity', '0');
+      if (!dep || !arr || dep.icao === arr.icao) {
+        routeArc.setAttribute('opacity', '0');
         depPin.setAttribute('r', '0');
         arrPin.setAttribute('r', '0');
-        depMapLabel.textContent = '----';
-        arrMapLabel.textContent = '----';
+        depTerminalCode.textContent = dep?.short || '----';
+        arrTerminalCode.textContent = arr?.short || '----';
+        depTerminalPlace.textContent = dep?.city || 'Choose departure';
+        arrTerminalPlace.textContent = arr?.city || 'Choose destination';
+        routeCenterLabel.textContent = 'SELECT ROUTE';
+        routeRange.textContent = 'DISTANCE / TIME PENDING';
         routeMapMeta.textContent = 'Choose departure and destination to draw route.';
         routeMapLabel.textContent = 'Route preview awaiting selection';
         return;
       }
 
-      routeLine.setAttribute('x1', depPoint.x.toFixed(1));
-      routeLine.setAttribute('y1', depPoint.y.toFixed(1));
-      routeLine.setAttribute('x2', arrPoint.x.toFixed(1));
-      routeLine.setAttribute('y2', arrPoint.y.toFixed(1));
-      routeLine.setAttribute('opacity', '1');
-      setMapCircle(depPin, depPoint, '11');
-      setMapCircle(arrPin, arrPoint, '11');
-      placeMapLabel(depMapLabel, depPoint, dep, -1);
-      placeMapLabel(arrMapLabel, arrPoint, arr, 1);
+      const nm = distanceNm(dep, arr);
+      routeArc.setAttribute('opacity', '1');
+      depPin.setAttribute('r', '13');
+      arrPin.setAttribute('r', '13');
+      depTerminalCode.textContent = dep.short || dep.icao;
+      arrTerminalCode.textContent = arr.short || arr.icao;
+      depTerminalPlace.textContent = dep.city;
+      arrTerminalPlace.textContent = arr.city;
+      routeCenterLabel.textContent = `${dep.short || dep.city} \u2192 ${arr.short || arr.city}`;
+      routeRange.textContent = `${Number.isFinite(nm) ? `${Math.round(nm)} NM / ` : ''}${formatFlightTime(dep, arr)}`;
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
       routeMapLabel.textContent = `${dep.country} / ${arr.country} route preview`;
     }
@@ -1395,6 +1461,15 @@
       return [...form.querySelectorAll(`input[name="${name}"]:checked`)].map(input => input.value);
     }
 
+    function setSeatPreference(value) {
+      el('seatPreference').value = value;
+      form.querySelectorAll('[data-seat-choice]').forEach(button => {
+        button.classList.toggle('selected', button.getAttribute('data-seat-choice') === value);
+      });
+      const radio = form.querySelector(`input[name="seatPreference"][value="${value}"]`);
+      if (radio) radio.checked = true;
+    }
+
     function populateAirports(list) {
       airports = list && list.length ? list : FALLBACK_AIRPORTS;
       const options = airports.map(airport =>
@@ -1449,6 +1524,9 @@
       renderPassengerFields();
       refreshSummary();
     });
+    form.querySelectorAll('[data-seat-choice]').forEach(button => {
+      button.addEventListener('click', () => setSeatPreference(button.getAttribute('data-seat-choice')));
+    });
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -1475,7 +1553,7 @@
             baggageWeightKg: el('carryOnBags').value === 'YES' ? el('baggageWeightKg').value : 'N/A',
             bagType: `${el('bagCount').value} BAG(S) / ${el('bagType').value}`,
             powerBanks: el('powerBanks').value,
-            seatPreference: checkedValue('seatPreference', 'NO PREFERENCE'),
+            seatPreference: el('seatPreference').value || checkedValue('seatPreference', 'NO PREFERENCE'),
             extras: checkedValues('extras'),
             extrasNotes: el('extrasNotes').value,
             flightPurpose: el('flightPurpose').value,
