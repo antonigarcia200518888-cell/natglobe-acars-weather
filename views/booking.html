@@ -332,17 +332,22 @@
     .aircraft-photo {
       min-height: 260px;
       border: 1px solid #555;
-      background: #050505;
+      background:
+        radial-gradient(circle at 50% 78%, rgba(255,255,255,0.18), transparent 32%),
+        linear-gradient(180deg, #d7d7d7 0%, #9f9f9f 100%);
       overflow: hidden;
+      display: grid;
+      place-items: center;
     }
 
     .aircraft-photo img {
       width: 100%;
       height: 100%;
       min-height: 260px;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
-      filter: contrast(1.05) saturate(0.95);
+      padding: 18px;
+      filter: drop-shadow(0 22px 24px rgba(0,0,0,0.28));
     }
 
     .aircraft-feature-copy {
@@ -1081,7 +1086,7 @@
 
       <section class="card aircraft-feature" aria-label="Aircraft for this request">
         <div class="aircraft-photo">
-          <img src="/piper-aircraft.jpg" alt="Grey and orange Piper aircraft" />
+          <img src="/piper-render-transparent.png" alt="Grey and orange Piper aircraft" />
         </div>
         <div class="aircraft-feature-copy">
           <div>
@@ -1402,14 +1407,14 @@
         .atmosphereColor('#777777')
         .atmosphereAltitude(0.13)
         .arcColor(() => '#ffffff')
-        .arcAltitude(0.18)
-        .arcStroke(1.8)
+        .arcAltitude(0.11)
+        .arcStroke(0.08)
         .pointColor(() => '#ffffff')
-        .pointAltitude(0.035)
-        .pointRadius(0.55)
+        .pointAltitude(0.02)
+        .pointRadius(0.18)
         .labelText(item => item.label)
-        .labelSize(1.5)
-        .labelDotRadius(0.55)
+        .labelSize(0.32)
+        .labelDotRadius(0.18)
         .labelColor(() => '#ffffff')
         .labelResolution(2);
 
