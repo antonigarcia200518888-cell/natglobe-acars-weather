@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NatGlobe Aviation / Private Flight Booking</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQJxgYuzP1B2mO5zx9Mxnw9AwuZk+N8="
+    crossorigin=""
+  />
   <style>
     :root {
       --bg: #000000;
@@ -161,64 +167,124 @@
       position: relative;
       min-height: 340px;
       border: 1px solid #555;
-      background:
-        radial-gradient(circle at 50% 45%, rgba(255,255,255,0.10), transparent 18%),
-        linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255,255,255,0.055) 1px, transparent 1px),
-        #050505;
-      background-size: auto, 46px 46px, 46px 46px, auto;
+      background: #050505;
       overflow: hidden;
     }
 
-    .route-board {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .route-map-svg {
+    #routeMap {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       display: block;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 48px 48px;
+      filter: grayscale(1) contrast(1.15) brightness(0.78);
     }
 
-    .route-terminal {
+    .route-map-shell .leaflet-container {
+      background: #050505;
+      font-family: inherit;
+      cursor: default;
+    }
+
+    .route-map-shell .leaflet-pane,
+    .route-map-shell .leaflet-tile,
+    .route-map-shell .leaflet-marker-icon,
+    .route-map-shell .leaflet-marker-shadow,
+    .route-map-shell .leaflet-tile-container,
+    .route-map-shell .leaflet-pane > svg,
+    .route-map-shell .leaflet-pane > canvas,
+    .route-map-shell .leaflet-zoom-box,
+    .route-map-shell .leaflet-image-layer,
+    .route-map-shell .leaflet-layer {
       position: absolute;
-      top: 26px;
-      width: min(270px, 34%);
-      border: 2px solid #fff;
-      background: rgba(0,0,0,0.86);
-      padding: 12px;
+      left: 0;
+      top: 0;
+    }
+
+    .route-map-shell .leaflet-container {
+      overflow: hidden;
+    }
+
+    .route-map-shell .leaflet-tile,
+    .route-map-shell .leaflet-marker-icon,
+    .route-map-shell .leaflet-marker-shadow {
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .route-map-shell .leaflet-tile {
+      width: 256px;
+      height: 256px;
+    }
+
+    .route-map-shell .leaflet-pane > svg {
+      pointer-events: none;
+    }
+
+    .route-map-shell .leaflet-map-pane,
+    .route-map-shell .leaflet-tile,
+    .route-map-shell .leaflet-marker-icon,
+    .route-map-shell .leaflet-marker-shadow,
+    .route-map-shell .leaflet-tile-container {
+      transform-origin: 0 0;
+    }
+
+    .route-map-shell .leaflet-tile-pane { z-index: 200; }
+    .route-map-shell .leaflet-overlay-pane { z-index: 400; }
+    .route-map-shell .leaflet-marker-pane { z-index: 600; }
+
+    .route-map-shell .leaflet-control-container {
+      display: none;
+    }
+
+    .route-map-shell .leaflet-tile-pane {
+      opacity: 0.88;
+    }
+
+    .route-marker {
+      width: 18px;
+      height: 18px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: #050505;
+      box-shadow: 0 0 0 6px rgba(255,255,255,0.18), 0 0 18px rgba(255,255,255,0.42);
+    }
+
+    .route-marker.arrival {
+      background: #fff;
+      box-shadow: 0 0 0 6px rgba(255,255,255,0.18), 0 0 22px rgba(255,255,255,0.62);
+    }
+
+    .route-airport-card {
+      position: absolute;
+      top: 18px;
+      width: min(255px, 34%);
+      border: 1px solid #fff;
+      background: rgba(0,0,0,0.84);
+      padding: 10px 12px;
+      z-index: 420;
       text-transform: uppercase;
-      z-index: 2;
     }
 
-    .route-terminal.dep { left: 18px; }
-    .route-terminal.arr { right: 18px; text-align: right; }
+    .route-airport-card.dep { left: 18px; }
+    .route-airport-card.arr { right: 18px; text-align: right; }
 
-    .terminal-kicker {
+    .route-airport-card .airport-kicker {
       color: #8d8d8d;
-      font-size: 11px;
-      margin-bottom: 5px;
+      font-size: 10px;
+      margin-bottom: 4px;
     }
 
-    .terminal-code {
+    .route-airport-card .airport-code {
       color: #fff;
-      font-size: clamp(22px, 4vw, 42px);
+      font-size: clamp(22px, 3.6vw, 36px);
       line-height: 1;
       font-weight: 700;
     }
 
-    .terminal-place {
+    .route-airport-card .airport-place {
       color: #d7d7d7;
-      font-size: 13px;
+      font-size: 12px;
       margin-top: 5px;
     }
 
@@ -246,6 +312,7 @@
       font-weight: 700;
       text-transform: uppercase;
       background: rgba(0,0,0,0.62);
+      z-index: 420;
     }
 
     .route-range {
@@ -258,7 +325,34 @@
       border: 1px solid #666;
       padding: 7px 9px;
       background: rgba(0,0,0,0.72);
-      z-index: 2;
+      z-index: 420;
+    }
+
+    .route-map-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255,255,255,0.10), transparent 18%),
+        linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.055) 1px, transparent 1px),
+        #050505;
+      background-size: auto, 46px 46px, 46px 46px, auto;
+      color: #bdbdbd;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .route-map-shell.map-fallback #routeMap {
+      display: none;
+    }
+
+    .route-map-shell.map-fallback .route-map-fallback {
+      display: grid;
     }
 
     .booking-panel-head {
@@ -900,31 +994,18 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
-          <div class="route-terminal dep">
-            <div class="terminal-kicker">Departure</div>
-            <div id="depTerminalCode" class="terminal-code">----</div>
-            <div id="depTerminalPlace" class="terminal-place">Choose departure</div>
+          <div id="routeMap"></div>
+          <div id="routeMapFallback" class="route-map-fallback">Open map loading. If the map cannot load, route details still update in the trip summary.</div>
+          <div class="route-airport-card dep">
+            <div class="airport-kicker">Departure</div>
+            <div id="depTerminalCode" class="airport-code">----</div>
+            <div id="depTerminalPlace" class="airport-place">Choose departure</div>
           </div>
-          <div class="route-terminal arr">
-            <div class="terminal-kicker">Arrival</div>
-            <div id="arrTerminalCode" class="terminal-code">----</div>
-            <div id="arrTerminalPlace" class="terminal-place">Choose destination</div>
+          <div class="route-airport-card arr">
+            <div class="airport-kicker">Arrival</div>
+            <div id="arrTerminalCode" class="airport-code">----</div>
+            <div id="arrTerminalPlace" class="airport-place">Choose destination</div>
           </div>
-          <svg id="routeMapSvg" class="route-map-svg" viewBox="0 0 1000 420" role="img" aria-label="Selected route map">
-            <defs>
-              <marker id="routeArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-                <path d="M0 0 L10 5.5 L0 11 Z" fill="#ffffff"></path>
-              </marker>
-            </defs>
-            <ellipse cx="500" cy="230" rx="350" ry="112" fill="none" stroke="#242424" stroke-width="2"></ellipse>
-            <ellipse cx="500" cy="230" rx="255" ry="78" fill="none" stroke="#222" stroke-width="1"></ellipse>
-            <path id="routeArcShadow" d="M220 250 C360 90 640 90 780 250" fill="none" stroke="#2b2b2b" stroke-width="18" stroke-linecap="round" opacity="0.9"></path>
-            <path id="routeArc" d="M220 250 C360 90 640 90 780 250" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-dasharray="16 11" marker-end="url(#routeArrow)" opacity="0"></path>
-            <circle id="depPin" cx="220" cy="250" r="0" fill="#000000" stroke="#ffffff" stroke-width="4"></circle>
-            <circle id="arrPin" cx="780" cy="250" r="0" fill="#ffffff" stroke="#ffffff" stroke-width="4"></circle>
-            <text x="500" y="218" text-anchor="middle" fill="#777" font-family="Courier New, Courier, monospace" font-size="18" font-weight="700">DIRECT ROUTE</text>
-            <text id="routeCenterLabel" x="500" y="248" text-anchor="middle" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="32" font-weight="700">SELECT ROUTE</text>
-          </svg>
           <div class="route-map-compass">N</div>
           <div id="routeRange" class="route-range">DISTANCE / TIME PENDING</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
@@ -1159,6 +1240,11 @@
     </form>
   </main>
 
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
   <script>
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
@@ -1205,17 +1291,15 @@
     const bookingStatusRef = el('bookingStatusRef');
     const form = el('bookingForm');
     const passengerList = el('passengerList');
-    const routeArc = el('routeArc');
-    const depPin = el('depPin');
-    const arrPin = el('arrPin');
     const depTerminalCode = el('depTerminalCode');
     const arrTerminalCode = el('arrTerminalCode');
     const depTerminalPlace = el('depTerminalPlace');
     const arrTerminalPlace = el('arrTerminalPlace');
-    const routeCenterLabel = el('routeCenterLabel');
     const routeRange = el('routeRange');
     const routeMapMeta = el('routeMapMeta');
     const routeMapLabel = el('routeMapLabel');
+    const routeMapShell = el('routeMapShell');
+    const routeMapFallback = el('routeMapFallback');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -1226,6 +1310,10 @@
     };
 
     let airports = [];
+    let map = null;
+    let routeLayer = null;
+    let depMarker = null;
+    let arrMarker = null;
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -1280,34 +1368,119 @@
       return airports.find(airport => airport.icao === icao) || null;
     }
 
+    function airportLatLng(airport) {
+      const lat = Number(airport?.lat);
+      const lon = Number(airport?.lon);
+      if (![lat, lon].every(Number.isFinite)) return null;
+      return [lat, lon];
+    }
+
+    function setMapFallback(message) {
+      routeMapShell.classList.add('map-fallback');
+      routeMapFallback.textContent = message;
+    }
+
+    function createRouteIcon(type) {
+      if (!window.L) return null;
+      return L.divIcon({
+        className: '',
+        html: `<div class="route-marker ${type === 'arrival' ? 'arrival' : ''}"></div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+    }
+
+    function initRouteMap() {
+      if (map || !window.L) return !!map;
+
+      try {
+        map = L.map('routeMap', {
+          attributionControl: false,
+          zoomControl: false,
+          dragging: false,
+          scrollWheelZoom: false,
+          doubleClickZoom: false,
+          boxZoom: false,
+          keyboard: false,
+          tap: false,
+          touchZoom: false
+        }).setView([60.45, 24.95], 7);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          crossOrigin: true
+        }).addTo(map);
+
+        routeMapShell.classList.remove('map-fallback');
+        return true;
+      } catch (err) {
+        setMapFallback('Open map unavailable. Route details still update in the trip summary.');
+        return false;
+      }
+    }
+
+    function clearRouteMap() {
+      if (!map) return;
+      [routeLayer, depMarker, arrMarker].forEach(layer => {
+        if (layer) map.removeLayer(layer);
+      });
+      routeLayer = null;
+      depMarker = null;
+      arrMarker = null;
+    }
+
     function updateRouteMap(dep, arr) {
       if (!dep || !arr || dep.icao === arr.icao) {
-        routeArc.setAttribute('opacity', '0');
-        depPin.setAttribute('r', '0');
-        arrPin.setAttribute('r', '0');
         depTerminalCode.textContent = dep?.short || '----';
         arrTerminalCode.textContent = arr?.short || '----';
         depTerminalPlace.textContent = dep?.city || 'Choose departure';
         arrTerminalPlace.textContent = arr?.city || 'Choose destination';
-        routeCenterLabel.textContent = 'SELECT ROUTE';
         routeRange.textContent = 'DISTANCE / TIME PENDING';
         routeMapMeta.textContent = 'Choose departure and destination to draw route.';
         routeMapLabel.textContent = 'Route preview awaiting selection';
+        clearRouteMap();
         return;
       }
 
       const nm = distanceNm(dep, arr);
-      routeArc.setAttribute('opacity', '1');
-      depPin.setAttribute('r', '13');
-      arrPin.setAttribute('r', '13');
       depTerminalCode.textContent = dep.short || dep.icao;
       arrTerminalCode.textContent = arr.short || arr.icao;
       depTerminalPlace.textContent = dep.city;
       arrTerminalPlace.textContent = arr.city;
-      routeCenterLabel.textContent = `${dep.short || dep.city} \u2192 ${arr.short || arr.city}`;
       routeRange.textContent = `${Number.isFinite(nm) ? `${Math.round(nm)} NM / ` : ''}${formatFlightTime(dep, arr)}`;
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
       routeMapLabel.textContent = `${dep.country} / ${arr.country} route preview`;
+
+      const depLatLng = airportLatLng(dep);
+      const arrLatLng = airportLatLng(arr);
+      if (!depLatLng || !arrLatLng) {
+        setMapFallback('Airport coordinates unavailable. Route details still update in the trip summary.');
+        return;
+      }
+
+      if (!initRouteMap()) return;
+      clearRouteMap();
+      depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure'), interactive: false }).addTo(map);
+      arrMarker = L.marker(arrLatLng, { icon: createRouteIcon('arrival'), interactive: false }).addTo(map);
+      routeLayer = L.polyline([depLatLng, arrLatLng], {
+        color: '#ffffff',
+        weight: 3,
+        opacity: 0.95,
+        dashArray: '10 9'
+      }).addTo(map);
+      map.invalidateSize(false);
+      map.fitBounds(L.latLngBounds([depLatLng, arrLatLng]), {
+        padding: [64, 64],
+        animate: false
+      });
+      setTimeout(() => {
+        if (!map) return;
+        map.invalidateSize(false);
+        map.fitBounds(L.latLngBounds([depLatLng, arrLatLng]), {
+          padding: [64, 64],
+          animate: false
+        });
+      }, 250);
     }
 
     function toRad(value) {
