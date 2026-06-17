@@ -189,113 +189,47 @@
       margin: 0 auto;
       border: 1px solid #555;
       background:
-        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.98), rgba(238,238,238,0.94) 38%, rgba(202,202,202,0.72) 61%, rgba(255,255,255,0.08) 64%, transparent 65%),
-        linear-gradient(180deg, #f7f7f7 0%, #e5e5e5 100%);
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.09), transparent 38%),
+        linear-gradient(180deg, #111 0%, #020202 100%);
       overflow: hidden;
       border-radius: 0;
       box-shadow:
-        inset 0 0 80px rgba(255,255,255,0.55),
-        inset 0 -40px 90px rgba(0,0,0,0.10),
+        inset 0 0 90px rgba(255,255,255,0.08),
+        inset 0 -40px 90px rgba(0,0,0,0.65),
         0 24px 54px rgba(0,0,0,0.42);
     }
 
-    .route-map-shell::before {
-      content: "";
+    .globe-mount {
       position: absolute;
-      left: 50%;
-      top: 50%;
-      width: min(980px, 105vw);
-      height: min(980px, 105vw);
-      transform: translate(-50%, -50%);
+      inset: 0;
       z-index: 1;
-      pointer-events: none;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 34% 24%, rgba(255,255,255,0.9), transparent 16%),
-        radial-gradient(circle at 50% 50%, transparent 52%, rgba(0,0,0,0.12) 71%, rgba(0,0,0,0.22) 100%);
-      box-shadow:
-        inset -28px -18px 68px rgba(0,0,0,0.14),
-        inset 0 0 0 1px rgba(0,0,0,0.04);
+      cursor: grab;
+    }
+
+    .globe-mount:active {
+      cursor: grabbing;
+    }
+
+    .globe-mount canvas {
+      display: block;
     }
 
     .route-map-shell::after {
       content: "";
       position: absolute;
-      left: 50%;
-      top: 50%;
-      width: min(980px, 105vw);
-      height: min(980px, 105vw);
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
+      inset: 0;
       pointer-events: none;
       z-index: 3;
-      background: linear-gradient(90deg, rgba(255,255,255,0.16), transparent 18%, transparent 82%, rgba(255,255,255,0.34));
-    }
-
-    .route-pin {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #ff2d2d;
-      border: 2px solid #fff;
-      box-shadow: 0 0 0 6px rgba(255,45,45,0.22), 0 0 18px rgba(255,45,45,0.72);
-    }
-
-    .route-pin.arrival {
-      background: #ff6b6b;
-    }
-
-    .route-globe {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 2;
-    }
-
-    .globe-land {
-      fill: rgba(120,120,120,0.13);
-      stroke: rgba(80,80,80,0.13);
-      stroke-width: 1.2;
-    }
-
-    .globe-grid {
-      fill: none;
-      stroke: rgba(0,0,0,0.08);
-      stroke-width: 1;
-    }
-
-    .route-curve {
-      fill: none;
-      stroke: #666;
-      stroke-width: 4;
-      stroke-linecap: round;
-      opacity: 0.95;
-    }
-
-    .route-point {
-      fill: #f56600;
-      stroke: #fff;
-      stroke-width: 6;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.24));
-    }
-
-    .route-city-label {
-      fill: #050505;
-      font-family: Arial, Helvetica, sans-serif;
-      font-weight: 800;
-      font-size: 26px;
-      paint-order: stroke;
-      stroke: rgba(255,255,255,0.88);
-      stroke-width: 5px;
-      stroke-linejoin: round;
+      background:
+        radial-gradient(circle at 32% 22%, rgba(255,255,255,0.18), transparent 14%),
+        radial-gradient(circle at 50% 50%, transparent 44%, rgba(0,0,0,0.16) 66%, rgba(0,0,0,0.55) 100%);
     }
 
     .route-map-label {
       position: absolute;
       left: 12px;
       bottom: 10px;
-      color: #111;
+      color: #d7d7d7;
       font-size: 12px;
       text-transform: uppercase;
       pointer-events: none;
@@ -308,14 +242,14 @@
       bottom: 12px;
       width: 42px;
       height: 42px;
-      border: 1px solid #777;
-      color: #111;
+      border: 1px solid #555;
+      color: #fff;
       display: grid;
       place-items: center;
       font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
-      background: rgba(255,255,255,0.72);
+      background: rgba(0,0,0,0.66);
       z-index: 700;
     }
 
@@ -323,12 +257,12 @@
       position: absolute;
       left: 12px;
       bottom: 40px;
-      color: #111;
+      color: #fff;
       font-size: 13px;
       text-transform: uppercase;
-      border: 1px solid #777;
+      border: 1px solid #555;
       padding: 7px 9px;
-      background: rgba(255,255,255,0.78);
+      background: rgba(0,0,0,0.72);
       z-index: 700;
     }
 
@@ -385,6 +319,70 @@
     .experience-card strong {
       color: #fff;
       font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .aircraft-feature {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .aircraft-photo {
+      min-height: 260px;
+      border: 1px solid #555;
+      background: #050505;
+      overflow: hidden;
+    }
+
+    .aircraft-photo img {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      object-fit: cover;
+      display: block;
+      filter: contrast(1.05) saturate(0.95);
+    }
+
+    .aircraft-feature-copy {
+      border: 1px solid #555;
+      padding: 14px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), transparent 48%),
+        #050505;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      text-transform: uppercase;
+    }
+
+    .aircraft-feature-copy h2 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(18px, 2vw, 25px);
+      line-height: 1.08;
+    }
+
+    .aircraft-feature-copy p {
+      margin: 0;
+      color: #bdbdbd;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .amenity-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .amenity {
+      border: 1px solid #666;
+      padding: 10px;
+      background: #000;
+      color: #fff;
+      font-size: 12px;
       line-height: 1.25;
     }
 
@@ -683,7 +681,7 @@
 
     .seat-map-shell {
       border: 1px solid #555;
-      padding: 18px 12px;
+      padding: 14px;
       background: #000;
       display: grid;
       place-items: center;
@@ -691,159 +689,61 @@
     }
 
     .cabin-visual {
-      width: 620px;
-      height: 205px;
+      width: min(620px, 100%);
+      aspect-ratio: 620 / 205;
       position: relative;
       isolation: isolate;
-      transform-origin: center center;
+      transform-origin: center;
     }
 
-    .cabin-visual::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 16px;
-      width: 155px;
-      height: 173px;
-      border-radius: 58% 8px 8px 58% / 50%;
-      background:
-        radial-gradient(circle at 76% 46%, #2a2a2a 0 12%, transparent 13%),
-        radial-gradient(circle at 70% 50%, #202020, #050505 68%);
-      box-shadow: inset 18px 0 32px rgba(255,255,255,0.12);
-      z-index: 1;
-    }
-
-    .cabin-visual::after {
-      content: "";
-      position: absolute;
-      left: 132px;
-      top: 8px;
-      width: 76px;
-      height: 190px;
-      border: 3px solid #5d82a0;
-      border-radius: 50% 8px 8px 50% / 50%;
-      background:
-        radial-gradient(circle at 64% 38%, rgba(255,255,255,0.52), transparent 17%),
-        radial-gradient(circle at 60% 44%, #aac4dd, #456f8e 54%, #20384f 100%);
-      box-shadow: inset -10px 0 18px rgba(0,0,0,0.24);
+    .seat-map-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      user-select: none;
       pointer-events: none;
-      z-index: 3;
-    }
-
-    .cabin-body {
-      position: absolute;
-      left: 198px;
-      right: 75px;
-      top: 18px;
-      bottom: 18px;
-      background: #989898;
-      border: 2px solid #111;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.35),
-        inset 0 22px 32px rgba(255,255,255,0.08);
-      z-index: 2;
-    }
-
-    .cabin-tail {
-      position: absolute;
-      right: 0;
-      top: 28px;
-      width: 94px;
-      height: 149px;
-      border-radius: 8px 60% 60% 8px / 50%;
-      background: linear-gradient(90deg, #151515 0%, #050505 70%, #303030 100%);
-      box-shadow: inset -12px 0 20px rgba(255,255,255,0.1);
-      z-index: 1;
-    }
-
-    .cabin-divider {
-      position: absolute;
-      left: 356px;
-      top: 30px;
-      width: 16px;
-      height: 145px;
-      z-index: 2;
-      border-left: 2px solid #1b1b1b;
-      clip-path: polygon(0 0, 100% 22%, 52% 50%, 100% 78%, 0 100%);
-      background: rgba(0,0,0,0.08);
-    }
-
-    .nose-label {
-      position: absolute;
-      left: 18px;
-      top: 16px;
-      color: #fff;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      z-index: 4;
     }
 
     .seat-visual {
-      border: 2px solid #111;
-      border-radius: 8px;
-      width: 98px;
-      height: 62px;
+      border: 2px solid rgba(255,255,255,0.82);
+      border-radius: 10px;
       display: grid;
       place-items: center;
-      color: #111;
-      background: #f3f3f3;
+      color: #fff;
+      background: rgba(0,0,0,0.45);
       text-transform: uppercase;
       font-size: 10px;
       font-weight: 700;
-      box-shadow: inset 0 0 0 1px #ffffff;
+      box-shadow: 0 0 16px rgba(0,0,0,0.45);
       position: absolute;
       font-family: "Courier New", Courier, monospace;
       cursor: default;
       z-index: 5;
     }
 
-    .seat-visual::before {
-      content: "";
-      position: absolute;
-      top: 5px;
-      left: 18px;
-      right: 18px;
-      height: 7px;
-      border-radius: 999px;
-      border: 1px solid #111;
-      background: #fff;
-    }
-
-    .seat-visual::after {
-      content: "";
-      position: absolute;
-      right: 6px;
-      top: 13px;
-      bottom: 11px;
-      width: 15px;
-      border: 1px solid #111;
-      border-radius: 7px;
-      background: rgba(255,255,255,0.72);
-    }
-
-    .front-left { left: 238px; top: 34px; }
-    .front-right { left: 238px; top: 109px; }
-    .rear-left { left: 420px; top: 34px; }
-    .rear-right { left: 420px; top: 109px; }
+    .front-left { left: 37.8%; top: 16.5%; width: 16%; height: 35%; }
+    .front-right { left: 37.8%; top: 52.5%; width: 16%; height: 35%; }
+    .rear-left { left: 66.7%; top: 16.5%; width: 16%; height: 35%; }
+    .rear-right { left: 66.7%; top: 52.5%; width: 16%; height: 35%; }
 
     .seat-visual.blocked {
-      color: #111;
-      border-color: #111;
-      background: #7e7e7e;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.20);
+      color: #d7d7d7;
+      border-color: rgba(255,255,255,0.42);
+      background: rgba(0,0,0,0.36);
     }
 
     .seat-visual.selectable {
       cursor: pointer;
+      background: rgba(0,0,0,0.18);
     }
 
     .seat-visual.selectable:hover,
     .seat-visual.selectable.selected {
-      color: #000;
-      background: #fff;
-      border-color: #ff2d2d;
-      box-shadow: 0 0 0 2px #ff2d2d inset, 0 0 18px rgba(255,45,45,0.38);
+      color: #fff;
+      background: rgba(245,102,0,0.32);
+      border-color: #f56600;
+      box-shadow: 0 0 0 2px #f56600 inset, 0 0 22px rgba(245,102,0,0.5);
     }
 
     .seat-options,
@@ -1057,10 +957,8 @@
         height: 390px;
         min-height: 390px;
       }
-      .seat-map-shell { min-height: 170px; padding: 12px 8px; }
-      .cabin-visual {
-        transform: scale(0.68);
-      }
+      .aircraft-feature, .amenity-grid { grid-template-columns: 1fr; }
+      .seat-map-shell { padding: 12px 8px; }
       .seat-visual {
         font-size: 10px;
       }
@@ -1089,10 +987,7 @@
         height: 330px;
         min-height: 330px;
       }
-      .seat-map-shell { min-height: 140px; }
-      .cabin-visual {
-        transform: scale(0.52);
-      }
+      .seat-visual { font-size: 8px; }
     }
   </style>
 </head>
@@ -1132,41 +1027,12 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
-          <svg id="routeGlobe" class="route-globe" viewBox="0 0 1100 620" role="img" aria-label="NatGlobe route globe">
-            <defs>
-              <clipPath id="globeClip">
-                <circle cx="550" cy="310" r="430"></circle>
-              </clipPath>
-            </defs>
-            <g clip-path="url(#globeClip)">
-              <ellipse class="globe-grid" cx="550" cy="310" rx="430" ry="430"></ellipse>
-              <ellipse class="globe-grid" cx="550" cy="310" rx="300" ry="430"></ellipse>
-              <ellipse class="globe-grid" cx="550" cy="310" rx="160" ry="430"></ellipse>
-              <path class="globe-grid" d="M130 228 C330 182 770 182 970 228"></path>
-              <path class="globe-grid" d="M120 310 C330 286 770 286 980 310"></path>
-              <path class="globe-grid" d="M130 392 C330 438 770 438 970 392"></path>
-              <path class="globe-land" d="M240 120 C320 82 440 78 526 112 C612 148 652 232 610 298 C548 392 392 386 312 330 C232 274 176 178 240 120Z"></path>
-              <path class="globe-land" d="M600 98 C708 72 846 104 908 194 C956 264 944 372 862 430 C774 492 640 458 598 360 C566 286 520 160 600 98Z"></path>
-              <path class="globe-land" d="M350 418 C438 386 560 406 610 488 C642 540 570 582 466 558 C386 540 306 454 350 418Z"></path>
-            </g>
-            <path id="routeCurve" class="route-curve" d="" />
-            <circle id="depRoutePoint" class="route-point" cx="-40" cy="-40" r="9" />
-            <circle id="arrRoutePoint" class="route-point" cx="-40" cy="-40" r="9" />
-            <text id="depRouteLabel" class="route-city-label" x="-200" y="0">Departure</text>
-            <text id="arrRouteLabel" class="route-city-label" x="-200" y="0">Destination</text>
-          </svg>
+          <div id="globeMount" class="globe-mount" aria-label="Interactive dark 3D route globe"></div>
           <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
           <div class="route-map-compass">N</div>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
         </div>
-      </section>
-
-      <section class="experience-grid" aria-label="NatGlobe passenger experience">
-        <div class="experience-card"><span class="experience-number">01</span><strong>Arrive directly at the GA terminal and avoid the commercial airport lines.</strong></div>
-        <div class="experience-card"><span class="experience-number">02</span><strong>Meet the pilot, review the route, and board after weather and safety checks.</strong></div>
-        <div class="experience-card"><span class="experience-number">03</span><strong>Fly privately in a small aircraft with a simple, personal cabin experience.</strong></div>
-        <div class="experience-card"><span class="experience-number">04</span><strong>Add transfer and refreshment requests for operations to confirm before flight.</strong></div>
       </section>
 
       <section class="search-card">
@@ -1211,6 +1077,24 @@
           </div>
         </div>
         <div id="statusBox" class="status">Choose your flight details</div>
+      </section>
+
+      <section class="card aircraft-feature" aria-label="Aircraft for this request">
+        <div class="aircraft-photo">
+          <img src="/piper-aircraft.jpg" alt="Grey and orange Piper aircraft" />
+        </div>
+        <div class="aircraft-feature-copy">
+          <div>
+            <div class="booking-kicker">Aircraft for this request</div>
+            <h2>Grey and orange Piper PA-28R-200 Arrow</h2>
+          </div>
+          <p>Final aircraft assignment is confirmed by pilot and operations after route, weather, aircraft status, baggage, and weight and balance review.</p>
+          <div class="amenity-grid">
+            <div class="amenity">Starlink Wi-Fi planned onboard</div>
+            <div class="amenity">USB-C charging available</div>
+            <div class="amenity">Chilled Water included</div>
+          </div>
+        </div>
       </section>
 
       <div id="confirmation" class="confirmation"></div>
@@ -1278,10 +1162,7 @@
               </div>
               <div class="seat-map-shell" aria-label="PA-28R-200 seat map">
                 <div class="cabin-visual">
-                  <div class="nose-label">PA-28R-200</div>
-                  <div class="cabin-tail"></div>
-                  <div class="cabin-body"></div>
-                  <div class="cabin-divider"></div>
+                  <img class="seat-map-image" src="/pa28-seat-map.png" alt="PA-28R-200 cabin seat map" />
                   <button class="seat-visual blocked front-left" type="button" disabled>Pilot</button>
                   <button class="seat-visual blocked front-right" type="button" disabled>Crew</button>
                   <button class="seat-visual selectable selected rear-left" type="button" data-seat-choice="REAR LEFT WINDOW">Rear left</button>
@@ -1351,9 +1232,17 @@
         <div class="submit-note">Final step: send this booking request to NatGlobe operations. A pilot or dispatcher will review route, weather, aircraft status, passenger details, and weight and balance.</div>
         <button class="btn" type="submit">Request booking</button>
       </div>
+
+      <section class="experience-grid" aria-label="NatGlobe passenger information">
+        <div class="experience-card"><span class="experience-number">PRIVATE TERMINAL</span><strong>Arrive at the GA side and avoid commercial terminal queues when the airport setup allows.</strong></div>
+        <div class="experience-card"><span class="experience-number">PILOT REVIEW</span><strong>Meet the pilot, review the plan, and board only after weather and safety checks.</strong></div>
+        <div class="experience-card"><span class="experience-number">LIGHT AIRCRAFT</span><strong>Fly privately in a small aircraft with a personal cabin and flexible routing.</strong></div>
+        <div class="experience-card"><span class="experience-number">REQUEST EXTRAS</span><strong>Add transfer and refreshment requests for operations to confirm before flight.</strong></div>
+      </section>
     </form>
   </main>
 
+  <script src="https://unpkg.com/globe.gl"></script>
   <script>
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
@@ -1405,11 +1294,7 @@
     const routeMapLabel = el('routeMapLabel');
     const routeMapShell = el('routeMapShell');
     const routeMapFallback = el('routeMapFallback');
-    const routeCurve = el('routeCurve');
-    const depRoutePoint = el('depRoutePoint');
-    const arrRoutePoint = el('arrRoutePoint');
-    const depRouteLabel = el('depRouteLabel');
-    const arrRouteLabel = el('arrRouteLabel');
+    const globeMount = el('globeMount');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -1420,6 +1305,9 @@
     };
 
     let airports = [];
+    let routeGlobe = null;
+    let globeReady = false;
+    let globeResizeObserver = null;
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -1482,61 +1370,100 @@
     }
 
     function clearRouteMap() {
-      routeCurve.setAttribute('d', '');
-      [depRoutePoint, arrRoutePoint].forEach(point => {
-        point.setAttribute('cx', '-40');
-        point.setAttribute('cy', '-40');
+      if (!routeGlobe) return;
+      routeGlobe
+        .arcsData([])
+        .pointsData([])
+        .labelsData([]);
+    }
+
+    function setGlobeFallback(message) {
+      routeMapShell.classList.add('map-fallback');
+      routeMapFallback.textContent = message;
+    }
+
+    function initRouteGlobe() {
+      if (routeGlobe) return true;
+      if (!window.Globe) {
+        setGlobeFallback('Interactive globe loading. Route details still update in the trip summary.');
+        return false;
+      }
+
+      routeMapShell.classList.remove('map-fallback');
+      const width = globeMount.clientWidth || routeMapShell.clientWidth || 960;
+      const height = globeMount.clientHeight || routeMapShell.clientHeight || 520;
+      routeGlobe = Globe()(globeMount)
+        .width(width)
+        .height(height)
+        .backgroundColor('rgba(0,0,0,0)')
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+        .showAtmosphere(true)
+        .atmosphereColor('#777777')
+        .atmosphereAltitude(0.13)
+        .arcColor(() => '#f56600')
+        .arcAltitude(0.18)
+        .arcStroke(1.4)
+        .arcDashLength(0.55)
+        .arcDashGap(0.16)
+        .arcDashAnimateTime(1600)
+        .pointColor(() => '#f56600')
+        .pointAltitude(0.025)
+        .pointRadius(0.42)
+        .labelText(item => item.label)
+        .labelSize(1.5)
+        .labelDotRadius(0.35)
+        .labelColor(() => '#ffffff')
+        .labelResolution(2);
+
+      const controls = routeGlobe.controls();
+      controls.enableZoom = true;
+      controls.enablePan = false;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.28;
+
+      globeResizeObserver = new ResizeObserver(() => {
+        if (!routeGlobe) return;
+        routeGlobe
+          .width(globeMount.clientWidth || width)
+          .height(globeMount.clientHeight || height);
       });
-      depRouteLabel.textContent = 'Departure';
-      arrRouteLabel.textContent = 'Destination';
-      depRouteLabel.setAttribute('x', '-200');
-      arrRouteLabel.setAttribute('x', '-200');
-    }
-
-    function projectAirport(airport) {
-      const coords = airportLatLng(airport);
-      if (!coords) return null;
-      const [lat, lon] = coords;
-      const minLon = 16.5;
-      const maxLon = 27.3;
-      const minLat = 58.0;
-      const maxLat = 61.5;
-      const x = 170 + ((lon - minLon) / (maxLon - minLon)) * 760;
-      const y = 438 - ((lat - minLat) / (maxLat - minLat)) * 300;
-      return {
-        x: Math.max(130, Math.min(970, x)),
-        y: Math.max(132, Math.min(492, y))
-      };
-    }
-
-    function positionRouteLabel(label, point, text, align = 'start') {
-      const x = align === 'end' ? point.x - 22 : point.x + 22;
-      const y = point.y - 12;
-      label.textContent = text;
-      label.setAttribute('x', x);
-      label.setAttribute('y', y);
-      label.setAttribute('text-anchor', align);
+      globeResizeObserver.observe(globeMount);
+      globeReady = true;
+      return true;
     }
 
     function drawRouteOnMap(dep, arr) {
-      const depPoint = projectAirport(dep);
-      const arrPoint = projectAirport(arr);
-      if (!depPoint || !arrPoint) {
+      if (!initRouteGlobe()) return;
+      const depLatLng = airportLatLng(dep);
+      const arrLatLng = airportLatLng(arr);
+      if (!depLatLng || !arrLatLng) {
         clearRouteMap();
         return;
       }
 
-      const midX = (depPoint.x + arrPoint.x) / 2;
-      const midY = (depPoint.y + arrPoint.y) / 2;
-      const distance = Math.hypot(arrPoint.x - depPoint.x, arrPoint.y - depPoint.y);
-      const lift = Math.max(54, Math.min(160, distance * 0.32));
-      routeCurve.setAttribute('d', `M ${depPoint.x} ${depPoint.y} Q ${midX} ${midY - lift} ${arrPoint.x} ${arrPoint.y}`);
-      depRoutePoint.setAttribute('cx', depPoint.x);
-      depRoutePoint.setAttribute('cy', depPoint.y);
-      arrRoutePoint.setAttribute('cx', arrPoint.x);
-      arrRoutePoint.setAttribute('cy', arrPoint.y);
-      positionRouteLabel(depRouteLabel, depPoint, dep.city, depPoint.x > arrPoint.x ? 'end' : 'start');
-      positionRouteLabel(arrRouteLabel, arrPoint, arr.city, arrPoint.x > depPoint.x ? 'end' : 'start');
+      const [depLat, depLng] = depLatLng;
+      const [arrLat, arrLng] = arrLatLng;
+      routeGlobe
+        .arcsData([{ startLat: depLat, startLng: depLng, endLat: arrLat, endLng: arrLng }])
+        .pointsData([
+          { lat: depLat, lng: depLng, label: dep.city },
+          { lat: arrLat, lng: arrLng, label: arr.city }
+        ])
+        .labelsData([
+          { lat: depLat, lng: depLng, label: dep.city },
+          { lat: arrLat, lng: arrLng, label: arr.city }
+        ])
+        .pointLat(item => item.lat)
+        .pointLng(item => item.lng)
+        .labelLat(item => item.lat)
+        .labelLng(item => item.lng);
+
+      routeGlobe.pointOfView({
+        lat: (depLat + arrLat) / 2,
+        lng: (depLng + arrLng) / 2,
+        altitude: 1.75
+      }, globeReady ? 900 : 0);
     }
 
     function updateRouteMap(dep, arr) {
