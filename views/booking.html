@@ -1399,11 +1399,11 @@
         .atmosphereColor('#777777')
         .atmosphereAltitude(0.13)
         .arcColor(() => '#ffffff')
-        .arcAltitude(0.11)
-        .arcStroke(null)
+        .arcAltitude(0.055)
+        .arcStroke(0.018)
         .pointColor(() => '#ffffff')
-        .pointAltitude(0.018)
-        .pointRadius(0.08)
+        .pointAltitude(0.024)
+        .pointRadius(0.18)
         .labelText(item => item.label)
         .labelSize(0.18)
         .labelDotRadius(0.08)
@@ -1413,8 +1413,8 @@
       const controls = routeGlobe.controls();
       controls.enableZoom = true;
       controls.enablePan = false;
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.28;
+      controls.autoRotate = false;
+      controls.autoRotateSpeed = 0;
 
       globeResizeObserver = new ResizeObserver(() => {
         if (!routeGlobe) return;
@@ -1451,7 +1451,7 @@
       routeGlobe.pointOfView({
         lat: (depLat + arrLat) / 2,
         lng: (depLng + arrLng) / 2,
-        altitude: 1.75
+        altitude: 1.55
       }, globeReady ? 900 : 0);
     }
 
