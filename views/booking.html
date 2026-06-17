@@ -4,12 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NatGlobe Aviation / Private Flight Booking</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIINfQJxgYuzP1B2mO5zx9Mxnw9AwuZk+N8="
-    crossorigin=""
-  />
   <style>
     :root {
       --bg: #000000;
@@ -177,82 +171,47 @@
       width: 100%;
       height: 100%;
       display: block;
-      filter: grayscale(1) contrast(1.15) brightness(0.78);
+      cursor: grab;
+      touch-action: none;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), transparent 30%),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+        #020202;
+      background-size: auto, 44px 44px, 44px 44px, auto;
     }
 
-    .route-map-shell .leaflet-container {
-      background: #050505;
-      font-family: inherit;
-      cursor: default;
+    #routeMap:active { cursor: grabbing; }
+
+    #routeMap canvas,
+    #aircraftModel canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
-    .route-map-shell .leaflet-pane,
-    .route-map-shell .leaflet-tile,
-    .route-map-shell .leaflet-marker-icon,
-    .route-map-shell .leaflet-marker-shadow,
-    .route-map-shell .leaflet-tile-container,
-    .route-map-shell .leaflet-pane > svg,
-    .route-map-shell .leaflet-pane > canvas,
-    .route-map-shell .leaflet-zoom-box,
-    .route-map-shell .leaflet-image-layer,
-    .route-map-shell .leaflet-layer {
+    .route-globe-controls {
       position: absolute;
-      left: 0;
-      top: 0;
+      right: 12px;
+      top: 92px;
+      z-index: 430;
+      display: grid;
+      gap: 6px;
     }
 
-    .route-map-shell .leaflet-container {
-      overflow: hidden;
+    .globe-control {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #888;
+      background: rgba(0,0,0,0.78);
+      color: #fff;
+      font: 700 18px/1 "Courier New", Courier, monospace;
+      cursor: pointer;
     }
 
-    .route-map-shell .leaflet-tile,
-    .route-map-shell .leaflet-marker-icon,
-    .route-map-shell .leaflet-marker-shadow {
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    .route-map-shell .leaflet-tile {
-      width: 256px;
-      height: 256px;
-    }
-
-    .route-map-shell .leaflet-pane > svg {
-      pointer-events: none;
-    }
-
-    .route-map-shell .leaflet-map-pane,
-    .route-map-shell .leaflet-tile,
-    .route-map-shell .leaflet-marker-icon,
-    .route-map-shell .leaflet-marker-shadow,
-    .route-map-shell .leaflet-tile-container {
-      transform-origin: 0 0;
-    }
-
-    .route-map-shell .leaflet-tile-pane { z-index: 200; }
-    .route-map-shell .leaflet-overlay-pane { z-index: 400; }
-    .route-map-shell .leaflet-marker-pane { z-index: 600; }
-
-    .route-map-shell .leaflet-control-container {
-      display: none;
-    }
-
-    .route-map-shell .leaflet-tile-pane {
-      opacity: 0.88;
-    }
-
-    .route-marker {
-      width: 18px;
-      height: 18px;
-      border: 3px solid #fff;
-      border-radius: 50%;
-      background: #050505;
-      box-shadow: 0 0 0 6px rgba(255,255,255,0.18), 0 0 18px rgba(255,255,255,0.42);
-    }
-
-    .route-marker.arrival {
+    .globe-control:hover {
       background: #fff;
-      box-shadow: 0 0 0 6px rgba(255,255,255,0.18), 0 0 22px rgba(255,255,255,0.62);
+      color: #000;
     }
 
     .route-airport-card {
@@ -374,17 +333,12 @@
       min-height: 330px;
       border: 1px solid #555;
       overflow: hidden;
-      background: #050505;
-    }
-
-    .aircraft-visual img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: grayscale(0.9) contrast(1.12) brightness(0.78);
-      transform: scale(1.01);
+      background:
+        radial-gradient(circle at 50% 46%, rgba(255,255,255,0.10), transparent 34%),
+        linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.045) 1px, transparent 1px),
+        #050505;
+      background-size: auto, 42px 42px, 42px 42px, auto;
     }
 
     .aircraft-visual::after {
@@ -392,9 +346,15 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.10) 46%, rgba(0,0,0,0.55) 100%),
-        linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.76) 100%);
+        linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.36) 100%),
+        linear-gradient(90deg, rgba(0,0,0,0.42) 0%, transparent 36%, rgba(0,0,0,0.32) 100%);
       pointer-events: none;
+    }
+
+    #aircraftModel {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
     }
 
     .aircraft-badge {
@@ -1168,8 +1128,8 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
-          <div id="routeMap"></div>
-          <div id="routeMapFallback" class="route-map-fallback">Open map loading. If the map cannot load, route details still update in the trip summary.</div>
+          <div id="routeMap" aria-label="Interactive 3D route globe"></div>
+          <div id="routeMapFallback" class="route-map-fallback">3D globe loading. If the globe cannot load, route details still update in the trip summary.</div>
           <div class="route-airport-card dep">
             <div class="airport-kicker">Departure</div>
             <div id="depTerminalCode" class="airport-code">----</div>
@@ -1181,8 +1141,12 @@
             <div id="arrTerminalPlace" class="airport-place">Choose destination</div>
           </div>
           <div class="route-map-compass">N</div>
-          <div id="routeRange" class="route-range">DISTANCE / TIME PENDING</div>
+          <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
+          <div class="route-globe-controls" aria-label="Globe zoom controls">
+            <button id="globeZoomIn" class="globe-control" type="button" aria-label="Zoom globe in">+</button>
+            <button id="globeZoomOut" class="globe-control" type="button" aria-label="Zoom globe out">−</button>
+          </div>
         </div>
       </section>
 
@@ -1193,10 +1157,10 @@
         </div>
         <div class="aircraft-showcase-grid">
           <div class="aircraft-visual">
-            <img src="/aircraft-pa28r-showcase.png" alt="Piper PA-28R style aircraft for private shared-cost flight request" loading="lazy" />
+            <div id="aircraftModel" aria-label="Interactive 3D Piper PA-28R style aircraft model"></div>
             <div class="aircraft-badge">
               <strong>OH-PMK / PA-28R</strong>
-              <span>Piper Arrow-style light aircraft for private shared-cost flights</span>
+              <span>Rotating 3D light aircraft model for private shared-cost flights</span>
             </div>
             <div class="aircraft-status-strip">
               <div class="aircraft-status"><span>Cabin</span><strong>2 passenger seats</strong></div>
@@ -1455,12 +1419,9 @@
     </form>
   </main>
 
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-  <script>
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
+
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
       { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkää', country: 'Finland', lat: 60.6544, lon: 24.8811 },
@@ -1515,6 +1476,8 @@
     const routeMapLabel = el('routeMapLabel');
     const routeMapShell = el('routeMapShell');
     const routeMapFallback = el('routeMapFallback');
+    const globeZoomIn = el('globeZoomIn');
+    const globeZoomOut = el('globeZoomOut');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -1525,10 +1488,8 @@
     };
 
     let airports = [];
-    let map = null;
-    let routeLayer = null;
-    let depMarker = null;
-    let arrMarker = null;
+    let globeScene = null;
+    let aircraftScene = null;
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -1583,65 +1544,192 @@
       return airports.find(airport => airport.icao === icao) || null;
     }
 
-    function airportLatLng(airport) {
-      const lat = Number(airport?.lat);
-      const lon = Number(airport?.lon);
-      if (![lat, lon].every(Number.isFinite)) return null;
-      return [lat, lon];
-    }
-
     function setMapFallback(message) {
       routeMapShell.classList.add('map-fallback');
       routeMapFallback.textContent = message;
     }
 
-    function createRouteIcon(type) {
-      if (!window.L) return null;
-      return L.divIcon({
-        className: '',
-        html: `<div class="route-marker ${type === 'arrival' ? 'arrival' : ''}"></div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
+    function createRenderer(container) {
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(container.clientWidth || 600, container.clientHeight || 320);
+      container.appendChild(renderer.domElement);
+      return renderer;
+    }
+
+    function latLonToVector(lat, lon, radius) {
+      const phi = toRad(90 - Number(lat));
+      const theta = toRad(Number(lon) + 180);
+      return new THREE.Vector3(
+        -radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.cos(phi),
+        radius * Math.sin(phi) * Math.sin(theta)
+      );
+    }
+
+    function makeGlowPin(position, label) {
+      const pin = new THREE.Group();
+      pin.position.copy(position);
+      pin.lookAt(0, 0, 0);
+
+      const red = new THREE.MeshBasicMaterial({ color: 0xff2d2d });
+      const core = new THREE.Mesh(new THREE.SphereGeometry(0.045, 24, 16), red);
+      const pulse = new THREE.Mesh(
+        new THREE.SphereGeometry(0.085, 24, 16),
+        new THREE.MeshBasicMaterial({ color: 0xff2d2d, transparent: true, opacity: 0.24 })
+      );
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.004, 0.16, 12), red);
+      stem.position.z = -0.08;
+      pin.add(pulse, core, stem);
+      pin.userData.label = label;
+      return pin;
     }
 
     function initRouteMap() {
-      if (map || !window.L) return !!map;
-
+      if (globeScene) return true;
       try {
-        map = L.map('routeMap', {
-          attributionControl: false,
-          zoomControl: false,
-          dragging: false,
-          scrollWheelZoom: false,
-          doubleClickZoom: false,
-          boxZoom: false,
-          keyboard: false,
-          tap: false,
-          touchZoom: false
-        }).setView([60.45, 24.95], 7);
+        const container = el('routeMap');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+        camera.position.set(0, 0.38, 3.2);
+        const renderer = createRenderer(container);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 18,
-          crossOrigin: true
-        }).addTo(map);
+        const globeGroup = new THREE.Group();
+        const routeGroup = new THREE.Group();
+        globeGroup.rotation.set(-0.22, -0.42, 0.06);
+        scene.add(globeGroup);
+
+        const globe = new THREE.Mesh(
+          new THREE.SphereGeometry(1, 96, 64),
+          new THREE.MeshStandardMaterial({
+            color: 0x080808,
+            roughness: 0.78,
+            metalness: 0.28,
+            emissive: 0x060606
+          })
+        );
+        const wire = new THREE.Mesh(
+          new THREE.SphereGeometry(1.005, 48, 32),
+          new THREE.MeshBasicMaterial({
+            color: 0x6f6f6f,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.18
+          })
+        );
+        const rim = new THREE.Mesh(
+          new THREE.SphereGeometry(1.035, 64, 32),
+          new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.045,
+            wireframe: true
+          })
+        );
+        globeGroup.add(globe, wire, rim, routeGroup);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        keyLight.position.set(3, 2, 3);
+        scene.add(keyLight);
+
+        globeScene = {
+          camera,
+          renderer,
+          scene,
+          globeGroup,
+          routeGroup,
+          isDragging: false,
+          previousX: 0,
+          previousY: 0,
+          zoom: 3.2
+        };
+
+        function resizeGlobe() {
+          if (!globeScene) return;
+          const width = Math.max(container.clientWidth, 320);
+          const height = Math.max(container.clientHeight, 220);
+          globeScene.camera.aspect = width / height;
+          globeScene.camera.updateProjectionMatrix();
+          globeScene.renderer.setSize(width, height);
+        }
+
+        container.addEventListener('pointerdown', event => {
+          globeScene.isDragging = true;
+          globeScene.previousX = event.clientX;
+          globeScene.previousY = event.clientY;
+          container.setPointerCapture?.(event.pointerId);
+        });
+        container.addEventListener('pointermove', event => {
+          if (!globeScene?.isDragging) return;
+          const dx = event.clientX - globeScene.previousX;
+          const dy = event.clientY - globeScene.previousY;
+          globeScene.globeGroup.rotation.y += dx * 0.008;
+          globeScene.globeGroup.rotation.x += dy * 0.006;
+          globeScene.globeGroup.rotation.x = Math.max(-1.25, Math.min(1.25, globeScene.globeGroup.rotation.x));
+          globeScene.previousX = event.clientX;
+          globeScene.previousY = event.clientY;
+        });
+        container.addEventListener('pointerup', event => {
+          globeScene.isDragging = false;
+          container.releasePointerCapture?.(event.pointerId);
+        });
+        container.addEventListener('pointercancel', () => {
+          globeScene.isDragging = false;
+        });
+        container.addEventListener('wheel', event => {
+          event.preventDefault();
+          zoomGlobe(event.deltaY > 0 ? 0.18 : -0.18);
+        }, { passive: false });
+        window.addEventListener('resize', resizeGlobe);
+
+        function animateGlobe() {
+          if (!globeScene) return;
+          requestAnimationFrame(animateGlobe);
+          if (!globeScene.isDragging) globeScene.globeGroup.rotation.y += 0.0013;
+          globeScene.renderer.render(globeScene.scene, globeScene.camera);
+        }
 
         routeMapShell.classList.remove('map-fallback');
+        resizeGlobe();
+        animateGlobe();
         return true;
       } catch (err) {
-        setMapFallback('Open map unavailable. Route details still update in the trip summary.');
+        setMapFallback('3D globe unavailable. Route details still update in the trip summary.');
         return false;
       }
     }
 
+    function zoomGlobe(delta) {
+      if (!globeScene) return;
+      globeScene.zoom = Math.max(2.2, Math.min(4.8, globeScene.zoom + delta));
+      globeScene.camera.position.z = globeScene.zoom;
+    }
+
     function clearRouteMap() {
-      if (!map) return;
-      [routeLayer, depMarker, arrMarker].forEach(layer => {
-        if (layer) map.removeLayer(layer);
-      });
-      routeLayer = null;
-      depMarker = null;
-      arrMarker = null;
+      if (!globeScene) return;
+      while (globeScene.routeGroup.children.length) {
+        globeScene.routeGroup.remove(globeScene.routeGroup.children[0]);
+      }
+    }
+
+    function drawRouteOnGlobe(dep, arr) {
+      if (!initRouteMap()) return;
+      clearRouteMap();
+      const depPoint = latLonToVector(dep.lat, dep.lon, 1.04);
+      const arrPoint = latLonToVector(arr.lat, arr.lon, 1.04);
+      const midPoint = depPoint.clone().add(arrPoint).normalize().multiplyScalar(1.42);
+      const curve = new THREE.QuadraticBezierCurve3(depPoint, midPoint, arrPoint);
+      const route = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(curve.getPoints(96)),
+        new THREE.LineBasicMaterial({ color: 0xff2d2d, transparent: true, opacity: 0.95 })
+      );
+      const routeGlow = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(curve.getPoints(96)),
+        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.28 })
+      );
+      globeScene.routeGroup.add(routeGlow, route);
+      globeScene.routeGroup.add(makeGlowPin(depPoint, dep.short || dep.city));
+      globeScene.routeGroup.add(makeGlowPin(arrPoint, arr.short || arr.city));
     }
 
     function updateRouteMap(dep, arr) {
@@ -1650,52 +1738,100 @@
         arrTerminalCode.textContent = arr?.short || '----';
         depTerminalPlace.textContent = dep?.city || 'Choose departure';
         arrTerminalPlace.textContent = arr?.city || 'Choose destination';
-        routeRange.textContent = 'DISTANCE / TIME PENDING';
-        routeMapMeta.textContent = 'Choose departure and destination to draw route.';
-        routeMapLabel.textContent = 'Route preview awaiting selection';
+        routeRange.textContent = 'FLIGHT TIME: --H --M';
+        routeMapMeta.textContent = 'Choose departure and destination to draw globe route.';
+        routeMapLabel.textContent = 'Drag globe / zoom to inspect route';
         clearRouteMap();
         return;
       }
 
-      const nm = distanceNm(dep, arr);
       depTerminalCode.textContent = dep.short || dep.icao;
       arrTerminalCode.textContent = arr.short || arr.icao;
       depTerminalPlace.textContent = dep.city;
       arrTerminalPlace.textContent = arr.city;
-      routeRange.textContent = `${Number.isFinite(nm) ? `${Math.round(nm)} NM / ` : ''}${formatFlightTime(dep, arr)}`;
+      routeRange.textContent = `FLIGHT TIME: ${formatFlightTime(dep, arr)}`;
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
-      routeMapLabel.textContent = `${dep.country} / ${arr.country} route preview`;
+      routeMapLabel.textContent = `${dep.country} / ${arr.country} high-altitude route preview`;
+      drawRouteOnGlobe(dep, arr);
+    }
 
-      const depLatLng = airportLatLng(dep);
-      const arrLatLng = airportLatLng(arr);
-      if (!depLatLng || !arrLatLng) {
-        setMapFallback('Airport coordinates unavailable. Route details still update in the trip summary.');
-        return;
+    function addAircraftPart(group, geometry, material, position, rotation = [0, 0, 0], scale = [1, 1, 1]) {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(...position);
+      mesh.rotation.set(...rotation);
+      mesh.scale.set(...scale);
+      group.add(mesh);
+      return mesh;
+    }
+
+    function initAircraftModel() {
+      if (aircraftScene) return;
+      try {
+        const container = el('aircraftModel');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+        camera.position.set(0.15, 1.0, 6.2);
+        const renderer = createRenderer(container);
+        const plane = new THREE.Group();
+        plane.rotation.set(-0.08, -0.38, 0.04);
+        scene.add(plane);
+
+        const white = new THREE.MeshStandardMaterial({ color: 0xd8d8d8, roughness: 0.42, metalness: 0.18 });
+        const dark = new THREE.MeshStandardMaterial({ color: 0x171717, roughness: 0.55, metalness: 0.28 });
+        const glass = new THREE.MeshStandardMaterial({ color: 0x101820, roughness: 0.18, metalness: 0.15, transparent: true, opacity: 0.74 });
+        const red = new THREE.MeshStandardMaterial({ color: 0xff2d2d, roughness: 0.34, metalness: 0.25 });
+
+        addAircraftPart(plane, new THREE.CylinderGeometry(0.34, 0.42, 3.6, 32), white, [0, 0, 0], [0, 0, Math.PI / 2]);
+        addAircraftPart(plane, new THREE.ConeGeometry(0.34, 0.58, 32), white, [-2.08, 0, 0], [0, 0, Math.PI / 2]);
+        addAircraftPart(plane, new THREE.ConeGeometry(0.40, 0.70, 32), white, [2.05, 0, 0], [0, 0, -Math.PI / 2], [1, 0.74, 0.74]);
+        addAircraftPart(plane, new THREE.BoxGeometry(2.55, 0.055, 0.44), white, [-0.22, -0.05, 0], [0, 0, 0]);
+        addAircraftPart(plane, new THREE.BoxGeometry(0.72, 0.05, 0.28), white, [1.78, 0.12, 0], [0, 0, 0]);
+        addAircraftPart(plane, new THREE.BoxGeometry(0.08, 0.72, 0.34), white, [1.92, 0.42, 0], [0, 0, -0.18]);
+        addAircraftPart(plane, new THREE.BoxGeometry(1.65, 0.035, 0.055), red, [-0.18, -0.31, 0.37], [0, 0, 0]);
+        addAircraftPart(plane, new THREE.BoxGeometry(1.65, 0.035, 0.055), red, [-0.18, -0.31, -0.37], [0, 0, 0]);
+        addAircraftPart(plane, new THREE.BoxGeometry(0.72, 0.18, 0.42), glass, [-0.82, 0.33, 0], [0, 0, 0]);
+        addAircraftPart(plane, new THREE.BoxGeometry(0.52, 0.12, 0.38), glass, [-0.18, 0.31, 0], [0, 0, 0]);
+        addAircraftPart(plane, new THREE.BoxGeometry(0.08, 1.15, 0.045), dark, [-2.46, 0, 0], [0, 0, 0.15]);
+        addAircraftPart(plane, new THREE.BoxGeometry(0.08, 0.045, 1.15), dark, [-2.46, 0, 0], [0.12, 0, 0]);
+
+        const gearMaterial = new THREE.MeshStandardMaterial({ color: 0x0c0c0c, roughness: 0.6, metalness: 0.2 });
+        addAircraftPart(plane, new THREE.CylinderGeometry(0.07, 0.07, 0.05, 18), gearMaterial, [-0.72, -0.52, 0.34], [Math.PI / 2, 0, 0]);
+        addAircraftPart(plane, new THREE.CylinderGeometry(0.07, 0.07, 0.05, 18), gearMaterial, [-0.72, -0.52, -0.34], [Math.PI / 2, 0, 0]);
+        addAircraftPart(plane, new THREE.CylinderGeometry(0.055, 0.055, 0.05, 18), gearMaterial, [-1.84, -0.42, 0], [Math.PI / 2, 0, 0]);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+        const key = new THREE.DirectionalLight(0xffffff, 1.3);
+        key.position.set(-2.4, 3.2, 4.4);
+        scene.add(key);
+        const fill = new THREE.PointLight(0xff2d2d, 0.7, 6);
+        fill.position.set(2, -1, 2.8);
+        scene.add(fill);
+
+        aircraftScene = { scene, camera, renderer, plane };
+
+        function resizeAircraft() {
+          if (!aircraftScene) return;
+          const width = Math.max(container.clientWidth, 300);
+          const height = Math.max(container.clientHeight, 260);
+          aircraftScene.camera.aspect = width / height;
+          aircraftScene.camera.updateProjectionMatrix();
+          aircraftScene.renderer.setSize(width, height);
+        }
+
+        function animateAircraft() {
+          if (!aircraftScene) return;
+          requestAnimationFrame(animateAircraft);
+          aircraftScene.plane.rotation.y += 0.004;
+          aircraftScene.renderer.render(aircraftScene.scene, aircraftScene.camera);
+        }
+
+        window.addEventListener('resize', resizeAircraft);
+        resizeAircraft();
+        animateAircraft();
+      } catch (err) {
+        const container = el('aircraftModel');
+        if (container) container.textContent = '3D aircraft model unavailable';
       }
-
-      if (!initRouteMap()) return;
-      clearRouteMap();
-      depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure'), interactive: false }).addTo(map);
-      arrMarker = L.marker(arrLatLng, { icon: createRouteIcon('arrival'), interactive: false }).addTo(map);
-      routeLayer = L.polyline([depLatLng, arrLatLng], {
-        color: '#ffffff',
-        weight: 3,
-        opacity: 0.95,
-        dashArray: '10 9'
-      }).addTo(map);
-      map.invalidateSize(false);
-      map.fitBounds(L.latLngBounds([depLatLng, arrLatLng]), {
-        padding: [64, 64],
-        animate: false
-      });
-      setTimeout(() => {
-        if (!map) return;
-        map.invalidateSize(false);
-        map.fitBounds(L.latLngBounds([depLatLng, arrLatLng]), {
-          padding: [64, 64],
-          animate: false
-        });
-      }, 250);
     }
 
     function toRad(value) {
@@ -1907,6 +2043,8 @@
       el('arr').value = depValue;
       refreshSummary();
     });
+    globeZoomIn.addEventListener('click', () => zoomGlobe(-0.25));
+    globeZoomOut.addEventListener('click', () => zoomGlobe(0.25));
     el('carryOnBags').addEventListener('change', updateBaggageFields);
     el('seats').addEventListener('change', () => {
       renderPassengerFields();
@@ -1966,6 +2104,8 @@
     });
 
     fillPickerWheels();
+    initRouteMap();
+    initAircraftModel();
     populateAirports(FALLBACK_AIRPORTS);
     renderPassengerFields();
     updateBaggageFields();
