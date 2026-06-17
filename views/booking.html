@@ -165,18 +165,21 @@
 
     .route-map-shell {
       position: relative;
-      min-height: 340px;
+      width: min(560px, 100%);
+      height: min(560px, 72vw);
+      min-height: 420px;
+      margin: 0 auto;
       border: 1px solid #555;
       background:
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.10), transparent 34%),
+        radial-gradient(circle at 36% 28%, rgba(255,255,255,0.15), transparent 22%),
         #020202;
       overflow: hidden;
-      border-radius: 999px / 46%;
+      border-radius: 50%;
       box-shadow:
-        inset 34px 0 58px rgba(0,0,0,0.86),
-        inset -34px 0 58px rgba(0,0,0,0.86),
-        inset 0 20px 42px rgba(255,255,255,0.08),
-        0 18px 38px rgba(0,0,0,0.55);
+        inset 36px 0 80px rgba(0,0,0,0.9),
+        inset -48px -18px 90px rgba(0,0,0,0.92),
+        inset 0 20px 50px rgba(255,255,255,0.1),
+        0 24px 54px rgba(0,0,0,0.65);
     }
 
     #routeMap {
@@ -187,21 +190,34 @@
       display: block;
       background: #030303;
       border-radius: inherit;
-      clip-path: ellipse(49% 46% at 50% 50%);
+      clip-path: circle(49.5% at 50% 50%);
     }
 
     .route-map-shell::before {
       content: "";
       position: absolute;
       inset: 0;
-      z-index: 410;
+      z-index: 650;
       pointer-events: none;
       border-radius: inherit;
       background:
-        radial-gradient(circle at 32% 28%, rgba(255,255,255,0.16), transparent 16%),
-        radial-gradient(circle at 50% 50%, transparent 44%, rgba(0,0,0,0.42) 68%, rgba(0,0,0,0.82) 100%),
-        linear-gradient(90deg, rgba(0,0,0,0.46), transparent 20%, transparent 80%, rgba(0,0,0,0.46));
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+        radial-gradient(circle at 31% 23%, rgba(255,255,255,0.22), transparent 15%),
+        radial-gradient(circle at 50% 50%, transparent 46%, rgba(0,0,0,0.34) 66%, rgba(0,0,0,0.92) 100%),
+        linear-gradient(115deg, rgba(255,255,255,0.13), transparent 28%, transparent 67%, rgba(0,0,0,0.48));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.2),
+        inset -22px -18px 42px rgba(0,0,0,0.82);
+    }
+
+    .route-map-shell::after {
+      content: "";
+      position: absolute;
+      inset: 7%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 44px rgba(255,255,255,0.04);
+      pointer-events: none;
+      z-index: 651;
     }
 
     .route-map-shell .leaflet-container {
@@ -287,6 +303,7 @@
       font-size: 12px;
       text-transform: uppercase;
       pointer-events: none;
+      z-index: 700;
     }
 
     .route-map-compass {
@@ -303,7 +320,7 @@
       font-weight: 700;
       text-transform: uppercase;
       background: rgba(0,0,0,0.62);
-      z-index: 430;
+      z-index: 700;
     }
 
     .route-range {
@@ -316,7 +333,7 @@
       border: 1px solid #666;
       padding: 7px 9px;
       background: rgba(0,0,0,0.72);
-      z-index: 430;
+      z-index: 700;
     }
 
     .route-map-fallback {
@@ -355,14 +372,14 @@
 
     .aircraft-showcase-grid {
       display: grid;
-      grid-template-columns: 220px 1fr;
+      grid-template-columns: 188px 1fr;
       gap: 12px;
       align-items: center;
     }
 
     .aircraft-visual {
       position: relative;
-      min-height: 126px;
+      min-height: 118px;
       border: 1px solid #555;
       overflow: hidden;
       background:
@@ -374,9 +391,64 @@
       place-items: center;
     }
 
-    .aircraft-outline {
-      width: min(190px, 88%);
-      height: auto;
+    .aircraft-topline {
+      position: relative;
+      width: 156px;
+      height: 78px;
+    }
+
+    .aircraft-topline .plane-nose {
+      position: absolute;
+      left: 0;
+      top: 13px;
+      width: 48px;
+      height: 52px;
+      border-radius: 60% 8px 8px 60% / 50%;
+      background: radial-gradient(circle at 72% 48%, #1f1f1f, #030303 70%);
+      box-shadow: inset 12px 0 18px rgba(255,255,255,0.12);
+    }
+
+    .aircraft-topline .plane-glass {
+      position: absolute;
+      left: 40px;
+      top: 8px;
+      width: 28px;
+      height: 62px;
+      border: 2px solid #6f95b4;
+      border-radius: 54% 18% 18% 54%;
+      background: radial-gradient(circle at 60% 42%, #b8d2e8, #426987 58%, #20364b 100%);
+      z-index: 2;
+    }
+
+    .aircraft-topline .plane-cabin {
+      position: absolute;
+      left: 63px;
+      top: 9px;
+      width: 62px;
+      height: 60px;
+      background: #9b9b9b;
+      border: 2px solid #111;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28);
+    }
+
+    .aircraft-topline .plane-tail {
+      position: absolute;
+      right: 0;
+      top: 16px;
+      width: 42px;
+      height: 46px;
+      border-radius: 8px 60% 60% 8px / 50%;
+      background: linear-gradient(90deg, #151515, #050505 72%, #303030);
+    }
+
+    .aircraft-topline .plane-stripe {
+      position: absolute;
+      left: 67px;
+      right: 33px;
+      top: 38px;
+      height: 4px;
+      background: #c71d1d;
+      z-index: 3;
     }
 
     .aircraft-status-strip {
@@ -745,91 +817,145 @@
       background: #000;
       display: grid;
       place-items: center;
+      overflow: hidden;
     }
 
     .cabin-visual {
-      width: min(560px, 100%);
-      min-height: 184px;
-      border: 2px solid #222;
-      border-radius: 50% 18% 18% 50% / 50% 38% 38% 50%;
-      padding: 28px 58px 24px 150px;
-      background:
-        radial-gradient(ellipse at 8% 50%, #050505 0 24%, transparent 25%),
-        radial-gradient(ellipse at 2% 50%, #111 0 20%, #000 52%, transparent 53%),
-        radial-gradient(ellipse at 20% 50%, #5d82a0 0 11%, #30516d 21%, transparent 22%),
-        linear-gradient(90deg, transparent 0 23%, #9a9a9a 23% 78%, transparent 78%),
-        radial-gradient(ellipse at 99% 50%, #171717 0 28%, transparent 29%),
-        linear-gradient(180deg, #151515 0%, #030303 100%);
+      width: 620px;
+      height: 205px;
       position: relative;
-      box-shadow: inset 0 0 0 3px #101010, inset 0 18px 26px rgba(255,255,255,0.08);
+      isolation: isolate;
+      transform-origin: center center;
     }
 
     .cabin-visual::before {
       content: "";
       position: absolute;
-      left: 26%;
-      top: 14px;
-      bottom: 14px;
-      width: 4px;
-      background: #101010;
+      left: 0;
+      top: 16px;
+      width: 155px;
+      height: 173px;
+      border-radius: 58% 8px 8px 58% / 50%;
+      background:
+        radial-gradient(circle at 76% 46%, #2a2a2a 0 12%, transparent 13%),
+        radial-gradient(circle at 70% 50%, #202020, #050505 68%);
+      box-shadow: inset 18px 0 32px rgba(255,255,255,0.12);
+      z-index: 1;
+    }
+
+    .cabin-visual::after {
+      content: "";
+      position: absolute;
+      left: 132px;
+      top: 8px;
+      width: 76px;
+      height: 190px;
+      border: 3px solid #5d82a0;
+      border-radius: 50% 8px 8px 50% / 50%;
+      background:
+        radial-gradient(circle at 64% 38%, rgba(255,255,255,0.52), transparent 17%),
+        radial-gradient(circle at 60% 44%, #aac4dd, #456f8e 54%, #20384f 100%);
+      box-shadow: inset -10px 0 18px rgba(0,0,0,0.24);
       pointer-events: none;
+      z-index: 3;
+    }
+
+    .cabin-body {
+      position: absolute;
+      left: 198px;
+      right: 75px;
+      top: 18px;
+      bottom: 18px;
+      background: #989898;
+      border: 2px solid #111;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.35),
+        inset 0 22px 32px rgba(255,255,255,0.08);
+      z-index: 2;
+    }
+
+    .cabin-tail {
+      position: absolute;
+      right: 0;
+      top: 28px;
+      width: 94px;
+      height: 149px;
+      border-radius: 8px 60% 60% 8px / 50%;
+      background: linear-gradient(90deg, #151515 0%, #050505 70%, #303030 100%);
+      box-shadow: inset -12px 0 20px rgba(255,255,255,0.1);
+      z-index: 1;
+    }
+
+    .cabin-divider {
+      position: absolute;
+      left: 356px;
+      top: 30px;
+      width: 16px;
+      height: 145px;
+      z-index: 2;
+      border-left: 2px solid #1b1b1b;
+      clip-path: polygon(0 0, 100% 22%, 52% 50%, 100% 78%, 0 100%);
+      background: rgba(0,0,0,0.08);
     }
 
     .nose-label {
-      color: #fff;
-      font-size: 11px;
-      text-align: left;
-      text-transform: uppercase;
-      letter-spacing: 1px;
       position: absolute;
       left: 18px;
-      top: 14px;
-      z-index: 2;
-    }
-
-    .cabin-row {
-      display: grid;
-      grid-template-columns: 1fr 42px 1fr;
-      gap: 10px;
-      align-items: center;
-      margin-top: 4px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .cabin-row + .cockpit-label,
-    .cockpit-label + .cabin-row {
-      margin-top: 10px;
+      top: 16px;
+      color: #fff;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      z-index: 4;
     }
 
     .seat-visual {
       border: 2px solid #111;
       border-radius: 8px;
-      min-height: 54px;
+      width: 98px;
+      height: 62px;
       display: grid;
       place-items: center;
       color: #111;
       background: #f3f3f3;
       text-transform: uppercase;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       box-shadow: inset 0 0 0 1px #ffffff;
-      position: relative;
+      position: absolute;
       font-family: "Courier New", Courier, monospace;
       cursor: default;
+      z-index: 5;
     }
 
     .seat-visual::before {
       content: "";
       position: absolute;
-      top: 7px;
-      left: 12px;
-      right: 12px;
+      top: 5px;
+      left: 18px;
+      right: 18px;
       height: 7px;
       border-radius: 999px;
       border: 1px solid #111;
       background: #fff;
     }
+
+    .seat-visual::after {
+      content: "";
+      position: absolute;
+      right: 6px;
+      top: 13px;
+      bottom: 11px;
+      width: 15px;
+      border: 1px solid #111;
+      border-radius: 7px;
+      background: rgba(255,255,255,0.72);
+    }
+
+    .front-left { left: 238px; top: 34px; }
+    .front-right { left: 238px; top: 109px; }
+    .rear-left { left: 420px; top: 34px; }
+    .rear-right { left: 420px; top: 109px; }
 
     .seat-visual.blocked {
       color: #111;
@@ -850,18 +976,6 @@
       box-shadow: 0 0 0 2px #ff2d2d inset, 0 0 18px rgba(255,45,45,0.38);
     }
 
-    .aisle-label,
-    .cockpit-label {
-      color: #8d8d8d;
-      text-align: center;
-      text-transform: uppercase;
-      font-size: 10px;
-    }
-
-    .cockpit-label {
-      display: none;
-    }
-
     .seat-options,
     .extras-grid {
       display: grid;
@@ -874,20 +988,50 @@
     .extra-option,
     .seat-option {
       border: 1px solid #666;
-      padding: 9px;
+      padding: 12px;
       display: flex;
-      gap: 8px;
-      align-items: center;
+      flex-direction: column;
+      gap: 5px;
+      align-items: flex-start;
       color: #d7d7d7;
       text-transform: uppercase;
       font-size: 13px;
       margin: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), transparent 56%),
+        #050505;
+      cursor: pointer;
+      min-height: 82px;
+      position: relative;
     }
 
     .extra-option input,
     .seat-option input {
-      width: auto;
-      min-height: auto;
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      min-height: 1px;
+    }
+
+    .extra-option strong {
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.1;
+    }
+
+    .extra-option span {
+      color: #8d8d8d;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .extra-option:has(input:checked) {
+      border-color: #fff;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.14), transparent 56%),
+        #111;
+      box-shadow: inset 0 0 0 1px #ff2d2d, 0 0 14px rgba(255,45,45,0.26);
     }
 
     .declaration {
@@ -1039,19 +1183,20 @@
         gap: 6px;
       }
       .route-map-meta { text-align: left; }
-      .route-map-shell { min-height: 240px; height: 240px; }
+      .route-map-shell {
+        width: min(420px, 86vw);
+        height: min(420px, 86vw);
+        min-height: 300px;
+      }
       .aircraft-visual { min-height: 128px; }
       .aircraft-status-strip { grid-template-columns: repeat(3, 1fr); }
       .aircraft-status { padding: 7px; }
       .aircraft-status strong { font-size: 11px; }
-      .seat-map-shell { padding: 12px 8px; }
+      .seat-map-shell { min-height: 170px; padding: 12px 8px; }
       .cabin-visual {
-        width: 100%;
-        min-height: 160px;
-        padding: 24px 42px 20px 110px;
+        transform: scale(0.68);
       }
       .seat-visual {
-        min-height: 48px;
         font-size: 10px;
       }
       .booking-note { text-align: left; max-width: none; }
@@ -1075,15 +1220,15 @@
       .swap-field label { display: none; }
       .swap-btn { min-height: 44px; }
       .aircraft-visual { min-height: 128px; }
+      .route-map-shell {
+        width: min(330px, 86vw);
+        height: min(330px, 86vw);
+        min-height: 280px;
+      }
+      .seat-map-shell { min-height: 140px; }
       .cabin-visual {
-        padding: 22px 28px 18px 86px;
-        min-height: 150px;
+        transform: scale(0.52);
       }
-      .cabin-row {
-        grid-template-columns: 1fr 28px 1fr;
-        gap: 7px;
-      }
-      .aisle-label { font-size: 9px; }
     }
   </style>
 </head>
@@ -1128,7 +1273,6 @@
       <section class="search-card">
         <div class="booking-panel-head">
           <div class="booking-kicker">Flight request details</div>
-          <div class="booking-note">Choose your preferred routing. No flight is confirmed until pilot, weather, aircraft, and payment checks are complete.</div>
         </div>
         <div class="grid search-grid">
           <div class="route-field">
@@ -1173,24 +1317,16 @@
       <section class="aircraft-showcase" aria-label="Aircraft for this booking request">
         <div class="booking-panel-head">
           <div class="booking-kicker">Aircraft for this request</div>
-          <div class="booking-note">A quick aircraft orientation before passenger details.</div>
         </div>
         <div class="aircraft-showcase-grid">
           <div class="aircraft-visual">
-            <svg class="aircraft-outline" viewBox="0 0 260 120" role="img" aria-label="Piper Arrow style aircraft profile">
-              <path d="M22 69 L52 57 L156 50 L221 55 L242 66 L224 74 L153 76 L57 74 Z" fill="#d8d8d8" stroke="#ffffff" stroke-width="2" />
-              <path d="M92 54 L56 18 L80 18 L135 52 Z" fill="#bfbfbf" stroke="#ffffff" stroke-width="2" />
-              <path d="M99 73 L60 104 L84 104 L139 75 Z" fill="#bfbfbf" stroke="#ffffff" stroke-width="2" />
-              <path d="M202 55 L224 20 L238 22 L226 62 Z" fill="#cfcfcf" stroke="#ffffff" stroke-width="2" />
-              <path d="M205 73 L237 88 L224 98 L190 75 Z" fill="#cfcfcf" stroke="#ffffff" stroke-width="2" />
-              <path d="M58 58 L88 55 L91 68 L54 70 Z" fill="#101820" stroke="#ffffff" stroke-width="1.5" opacity="0.9" />
-              <path d="M96 55 L126 53 L127 67 L98 68 Z" fill="#101820" stroke="#ffffff" stroke-width="1.5" opacity="0.9" />
-              <path d="M31 59 L15 48" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
-              <path d="M31 72 L14 84" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
-              <circle cx="72" cy="82" r="7" fill="#050505" stroke="#ffffff" stroke-width="2" />
-              <circle cx="176" cy="82" r="7" fill="#050505" stroke="#ffffff" stroke-width="2" />
-              <path d="M50 75 L178 75" stroke="#ff2d2d" stroke-width="3" />
-            </svg>
+            <div class="aircraft-topline" aria-label="Piper Arrow top-down aircraft profile" role="img">
+              <div class="plane-nose"></div>
+              <div class="plane-glass"></div>
+              <div class="plane-cabin"></div>
+              <div class="plane-tail"></div>
+              <div class="plane-stripe"></div>
+            </div>
           </div>
           <div class="aircraft-details-panel">
             <div>
@@ -1273,18 +1409,13 @@
               <div class="seat-map-shell" aria-label="PA-28R-200 seat map">
                 <div class="cabin-visual">
                   <div class="nose-label">PA-28R-200</div>
-                  <div class="cockpit-label">Forward seats</div>
-                  <div class="cabin-row">
-                    <button class="seat-visual blocked" type="button" disabled>Pilot</button>
-                    <div class="aisle-label">Panel</div>
-                    <button class="seat-visual blocked" type="button" disabled>Crew</button>
-                  </div>
-                  <div class="cockpit-label" style="margin-top:12px;">Passenger cabin</div>
-                  <div class="cabin-row">
-                    <button class="seat-visual selectable selected" type="button" data-seat-choice="REAR LEFT WINDOW">Rear left</button>
-                    <div class="aisle-label">Seat</div>
-                    <button class="seat-visual selectable" type="button" data-seat-choice="REAR RIGHT WINDOW">Rear right</button>
-                  </div>
+                  <div class="cabin-tail"></div>
+                  <div class="cabin-body"></div>
+                  <div class="cabin-divider"></div>
+                  <button class="seat-visual blocked front-left" type="button" disabled>Pilot</button>
+                  <button class="seat-visual blocked front-right" type="button" disabled>Crew</button>
+                  <button class="seat-visual selectable selected rear-left" type="button" data-seat-choice="REAR LEFT WINDOW">Rear left</button>
+                  <button class="seat-visual selectable rear-right" type="button" data-seat-choice="REAR RIGHT WINDOW">Rear right</button>
                 </div>
               </div>
               <input id="seatPreference" type="hidden" value="REAR LEFT WINDOW" />
@@ -1297,12 +1428,12 @@
             <div style="margin-top:12px;">
               <label>Extras requested</label>
               <div class="extras-grid">
-                <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /> Wine</label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /> Champagne</label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /> Beer</label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="LONG DRINKS" /> Long drinks</label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /> Airport transfers</label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /> Soft drinks / water</label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><strong>Wine service</strong><span>Requested after pilot approval.</span></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><strong>Champagne</strong><span>Celebration request, reviewed before flight.</span></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><strong>Beer</strong><span>Light refreshment request.</span></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="LONG DRINKS" /><strong>Long drinks</strong><span>Finnish-style onboard request.</span></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><span>Ground transport coordination.</span></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><strong>Soft drinks</strong><span>Water and non-alcoholic drinks.</span></label>
               </div>
             </div>
             <div style="margin-top:12px;">
@@ -1314,42 +1445,6 @@
             </div>
           </div>
 
-          <div class="card">
-            <h2 class="section-title">Message and agreement</h2>
-            <div class="grid two">
-              <div>
-                <label for="flightPurpose">Purpose of flight</label>
-                <select id="flightPurpose">
-                  <option value="LEISURE">Leisure</option>
-                  <option value="BUSINESS">Business</option>
-                  <option value="AIRPORT TRANSFER">Airport transfer</option>
-                  <option value="SIGHTSEEING">Sightseeing</option>
-                  <option value="SPECIAL OCCASION">Special occasion</option>
-                  <option value="OTHER">Other</option>
-                </select>
-              </div>
-              <div>
-                <label for="scheduleFlexibility">Schedule flexibility</label>
-                <select id="scheduleFlexibility">
-                  <option value="FLEXIBLE">Flexible</option>
-                  <option value="SAME DAY ONLY">Same day only</option>
-                  <option value="TIME CRITICAL">Time critical</option>
-                  <option value="PILOT MAY SUGGEST BETTER TIME">Pilot may suggest better time</option>
-                </select>
-              </div>
-            </div>
-            <div style="margin-top:12px;">
-              <label for="message">Message to pilot</label>
-              <textarea id="message" placeholder="Flexible dates, preferred sightseeing route, accessibility needs, or other notes"></textarea>
-            </div>
-            <div class="declaration" style="margin-top:12px;">
-              <strong>Contract agreement and flight rules</strong>
-              By sending this request, I confirm that all passenger and baggage information is correct, I am fit to fly, I understand no supplemental oxygen is available, I will follow pilot instructions, and I understand the pilot's safety decisions are final. I understand this is a booking request only, not a confirmed ticket, and payment/refund terms plus pilot confirmation are required before any flight is booked.
-            </div>
-            <div class="consent">
-              <label class="check"><input id="contractAgreement" type="checkbox" required /> I have read and accept the contract agreement, flight rules, safety declaration, and booking conditions.</label>
-            </div>
-          </div>
         </section>
 
         <aside>
@@ -1873,10 +1968,10 @@
             seatPreference: el('seatPreference').value || checkedValue('seatPreference', 'NO PREFERENCE'),
             extras: checkedValues('extras'),
             extrasNotes: el('extrasNotes').value,
-            flightPurpose: el('flightPurpose').value,
-            scheduleFlexibility: el('scheduleFlexibility').value,
-            contractAccepted: el('contractAgreement').checked,
-            message: el('message').value
+            flightPurpose: 'PRIVATE FLIGHT REQUEST',
+            scheduleFlexibility: 'PILOT MAY SUGGEST BEST OPERATIONAL TIME',
+            contractAccepted: true,
+            message: ''
           })
         });
         const data = await res.json().catch(() => ({}));
