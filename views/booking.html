@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NatGlobe Aviation / Private Flight Booking</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
   <style>
     :root {
       --bg: #000000;
@@ -184,45 +190,75 @@
     .route-map-shell {
       position: relative;
       width: 100%;
-      height: clamp(430px, 50vw, 580px);
-      min-height: 430px;
+      height: clamp(360px, 44vw, 520px);
+      min-height: 360px;
       margin: 0 auto;
       border: 1px solid #555;
       background:
-        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.09), transparent 38%),
-        linear-gradient(180deg, #111 0%, #020202 100%);
+        linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.045) 1px, transparent 1px),
+        #050505;
+      background-size: 42px 42px;
       overflow: hidden;
       border-radius: 0;
-      box-shadow:
-        inset 0 0 90px rgba(255,255,255,0.08),
-        inset 0 -40px 90px rgba(0,0,0,0.65),
-        0 24px 54px rgba(0,0,0,0.42);
+      box-shadow: inset 0 0 34px rgba(0,0,0,0.55);
     }
 
-    .globe-mount {
+    #routeMap {
       position: absolute;
       inset: 0;
-      z-index: 1;
-      cursor: grab;
+      width: 100%;
+      height: 100%;
+      background: #050505;
     }
 
-    .globe-mount:active {
-      cursor: grabbing;
+    .route-map-shell .leaflet-container {
+      background: #050505;
+      font-family: inherit;
     }
 
-    .globe-mount canvas {
-      display: block;
+    .route-map-shell .leaflet-control-container {
+      display: none;
     }
 
-    .route-map-shell::after {
-      content: "";
-      position: absolute;
-      inset: 0;
+    .route-map-shell .leaflet-tile-pane {
+      filter: grayscale(1) contrast(1.08) brightness(0.68);
+    }
+
+    .route-map-shell .leaflet-pane > svg {
       pointer-events: none;
-      z-index: 3;
-      background:
-        radial-gradient(circle at 32% 22%, rgba(255,255,255,0.18), transparent 14%),
-        radial-gradient(circle at 50% 50%, transparent 44%, rgba(0,0,0,0.16) 66%, rgba(0,0,0,0.55) 100%);
+    }
+
+    .route-pin {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #000;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.22), 0 0 15px rgba(255,255,255,0.8);
+    }
+
+    .route-pin.arrival {
+      background: #f56600;
+      border-color: #fff;
+      box-shadow: 0 0 0 4px rgba(245,102,0,0.22), 0 0 15px rgba(245,102,0,0.8);
+    }
+
+    .leaflet-marker-icon {
+      background: transparent;
+      border: 0;
+    }
+
+    .map-watermark {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      z-index: 700;
+      color: rgba(255,255,255,0.55);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      pointer-events: none;
     }
 
     .route-map-label {
@@ -333,8 +369,8 @@
       min-height: 190px;
       border: 1px solid #555;
       background:
-        radial-gradient(circle at 50% 78%, rgba(255,255,255,0.16), transparent 35%),
-        linear-gradient(180deg, #1b1b1b 0%, #090909 100%);
+        radial-gradient(circle at 50% 78%, rgba(0,0,0,0.12), transparent 30%),
+        linear-gradient(180deg, #f4f4f4 0%, #d9d9d9 100%);
       overflow: hidden;
       display: grid;
       place-items: center;
@@ -347,7 +383,7 @@
       object-fit: contain;
       display: block;
       padding: 10px;
-      filter: drop-shadow(0 22px 24px rgba(0,0,0,0.28));
+      filter: drop-shadow(0 18px 20px rgba(0,0,0,0.24));
     }
 
     .aircraft-feature-copy {
@@ -1025,8 +1061,9 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
-          <div id="globeMount" class="globe-mount" aria-label="Interactive dark 3D route globe"></div>
+          <div id="routeMap" aria-label="Interactive route map"></div>
           <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
+          <div class="map-watermark">NatGlobe route map</div>
           <div class="route-map-compass">N</div>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
@@ -1079,7 +1116,7 @@
 
       <section class="card aircraft-feature" aria-label="Aircraft for this request">
         <div class="aircraft-photo">
-          <img src="/piper-render-transparent.png" alt="Grey and orange Piper aircraft" />
+          <img src="/piper-hangar.jpg" alt="Piper aircraft in hangar-style studio view" />
         </div>
         <div class="aircraft-feature-copy">
           <div>
@@ -1239,7 +1276,11 @@
     </form>
   </main>
 
-  <script src="https://unpkg.com/globe.gl"></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
   <script>
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
@@ -1291,7 +1332,6 @@
     const routeMapLabel = el('routeMapLabel');
     const routeMapShell = el('routeMapShell');
     const routeMapFallback = el('routeMapFallback');
-    const globeMount = el('globeMount');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -1302,9 +1342,10 @@
     };
 
     let airports = [];
-    let routeGlobe = null;
-    let globeReady = false;
-    let globeResizeObserver = null;
+    let routeMap = null;
+    let routeLayer = null;
+    let depMarker = null;
+    let arrMarker = null;
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -1367,68 +1408,66 @@
     }
 
     function clearRouteMap() {
-      if (!routeGlobe) return;
-      routeGlobe
-        .arcsData([])
-        .pointsData([])
-        .labelsData([]);
+      if (!routeMap) return;
+      [routeLayer, depMarker, arrMarker].forEach(layer => {
+        if (layer) routeMap.removeLayer(layer);
+      });
+      routeLayer = null;
+      depMarker = null;
+      arrMarker = null;
     }
 
-    function setGlobeFallback(message) {
+    function setMapFallback(message) {
       routeMapShell.classList.add('map-fallback');
       routeMapFallback.textContent = message;
     }
 
-    function initRouteGlobe() {
-      if (routeGlobe) return true;
-      if (!window.Globe) {
-        setGlobeFallback('Interactive globe loading. Route details still update in the trip summary.');
+    function createRouteIcon(type) {
+      if (!window.L) return null;
+      return L.divIcon({
+        className: '',
+        html: `<div class="route-pin ${type === 'arrival' ? 'arrival' : ''}"></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
+      });
+    }
+
+    function initRouteMap() {
+      if (routeMap) return true;
+      if (!window.L) {
+        setMapFallback('Map unavailable. Route details still update in the trip summary.');
         return false;
       }
 
       routeMapShell.classList.remove('map-fallback');
-      const width = globeMount.clientWidth || routeMapShell.clientWidth || 960;
-      const height = globeMount.clientHeight || routeMapShell.clientHeight || 520;
-      routeGlobe = Globe()(globeMount)
-        .width(width)
-        .height(height)
-        .backgroundColor('rgba(0,0,0,0)')
-        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
-        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-        .showAtmosphere(true)
-        .atmosphereColor('#777777')
-        .atmosphereAltitude(0.13)
-        .arcColor(() => '#ffffff')
-        .arcAltitude(0.055)
-        .arcStroke(0.018)
-        .pointColor(() => '#ffffff')
-        .pointAltitude(0.024)
-        .pointRadius(0.18)
-        .labelText(item => item.label)
-        .labelSize(0.18)
-        .labelDotRadius(0.08)
-        .labelColor(() => '#ffffff')
-        .labelResolution(2);
+      try {
+        routeMap = L.map('routeMap', {
+          attributionControl: false,
+          zoomControl: false,
+          dragging: true,
+          touchZoom: true,
+          scrollWheelZoom: true,
+          doubleClickZoom: true,
+          boxZoom: false,
+          keyboard: false,
+          tap: true
+        }).setView([60.35, 24.95], 7);
 
-      const controls = routeGlobe.controls();
-      controls.enableZoom = true;
-      controls.enablePan = false;
-      controls.autoRotate = false;
-      controls.autoRotateSpeed = 0;
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19,
+          crossOrigin: true
+        }).addTo(routeMap);
 
-      globeResizeObserver = new ResizeObserver(() => {
-        if (!routeGlobe) return;
-        routeGlobe
-          .width(globeMount.clientWidth || width)
-          .height(globeMount.clientHeight || height);
-      });
-      globeResizeObserver.observe(globeMount);
-      globeReady = true;
-      return true;
+        setTimeout(() => routeMap.invalidateSize(false), 150);
+        return true;
+      } catch (err) {
+        setMapFallback('Map unavailable. Route details still update in the trip summary.');
+        return false;
+      }
     }
 
     function drawRouteOnMap(dep, arr) {
-      if (!initRouteGlobe()) return;
+      if (!initRouteMap()) return;
       const depLatLng = airportLatLng(dep);
       const arrLatLng = airportLatLng(arr);
       if (!depLatLng || !arrLatLng) {
@@ -1436,23 +1475,32 @@
         return;
       }
 
-      const [depLat, depLng] = depLatLng;
-      const [arrLat, arrLng] = arrLatLng;
-      routeGlobe
-        .arcsData([{ startLat: depLat, startLng: depLng, endLat: arrLat, endLng: arrLng }])
-        .pointsData([
-          { lat: depLat, lng: depLng, label: dep.city },
-          { lat: arrLat, lng: arrLng, label: arr.city }
-        ])
-        .labelsData([])
-        .pointLat(item => item.lat)
-        .pointLng(item => item.lng);
+      clearRouteMap();
+      depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure'), interactive: false }).addTo(routeMap);
+      arrMarker = L.marker(arrLatLng, { icon: createRouteIcon('arrival'), interactive: false }).addTo(routeMap);
+      routeLayer = L.polyline([depLatLng, arrLatLng], {
+        color: '#ffffff',
+        weight: 3,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(routeMap);
 
-      routeGlobe.pointOfView({
-        lat: (depLat + arrLat) / 2,
-        lng: (depLng + arrLng) / 2,
-        altitude: 1.55
-      }, globeReady ? 900 : 0);
+      const bounds = L.latLngBounds([depLatLng, arrLatLng]);
+      routeMap.fitBounds(bounds, {
+        padding: [70, 70],
+        animate: false,
+        maxZoom: 8
+      });
+      setTimeout(() => {
+        if (!routeMap) return;
+        routeMap.invalidateSize(false);
+        routeMap.fitBounds(bounds, {
+          padding: [70, 70],
+          animate: false,
+          maxZoom: 8
+        });
+      }, 180);
     }
 
     function updateRouteMap(dep, arr) {
