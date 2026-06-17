@@ -167,8 +167,16 @@
       position: relative;
       min-height: 340px;
       border: 1px solid #555;
-      background: #050505;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.10), transparent 34%),
+        #020202;
       overflow: hidden;
+      border-radius: 999px / 46%;
+      box-shadow:
+        inset 34px 0 58px rgba(0,0,0,0.86),
+        inset -34px 0 58px rgba(0,0,0,0.86),
+        inset 0 20px 42px rgba(255,255,255,0.08),
+        0 18px 38px rgba(0,0,0,0.55);
     }
 
     #routeMap {
@@ -178,6 +186,22 @@
       height: 100%;
       display: block;
       background: #030303;
+      border-radius: inherit;
+      clip-path: ellipse(49% 46% at 50% 50%);
+    }
+
+    .route-map-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 410;
+      pointer-events: none;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(255,255,255,0.16), transparent 16%),
+        radial-gradient(circle at 50% 50%, transparent 44%, rgba(0,0,0,0.42) 68%, rgba(0,0,0,0.82) 100%),
+        linear-gradient(90deg, rgba(0,0,0,0.46), transparent 20%, transparent 80%, rgba(0,0,0,0.46));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
     }
 
     .route-map-shell .leaflet-container {
@@ -279,7 +303,7 @@
       font-weight: 700;
       text-transform: uppercase;
       background: rgba(0,0,0,0.62);
-      z-index: 420;
+      z-index: 430;
     }
 
     .route-range {
@@ -292,7 +316,7 @@
       border: 1px solid #666;
       padding: 7px 9px;
       background: rgba(0,0,0,0.72);
-      z-index: 420;
+      z-index: 430;
     }
 
     .route-map-fallback {
@@ -721,45 +745,46 @@
       background: #000;
       display: grid;
       place-items: center;
-      perspective: 520px;
     }
 
     .cabin-visual {
-      width: min(320px, 100%);
-      border: 2px solid #777;
-      border-radius: 48% 48% 24px 24px / 18% 18% 16px 16px;
-      padding: 18px 16px 22px;
+      width: min(560px, 100%);
+      min-height: 184px;
+      border: 2px solid #222;
+      border-radius: 50% 18% 18% 50% / 50% 38% 38% 50%;
+      padding: 28px 58px 24px 150px;
       background:
-        radial-gradient(circle at 22% 28%, rgba(255,255,255,0.28), transparent 8%),
-        radial-gradient(circle at 78% 28%, rgba(255,255,255,0.28), transparent 8%),
-        linear-gradient(90deg, transparent 0 18%, rgba(255,255,255,0.08) 18% 21%, transparent 21% 79%, rgba(255,255,255,0.08) 79% 82%, transparent 82%),
-        linear-gradient(180deg, #191919 0%, #050505 100%);
-      transform: rotateX(10deg);
-      box-shadow: inset 0 18px 28px rgba(255,255,255,0.06), 0 18px 24px rgba(0,0,0,0.45);
+        radial-gradient(ellipse at 8% 50%, #050505 0 24%, transparent 25%),
+        radial-gradient(ellipse at 2% 50%, #111 0 20%, #000 52%, transparent 53%),
+        radial-gradient(ellipse at 20% 50%, #5d82a0 0 11%, #30516d 21%, transparent 22%),
+        linear-gradient(90deg, transparent 0 23%, #9a9a9a 23% 78%, transparent 78%),
+        radial-gradient(ellipse at 99% 50%, #171717 0 28%, transparent 29%),
+        linear-gradient(180deg, #151515 0%, #030303 100%);
       position: relative;
+      box-shadow: inset 0 0 0 3px #101010, inset 0 18px 26px rgba(255,255,255,0.08);
     }
 
     .cabin-visual::before {
       content: "";
       position: absolute;
-      left: 50%;
-      top: 46px;
-      bottom: 18px;
-      width: 2px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.05));
-      transform: translateX(-50%);
+      left: 26%;
+      top: 14px;
+      bottom: 14px;
+      width: 4px;
+      background: #101010;
       pointer-events: none;
     }
 
     .nose-label {
       color: #fff;
       font-size: 11px;
-      text-align: center;
+      text-align: left;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 8px;
-      position: relative;
-      z-index: 1;
+      position: absolute;
+      left: 18px;
+      top: 14px;
+      z-index: 2;
     }
 
     .cabin-row {
@@ -767,22 +792,28 @@
       grid-template-columns: 1fr 42px 1fr;
       gap: 10px;
       align-items: center;
-      margin-top: 10px;
+      margin-top: 4px;
       position: relative;
-      z-index: 1;
+      z-index: 2;
+    }
+
+    .cabin-row + .cockpit-label,
+    .cockpit-label + .cabin-row {
+      margin-top: 10px;
     }
 
     .seat-visual {
-      border: 1px solid #777;
-      min-height: 62px;
+      border: 2px solid #111;
+      border-radius: 8px;
+      min-height: 54px;
       display: grid;
       place-items: center;
-      color: #fff;
-      background: linear-gradient(180deg, #242424 0%, #090909 100%);
+      color: #111;
+      background: #f3f3f3;
       text-transform: uppercase;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      box-shadow: inset 0 8px 12px rgba(255,255,255,0.07);
+      box-shadow: inset 0 0 0 1px #ffffff;
       position: relative;
       font-family: "Courier New", Courier, monospace;
       cursor: default;
@@ -794,15 +825,17 @@
       top: 7px;
       left: 12px;
       right: 12px;
-      height: 9px;
+      height: 7px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.18);
+      border: 1px solid #111;
+      background: #fff;
     }
 
     .seat-visual.blocked {
-      color: #8d8d8d;
-      border-color: #444;
-      background: linear-gradient(180deg, #151515 0%, #050505 100%);
+      color: #111;
+      border-color: #111;
+      background: #7e7e7e;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.20);
     }
 
     .seat-visual.selectable {
@@ -813,8 +846,8 @@
     .seat-visual.selectable.selected {
       color: #000;
       background: #fff;
-      border-color: #fff;
-      box-shadow: 0 0 0 2px #777 inset, 0 0 20px rgba(255,255,255,0.18);
+      border-color: #ff2d2d;
+      box-shadow: 0 0 0 2px #ff2d2d inset, 0 0 18px rgba(255,45,45,0.38);
     }
 
     .aisle-label,
@@ -822,12 +855,11 @@
       color: #8d8d8d;
       text-align: center;
       text-transform: uppercase;
-      font-size: 12px;
+      font-size: 10px;
     }
 
     .cockpit-label {
-      border-bottom: 1px solid #333;
-      padding-bottom: 8px;
+      display: none;
     }
 
     .seat-options,
@@ -1007,8 +1039,21 @@
         gap: 6px;
       }
       .route-map-meta { text-align: left; }
-      .route-map-shell { height: 240px; }
+      .route-map-shell { min-height: 240px; height: 240px; }
       .aircraft-visual { min-height: 128px; }
+      .aircraft-status-strip { grid-template-columns: repeat(3, 1fr); }
+      .aircraft-status { padding: 7px; }
+      .aircraft-status strong { font-size: 11px; }
+      .seat-map-shell { padding: 12px 8px; }
+      .cabin-visual {
+        width: 100%;
+        min-height: 160px;
+        padding: 24px 42px 20px 110px;
+      }
+      .seat-visual {
+        min-height: 48px;
+        font-size: 10px;
+      }
       .booking-note { text-align: left; max-width: none; }
       .summary-card { position: static; }
       .route-line { align-items: flex-start; flex-direction: column; }
@@ -1030,6 +1075,15 @@
       .swap-field label { display: none; }
       .swap-btn { min-height: 44px; }
       .aircraft-visual { min-height: 128px; }
+      .cabin-visual {
+        padding: 22px 28px 18px 86px;
+        min-height: 150px;
+      }
+      .cabin-row {
+        grid-template-columns: 1fr 28px 1fr;
+        gap: 7px;
+      }
+      .aisle-label { font-size: 9px; }
     }
   </style>
 </head>
@@ -1068,43 +1122,6 @@
           <div class="route-map-compass">N</div>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
-        </div>
-      </section>
-
-      <section class="aircraft-showcase" aria-label="Aircraft for this booking request">
-        <div class="booking-panel-head">
-          <div class="booking-kicker">Aircraft for this request</div>
-          <div class="booking-note">A quick aircraft orientation before passenger details.</div>
-        </div>
-        <div class="aircraft-showcase-grid">
-          <div class="aircraft-visual">
-            <svg class="aircraft-outline" viewBox="0 0 260 120" role="img" aria-label="Piper Arrow style aircraft profile">
-              <path d="M22 69 L52 57 L156 50 L221 55 L242 66 L224 74 L153 76 L57 74 Z" fill="#d8d8d8" stroke="#ffffff" stroke-width="2" />
-              <path d="M92 54 L56 18 L80 18 L135 52 Z" fill="#bfbfbf" stroke="#ffffff" stroke-width="2" />
-              <path d="M99 73 L60 104 L84 104 L139 75 Z" fill="#bfbfbf" stroke="#ffffff" stroke-width="2" />
-              <path d="M202 55 L224 20 L238 22 L226 62 Z" fill="#cfcfcf" stroke="#ffffff" stroke-width="2" />
-              <path d="M205 73 L237 88 L224 98 L190 75 Z" fill="#cfcfcf" stroke="#ffffff" stroke-width="2" />
-              <path d="M58 58 L88 55 L91 68 L54 70 Z" fill="#101820" stroke="#ffffff" stroke-width="1.5" opacity="0.9" />
-              <path d="M96 55 L126 53 L127 67 L98 68 Z" fill="#101820" stroke="#ffffff" stroke-width="1.5" opacity="0.9" />
-              <path d="M31 59 L15 48" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
-              <path d="M31 72 L14 84" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
-              <circle cx="72" cy="82" r="7" fill="#050505" stroke="#ffffff" stroke-width="2" />
-              <circle cx="176" cy="82" r="7" fill="#050505" stroke="#ffffff" stroke-width="2" />
-              <path d="M50 75 L178 75" stroke="#ff2d2d" stroke-width="3" />
-            </svg>
-          </div>
-          <div class="aircraft-details-panel">
-            <div>
-              <div class="aircraft-eyebrow">Selected aircraft profile</div>
-              <div class="aircraft-title">OH-PMK / Piper PA-28R-200 Arrow II</div>
-            </div>
-            <div class="aircraft-status-strip">
-              <div class="aircraft-status"><span>Cabin</span><strong>2 passenger seats</strong></div>
-              <div class="aircraft-status"><span>Cruise</span><strong>Approx. 115 KTAS</strong></div>
-              <div class="aircraft-status"><span>Review</span><strong>Pilot confirmed</strong></div>
-            </div>
-            <div class="aircraft-copy">Final aircraft, seating, baggage, route and departure time are confirmed after pilot and operations review.</div>
-          </div>
         </div>
       </section>
 
@@ -1151,6 +1168,43 @@
           </div>
         </div>
         <div id="statusBox" class="status">Choose your flight details</div>
+      </section>
+
+      <section class="aircraft-showcase" aria-label="Aircraft for this booking request">
+        <div class="booking-panel-head">
+          <div class="booking-kicker">Aircraft for this request</div>
+          <div class="booking-note">A quick aircraft orientation before passenger details.</div>
+        </div>
+        <div class="aircraft-showcase-grid">
+          <div class="aircraft-visual">
+            <svg class="aircraft-outline" viewBox="0 0 260 120" role="img" aria-label="Piper Arrow style aircraft profile">
+              <path d="M22 69 L52 57 L156 50 L221 55 L242 66 L224 74 L153 76 L57 74 Z" fill="#d8d8d8" stroke="#ffffff" stroke-width="2" />
+              <path d="M92 54 L56 18 L80 18 L135 52 Z" fill="#bfbfbf" stroke="#ffffff" stroke-width="2" />
+              <path d="M99 73 L60 104 L84 104 L139 75 Z" fill="#bfbfbf" stroke="#ffffff" stroke-width="2" />
+              <path d="M202 55 L224 20 L238 22 L226 62 Z" fill="#cfcfcf" stroke="#ffffff" stroke-width="2" />
+              <path d="M205 73 L237 88 L224 98 L190 75 Z" fill="#cfcfcf" stroke="#ffffff" stroke-width="2" />
+              <path d="M58 58 L88 55 L91 68 L54 70 Z" fill="#101820" stroke="#ffffff" stroke-width="1.5" opacity="0.9" />
+              <path d="M96 55 L126 53 L127 67 L98 68 Z" fill="#101820" stroke="#ffffff" stroke-width="1.5" opacity="0.9" />
+              <path d="M31 59 L15 48" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+              <path d="M31 72 L14 84" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+              <circle cx="72" cy="82" r="7" fill="#050505" stroke="#ffffff" stroke-width="2" />
+              <circle cx="176" cy="82" r="7" fill="#050505" stroke="#ffffff" stroke-width="2" />
+              <path d="M50 75 L178 75" stroke="#ff2d2d" stroke-width="3" />
+            </svg>
+          </div>
+          <div class="aircraft-details-panel">
+            <div>
+              <div class="aircraft-eyebrow">Selected aircraft profile</div>
+              <div class="aircraft-title">OH-PMK / Piper PA-28R-200 Arrow II</div>
+            </div>
+            <div class="aircraft-status-strip">
+              <div class="aircraft-status"><span>Cabin</span><strong>2 passenger seats</strong></div>
+              <div class="aircraft-status"><span>Cruise</span><strong>Approx. 115 KTAS</strong></div>
+              <div class="aircraft-status"><span>Review</span><strong>Pilot confirmed</strong></div>
+            </div>
+            <div class="aircraft-copy">Final aircraft, seating, baggage, route and departure time are confirmed after pilot and operations review.</div>
+          </div>
+        </div>
       </section>
 
       <div id="confirmation" class="confirmation"></div>
