@@ -4,12 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NatGlobe Aviation / Private Flight Booking</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIINfQJxgYuzP1B2mO5zx9Mxnw9AwuZk+N8="
-    crossorigin=""
-  />
   <style>
     :root {
       --bg: #000000;
@@ -50,10 +44,26 @@
 
     .title-row {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 4px;
+      margin-bottom: 10px;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: clamp(74px, 10vw, 116px);
+      aspect-ratio: 1;
+      object-fit: contain;
+      background: #fff;
+      border: 1px solid #555;
+      padding: 6px;
     }
 
     .title {
@@ -61,6 +71,14 @@
       font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
+    }
+
+    .subtitle {
+      color: #8d8d8d;
+      font-size: 12px;
+      line-height: 1.25;
+      text-transform: uppercase;
+      margin-top: 4px;
     }
 
     .connection-badge {
@@ -165,116 +183,53 @@
 
     .route-map-shell {
       position: relative;
-      width: min(560px, 100%);
-      height: min(560px, 72vw);
-      min-height: 420px;
+      width: 100%;
+      height: clamp(430px, 50vw, 580px);
+      min-height: 430px;
       margin: 0 auto;
       border: 1px solid #555;
       background:
-        radial-gradient(circle at 36% 28%, rgba(255,255,255,0.15), transparent 22%),
-        #020202;
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.98), rgba(238,238,238,0.94) 38%, rgba(202,202,202,0.72) 61%, rgba(255,255,255,0.08) 64%, transparent 65%),
+        linear-gradient(180deg, #f7f7f7 0%, #e5e5e5 100%);
       overflow: hidden;
-      border-radius: 50%;
+      border-radius: 0;
       box-shadow:
-        inset 36px 0 80px rgba(0,0,0,0.9),
-        inset -48px -18px 90px rgba(0,0,0,0.92),
-        inset 0 20px 50px rgba(255,255,255,0.1),
-        0 24px 54px rgba(0,0,0,0.65);
-    }
-
-    #routeMap {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: #030303;
-      border-radius: inherit;
-      clip-path: circle(49.5% at 50% 50%);
+        inset 0 0 80px rgba(255,255,255,0.55),
+        inset 0 -40px 90px rgba(0,0,0,0.10),
+        0 24px 54px rgba(0,0,0,0.42);
     }
 
     .route-map-shell::before {
       content: "";
       position: absolute;
-      inset: 0;
-      z-index: 650;
+      left: 50%;
+      top: 50%;
+      width: min(980px, 105vw);
+      height: min(980px, 105vw);
+      transform: translate(-50%, -50%);
+      z-index: 1;
       pointer-events: none;
-      border-radius: inherit;
+      border-radius: 50%;
       background:
-        radial-gradient(circle at 31% 23%, rgba(255,255,255,0.22), transparent 15%),
-        radial-gradient(circle at 50% 50%, transparent 46%, rgba(0,0,0,0.34) 66%, rgba(0,0,0,0.92) 100%),
-        linear-gradient(115deg, rgba(255,255,255,0.13), transparent 28%, transparent 67%, rgba(0,0,0,0.48));
+        radial-gradient(circle at 34% 24%, rgba(255,255,255,0.9), transparent 16%),
+        radial-gradient(circle at 50% 50%, transparent 52%, rgba(0,0,0,0.12) 71%, rgba(0,0,0,0.22) 100%);
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.2),
-        inset -22px -18px 42px rgba(0,0,0,0.82);
+        inset -28px -18px 68px rgba(0,0,0,0.14),
+        inset 0 0 0 1px rgba(0,0,0,0.04);
     }
 
     .route-map-shell::after {
       content: "";
       position: absolute;
-      inset: 7%;
+      left: 50%;
+      top: 50%;
+      width: min(980px, 105vw);
+      height: min(980px, 105vw);
+      transform: translate(-50%, -50%);
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: inset 0 0 44px rgba(255,255,255,0.04);
       pointer-events: none;
-      z-index: 651;
-    }
-
-    .route-map-shell .leaflet-container {
-      background: #030303;
-      font-family: inherit;
-      overflow: hidden;
-    }
-
-    .route-map-shell .leaflet-pane,
-    .route-map-shell .leaflet-tile,
-    .route-map-shell .leaflet-marker-icon,
-    .route-map-shell .leaflet-marker-shadow,
-    .route-map-shell .leaflet-tile-container,
-    .route-map-shell .leaflet-pane > svg,
-    .route-map-shell .leaflet-pane > canvas,
-    .route-map-shell .leaflet-zoom-box,
-    .route-map-shell .leaflet-image-layer,
-    .route-map-shell .leaflet-layer {
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
-
-    .route-map-shell .leaflet-tile,
-    .route-map-shell .leaflet-marker-icon,
-    .route-map-shell .leaflet-marker-shadow {
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    .route-map-shell .leaflet-tile {
-      width: 256px;
-      height: 256px;
-    }
-
-    .route-map-shell .leaflet-pane > svg {
-      pointer-events: none;
-    }
-
-    .route-map-shell .leaflet-map-pane,
-    .route-map-shell .leaflet-tile,
-    .route-map-shell .leaflet-marker-icon,
-    .route-map-shell .leaflet-marker-shadow,
-    .route-map-shell .leaflet-tile-container {
-      transform-origin: 0 0;
-    }
-
-    .route-map-shell .leaflet-control-container {
-      display: none;
-    }
-
-    .route-map-shell .leaflet-tile-pane { z-index: 200; }
-    .route-map-shell .leaflet-overlay-pane { z-index: 400; }
-    .route-map-shell .leaflet-marker-pane { z-index: 600; }
-
-    .route-map-shell .leaflet-tile-pane {
-      filter: grayscale(1) contrast(1.12) brightness(0.62);
+      z-index: 3;
+      background: linear-gradient(90deg, rgba(255,255,255,0.16), transparent 18%, transparent 82%, rgba(255,255,255,0.34));
     }
 
     .route-pin {
@@ -290,16 +245,57 @@
       background: #ff6b6b;
     }
 
-    .leaflet-marker-icon {
-      background: transparent;
-      border: 0;
+    .route-globe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    .globe-land {
+      fill: rgba(120,120,120,0.13);
+      stroke: rgba(80,80,80,0.13);
+      stroke-width: 1.2;
+    }
+
+    .globe-grid {
+      fill: none;
+      stroke: rgba(0,0,0,0.08);
+      stroke-width: 1;
+    }
+
+    .route-curve {
+      fill: none;
+      stroke: #666;
+      stroke-width: 4;
+      stroke-linecap: round;
+      opacity: 0.95;
+    }
+
+    .route-point {
+      fill: #f56600;
+      stroke: #fff;
+      stroke-width: 6;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.24));
+    }
+
+    .route-city-label {
+      fill: #050505;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      paint-order: stroke;
+      stroke: rgba(255,255,255,0.88);
+      stroke-width: 5px;
+      stroke-linejoin: round;
     }
 
     .route-map-label {
       position: absolute;
       left: 12px;
       bottom: 10px;
-      color: #bdbdbd;
+      color: #111;
       font-size: 12px;
       text-transform: uppercase;
       pointer-events: none;
@@ -312,14 +308,14 @@
       bottom: 12px;
       width: 42px;
       height: 42px;
-      border: 1px solid #666;
-      color: #fff;
+      border: 1px solid #777;
+      color: #111;
       display: grid;
       place-items: center;
       font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
-      background: rgba(0,0,0,0.62);
+      background: rgba(255,255,255,0.72);
       z-index: 700;
     }
 
@@ -327,12 +323,12 @@
       position: absolute;
       left: 12px;
       bottom: 40px;
-      color: #fff;
+      color: #111;
       font-size: 13px;
       text-transform: uppercase;
-      border: 1px solid #666;
+      border: 1px solid #777;
       padding: 7px 9px;
-      background: rgba(0,0,0,0.72);
+      background: rgba(255,255,255,0.78);
       z-index: 700;
     }
 
@@ -355,167 +351,41 @@
       text-transform: uppercase;
     }
 
-    .route-map-shell.map-fallback #routeMap {
-      display: none;
-    }
-
     .route-map-shell.map-fallback .route-map-fallback {
       display: grid;
     }
 
-    .aircraft-showcase {
-      border: 2px solid var(--line);
-      background: #000;
-      padding: 12px;
+    .experience-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
       margin-bottom: 12px;
     }
 
-    .aircraft-showcase-grid {
-      display: grid;
-      grid-template-columns: 188px 1fr;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .aircraft-visual {
-      position: relative;
-      min-height: 118px;
+    .experience-card {
       border: 1px solid #555;
-      overflow: hidden;
       background:
-        linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255,255,255,0.045) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,0.10), transparent 58%),
         #050505;
-      background-size: 32px 32px;
-      display: grid;
-      place-items: center;
-    }
-
-    .aircraft-topline {
-      position: relative;
-      width: 156px;
-      height: 78px;
-    }
-
-    .aircraft-topline .plane-nose {
-      position: absolute;
-      left: 0;
-      top: 13px;
-      width: 48px;
-      height: 52px;
-      border-radius: 60% 8px 8px 60% / 50%;
-      background: radial-gradient(circle at 72% 48%, #1f1f1f, #030303 70%);
-      box-shadow: inset 12px 0 18px rgba(255,255,255,0.12);
-    }
-
-    .aircraft-topline .plane-glass {
-      position: absolute;
-      left: 40px;
-      top: 8px;
-      width: 28px;
-      height: 62px;
-      border: 2px solid #6f95b4;
-      border-radius: 54% 18% 18% 54%;
-      background: radial-gradient(circle at 60% 42%, #b8d2e8, #426987 58%, #20364b 100%);
-      z-index: 2;
-    }
-
-    .aircraft-topline .plane-cabin {
-      position: absolute;
-      left: 63px;
-      top: 9px;
-      width: 62px;
-      height: 60px;
-      background: #9b9b9b;
-      border: 2px solid #111;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28);
-    }
-
-    .aircraft-topline .plane-tail {
-      position: absolute;
-      right: 0;
-      top: 16px;
-      width: 42px;
-      height: 46px;
-      border-radius: 8px 60% 60% 8px / 50%;
-      background: linear-gradient(90deg, #151515, #050505 72%, #303030);
-    }
-
-    .aircraft-topline .plane-stripe {
-      position: absolute;
-      left: 67px;
-      right: 33px;
-      top: 38px;
-      height: 4px;
-      background: #c71d1d;
-      z-index: 3;
-    }
-
-    .aircraft-status-strip {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .aircraft-status {
-      border: 1px solid rgba(255,255,255,0.72);
-      background: rgba(0,0,0,0.78);
-      padding: 9px 10px;
-      text-transform: uppercase;
-    }
-
-    .aircraft-status span {
-      display: block;
-      color: #8d8d8d;
-      font-size: 10px;
-      margin-bottom: 4px;
-    }
-
-    .aircraft-status strong {
-      color: #fff;
-      font-size: 13px;
-      line-height: 1.2;
-    }
-
-    .aircraft-details-panel {
-      border: 1px solid #555;
       padding: 14px;
-      display: grid;
-      gap: 10px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 36%),
-        #030303;
-    }
-
-    .aircraft-eyebrow {
-      color: var(--live);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .aircraft-title {
-      color: #fff;
-      font-size: clamp(17px, 1.65vw, 22px);
-      font-weight: 700;
-      line-height: 1.05;
+      min-height: 144px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
       text-transform: uppercase;
     }
 
-    .aircraft-copy {
-      color: #bdbdbd;
-      font-size: 12px;
-      line-height: 1.45;
-      text-transform: uppercase;
-    }
-
-    .aircraft-note {
-      border-top: 1px solid #444;
-      padding-top: 10px;
+    .experience-number {
       color: #8d8d8d;
-      font-size: 11px;
-      line-height: 1.4;
-      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .experience-card strong {
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.25;
     }
 
     .booking-panel-head {
@@ -1163,7 +1033,7 @@
     @media (max-width: 900px) {
       body { padding: 14px 10px; }
       .frame { padding: 16px 12px 14px; }
-      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options, .extras-grid, .aircraft-showcase-grid, .aircraft-status-strip { grid-template-columns: 1fr; }
+      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options, .extras-grid, .experience-grid { grid-template-columns: 1fr; }
       .search-grid {
         grid-template-columns: 1fr 46px 1fr;
         gap: 10px;
@@ -1184,14 +1054,9 @@
       }
       .route-map-meta { text-align: left; }
       .route-map-shell {
-        width: min(420px, 86vw);
-        height: min(420px, 86vw);
-        min-height: 300px;
+        height: 390px;
+        min-height: 390px;
       }
-      .aircraft-visual { min-height: 128px; }
-      .aircraft-status-strip { grid-template-columns: repeat(3, 1fr); }
-      .aircraft-status { padding: 7px; }
-      .aircraft-status strong { font-size: 11px; }
       .seat-map-shell { min-height: 170px; padding: 12px 8px; }
       .cabin-visual {
         transform: scale(0.68);
@@ -1203,6 +1068,7 @@
       .summary-card { position: static; }
       .route-line { align-items: flex-start; flex-direction: column; }
       .title-row { flex-direction: column; }
+      .brand-lockup { align-items: flex-start; }
       .connection-badge { white-space: normal; }
       input, select, textarea, .btn { font-size: 16px; }
       .swap-btn { min-height: 52px; font-size: 18px; }
@@ -1219,11 +1085,9 @@
       }
       .swap-field label { display: none; }
       .swap-btn { min-height: 44px; }
-      .aircraft-visual { min-height: 128px; }
       .route-map-shell {
-        width: min(330px, 86vw);
-        height: min(330px, 86vw);
-        min-height: 280px;
+        height: 330px;
+        min-height: 330px;
       }
       .seat-map-shell { min-height: 140px; }
       .cabin-visual {
@@ -1235,7 +1099,13 @@
 <body>
   <main class="frame">
     <div class="title-row">
-      <div class="title">NATGLOBE AVIATION / PRIVATE FLIGHT BOOKING</div>
+      <div class="brand-lockup">
+        <img class="brand-logo" src="/natglobe-logo.png" alt="NatGlobe Aviation logo" />
+        <div>
+          <div class="title">NATGLOBE AVIATION / PRIVATE FLIGHT BOOKING</div>
+          <div class="subtitle">Private cost-share flight request / pilot reviewed operations</div>
+        </div>
+      </div>
       <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
         <span class="connection-wifi" aria-hidden="true">
           <svg viewBox="0 0 24 24" class="wifi-icon">
@@ -1262,12 +1132,41 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
-          <div id="routeMap" aria-label="Interactive real-world route map"></div>
-          <div id="routeMapFallback" class="route-map-fallback">Map loading. If the map cannot load, route details still update in the trip summary.</div>
+          <svg id="routeGlobe" class="route-globe" viewBox="0 0 1100 620" role="img" aria-label="NatGlobe route globe">
+            <defs>
+              <clipPath id="globeClip">
+                <circle cx="550" cy="310" r="430"></circle>
+              </clipPath>
+            </defs>
+            <g clip-path="url(#globeClip)">
+              <ellipse class="globe-grid" cx="550" cy="310" rx="430" ry="430"></ellipse>
+              <ellipse class="globe-grid" cx="550" cy="310" rx="300" ry="430"></ellipse>
+              <ellipse class="globe-grid" cx="550" cy="310" rx="160" ry="430"></ellipse>
+              <path class="globe-grid" d="M130 228 C330 182 770 182 970 228"></path>
+              <path class="globe-grid" d="M120 310 C330 286 770 286 980 310"></path>
+              <path class="globe-grid" d="M130 392 C330 438 770 438 970 392"></path>
+              <path class="globe-land" d="M240 120 C320 82 440 78 526 112 C612 148 652 232 610 298 C548 392 392 386 312 330 C232 274 176 178 240 120Z"></path>
+              <path class="globe-land" d="M600 98 C708 72 846 104 908 194 C956 264 944 372 862 430 C774 492 640 458 598 360 C566 286 520 160 600 98Z"></path>
+              <path class="globe-land" d="M350 418 C438 386 560 406 610 488 C642 540 570 582 466 558 C386 540 306 454 350 418Z"></path>
+            </g>
+            <path id="routeCurve" class="route-curve" d="" />
+            <circle id="depRoutePoint" class="route-point" cx="-40" cy="-40" r="9" />
+            <circle id="arrRoutePoint" class="route-point" cx="-40" cy="-40" r="9" />
+            <text id="depRouteLabel" class="route-city-label" x="-200" y="0">Departure</text>
+            <text id="arrRouteLabel" class="route-city-label" x="-200" y="0">Destination</text>
+          </svg>
+          <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
           <div class="route-map-compass">N</div>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
         </div>
+      </section>
+
+      <section class="experience-grid" aria-label="NatGlobe passenger experience">
+        <div class="experience-card"><span class="experience-number">01</span><strong>Arrive directly at the GA terminal and avoid the commercial airport lines.</strong></div>
+        <div class="experience-card"><span class="experience-number">02</span><strong>Meet the pilot, review the route, and board after weather and safety checks.</strong></div>
+        <div class="experience-card"><span class="experience-number">03</span><strong>Fly privately in a small aircraft with a simple, personal cabin experience.</strong></div>
+        <div class="experience-card"><span class="experience-number">04</span><strong>Add transfer and refreshment requests for operations to confirm before flight.</strong></div>
       </section>
 
       <section class="search-card">
@@ -1312,35 +1211,6 @@
           </div>
         </div>
         <div id="statusBox" class="status">Choose your flight details</div>
-      </section>
-
-      <section class="aircraft-showcase" aria-label="Aircraft for this booking request">
-        <div class="booking-panel-head">
-          <div class="booking-kicker">Aircraft for this request</div>
-        </div>
-        <div class="aircraft-showcase-grid">
-          <div class="aircraft-visual">
-            <div class="aircraft-topline" aria-label="Piper Arrow top-down aircraft profile" role="img">
-              <div class="plane-nose"></div>
-              <div class="plane-glass"></div>
-              <div class="plane-cabin"></div>
-              <div class="plane-tail"></div>
-              <div class="plane-stripe"></div>
-            </div>
-          </div>
-          <div class="aircraft-details-panel">
-            <div>
-              <div class="aircraft-eyebrow">Selected aircraft profile</div>
-              <div class="aircraft-title">OH-PMK / Piper PA-28R-200 Arrow II</div>
-            </div>
-            <div class="aircraft-status-strip">
-              <div class="aircraft-status"><span>Cabin</span><strong>2 passenger seats</strong></div>
-              <div class="aircraft-status"><span>Cruise</span><strong>Approx. 115 KTAS</strong></div>
-              <div class="aircraft-status"><span>Review</span><strong>Pilot confirmed</strong></div>
-            </div>
-            <div class="aircraft-copy">Final aircraft, seating, baggage, route and departure time are confirmed after pilot and operations review.</div>
-          </div>
-        </div>
       </section>
 
       <div id="confirmation" class="confirmation"></div>
@@ -1464,7 +1334,6 @@
               <li><span>Est. flight time</span><strong id="summaryFlightTime">----</strong></li>
               <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
               <li><span>Baggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
-              <li><span>Aircraft</span><strong>OH-PMK / PA-28R</strong></li>
               <li><span>Estimated share</span><strong id="summaryCost">Pilot confirms</strong></li>
             </ul>
             <div class="summary-footnote">Estimate only. Pilot confirmation, aircraft availability, weight and balance, weather, and payment are required before final booking.</div>
@@ -1485,11 +1354,6 @@
     </form>
   </main>
 
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
   <script>
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
@@ -1541,6 +1405,11 @@
     const routeMapLabel = el('routeMapLabel');
     const routeMapShell = el('routeMapShell');
     const routeMapFallback = el('routeMapFallback');
+    const routeCurve = el('routeCurve');
+    const depRoutePoint = el('depRoutePoint');
+    const arrRoutePoint = el('arrRoutePoint');
+    const depRouteLabel = el('depRouteLabel');
+    const arrRouteLabel = el('arrRouteLabel');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -1551,10 +1420,6 @@
     };
 
     let airports = [];
-    let routeMap = null;
-    let routeLayer = null;
-    let depMarker = null;
-    let arrMarker = null;
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -1609,11 +1474,6 @@
       return airports.find(airport => airport.icao === icao) || null;
     }
 
-    function setMapFallback(message) {
-      routeMapShell.classList.add('map-fallback');
-      routeMapFallback.textContent = message;
-    }
-
     function airportLatLng(airport) {
       const lat = Number(airport?.lat);
       const lon = Number(airport?.lon);
@@ -1621,104 +1481,76 @@
       return [lat, lon];
     }
 
-    function createRouteIcon(type) {
-      if (!window.L) return null;
-      return L.divIcon({
-        className: '',
-        html: `<div class="route-pin ${type === 'arrival' ? 'arrival' : ''}"></div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11]
-      });
-    }
-
-    function initRouteMap() {
-      if (routeMap) return true;
-      if (!window.L) {
-        setMapFallback('Map unavailable. Route details still update in the trip summary.');
-        return false;
-      }
-
-      try {
-        routeMap = L.map('routeMap', {
-          attributionControl: false,
-          zoomControl: false,
-          dragging: true,
-          touchZoom: true,
-          scrollWheelZoom: true,
-          doubleClickZoom: true,
-          boxZoom: false,
-          keyboard: false,
-          tap: true
-        }).setView([60.45, 24.95], 7);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19,
-          crossOrigin: true
-        }).addTo(routeMap);
-
-        routeMapShell.classList.remove('map-fallback');
-        setTimeout(() => routeMap.invalidateSize(false), 150);
-        return true;
-      } catch (err) {
-        setMapFallback('Map unavailable. Route details still update in the trip summary.');
-        return false;
-      }
-    }
-
     function clearRouteMap() {
-      if (!routeMap) return;
-      [routeLayer, depMarker, arrMarker].forEach(layer => {
-        if (layer) routeMap.removeLayer(layer);
+      routeCurve.setAttribute('d', '');
+      [depRoutePoint, arrRoutePoint].forEach(point => {
+        point.setAttribute('cx', '-40');
+        point.setAttribute('cy', '-40');
       });
-      routeLayer = null;
-      depMarker = null;
-      arrMarker = null;
+      depRouteLabel.textContent = 'Departure';
+      arrRouteLabel.textContent = 'Destination';
+      depRouteLabel.setAttribute('x', '-200');
+      arrRouteLabel.setAttribute('x', '-200');
+    }
+
+    function projectAirport(airport) {
+      const coords = airportLatLng(airport);
+      if (!coords) return null;
+      const [lat, lon] = coords;
+      const minLon = 16.5;
+      const maxLon = 27.3;
+      const minLat = 58.0;
+      const maxLat = 61.5;
+      const x = 170 + ((lon - minLon) / (maxLon - minLon)) * 760;
+      const y = 438 - ((lat - minLat) / (maxLat - minLat)) * 300;
+      return {
+        x: Math.max(130, Math.min(970, x)),
+        y: Math.max(132, Math.min(492, y))
+      };
+    }
+
+    function positionRouteLabel(label, point, text, align = 'start') {
+      const x = align === 'end' ? point.x - 22 : point.x + 22;
+      const y = point.y - 12;
+      label.textContent = text;
+      label.setAttribute('x', x);
+      label.setAttribute('y', y);
+      label.setAttribute('text-anchor', align);
     }
 
     function drawRouteOnMap(dep, arr) {
-      if (!initRouteMap()) return;
-      const depLatLng = airportLatLng(dep);
-      const arrLatLng = airportLatLng(arr);
-      if (!depLatLng || !arrLatLng) {
-        setMapFallback('Airport coordinates unavailable. Route details still update in the trip summary.');
+      const depPoint = projectAirport(dep);
+      const arrPoint = projectAirport(arr);
+      if (!depPoint || !arrPoint) {
+        clearRouteMap();
         return;
       }
 
-      clearRouteMap();
-      depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure'), interactive: false }).addTo(routeMap);
-      arrMarker = L.marker(arrLatLng, { icon: createRouteIcon('arrival'), interactive: false }).addTo(routeMap);
-      routeLayer = L.polyline([depLatLng, arrLatLng], {
-        color: '#ff2d2d',
-        weight: 3,
-        opacity: 0.95,
-        dashArray: '9 8'
-      }).addTo(routeMap);
-      routeMap.fitBounds(L.latLngBounds([depLatLng, arrLatLng]), {
-        padding: [58, 58],
-        animate: false
-      });
-      setTimeout(() => {
-        if (!routeMap) return;
-        routeMap.invalidateSize(false);
-        routeMap.fitBounds(L.latLngBounds([depLatLng, arrLatLng]), {
-          padding: [58, 58],
-          animate: false
-        });
-      }, 180);
+      const midX = (depPoint.x + arrPoint.x) / 2;
+      const midY = (depPoint.y + arrPoint.y) / 2;
+      const distance = Math.hypot(arrPoint.x - depPoint.x, arrPoint.y - depPoint.y);
+      const lift = Math.max(54, Math.min(160, distance * 0.32));
+      routeCurve.setAttribute('d', `M ${depPoint.x} ${depPoint.y} Q ${midX} ${midY - lift} ${arrPoint.x} ${arrPoint.y}`);
+      depRoutePoint.setAttribute('cx', depPoint.x);
+      depRoutePoint.setAttribute('cy', depPoint.y);
+      arrRoutePoint.setAttribute('cx', arrPoint.x);
+      arrRoutePoint.setAttribute('cy', arrPoint.y);
+      positionRouteLabel(depRouteLabel, depPoint, dep.city, depPoint.x > arrPoint.x ? 'end' : 'start');
+      positionRouteLabel(arrRouteLabel, arrPoint, arr.city, arrPoint.x > depPoint.x ? 'end' : 'start');
     }
 
     function updateRouteMap(dep, arr) {
       if (!dep || !arr || dep.icao === arr.icao) {
         routeRange.textContent = 'FLIGHT TIME: --H --M';
         routeMapMeta.textContent = 'Choose departure and destination to show route.';
-        routeMapLabel.textContent = 'Drag or pinch map to inspect route';
+        routeMapLabel.textContent = 'NatGlobe route preview';
         clearRouteMap();
         return;
       }
 
       routeRange.textContent = `FLIGHT TIME: ${formatFlightTime(dep, arr)}`;
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
-      routeMapLabel.textContent = `${dep.country} / ${arr.country} route preview`;
+      routeMapLabel.textContent = `${dep.country} / ${arr.country} cost-share route`;
       drawRouteOnMap(dep, arr);
     }
 
@@ -1990,7 +1822,6 @@
     });
 
     fillPickerWheels();
-    initRouteMap();
     populateAirports(FALLBACK_AIRPORTS);
     renderPassengerFields();
     updateBaggageFields();
