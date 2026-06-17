@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NatGlobe Aviation / Private Flight Booking</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ6jMtKZA9ftFECeW6gIkU5HkN2aD4o=" crossorigin="" />
   <style>
     :root {
       --bg: #000000;
@@ -159,32 +160,49 @@
 
     .route-map-shell {
       position: relative;
-      min-height: 240px;
+      height: 300px;
       border: 1px solid #555;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px),
-        radial-gradient(circle at 70% 20%, rgba(255,255,255,0.08), transparent 28%),
-        #050505;
-      background-size: 42px 42px, 42px 42px, auto, auto;
+      background: #050505;
       overflow: hidden;
     }
 
-    .route-map-shell::before {
-      content: "";
-      position: absolute;
-      inset: 18px 24px;
-      border: 1px dashed #333;
-      transform: skewX(-10deg);
-      pointer-events: none;
-    }
-
-    .route-map-svg {
-      position: absolute;
-      inset: 0;
+    .route-map {
       width: 100%;
       height: 100%;
-      display: block;
+      background: #050505;
+      filter: grayscale(1) contrast(1.12) brightness(0.82);
+    }
+
+    .route-map .leaflet-control-attribution {
+      background: rgba(0,0,0,0.7);
+      color: #8d8d8d;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .route-map .leaflet-control-attribution a { color: #d7d7d7; }
+
+    .route-marker {
+      border: 2px solid #fff;
+      background: #000;
+      color: #fff;
+      width: 74px;
+      min-height: 34px;
+      display: grid;
+      place-items: center;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.05;
+      text-align: center;
+      text-transform: uppercase;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.7);
+    }
+
+    .route-marker.arrival {
+      background: #fff;
+      color: #000;
     }
 
     .route-map-label {
@@ -631,7 +649,7 @@
         gap: 6px;
       }
       .route-map-meta { text-align: left; }
-      .route-map-shell { min-height: 210px; }
+      .route-map-shell { height: 240px; }
       .booking-note { text-align: left; max-width: none; }
       .summary-card { position: static; }
       .route-line { align-items: flex-start; flex-direction: column; }
@@ -685,15 +703,7 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div class="route-map-shell">
-          <svg id="routeMapSvg" class="route-map-svg" viewBox="0 0 1000 420" role="img" aria-label="Selected route map">
-            <path d="M130 340 C230 265 280 190 385 205 C500 222 535 120 650 105 C760 90 820 170 900 125" fill="none" stroke="#2f2f2f" stroke-width="18" stroke-linecap="round"/>
-            <path d="M90 90 C180 130 235 80 320 112 C420 150 505 72 610 92 C720 112 810 66 930 92" fill="none" stroke="#242424" stroke-width="12" stroke-linecap="round"/>
-            <line id="routeLine" x1="0" y1="0" x2="0" y2="0" stroke="#ffffff" stroke-width="3" stroke-dasharray="10 8" opacity="0"/>
-            <circle id="depPin" cx="0" cy="0" r="0" fill="#000" stroke="#ffffff" stroke-width="3"/>
-            <circle id="arrPin" cx="0" cy="0" r="0" fill="#ffffff" stroke="#ffffff" stroke-width="3"/>
-            <text id="depMapLabel" x="0" y="0" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="24" font-weight="700">----</text>
-            <text id="arrMapLabel" x="0" y="0" fill="#ffffff" font-family="Courier New, Courier, monospace" font-size="24" font-weight="700">----</text>
-          </svg>
+          <div id="routeMap" class="route-map" role="img" aria-label="Selected route map"></div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
         </div>
       </section>
@@ -903,6 +913,7 @@
     </form>
   </main>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
@@ -949,11 +960,6 @@
     const bookingStatusRef = el('bookingStatusRef');
     const form = el('bookingForm');
     const passengerList = el('passengerList');
-    const routeLine = el('routeLine');
-    const depPin = el('depPin');
-    const arrPin = el('arrPin');
-    const depMapLabel = el('depMapLabel');
-    const arrMapLabel = el('arrMapLabel');
     const routeMapMeta = el('routeMapMeta');
     const routeMapLabel = el('routeMapLabel');
     const PA28_CRUISE_KT = 115;
@@ -966,6 +972,10 @@
     };
 
     let airports = [];
+    let routeMap = null;
+    let routeLayer = null;
+    let depMarker = null;
+    let arrMarker = null;
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -1020,53 +1030,79 @@
       return airports.find(airport => airport.icao === icao) || null;
     }
 
-    function mapPoint(airport) {
-      const lonMin = 16.8;
-      const lonMax = 29.6;
-      const latMin = 57.5;
-      const latMax = 61.7;
-      const lon = Number(airport?.lon);
+    function airportLatLng(airport) {
       const lat = Number(airport?.lat);
-      if (![lon, lat].every(Number.isFinite)) return null;
-      return {
-        x: 70 + ((lon - lonMin) / (lonMax - lonMin)) * 860,
-        y: 365 - ((lat - latMin) / (latMax - latMin)) * 310
-      };
+      const lon = Number(airport?.lon);
+      if (![lat, lon].every(Number.isFinite)) return null;
+      return [lat, lon];
     }
 
-    function setSvgPoint(node, point, radius) {
-      node.setAttribute('cx', point.x.toFixed(1));
-      node.setAttribute('cy', point.y.toFixed(1));
-      node.setAttribute('r', radius);
+    function markerIcon(airport, arrival = false) {
+      const label = airport?.short || airport?.city || 'APT';
+      return L.divIcon({
+        className: '',
+        html: `<div class="route-marker ${arrival ? 'arrival' : ''}">${escapeHtml(label)}</div>`,
+        iconSize: [74, 34],
+        iconAnchor: [37, 17]
+      });
+    }
+
+    function initRouteMap() {
+      if (routeMap || typeof L === 'undefined') return;
+      routeMap = L.map('routeMap', {
+        zoomControl: false,
+        attributionControl: true,
+        scrollWheelZoom: false,
+        dragging: true,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false
+      }).setView([60.25, 24.95], 6);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+      }).addTo(routeMap);
+    }
+
+    function clearRouteMap() {
+      if (!routeMap) return;
+      [routeLayer, depMarker, arrMarker].forEach(layer => {
+        if (layer) routeMap.removeLayer(layer);
+      });
+      routeLayer = null;
+      depMarker = null;
+      arrMarker = null;
     }
 
     function updateRouteMap(dep, arr) {
-      const depPoint = mapPoint(dep);
-      const arrPoint = mapPoint(arr);
-      if (!dep || !arr || !depPoint || !arrPoint || dep.icao === arr.icao) {
-        routeLine.setAttribute('opacity', '0');
-        depPin.setAttribute('r', '0');
-        arrPin.setAttribute('r', '0');
-        depMapLabel.textContent = '----';
-        arrMapLabel.textContent = '----';
+      if (typeof L === 'undefined') {
+        routeMapMeta.textContent = 'Map loading unavailable / route summary active.';
+        routeMapLabel.textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Route preview awaiting selection';
+        return;
+      }
+
+      initRouteMap();
+      const depLatLng = airportLatLng(dep);
+      const arrLatLng = airportLatLng(arr);
+      if (!dep || !arr || !depLatLng || !arrLatLng || dep.icao === arr.icao) {
+        clearRouteMap();
         routeMapMeta.textContent = 'Choose departure and destination to draw route.';
         routeMapLabel.textContent = 'Route preview awaiting selection';
         return;
       }
 
-      routeLine.setAttribute('x1', depPoint.x.toFixed(1));
-      routeLine.setAttribute('y1', depPoint.y.toFixed(1));
-      routeLine.setAttribute('x2', arrPoint.x.toFixed(1));
-      routeLine.setAttribute('y2', arrPoint.y.toFixed(1));
-      routeLine.setAttribute('opacity', '1');
-      setSvgPoint(depPin, depPoint, '9');
-      setSvgPoint(arrPin, arrPoint, '9');
-      depMapLabel.setAttribute('x', Math.min(depPoint.x + 14, 900).toFixed(1));
-      depMapLabel.setAttribute('y', Math.max(depPoint.y - 12, 30).toFixed(1));
-      arrMapLabel.setAttribute('x', Math.min(arrPoint.x + 14, 900).toFixed(1));
-      arrMapLabel.setAttribute('y', Math.max(arrPoint.y - 12, 30).toFixed(1));
-      depMapLabel.textContent = dep.city.toUpperCase();
-      arrMapLabel.textContent = arr.city.toUpperCase();
+      clearRouteMap();
+      depMarker = L.marker(depLatLng, { icon: markerIcon(dep) }).addTo(routeMap);
+      arrMarker = L.marker(arrLatLng, { icon: markerIcon(arr, true) }).addTo(routeMap);
+      routeLayer = L.polyline([depLatLng, arrLatLng], {
+        color: '#ffffff',
+        weight: 3,
+        opacity: 0.92,
+        dashArray: '12 8'
+      }).addTo(routeMap);
+
+      routeMap.fitBounds(routeLayer.getBounds().pad(0.38), { animate: false });
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
       routeMapLabel.textContent = `${dep.country} / ${arr.country} route preview`;
     }
