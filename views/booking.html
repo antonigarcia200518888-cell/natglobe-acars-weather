@@ -161,13 +161,19 @@
       position: relative;
       height: 320px;
       border: 1px solid #555;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px),
-        radial-gradient(circle at 78% 24%, rgba(255,255,255,0.08), transparent 18%),
-        #050505;
-      background-size: 48px 48px, 48px 48px, auto, auto;
+      background: #050505;
       overflow: hidden;
+    }
+
+    .route-map-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(1) invert(1) brightness(0.56) contrast(1.5);
+      opacity: 0.72;
+      pointer-events: none;
     }
 
     .route-map-svg {
@@ -176,6 +182,10 @@
       width: 100%;
       height: 100%;
       display: block;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 48px 48px;
     }
 
     .route-map-label {
@@ -510,10 +520,27 @@
       width: min(320px, 100%);
       border: 2px solid #777;
       border-radius: 46% 46% 18px 18px / 18% 18% 14px 14px;
-      padding: 18px 16px 20px;
-      background: linear-gradient(180deg, #111 0%, #050505 100%);
+      padding: 18px 16px 22px;
+      background:
+        radial-gradient(circle at 22% 28%, rgba(255,255,255,0.28), transparent 8%),
+        radial-gradient(circle at 78% 28%, rgba(255,255,255,0.28), transparent 8%),
+        linear-gradient(90deg, transparent 0 18%, rgba(255,255,255,0.08) 18% 21%, transparent 21% 79%, rgba(255,255,255,0.08) 79% 82%, transparent 82%),
+        linear-gradient(180deg, #191919 0%, #050505 100%);
       transform: rotateX(10deg);
       box-shadow: inset 0 18px 28px rgba(255,255,255,0.06), 0 18px 24px rgba(0,0,0,0.45);
+      position: relative;
+    }
+
+    .cabin-visual::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 46px;
+      bottom: 18px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.05));
+      transform: translateX(-50%);
+      pointer-events: none;
     }
 
     .cabin-row {
@@ -522,6 +549,8 @@
       gap: 10px;
       align-items: center;
       margin-top: 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .seat-visual {
@@ -535,6 +564,18 @@
       font-size: 12px;
       font-weight: 700;
       box-shadow: inset 0 8px 12px rgba(255,255,255,0.07);
+      position: relative;
+    }
+
+    .seat-visual::before {
+      content: "";
+      position: absolute;
+      top: 7px;
+      left: 12px;
+      right: 12px;
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
     }
 
     .aisle-label,
@@ -779,6 +820,7 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
+          <img id="routeMapImage" class="route-map-image" alt="" src="https://staticmap.openstreetmap.de/staticmap.php?center=59.65,23.9&zoom=6&size=1000x420&maptype=mapnik" />
           <svg id="routeMapSvg" class="route-map-svg" viewBox="0 0 1000 420" role="img" aria-label="Selected route map">
             <defs>
               <marker id="routeArrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
@@ -1027,7 +1069,7 @@
       { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkää', country: 'Finland', lat: 60.6544, lon: 24.8811 },
       { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', lat: 60.3339, lon: 24.2964 },
       { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtää', country: 'Finland', lat: 60.4844, lon: 26.5439 },
-      { icao: 'EFHN', short: 'HKO', name: 'Hanko', city: 'Hanko', country: 'Finland', lat: 59.8489, lon: 23.0836 },
+      { icao: 'EFHN', short: 'HNK', name: 'Hanko', city: 'Hanko', country: 'Finland', lat: 59.8489, lon: 23.0836 },
       { icao: 'EFRY', short: 'RAY', name: 'Rayskala', city: 'Räyskälä', country: 'Finland', lat: 60.7447, lon: 24.1078 },
       { icao: 'EFLA', short: 'LAH', name: 'Lahti-Vesivehmaa', city: 'Lahti', country: 'Finland', lat: 61.1442, lon: 25.6935 },
       { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', lat: 60.5141, lon: 22.2628 },
@@ -1130,7 +1172,7 @@
     }
 
     function airportLabel(airport) {
-      return `${airport.city}, ${airport.country}`;
+      return `${airport.short || airport.icao} ${airport.city}`;
     }
 
     function selectedAirport(id) {
@@ -1139,16 +1181,27 @@
     }
 
     function mapPoint(airport) {
-      const lonMin = 16.5;
-      const lonMax = 29.5;
-      const latMin = 57.2;
-      const latMax = 61.8;
+      const mapCenter = { lat: 59.65, lon: 23.9 };
+      const zoom = 6;
+      const tileSize = 256;
+      const width = 1000;
+      const height = 420;
       const lon = Number(airport?.lon);
       const lat = Number(airport?.lat);
       if (![lon, lat].every(Number.isFinite)) return null;
+      const scale = tileSize * 2 ** zoom;
+      const project = (latValue, lonValue) => {
+        const sinLat = Math.sin((latValue * Math.PI) / 180);
+        return {
+          x: ((lonValue + 180) / 360) * scale,
+          y: (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale
+        };
+      };
+      const center = project(mapCenter.lat, mapCenter.lon);
+      const point = project(lat, lon);
       return {
-        x: 70 + ((lon - lonMin) / (lonMax - lonMin)) * 860,
-        y: 365 - ((lat - latMin) / (latMax - latMin)) * 310
+        x: width / 2 + (point.x - center.x),
+        y: height / 2 + (point.y - center.y)
       };
     }
 

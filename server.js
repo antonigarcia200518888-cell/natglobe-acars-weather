@@ -100,7 +100,7 @@ const bookingAirports = [
   { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.6544, lon: 24.8811 },
   { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', type: 'GA / uncontrolled', lat: 60.3339, lon: 24.2964 },
   { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.4844, lon: 26.5439 },
-  { icao: 'EFHN', short: 'HKO', name: 'Hanko', city: 'Hanko', country: 'Finland', type: 'GA / uncontrolled', lat: 59.8489, lon: 23.0836 },
+  { icao: 'EFHN', short: 'HNK', name: 'Hanko', city: 'Hanko', country: 'Finland', type: 'GA / uncontrolled', lat: 59.8489, lon: 23.0836 },
   { icao: 'EFRY', short: 'RAY', name: 'Rayskala', city: 'Rayskala', country: 'Finland', type: 'GA / uncontrolled', lat: 60.7447, lon: 24.1078 },
   { icao: 'EFLA', short: 'LAH', name: 'Lahti-Vesivehmaa', city: 'Lahti', country: 'Finland', type: 'GA / uncontrolled', lat: 61.1442, lon: 25.6935 },
   { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', type: 'controlled', lat: 60.5141, lon: 22.2628 },
