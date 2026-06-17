@@ -170,7 +170,24 @@
       width: 100%;
       height: 100%;
       background: #050505;
-      filter: grayscale(1) contrast(1.12) brightness(0.82);
+    }
+
+    .route-map .leaflet-tile-pane { opacity: 0.95; }
+
+    .route-map .leaflet-control-zoom {
+      border: 1px solid #555;
+    }
+
+    .route-map .leaflet-control-zoom a {
+      background: #000;
+      color: #fff;
+      border-bottom: 1px solid #555;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .route-map .leaflet-control-zoom a:hover {
+      background: #fff;
+      color: #000;
     }
 
     .route-map .leaflet-control-attribution {
@@ -204,6 +221,23 @@
       background: #fff;
       color: #000;
     }
+
+    .route-map-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      color: #bdbdbd;
+      background: #050505;
+      padding: 18px;
+      text-align: center;
+      text-transform: uppercase;
+      font-size: 13px;
+      line-height: 1.4;
+      z-index: 500;
+    }
+
+    .route-map-shell.map-fallback .route-map-fallback { display: grid; }
 
     .route-map-label {
       position: absolute;
@@ -702,8 +736,9 @@
           <div class="route-map-title">Selected route map</div>
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
-        <div class="route-map-shell">
+        <div id="routeMapShell" class="route-map-shell">
           <div id="routeMap" class="route-map" role="img" aria-label="Selected route map"></div>
+          <div id="routeMapFallback" class="route-map-fallback">Map unavailable. Route details and flight time remain active in the trip summary.</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
         </div>
       </section>
@@ -774,39 +809,11 @@
           <div class="card">
             <h2 class="section-title">Travel and safety information</h2>
             <div class="declaration">
-              <strong>Passenger declaration</strong>
-              Please tell us about anything that could affect your flight safety, including medical conditions, recent surgery, anxiety or panic, alcohol, sedatives, cannabis, or feeling unwell. The pilot may ask follow-up questions and makes the final safety decision before the flight.
+              <strong>Passenger safety declaration</strong>
+              Private light aircraft flights require a pilot safety review before confirmation. I agree to tell NatGlobe and the pilot about anything that could affect safe flight, including illness, breathing or circulation issues, seizure history, panic/anxiety concerns, recent surgery, pregnancy, injury, medication effects, alcohol, sedatives, cannabis, or feeling unwell before the flight. I understand there is no supplemental oxygen on board, I must follow pilot instructions, and the pilot may delay, change, or decline the flight for safety, weather, aircraft, legal, or weight and balance reasons.
             </div>
-            <div class="question-grid">
-              <div>
-                <div class="question-label">Any medical condition to declare?</div>
-                <select id="medicalStatus">
-                  <option value="NONE DECLARED">No</option>
-                  <option value="RESPIRATORY / CIRCULATORY / SEIZURE / PANIC ISSUE DECLARED">Yes - respiratory/circulatory/seizure/panic</option>
-                  <option value="RECENT SURGERY OR PROCEDURE DECLARED">Yes - recent surgery/procedure</option>
-                </select>
-              </div>
-              <div>
-                <div class="question-label">Alcohol/sedatives/cannabis in last 24h?</div>
-                <select id="substancesStatus">
-                  <option value="NONE DECLARED">No</option>
-                  <option value="DECLARED TO PILOT">Yes - declare to pilot</option>
-                </select>
-              </div>
-              <div>
-                <div class="question-label">Supplemental oxygen available?</div>
-                <select id="oxygenConsentSelect">
-                  <option value="ACKNOWLEDGED">No - I understand</option>
-                  <option value="QUESTION">I have a question</option>
-                </select>
-              </div>
-              <div>
-                <div class="question-label">Will you follow pilot instructions?</div>
-                <select id="pilotInstructions">
-                  <option value="ACCEPTED">Yes</option>
-                  <option value="QUESTION">I have a question</option>
-                </select>
-              </div>
+            <div class="consent">
+              <label class="check"><input id="safetyAgreement" type="checkbox" required /> I have read and accept the passenger safety declaration and will declare anything relevant before the flight.</label>
             </div>
           </div>
 
@@ -960,6 +967,8 @@
     const bookingStatusRef = el('bookingStatusRef');
     const form = el('bookingForm');
     const passengerList = el('passengerList');
+    const routeMapShell = el('routeMapShell');
+    const routeMapFallback = el('routeMapFallback');
     const routeMapMeta = el('routeMapMeta');
     const routeMapLabel = el('routeMapLabel');
     const PA28_CRUISE_KT = 115;
@@ -1047,10 +1056,20 @@
       });
     }
 
+    function showRouteMapFallback(text) {
+      routeMapFallback.textContent = text;
+      routeMapShell.classList.add('map-fallback');
+    }
+
+    function hideRouteMapFallback() {
+      routeMapShell.classList.remove('map-fallback');
+    }
+
     function initRouteMap() {
       if (routeMap || typeof L === 'undefined') return;
+      hideRouteMapFallback();
       routeMap = L.map('routeMap', {
-        zoomControl: false,
+        zoomControl: true,
         attributionControl: true,
         scrollWheelZoom: false,
         dragging: true,
@@ -1061,8 +1080,10 @@
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 18,
+        detectRetina: true,
         attribution: '&copy; OpenStreetMap &copy; CARTO'
       }).addTo(routeMap);
+      setTimeout(() => routeMap.invalidateSize(), 80);
     }
 
     function clearRouteMap() {
@@ -1077,12 +1098,15 @@
 
     function updateRouteMap(dep, arr) {
       if (typeof L === 'undefined') {
+        showRouteMapFallback('Map unavailable. Route details and flight time remain active in the trip summary.');
         routeMapMeta.textContent = 'Map loading unavailable / route summary active.';
         routeMapLabel.textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Route preview awaiting selection';
         return;
       }
 
       initRouteMap();
+      if (!routeMap) return;
+      hideRouteMapFallback();
       const depLatLng = airportLatLng(dep);
       const arrLatLng = airportLatLng(arr);
       if (!dep || !arr || !depLatLng || !arrLatLng || dep.icao === arr.icao) {
@@ -1097,11 +1121,12 @@
       arrMarker = L.marker(arrLatLng, { icon: markerIcon(arr, true) }).addTo(routeMap);
       routeLayer = L.polyline([depLatLng, arrLatLng], {
         color: '#ffffff',
-        weight: 3,
-        opacity: 0.92,
+        weight: 4,
+        opacity: 0.95,
         dashArray: '12 8'
       }).addTo(routeMap);
 
+      routeMap.invalidateSize();
       routeMap.fitBounds(routeLayer.getBounds().pad(0.38), { animate: false });
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
       routeMapLabel.textContent = `${dep.country} / ${arr.country} route preview`;
@@ -1324,8 +1349,8 @@
             passengers: collectPassengers(),
             emergencyName: '',
             emergencyPhone: '',
-            medicalStatus: el('medicalStatus').value,
-            substancesStatus: el('substancesStatus').value,
+            medicalStatus: el('safetyAgreement').checked ? 'SAFETY DECLARATION ACCEPTED' : 'NOT ACCEPTED',
+            substancesStatus: el('safetyAgreement').checked ? 'PASSENGER AGREES TO DECLARE BEFORE FLIGHT' : 'NOT ACCEPTED',
             carryOnBags: el('carryOnBags').value,
             baggageWeightKg: el('carryOnBags').value === 'YES' ? el('baggageWeightKg').value : 'N/A',
             bagType: `${el('bagCount').value} BAG(S) / ${el('bagType').value}`,
