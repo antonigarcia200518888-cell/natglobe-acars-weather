@@ -239,9 +239,9 @@
     }
 
     .route-pin.arrival {
-      background: #f56600;
+      background: var(--live);
       border-color: #fff;
-      box-shadow: 0 0 0 4px rgba(245,102,0,0.22), 0 0 15px rgba(245,102,0,0.8);
+      box-shadow: 0 0 0 4px rgba(0,255,102,0.22), 0 0 15px rgba(0,255,102,0.8);
     }
 
     .leaflet-marker-icon {
@@ -536,6 +536,27 @@
       box-shadow: 0 0 0 2px #777 inset;
     }
 
+    .btn.is-sending {
+      background: #111;
+      color: #fff;
+      border-color: #777;
+      cursor: wait;
+    }
+
+    .btn.is-success {
+      background: var(--live);
+      border-color: var(--live);
+      color: #000;
+      box-shadow: 0 0 18px rgba(0,255,102,0.35);
+    }
+
+    .btn.is-error {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(255,45,45,0.32);
+    }
+
     .btn.secondary {
       background: #000;
       color: #fff;
@@ -663,14 +684,27 @@
 
     .summary-list strong { color: #fff; text-align: right; }
 
-    .summary-footnote {
-      border-top: 1px solid #333;
-      margin-top: 12px;
-      padding-top: 10px;
-      color: #8d8d8d;
-      font-size: 12px;
-      line-height: 1.35;
+    .summary-list .summary-requests {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .request-pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-start;
+      width: 100%;
+    }
+
+    .request-pill {
+      border: 1px solid #555;
+      color: #d7d7d7;
+      padding: 5px 7px;
+      font-size: 11px;
       text-transform: uppercase;
+      background: #060606;
     }
 
     .consent {
@@ -910,10 +944,27 @@
       line-height: 1.1;
     }
 
+    .confirm-badge {
+      border: 1px solid #777;
+      color: #d7d7d7;
+      padding: 4px 6px;
+      font-size: 10px;
+      line-height: 1;
+      text-transform: uppercase;
+      background: #000;
+    }
+
     .extra-option span {
       color: #8d8d8d;
       font-size: 11px;
       line-height: 1.25;
+    }
+
+    .extra-option .confirm-badge {
+      align-self: flex-start;
+      color: #d7d7d7;
+      font-size: 10px;
+      line-height: 1;
     }
 
     .request-status {
@@ -1005,6 +1056,12 @@
     }
 
     .confirmation.show { display: block; }
+
+    .confirmation.error {
+      border-color: var(--danger);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px var(--danger);
+    }
 
     .status-tracker {
       display: none;
@@ -1343,12 +1400,12 @@
 
               <div class="extras-section-title">Request for this flight</div>
               <div class="extras-grid" aria-label="Optional onboard and transfer requests">
-                <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><strong>Wine service</strong><span>Light onboard wine request for eligible passengers.</span><em class="request-status">Tap to request</em></label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><strong>Champagne</strong><span>Celebration request reviewed before flight.</span><em class="request-status">Tap to request</em></label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><strong>Beer / long drink</strong><span>Beer, long drink, or similar refreshment request.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><strong>Wine service</strong><span class="confirm-badge">Pilot approval</span><span>Light onboard wine request for eligible passengers.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><strong>Champagne</strong><span class="confirm-badge">Pilot approval</span><span>Celebration request reviewed before flight.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><strong>Beer / long drink</strong><span class="confirm-badge">Pilot approval</span><span>Beer, long drink, or similar refreshment request.</span><em class="request-status">Tap to request</em></label>
                 <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><strong>Soft drinks</strong><span>Non-alcoholic drinks beyond the included water.</span><em class="request-status">Tap to request</em></label>
                 <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><strong>Light snacks</strong><span>Small sealed snacks suitable for a light aircraft cabin.</span><em class="request-status">Tap to request</em></label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><span>Ground transport coordination to or from the airfield.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><span class="confirm-badge">Separate confirm</span><span>Ground transport coordination to or from the airfield.</span><em class="request-status">Tap to request</em></label>
               </div>
               <div style="margin-top:12px;">
                 <label for="extrasNotes">Request details</label>
@@ -1380,21 +1437,15 @@
               <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
               <li><span>Baggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
               <li><span>Estimated share</span><strong id="summaryCost">Pilot confirms</strong></li>
+              <li class="summary-requests"><span>Onboard requests</span><div id="summaryRequests" class="request-pill-list"><span class="request-pill">None selected</span></div></li>
             </ul>
-            <div class="summary-footnote">Estimate only. Pilot confirmation, aircraft availability, weight and balance, weather, and payment are required before final booking.</div>
-          </div>
-          <div class="card fine-print">
-            This is not a ticket purchase. It creates a request that the pilot or dispatch team reviews. Weather, aircraft status, weight and balance, legal limits, and pilot decision determine whether a flight can operate.
-          </div>
-          <div class="card fine-print">
-            SIMPLE AND SAFE PROCESS: SEND A REQUEST, OPERATIONS REVIEWS IT, THE PILOT CONFIRMS IF IT CAN OPERATE, THEN PAYMENT AND FINAL BOOKING ARE COMPLETED. YOU ARE NOT CHARGED BY THIS FORM.
           </div>
         </aside>
       </div>
 
       <div class="submit-footer">
         <div class="submit-note">Final step: send this booking request to NatGlobe operations. A pilot or dispatcher will review route, weather, aircraft status, passenger details, and weight and balance.</div>
-        <button class="btn" type="submit">Request booking</button>
+        <button id="submitBooking" class="btn" type="submit">Request booking</button>
       </div>
 
       <section class="experience-grid" aria-label="NatGlobe passenger information">
@@ -1456,6 +1507,7 @@
     const bookingStatusTracker = el('bookingStatusTracker');
     const bookingStatusRef = el('bookingStatusRef');
     const form = el('bookingForm');
+    const submitBooking = el('submitBooking');
     const passengerList = el('passengerList');
     const routeRange = el('routeRange');
     const routeMapMeta = el('routeMapMeta');
@@ -1488,6 +1540,24 @@
     function setStatus(text, type = '') {
       statusBox.className = `status ${type}`;
       statusBox.textContent = text;
+    }
+
+    function setSubmitState(state, text) {
+      submitBooking.classList.remove('is-sending', 'is-success', 'is-error');
+      if (state) submitBooking.classList.add(`is-${state}`);
+      submitBooking.textContent = text || 'Request booking';
+    }
+
+    function showConfirmation(message, type = 'success') {
+      confirmation.textContent = message;
+      confirmation.className = `confirmation show${type === 'error' ? ' error' : ''}`;
+    }
+
+    function resetSubmitFeedback() {
+      if (submitBooking.classList.contains('is-error') || submitBooking.classList.contains('is-success')) {
+        setSubmitState('', 'Request booking');
+        confirmation.className = 'confirmation';
+      }
     }
 
     function setConnectionState(state, text) {
@@ -1731,6 +1801,20 @@
       return `${bagLabel} / ${weight}`;
     }
 
+    function requestSummary() {
+      const labels = {
+        WINE: 'Wine',
+        CHAMPAGNE: 'Champagne',
+        BEER: 'Beer / long drink',
+        'SOFT DRINKS / WATER': 'Soft drinks',
+        SNACKS: 'Light snacks',
+        'AIRPORT TRANSFERS': 'Airport transfer'
+      };
+      const values = checkedValues('extras');
+      const items = values.length ? values.map(value => labels[value] || value) : ['None selected'];
+      el('summaryRequests').innerHTML = items.map(item => `<span class="request-pill">${escapeHtml(item)}</span>`).join('');
+    }
+
     function refreshSummary() {
       const dep = selectedAirport('dep');
       const arr = selectedAirport('arr');
@@ -1744,6 +1828,7 @@
       el('summarySeats').textContent = el('seats').value || '1';
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
+      requestSummary();
       updateRouteMap(dep, arr);
       if (dep && arr && dep.icao === arr.icao) setStatus('Choose different departure and destination airports', 'err');
       else if (dep && arr) setStatus('Route selected / Complete passenger manifest and declarations', 'ok');
@@ -1849,8 +1934,14 @@
       mode.textContent = 'MODE: PRIVATE ROUTE NETWORK ONLINE / REQUEST READY';
     }
 
-    form.addEventListener('change', refreshSummary);
-    form.addEventListener('input', refreshSummary);
+    form.addEventListener('change', () => {
+      resetSubmitFeedback();
+      refreshSummary();
+    });
+    form.addEventListener('input', () => {
+      resetSubmitFeedback();
+      refreshSummary();
+    });
     el('swapRoute').addEventListener('click', () => {
       const depValue = el('dep').value;
       el('dep').value = el('arr').value;
@@ -1866,9 +1957,17 @@
       button.addEventListener('click', () => setSeatPreference(button.getAttribute('data-seat-choice')));
     });
 
+    form.addEventListener('invalid', (event) => {
+      setStatus('Missing information / complete the highlighted fields', 'err');
+      setSubmitState('error', 'Missing info');
+      showConfirmation('Some required information is missing. Please complete the highlighted fields before sending the booking request.', 'error');
+      event.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, true);
+
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       confirmation.className = 'confirmation';
+      setSubmitState('sending', 'Sending request...');
       setStatus('Transmitting request to NatGlobe operations...');
 
       try {
@@ -1904,14 +2003,16 @@
         if (!res.ok) throw new Error(data.error || 'Request failed');
 
         setStatus('Request received', 'ok');
+        setSubmitState('success', 'Request sent');
         const leadName = collectPassengers()[0]?.name || '';
-        confirmation.textContent = `Thanks ${leadName}. Your request ${data.request.id} was sent to NatGlobe operations. A pilot or dispatcher will review the route, aircraft, weather and weight/balance before confirming.`;
-        confirmation.className = 'confirmation show';
+        showConfirmation(`Thanks ${leadName}. Your request ${data.request.id} was sent to NatGlobe operations. A pilot or dispatcher will review the route, aircraft, weather and weight/balance before confirming.`);
         bookingStatusRef.textContent = `REFERENCE ${data.request.id} / STATUS PILOT REVIEW PENDING`;
         bookingStatusTracker.classList.add('show');
         mode.textContent = 'MODE: REQUEST TRANSMITTED / CREW REVIEW PENDING';
       } catch (err) {
+        setSubmitState('error', 'Request failed');
         setStatus(err.message || 'Request failed', 'err');
+        showConfirmation(err.message || 'Request failed. Please check the details and try again.', 'error');
       }
     });
 
