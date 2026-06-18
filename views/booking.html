@@ -789,6 +789,87 @@
 
     .seat-options { display: none; }
 
+    .request-panel {
+      margin-top: 12px;
+      border: 1px solid #555;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.05), transparent 62%),
+        #030303;
+      padding: 12px;
+    }
+
+    .request-panel-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .request-panel-title {
+      color: #fff;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 800;
+    }
+
+    .request-panel-copy {
+      color: #9d9d9d;
+      font-size: 12px;
+      line-height: 1.35;
+      max-width: 620px;
+      text-transform: uppercase;
+    }
+
+    .request-panel-status {
+      color: #00ff66;
+      border: 1px solid #00ff66;
+      padding: 6px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .extras-section-title {
+      margin: 12px 0 8px;
+      color: #cfcfcf;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .included-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .included-card {
+      border: 1px solid #444;
+      background: #0b0b0b;
+      padding: 12px;
+      min-height: 78px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    .included-card strong {
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.15;
+    }
+
+    .included-card span {
+      color: #00ff66;
+      font-size: 11px;
+    }
+
     .extra-option,
     .seat-option {
       border: 1px solid #666;
@@ -807,6 +888,11 @@
       cursor: pointer;
       min-height: 82px;
       position: relative;
+    }
+
+    .extra-option {
+      min-height: 112px;
+      justify-content: space-between;
     }
 
     .extra-option input,
@@ -830,12 +916,37 @@
       line-height: 1.25;
     }
 
+    .request-status {
+      margin-top: auto;
+      border: 1px solid #444;
+      color: #aaa;
+      padding: 5px 7px;
+      font-size: 10px;
+      line-height: 1;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.03);
+    }
+
     .extra-option:has(input:checked) {
       border-color: #fff;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.14), transparent 56%),
         #111;
       box-shadow: inset 0 0 0 1px #ff2d2d, 0 0 14px rgba(255,45,45,0.26);
+    }
+
+    .extra-option:has(input:checked) .request-status {
+      border-color: #00ff66;
+      color: #00ff66;
+    }
+
+    .extra-option:has(input:checked) .request-status {
+      font-size: 0;
+    }
+
+    .extra-option:has(input:checked) .request-status::after {
+      content: "Requested";
+      font-size: 10px;
     }
 
     .declaration {
@@ -967,7 +1078,11 @@
     @media (max-width: 900px) {
       body { padding: 14px 10px; }
       .frame { padding: 16px 12px 14px; }
-      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options, .extras-grid, .experience-grid { grid-template-columns: 1fr; }
+      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options, .extras-grid, .included-grid, .experience-grid { grid-template-columns: 1fr; }
+      .request-panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
       .search-grid {
         grid-template-columns: 1fr 46px 1fr;
         gap: 10px;
@@ -1188,7 +1303,7 @@
           </div>
 
           <div class="card">
-            <h2 class="section-title">Seat preference and extras</h2>
+            <h2 class="section-title">Seat preference and onboard requests</h2>
             <div class="seat-map">
               <div class="declaration">
                 <strong>PA-28R-200 cabin preference</strong>
@@ -1210,23 +1325,38 @@
                 <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /> No preference</label>
               </div>
             </div>
-            <div style="margin-top:12px;">
-              <label>Extras requested</label>
-              <div class="extras-grid">
-                <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><strong>Wine service</strong><span>Requested after pilot approval.</span></label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><strong>Champagne</strong><span>Celebration request, reviewed before flight.</span></label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><strong>Beer</strong><span>Light refreshment request.</span></label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="LONG DRINKS" /><strong>Long drinks</strong><span>Finnish-style onboard request.</span></label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><span>Ground transport coordination.</span></label>
-                <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><strong>Soft drinks</strong><span>Water and non-alcoholic drinks.</span></label>
+            <div class="request-panel">
+              <div class="request-panel-header">
+                <div>
+                  <div class="request-panel-title">Onboard requests</div>
+                  <div class="request-panel-copy">Select anything you would like operations to prepare or confirm. Requests are reviewed with pilot approval, aircraft limits, passenger fitness, and local rules before the flight is confirmed.</div>
+                </div>
+                <div class="request-panel-status">Request menu</div>
               </div>
-            </div>
-            <div style="margin-top:12px;">
-              <label for="extrasNotes">Extras notes</label>
-              <input id="extrasNotes" type="text" placeholder="Preferred drink, transfer location, timing, or other request" />
-            </div>
-            <div class="fine-print" style="margin-top:10px;">
-              Extras are requests only. Alcohol service is subject to pilot approval, local rules, passenger fitness, and safety. Airport transfers require separate confirmation.
+
+              <div class="extras-section-title">Included on board</div>
+              <div class="included-grid" aria-label="Included onboard items">
+                <div class="included-card"><strong>Chilled water</strong><span>Included</span></div>
+                <div class="included-card"><strong>USB-C charging</strong><span>Planned</span></div>
+                <div class="included-card"><strong>Starlink Wi-Fi</strong><span>Planned</span></div>
+              </div>
+
+              <div class="extras-section-title">Request for this flight</div>
+              <div class="extras-grid" aria-label="Optional onboard and transfer requests">
+                <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><strong>Wine service</strong><span>Light onboard wine request for eligible passengers.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><strong>Champagne</strong><span>Celebration request reviewed before flight.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><strong>Beer / long drink</strong><span>Beer, long drink, or similar refreshment request.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><strong>Soft drinks</strong><span>Non-alcoholic drinks beyond the included water.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><strong>Light snacks</strong><span>Small sealed snacks suitable for a light aircraft cabin.</span><em class="request-status">Tap to request</em></label>
+                <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><span>Ground transport coordination to or from the airfield.</span><em class="request-status">Tap to request</em></label>
+              </div>
+              <div style="margin-top:12px;">
+                <label for="extrasNotes">Request details</label>
+                <input id="extrasNotes" type="text" placeholder="Example: champagne for 2, pickup address, preferred soft drinks, timing" />
+              </div>
+              <div class="fine-print" style="margin-top:10px;">
+                Alcohol is never guaranteed and may be declined by the pilot or operations. Transfers and catering are separate requests and may affect final pricing.
+              </div>
             </div>
           </div>
 
