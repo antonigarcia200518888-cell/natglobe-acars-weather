@@ -428,6 +428,48 @@ function walletAsset(name) {
   return fs.readFileSync(path.join(WALLET_ASSETS_DIR, name));
 }
 
+function createBoardingPassToken() {
+  return randomUUID().replace(/-/g, '');
+}
+
+function getRequestPassengers(request) {
+  return request.passengers?.length ? request.passengers : [{ number: 1, name: request.name }];
+}
+
+function isBoardingPassReady(request) {
+  return request.pilotDecision === 'APPROVED' && request.status === 'CONFIRMED';
+}
+
+function estimateBoardingPassFlightTime(depIcao, arrIcao) {
+  const depAirport = bookingAirports.find(airport => airport.icao === depIcao);
+  const arrAirport = bookingAirports.find(airport => airport.icao === arrIcao);
+  if (!depAirport || !arrAirport) return 'TBD';
+  const minutes = Math.max(10, Math.round((kmToNm(haversineKm(depAirport, arrAirport)) / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}H ${String(minutes % 60).padStart(2, '0')}M`;
+}
+
+function publicBoardingPassView(request, passenger) {
+  return {
+    reference: request.id,
+    passenger: passenger.name || 'PRIVATE GUEST',
+    passengerNumber: passenger.number || 1,
+    from: request.depName || request.dep || 'DEPARTURE',
+    fromCode: request.dep || '',
+    to: request.arrName || request.arr || 'ARRIVAL',
+    toCode: request.arr || '',
+    date: request.requestDate || 'TBD',
+    boardingTime: request.requestTime || 'TBD',
+    flightTime: estimateBoardingPassFlightTime(request.dep, request.arr),
+    aircraft: request.aircraft || 'PA-28R-200',
+    seat: request.seatPreference || 'REAR SEAT',
+    gate: 'GA STAND',
+    baggage: request.carryOnBags === 'YES'
+      ? `${request.baggageWeightKg || '0'} KG ${request.bagType || 'CARRY-ON'}`
+      : 'NO BAGGAGE DECLARED',
+    status: 'CONFIRMED'
+  };
+}
+
 async function createWalletPass(request, passenger) {
   const certificates = getWalletCertificates();
   if (!certificates) {
@@ -2234,6 +2276,11 @@ app.get('/booking-ops', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', fileName));
 });
 
+app.get('/boarding-pass/:token', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
+});
+
 app.post('/api/pilot-login', (req, res) => {
   const code = String(req.body?.code || '').trim();
   if (code !== PILOT_ACCESS_CODE) {
@@ -2359,11 +2406,11 @@ app.get('/api/booking-ops/requests/:id/wallet-pass/:passengerNumber', requirePil
   await bookingStoreReady;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
-  if (request.pilotDecision !== 'APPROVED' || request.status !== 'CONFIRMED') {
+  if (!isBoardingPassReady(request)) {
     return res.status(409).json({ error: 'PILOT APPROVAL REQUIRED BEFORE WALLET PASS GENERATION' });
   }
   const passengerNumber = Number(req.params.passengerNumber);
-  const passengers = request.passengers?.length ? request.passengers : [{ number: 1, name: request.name }];
+  const passengers = getRequestPassengers(request);
   const passenger = passengers.find(item => Number(item.number) === passengerNumber);
   if (!passenger) return res.status(404).json({ error: 'PASSENGER NOT FOUND' });
 
@@ -2377,6 +2424,67 @@ app.get('/api/booking-ops/requests/:id/wallet-pass/:passengerNumber', requirePil
   } catch (err) {
     console.error('WALLET PASS:', err.message);
     res.status(err.code === 'WALLET_NOT_CONFIGURED' ? 503 : 500).json({ error: err.message || 'WALLET PASS GENERATION FAILED' });
+  }
+});
+
+app.post('/api/booking-ops/requests/:id/boarding-pass/:passengerNumber/link', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  if (!isBoardingPassReady(request)) {
+    return res.status(409).json({ error: 'PILOT APPROVAL REQUIRED BEFORE ISSUING A BOARDING PASS' });
+  }
+  const passengerNumber = Number(req.params.passengerNumber);
+  const passengers = getRequestPassengers(request);
+  const passenger = passengers.find(item => Number(item.number) === passengerNumber);
+  if (!passenger) return res.status(404).json({ error: 'PASSENGER NOT FOUND' });
+
+  if (!passenger.boardingPassToken) {
+    passenger.boardingPassToken = createBoardingPassToken();
+    request.passengers = passengers;
+    await persistBookingRequest(request);
+    await addBookingTimelineEvent(request.id, 'WEB BOARDING PASS ISSUED', `Passenger ${passenger.number || 1}`);
+  }
+
+  res.json({
+    url: `/boarding-pass/${passenger.boardingPassToken}`,
+    passenger: passenger.number || 1
+  });
+});
+
+app.get('/api/boarding-passes/:token', async (req, res) => {
+  await bookingStoreReady;
+  const token = String(req.params.token || '').trim();
+  const request = bookingRequests.find(item => getRequestPassengers(item).some(passenger => passenger.boardingPassToken === token));
+  if (!request || !isBoardingPassReady(request)) return res.status(404).json({ error: 'BOARDING PASS NOT AVAILABLE' });
+  const passenger = getRequestPassengers(request).find(item => item.boardingPassToken === token);
+  if (!passenger) return res.status(404).json({ error: 'BOARDING PASS NOT AVAILABLE' });
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({ pass: publicBoardingPassView(request, passenger) });
+});
+
+app.get('/api/boarding-passes/:token/qr', async (req, res) => {
+  await bookingStoreReady;
+  const token = String(req.params.token || '').trim();
+  const request = bookingRequests.find(item => getRequestPassengers(item).some(passenger => passenger.boardingPassToken === token));
+  if (!request || !isBoardingPassReady(request)) return res.status(404).end();
+  const passenger = getRequestPassengers(request).find(item => item.boardingPassToken === token);
+  if (!passenger) return res.status(404).end();
+
+  try {
+    const QRCode = (await import('qrcode')).default;
+    const passUrl = `${req.protocol}://${req.get('host')}/boarding-pass/${encodeURIComponent(token)}`;
+    const svg = await QRCode.toString(passUrl, {
+      type: 'svg',
+      margin: 1,
+      color: { dark: '#ffffff', light: '#16125e' }
+    });
+    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.send(svg);
+  } catch (err) {
+    console.error('BOARDING PASS QR:', err.message);
+    res.status(500).end();
   }
 });
 
@@ -2405,7 +2513,8 @@ app.post('/api/booking-requests', async (req, res) => {
     dob: normalizeBookingText(passenger?.dob, 20),
     weightKg: normalizeBookingText(passenger?.weightKg, 8),
     passportCountry: normalizeBookingText(passenger?.passportCountry, 40),
-    nationalId: normalizeBookingText(passenger?.nationalId, 60)
+    nationalId: normalizeBookingText(passenger?.nationalId, 60),
+    boardingPassToken: createBoardingPassToken()
   })) : [{
     number: 1,
     name: normalizeBookingText(req.body?.name, 60),
@@ -2414,11 +2523,12 @@ app.post('/api/booking-requests', async (req, res) => {
     dob: normalizeBookingText(req.body?.dob, 20),
     weightKg: normalizeBookingText(req.body?.weightKg, 8),
     passportCountry: normalizeBookingText(req.body?.passportCountry, 40),
-    nationalId: normalizeBookingText(req.body?.nationalId, 60)
+    nationalId: normalizeBookingText(req.body?.nationalId, 60),
+    boardingPassToken: createBoardingPassToken()
   }];
 
   while (passengers.length < seats) {
-    passengers.push({ number: passengers.length + 1, name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '' });
+    passengers.push({ number: passengers.length + 1, name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '', boardingPassToken: createBoardingPassToken() });
   }
 
   const leadPassenger = passengers[0] || {};
@@ -2552,7 +2662,11 @@ app.post('/api/booking-requests', async (req, res) => {
   await addBookingTimelineEvent(request.id, 'REQUEST RECEIVED', 'Booker submitted request.');
 
   res.status(201).json({
-    request,
+    request: {
+      id: request.id,
+      status: request.status,
+      pilotDecision: request.pilotDecision
+    },
     confirmationText: 'REQUEST RECEIVED. PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'
   });
 });

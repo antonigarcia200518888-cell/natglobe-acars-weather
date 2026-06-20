@@ -17,6 +17,10 @@ The booking system uses temporary memory until a PostgreSQL connection is config
 
 Do not use the temporary mode for production passenger or identity data: Render restarts clear it.
 
+### Web boarding passes
+
+After a pilot approves a booking, Booking Ops can issue one private web boarding-pass link for each passenger. The link opens a mobile-friendly ticket with a QR code and only shows trip details needed to board. Passport, date-of-birth, medical, contact, and emergency data are never included on the public pass.
+
 ### Apple Wallet passes
 
 Approved bookings can generate one Apple Wallet boarding pass per passenger from Booking Ops. Apple requires every `.pkpass` bundle to be signed with a Pass Type ID certificate. Create a Pass Type ID and its certificate in the Apple Developer account, then add these Render secret environment variables:

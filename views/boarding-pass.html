@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#16125e" />
+  <title>Private Flight Boarding Pass</title>
+  <style>
+    :root { --ink: #101118; --paper: #f7f7f5; --purple: #171262; --line: rgba(16,17,24,.65); }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #11121a; color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+    .shell { width: min(1040px, 100%); }
+    .heading { color: rgba(255,255,255,.78); font: 700 12px/1.4 "Courier New", monospace; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 12px; }
+    .ticket { display: grid; grid-template-columns: minmax(0, 2.25fr) minmax(270px, .95fr); background: var(--paper); box-shadow: 0 28px 80px rgba(0,0,0,.42); overflow: hidden; }
+    .main { position: relative; padding: clamp(22px, 4vw, 44px); overflow: hidden; }
+    .main::before { content: ""; position: absolute; inset: 0; opacity: .06; background-image: radial-gradient(ellipse at 18% 30%, #43516c 0 10%, transparent 10.5%), radial-gradient(ellipse at 50% 63%, #43516c 0 17%, transparent 17.5%), radial-gradient(ellipse at 78% 27%, #43516c 0 11%, transparent 11.5%); transform: scale(1.35); }
+    .main > * { position: relative; }
+    .top, .route-line, .detail-grid, .footer { display: grid; gap: 18px; }
+    .top { grid-template-columns: 1fr auto; align-items: start; }
+    .brand { width: 54px; height: 54px; object-fit: contain; }
+    .eyebrow, .label { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+    .passenger { margin: 18px 0 22px; font: 700 clamp(22px, 3vw, 40px)/1.06 "Courier New", monospace; letter-spacing: .02em; text-transform: uppercase; word-break: break-word; }
+    .rule { border: 0; border-top: 2px dotted var(--line); margin: 0; }
+    .route-line { grid-template-columns: 1fr auto 1fr; align-items: end; padding: 18px 0; }
+    .route-arrow { align-self: center; font-size: 24px; color: #555; }
+    .airport { font: 700 clamp(21px, 3.2vw, 36px)/1 "Courier New", monospace; text-transform: uppercase; }
+    .airport small { display: block; margin-top: 5px; font: 700 13px/1.2 Arial, sans-serif; letter-spacing: .04em; }
+    .detail-grid { grid-template-columns: repeat(3, 1fr); padding-top: 18px; }
+    .value { margin-top: 6px; font: 700 clamp(18px, 2.3vw, 30px)/1.15 "Courier New", monospace; text-transform: uppercase; }
+    .footer { grid-template-columns: 1fr auto; align-items: end; margin-top: 28px; color: #565860; }
+    .status { font: 700 12px/1 "Courier New", monospace; color: #177844; letter-spacing: .08em; }
+    .stub { position: relative; display: grid; align-content: start; gap: 20px; padding: clamp(22px, 3vw, 38px); background: var(--purple); color: #fff; }
+    .stub::before { content: ""; position: absolute; left: -7px; top: 0; bottom: 0; width: 14px; background: radial-gradient(circle, var(--paper) 6px, transparent 6.5px) center top / 14px 18px repeat-y; }
+    .stub-title { font: 700 clamp(22px, 3vw, 37px)/1 "Courier New", monospace; letter-spacing: .05em; text-transform: uppercase; }
+    .qr { width: min(190px, 100%); justify-self: center; background: #16125e; image-rendering: pixelated; }
+    .stub-name { font: 700 17px/1.25 "Courier New", monospace; text-transform: uppercase; word-break: break-word; }
+    .stub-rule { border: 0; border-top: 2px dotted rgba(255,255,255,.7); width: 100%; }
+    .stub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .stub .label { color: rgba(255,255,255,.74); font-size: 10px; }
+    .stub .value { font-size: 17px; }
+    .error { max-width: 620px; padding: 30px; border: 1px solid rgba(255,255,255,.25); color: #fff; font: 16px/1.5 "Courier New", monospace; }
+    @media (max-width: 690px) { body { padding: 0; align-items: start; } .shell { width: 100%; } .heading { margin: 18px; } .ticket { grid-template-columns: 1fr; } .main { padding: 28px 22px; } .detail-grid { grid-template-columns: 1fr 1fr; } .detail-grid > :last-child { grid-column: 1 / -1; } .stub { padding: 28px 22px 34px; } .stub::before { top: -7px; left: 0; right: 0; bottom: auto; width: auto; height: 14px; background: radial-gradient(circle, var(--paper) 6px, transparent 6.5px) left center / 18px 14px repeat-x; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <p class="heading">Private Flight / Passenger boarding pass</p>
+    <section id="ticket" class="ticket" hidden>
+      <div class="main">
+        <div class="top"><img class="brand" src="/booking-logo-mark.png" alt="Private flight" /><div><div class="label">Gate</div><div id="gate" class="value">GA STAND</div></div></div>
+        <div class="label">Passenger</div><div id="passenger" class="passenger">Private guest</div><hr class="rule" />
+        <div class="route-line"><div><div class="label">From</div><div id="from" class="airport">Departure</div></div><div class="route-arrow">&#8594;</div><div><div class="label">To</div><div id="to" class="airport">Arrival</div></div></div><hr class="rule" />
+        <div class="detail-grid"><div><div class="label">Date</div><div id="date" class="value">TBD</div></div><div><div class="label">Boarding time</div><div id="boarding" class="value">TBD</div></div><div><div class="label">Flight time</div><div id="flightTime" class="value">TBD</div></div></div>
+        <div class="footer"><div><div class="label">Aircraft</div><div id="aircraft" class="value">PA-28R-200</div></div><div><div class="label">Seat</div><div id="seat" class="value">Rear seat</div></div></div>
+      </div>
+      <aside class="stub"><div class="stub-title">Private flight</div><img id="qr" class="qr" alt="Boarding pass QR code" /><div id="stubName" class="stub-name">Private guest</div><hr class="stub-rule" /><div class="stub-grid"><div><div class="label">Reference</div><div id="reference" class="value">TBD</div></div><div><div class="label">Status</div><div id="stubStatus" class="value">Confirmed</div></div><div><div class="label">Baggage</div><div id="baggage" class="value">TBD</div></div><div><div class="label">Gate</div><div id="stubGate" class="value">GA stand</div></div></div></aside>
+    </section>
+    <div id="error" class="error" hidden>This boarding pass is not available.</div>
+  </main>
+  <script>
+    const token = location.pathname.split('/').filter(Boolean).pop();
+    const set = (id, value) => document.getElementById(id).textContent = value || 'TBD';
+    fetch(`/api/boarding-passes/${encodeURIComponent(token)}`, { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(({ pass }) => {
+        set('passenger', pass.passenger); set('stubName', pass.passenger); set('from', `${pass.from} (${pass.fromCode})`); set('to', `${pass.to} (${pass.toCode})`); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', pass.aircraft); set('seat', pass.seat); set('gate', pass.gate); set('stubGate', pass.gate); set('reference', pass.reference); set('stubStatus', pass.status); set('baggage', pass.baggage); document.getElementById('qr').src = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false;
+      })
+      .catch(() => { document.getElementById('error').hidden = false; });
+  </script>
+</body>
+</html>

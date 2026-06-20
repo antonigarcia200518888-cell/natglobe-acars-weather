@@ -537,10 +537,11 @@ END OF MESSAGE</pre>
             <button id="declineBtn" class="btn ghost" type="button">DECLINE</button>
           </div>
           <div class="wallet-actions">
-            <select id="walletPassenger" aria-label="Wallet pass passenger"></select>
+            <select id="walletPassenger" aria-label="Passenger boarding pass"></select>
+            <button id="webPassBtn" class="btn" type="button">OPEN WEB BOARDING PASS</button>
             <button id="walletPassBtn" class="btn" type="button">DOWNLOAD APPLE WALLET PASS</button>
           </div>
-          <div id="walletPassStatus" class="ops-mini-status">Pilot approval and Wallet signing setup required.</div>
+          <div id="walletPassStatus" class="ops-mini-status">Pilot approval required before issuing a passenger pass.</div>
           <button id="copyBtn" class="btn" type="button">COPY BOOKING MESSAGE</button>
           <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
           <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
@@ -574,6 +575,7 @@ END OF MESSAGE</pre>
     const addTimelineNoteBtn = el('addTimelineNoteBtn');
     const regattaBriefCard = el('regattaBriefCard');
     const walletPassenger = el('walletPassenger');
+    const webPassBtn = el('webPassBtn');
     const walletPassBtn = el('walletPassBtn');
     const walletPassStatus = el('walletPassStatus');
 
@@ -654,6 +656,7 @@ END OF MESSAGE</pre>
       ).join('');
       const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
       walletPassenger.disabled = !approved;
+      webPassBtn.disabled = !approved;
       walletPassBtn.disabled = !approved;
       walletPassStatus.textContent = approved
         ? 'Ready to issue a passenger Apple Wallet pass.'
@@ -833,6 +836,25 @@ END OF MESSAGE</pre>
       link.remove();
       URL.revokeObjectURL(url);
       walletPassStatus.textContent = 'Wallet pass downloaded. Open it on iPhone to add it to Wallet.';
+      loadTimeline(selected.id).catch(() => {});
+    });
+
+    webPassBtn.addEventListener('click', async () => {
+      if (!selected) return;
+      walletPassStatus.textContent = 'Issuing web boarding pass...';
+      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/boarding-pass/${encodeURIComponent(walletPassenger.value)}/link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        walletPassStatus.textContent = data.error || 'Unable to issue web boarding pass.';
+        return;
+      }
+      const passWindow = window.open(data.url, '_blank', 'noopener');
+      walletPassStatus.textContent = passWindow
+        ? 'Web boarding pass opened in a new tab.'
+        : `Passenger pass ready: ${window.location.origin}${data.url}`;
       loadTimeline(selected.id).catch(() => {});
     });
 
