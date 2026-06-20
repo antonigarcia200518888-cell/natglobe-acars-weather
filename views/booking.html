@@ -290,6 +290,31 @@
       z-index: 700;
     }
 
+    .locate-me-btn {
+      position: absolute;
+      right: 12px;
+      top: 44px;
+      z-index: 700;
+      min-height: 34px;
+      border: 1px solid #777;
+      background: rgba(0,0,0,0.78);
+      color: #fff;
+      padding: 7px 9px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .locate-me-btn:hover,
+    .locate-me-btn:focus-visible,
+    .locate-me-btn.is-located {
+      border-color: var(--live);
+      color: var(--live);
+      outline: none;
+    }
+
     .route-range {
       position: absolute;
       left: 12px;
@@ -1496,6 +1521,12 @@
         right: 8px;
         bottom: 8px;
       }
+      .locate-me-btn {
+        right: 8px;
+        top: 42px;
+        min-height: 32px;
+        font-size: 9px;
+      }
       .map-watermark {
         display: none;
       }
@@ -1553,7 +1584,7 @@
         <img class="brand-logo" src="/natglobe-logo.png" alt="Private aviation logo" />
         <div>
           <div class="title">PRIVATE FLIGHT BOOKING</div>
-          <div class="subtitle">This is not a commercial transport service - private flight operated under equal-share cost-shared remuneration only.</div>
+          <div class="subtitle">Private aviation requests / Equal-share, non-commercial operation</div>
         </div>
       </div>
       <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
@@ -1571,14 +1602,14 @@
 
     <div id="clock" class="clock">UTC --:--:--</div>
     <div class="intro">
-      Regatta route: Hyvinkää to Hanko. Requests close 24 hours before departure.
+      Hanko Regatta service: request your preferred itinerary at least 24 hours before departure.
     </div>
-    <div id="mode" class="mode">MODE: PRIVATE FLIGHT REQUEST / PILOT REVIEW REQUIRED</div>
+    <div id="mode" class="mode">SERVICE: PRIVATE AVIATION REQUEST / FLIGHT TEAM REVIEW</div>
 
     <form id="bookingForm">
       <section class="route-map-card" aria-label="Selected flight route map">
         <div class="route-map-head">
-          <div class="route-map-title">Selected route map</div>
+          <div class="route-map-title">Route overview</div>
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
@@ -1586,6 +1617,7 @@
           <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
           <div class="map-watermark">Private route map</div>
           <div class="route-map-compass">N</div>
+          <button id="locateMeBtn" class="locate-me-btn" type="button">Locate me</button>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label">Route preview awaiting selection</div>
         </div>
@@ -1593,7 +1625,7 @@
 
       <section class="search-card">
         <div class="booking-panel-head">
-          <div class="booking-kicker">Flight request details</div>
+          <div class="booking-kicker">Your itinerary</div>
         </div>
         <div class="grid search-grid">
           <div class="route-field">
@@ -1654,13 +1686,13 @@
         </div>
       </section>
 
-      <section class="card aircraft-feature" aria-label="Aircraft for this request">
+      <section class="card aircraft-feature" aria-label="Private aircraft experience">
         <div class="aircraft-photo">
           <img src="/piper-hangar.jpg" alt="Piper aircraft in hangar-style studio view" />
         </div>
         <div class="aircraft-feature-copy">
           <div>
-            <div class="booking-kicker">Aircraft for this request</div>
+            <div class="booking-kicker">Private aircraft experience</div>
           </div>
           <p>Final aircraft assignment is confirmed by pilot and operations after route, weather, aircraft status, baggage, and weight and balance review.</p>
           <div class="amenity-grid">
@@ -1674,12 +1706,12 @@
       <div class="layout">
         <section>
           <div class="card">
-            <h2 class="section-title">Passenger details</h2>
+            <h2 class="section-title">Traveller details</h2>
             <div id="passengerList" class="passenger-list"></div>
           </div>
 
           <div class="card">
-            <h2 class="section-title">Travel and safety information</h2>
+            <h2 class="section-title">Travel readiness</h2>
             <div class="declaration">
               <strong>Passenger safety declaration</strong>
               Private light aircraft flights require a pilot safety review before confirmation. I agree to tell the pilot or operations team about anything that could affect safe flight, including illness, breathing or circulation issues, seizure history, panic/anxiety concerns, recent surgery, pregnancy, injury, medication effects, alcohol, sedatives, cannabis, or feeling unwell before the flight. I understand there is no supplemental oxygen on board, I must follow pilot instructions, and the pilot may delay, change, or decline the flight for safety, weather, aircraft, legal, or weight and balance reasons.
@@ -1693,7 +1725,7 @@
 
         <aside>
           <div class="card summary-card">
-            <h2 class="section-title">Seat preference</h2>
+            <h2 class="section-title">Cabin preference</h2>
             <div class="seat-map">
               <div class="declaration">
                 <strong>PA-28R-200 cabin preference</strong>
@@ -1721,9 +1753,9 @@
 
       <div class="baggage-request-grid">
         <div class="card">
-          <h2 class="section-title">Baggage</h2>
+          <h2 class="section-title">Luggage</h2>
           <div class="declaration">
-            <strong>Baggage declaration</strong>
+            <strong>Luggage declaration</strong>
             Bags are subject to aircraft weight and balance and pilot approval. Declare power banks/lithium batteries. Do not bring prohibited dangerous goods such as flammable liquids, fireworks, firearms, corrosives, toxic chemicals, pressurized containers, or unsecured lithium batteries.
           </div>
           <div class="question-grid">
@@ -1748,11 +1780,11 @@
         </div>
 
         <div class="card">
-          <h2 class="section-title">Onboard requests</h2>
+          <h2 class="section-title">Cabin requests</h2>
           <div class="request-panel">
             <div class="request-panel-header">
               <div>
-                <div class="request-panel-title">Onboard requests</div>
+                <div class="request-panel-title">Cabin requests</div>
                 <div class="request-panel-copy">Select anything you would like operations to prepare or confirm. Requests are reviewed with pilot approval, aircraft limits, passenger fitness, and local rules before the flight is confirmed.</div>
               </div>
               <div class="request-panel-status">Request menu</div>
@@ -1786,11 +1818,11 @@
       </div>
 
       <div class="card review-card">
-        <h2 class="section-title">Trip summary</h2>
-        <div class="quote-label">Final request review</div>
+        <h2 class="section-title">Journey overview</h2>
+        <div class="quote-label">Private flight request review</div>
         <div class="readiness-grid" aria-label="Booking readiness">
           <div id="readyRoute" class="readiness-item">Route pending</div>
-          <div id="readyPassengers" class="readiness-item">Passenger details pending</div>
+          <div id="readyPassengers" class="readiness-item">Traveller details pending</div>
           <div id="readySafety" class="readiness-item">Safety acceptance pending</div>
           <div id="readyBaggage" class="readiness-item">Baggage reviewed</div>
         </div>
@@ -1807,14 +1839,14 @@
           <li id="summaryReturnRow"><span>Return</span><strong id="summaryReturn">Not requested</strong></li>
           <li><span>Est. flight time</span><strong id="summaryFlightTime">----</strong></li>
           <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
-          <li><span>Baggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
-          <li><span>Estimated share</span><strong id="summaryCost">Pilot confirms</strong></li>
-          <li class="summary-requests"><span>Onboard requests</span><div id="summaryRequests" class="request-pill-list"><span class="request-pill">None selected</span></div></li>
+          <li><span>Luggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
+          <li><span>Estimated share</span><strong id="summaryCost">Flight team confirms</strong></li>
+          <li class="summary-requests"><span>Cabin requests</span><div id="summaryRequests" class="request-pill-list"><span class="request-pill">None selected</span></div></li>
         </ul>
       </div>
 
       <div class="submit-footer">
-        <button id="submitBooking" class="btn" type="submit">Request booking</button>
+        <button id="submitBooking" class="btn" type="submit">Submit flight request</button>
         <div class="submit-result-stack" aria-live="polite">
           <div id="statusBox" class="status"></div>
           <div id="confirmation" class="confirmation"></div>
@@ -1835,7 +1867,7 @@
           <strong id="mobileTripLine">Hyvinkää to Tallinn</strong>
           <span id="mobileTripMeta">00H 39M / 1 passenger</span>
         </div>
-        <button id="mobileSubmitBooking" class="btn" type="button">Request booking</button>
+        <button id="mobileSubmitBooking" class="btn" type="button">Submit request</button>
       </div>
 
     </form>
@@ -1899,6 +1931,7 @@
     const routeMapLabel = el('routeMapLabel');
     const routeMapShell = el('routeMapShell');
     const routeMapFallback = el('routeMapFallback');
+    const locateMeBtn = el('locateMeBtn');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -1913,6 +1946,8 @@
     let routeLayer = null;
     let depMarker = null;
     let arrMarker = null;
+    let userLocationMarker = null;
+    let userLocationCircle = null;
     let submitTouched = false;
     let pilotAvailability = new Map();
 
@@ -1934,7 +1969,7 @@
       [submitBooking, mobileSubmitBooking].forEach(button => {
         button.classList.remove('is-sending', 'is-success', 'is-error');
         if (state) button.classList.add(`is-${state}`);
-        button.textContent = text || 'Request booking';
+        button.textContent = text || (button === mobileSubmitBooking ? 'Submit request' : 'Submit flight request');
       });
     }
 
@@ -1945,7 +1980,7 @@
 
     function resetSubmitFeedback() {
       if (submitBooking.classList.contains('is-error') || submitBooking.classList.contains('is-success')) {
-        setSubmitState('', 'Request booking');
+        setSubmitState('');
         confirmation.className = 'confirmation';
         confirmation.textContent = '';
         statusBox.className = 'status';
@@ -2098,6 +2133,45 @@
       }, 180);
     }
 
+    function locateUserOnMap() {
+      if (!navigator.geolocation) {
+        locateMeBtn.textContent = 'Location unavailable';
+        return;
+      }
+      locateMeBtn.textContent = 'Locating...';
+      navigator.geolocation.getCurrentPosition(position => {
+        if (!initRouteMap()) return;
+        const latLng = [position.coords.latitude, position.coords.longitude];
+        if (userLocationMarker) routeMap.removeLayer(userLocationMarker);
+        if (userLocationCircle) routeMap.removeLayer(userLocationCircle);
+        userLocationCircle = L.circle(latLng, {
+          radius: Math.max(20, position.coords.accuracy || 0),
+          color: '#66ff99',
+          weight: 1,
+          fillColor: '#66ff99',
+          fillOpacity: 0.12,
+          interactive: false
+        }).addTo(routeMap);
+        userLocationMarker = L.circleMarker(latLng, {
+          radius: 7,
+          color: '#fff',
+          weight: 2,
+          fillColor: '#66ff99',
+          fillOpacity: 1,
+          interactive: false
+        }).addTo(routeMap);
+        routeMap.flyTo(latLng, Math.max(routeMap.getZoom(), 10), { animate: true, duration: 0.7 });
+        locateMeBtn.textContent = 'Location set';
+        locateMeBtn.classList.add('is-located');
+      }, () => {
+        locateMeBtn.textContent = 'Enable location';
+      }, {
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 300000
+      });
+    }
+
     function updateRouteMap(dep, arr) {
       if (!dep || !arr || dep.icao === arr.icao) {
         routeRange.textContent = 'FLIGHT TIME: --H --M';
@@ -2109,7 +2183,7 @@
 
       routeRange.textContent = `FLIGHT TIME: ${formatFlightTime(dep, arr)}`;
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
-      routeMapLabel.textContent = `${dep.country} / ${arr.country} equal-share private route`;
+      routeMapLabel.textContent = `${dep.country} / ${arr.country} private aviation request`;
       drawRouteOnMap(dep, arr);
     }
 
@@ -2187,7 +2261,6 @@
     }
 
     function updateDatePriceLabels(dep, arr) {
-      const share = routePrice(dep, arr);
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
       const outboundDate = el('requestDate').value;
       ['requestDate', 'returnDate'].forEach(id => {
@@ -2200,7 +2273,7 @@
             ? !requestDateIsAvailable(option.value)
             : roundtrip && outboundDate && option.value < outboundDate;
           option.disabled = unavailable;
-          option.textContent = `${dateLabel} / ${unavailable ? (id === 'requestDate' ? requestDateUnavailableReason(option.value) : 'AFTER OUTBOUND') : share}`;
+          option.textContent = `${dateLabel}${unavailable ? ` / ${id === 'requestDate' ? requestDateUnavailableReason(option.value) : 'AFTER OUTBOUND'}` : ''}`;
         });
         const currentOption = [...picker.options].find(option => option.value === previousValue && !option.disabled);
         if (!currentOption) picker.value = [...picker.options].find(option => !option.disabled)?.value || '';
@@ -2277,7 +2350,7 @@
       const routeReady = !!(dep && arr && dep.icao !== arr.icao);
       const safetyReady = el('safetyAgreement').checked;
       setReady('readyRoute', routeReady, 'Route selected', 'Route pending');
-      setReady('readyPassengers', completePassengers, 'Passenger details ready', 'Passenger details pending');
+      setReady('readyPassengers', completePassengers, 'Traveller details ready', 'Traveller details pending');
       setReady('readySafety', safetyReady, 'Safety accepted', 'Safety acceptance pending');
       setReady('readyBaggage', true, el('carryOnBags').value === 'YES' ? 'Baggage declared' : 'No baggage declared', 'Baggage reviewed');
     }
@@ -2307,7 +2380,7 @@
       el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'} / ${routePrice(dep, arr)}`;
       updateRouteMap(dep, arr);
       if (dep && arr && dep.icao === arr.icao) setStatus('Choose different departure and destination airports', 'err');
-      else if (dep && arr) setStatus('Route selected / Complete passenger manifest and declarations', 'ok');
+      else if (dep && arr) setStatus('Itinerary selected / Complete traveller details and declarations', 'ok');
     }
 
     function renderPassengerFields() {
@@ -2439,6 +2512,7 @@
       el('arr').value = depValue;
       refreshSummary();
     });
+    locateMeBtn.addEventListener('click', locateUserOnMap);
     el('carryOnBags').addEventListener('change', updateBaggageFields);
     el('seats').addEventListener('change', () => {
       renderPassengerFields();
