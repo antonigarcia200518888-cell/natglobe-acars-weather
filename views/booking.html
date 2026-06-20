@@ -2158,7 +2158,7 @@
         date.setDate(today.getDate() + index);
         const value = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
         const label = `${date.toLocaleDateString('en-GB', { weekday: 'short' })} ${date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`;
-        return `<option value="${value}">${label}</option>`;
+        return `<option value="${value}" data-date-label="${label}">${label}</option>`;
       }).join('');
 
       const times = [];
@@ -2170,6 +2170,17 @@
       el('returnDate').innerHTML = el('requestDate').innerHTML;
       el('returnTime').innerHTML = times.map(time => `<option value="${time}">${time}</option>`).join('');
       el('returnTime').value = '17:00';
+    }
+
+    function updateDatePriceLabels(dep, arr) {
+      const share = routePrice(dep, arr);
+      ['requestDate', 'returnDate'].forEach(id => {
+        [...el(id).options].forEach(option => {
+          const dateLabel = option.dataset.dateLabel || option.textContent.split(' / ')[0];
+          option.dataset.dateLabel = dateLabel;
+          option.textContent = `${dateLabel} / ${share}`;
+        });
+      });
     }
 
     function updateReturnTripFields() {
@@ -2250,6 +2261,7 @@
     function refreshSummary() {
       const dep = selectedAirport('dep');
       const arr = selectedAirport('arr');
+      updateDatePriceLabels(dep, arr);
       el('depCode').textContent = dep?.city || '----';
       el('arrCode').textContent = arr?.city || '----';
       el('routeNames').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
@@ -2293,7 +2305,7 @@
             <div class="grid three" style="margin-top:12px;">
               <div><label for="pax${index}Email">Email</label><input id="pax${index}Email" data-pax-field="email" type="email" autocomplete="${lead ? 'email' : 'off'}" value="${escapeHtml(passenger.email)}" required /></div>
               <div><label for="pax${index}Phone">Mobile</label><input id="pax${index}Phone" data-pax-field="phone" type="tel" autocomplete="${lead ? 'tel' : 'off'}" value="${escapeHtml(passenger.phone)}" required /></div>
-              <div><label for="pax${index}Dob">Date of birth</label><input id="pax${index}Dob" data-pax-field="dob" type="text" placeholder="DD.MM.YYYY" value="${escapeHtml(passenger.dob)}" required /></div>
+              <div><label for="pax${index}Dob">Date of birth</label><input id="pax${index}Dob" data-pax-field="dob" type="date" max="${new Date().toISOString().slice(0, 10)}" value="${escapeHtml(dateInputValue(passenger.dob))}" required /></div>
             </div>
             <div class="grid two" style="margin-top:12px;">
               <div><label for="pax${index}PassportCountry">Passport country</label><select id="pax${index}PassportCountry" data-pax-field="passportCountry" required>${countryOptions}</select></div>
@@ -2302,6 +2314,13 @@
           </div>
         `;
       }).join('');
+    }
+
+    function dateInputValue(value) {
+      const raw = String(value || '').trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+      const match = raw.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+      return match ? `${match[3]}-${match[2]}-${match[1]}` : '';
     }
 
     function collectPassengers(requireCurrent = true) {
