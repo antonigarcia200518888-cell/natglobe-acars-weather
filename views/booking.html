@@ -782,26 +782,10 @@
 
     .front-left { left: 37.8%; top: 16.5%; width: 16%; height: 35%; }
     .front-right { left: 37.8%; top: 52.5%; width: 16%; height: 35%; }
-    .rear-left { left: 66.7%; top: 16.5%; width: 16%; height: 35%; }
-    .rear-right { left: 66.7%; top: 52.5%; width: 16%; height: 35%; }
-
     .seat-visual.blocked {
       color: #d7d7d7;
       border-color: rgba(255,255,255,0.42);
       background: rgba(0,0,0,0.36);
-    }
-
-    .seat-visual.selectable {
-      cursor: pointer;
-      background: rgba(0,0,0,0.18);
-    }
-
-    .seat-visual.selectable:hover,
-    .seat-visual.selectable.selected {
-      color: #fff;
-      background: rgba(245,102,0,0.32);
-      border-color: #f56600;
-      box-shadow: 0 0 0 2px #f56600 inset, 0 0 22px rgba(245,102,0,0.5);
     }
 
     .seat-options,
@@ -811,7 +795,9 @@
       gap: 10px;
     }
 
-    .seat-options { display: none; }
+    .seat-options {
+      margin-top: 2px;
+    }
 
     .request-panel {
       margin-top: 12px;
@@ -912,6 +898,43 @@
       cursor: pointer;
       min-height: 82px;
       position: relative;
+    }
+
+    .seat-option {
+      min-height: 92px;
+      justify-content: space-between;
+    }
+
+    .seat-option strong {
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.1;
+    }
+
+    .seat-option span {
+      color: #8d8d8d;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .seat-option:has(input:checked) {
+      border-color: var(--live);
+      background:
+        linear-gradient(180deg, rgba(102,255,153,0.14), transparent 56%),
+        #08110b;
+      box-shadow: inset 0 0 0 1px rgba(102,255,153,0.9), 0 0 14px rgba(102,255,153,0.26);
+    }
+
+    .seat-option:has(input:checked)::after {
+      content: "Selected";
+      align-self: flex-start;
+      border: 1px solid var(--live);
+      color: var(--live);
+      padding: 5px 7px;
+      font-size: 10px;
+      line-height: 1;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.3);
     }
 
     .extra-option {
@@ -1474,15 +1497,13 @@
                   <img class="seat-map-image" src="/pa28-seat-map.png" alt="PA-28R-200 cabin seat map" />
                   <button class="seat-visual blocked front-left" type="button" disabled>Pilot</button>
                   <button class="seat-visual blocked front-right" type="button" disabled>Crew</button>
-                  <button class="seat-visual selectable selected rear-left" type="button" data-seat-choice="REAR LEFT WINDOW">Rear left</button>
-                  <button class="seat-visual selectable rear-right" type="button" data-seat-choice="REAR RIGHT WINDOW">Rear right</button>
                 </div>
               </div>
               <input id="seatPreference" type="hidden" value="REAR LEFT WINDOW" />
               <div class="seat-options">
-                <label class="seat-option"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /> Rear left</label>
-                <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /> Rear right</label>
-                <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /> No preference</label>
+                <label class="seat-option"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /><strong>Rear left</strong><span>Window-side preference behind the pilot.</span></label>
+                <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /><strong>Rear right</strong><span>Window-side preference behind crew seat.</span></label>
+                <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /><strong>No preference</strong><span>Pilot may assign the best seat for loading.</span></label>
               </div>
             </div>
             <div class="request-panel">
@@ -2023,9 +2044,6 @@
 
     function setSeatPreference(value) {
       el('seatPreference').value = value;
-      form.querySelectorAll('[data-seat-choice]').forEach(button => {
-        button.classList.toggle('selected', button.getAttribute('data-seat-choice') === value);
-      });
       const radio = form.querySelector(`input[name="seatPreference"][value="${value}"]`);
       if (radio) radio.checked = true;
     }
@@ -2090,8 +2108,8 @@
       renderPassengerFields();
       refreshSummary();
     });
-    form.querySelectorAll('[data-seat-choice]').forEach(button => {
-      button.addEventListener('click', () => setSeatPreference(button.getAttribute('data-seat-choice')));
+    form.querySelectorAll('input[name="seatPreference"]').forEach(input => {
+      input.addEventListener('change', () => setSeatPreference(input.value));
     });
     mobileSubmitBooking.addEventListener('click', () => {
       form.requestSubmit(submitBooking);
