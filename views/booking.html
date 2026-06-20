@@ -444,143 +444,6 @@
       align-self: end;
     }
 
-    .availability-calendar {
-      display: none;
-      margin-top: 12px;
-      border: 1px solid #555;
-      padding: 10px;
-      background: #030303;
-    }
-
-    .availability-calendar.show { display: block; }
-
-    .date-field { position: relative; }
-
-    .date-picker-native { display: none; }
-
-    .date-picker-trigger {
-      width: 100%;
-      min-height: 52px;
-      border: 2px solid var(--line);
-      background: #000;
-      color: #fff;
-      padding: 10px 38px 10px 12px;
-      font-family: inherit;
-      font-size: clamp(15px, 1.45vw, 20px);
-      text-align: left;
-      position: relative;
-      cursor: pointer;
-    }
-
-    .date-picker-trigger::after {
-      content: 'CAL';
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--live);
-      font-size: 10px;
-      font-weight: 700;
-    }
-
-    .date-picker-trigger:hover,
-    .date-picker-trigger:focus-visible {
-      border-color: var(--live);
-      outline: none;
-      box-shadow: inset 0 0 14px rgba(102,255,153,0.10);
-    }
-
-    .availability-calendar-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: baseline;
-      margin-bottom: 8px;
-    }
-
-    .availability-calendar-head strong {
-      color: #fff;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    .availability-calendar-head span {
-      color: #8d8d8d;
-      font-size: 10px;
-      text-align: right;
-      text-transform: uppercase;
-    }
-
-    .availability-calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 6px;
-    }
-
-    .availability-day {
-      min-height: 70px;
-      border: 1px solid #555;
-      background: #000;
-      color: #d7d7d7;
-      padding: 7px 5px;
-      font-family: inherit;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .availability-day:hover,
-    .availability-day:focus-visible {
-      border-color: #fff;
-      outline: none;
-    }
-
-    .availability-day.is-available {
-      border-color: rgba(102,255,153,0.65);
-    }
-
-    .availability-day.is-selected {
-      background: rgba(102,255,153,0.16);
-      border-color: var(--live);
-      box-shadow: inset 0 0 0 1px var(--live), 0 0 14px rgba(102,255,153,0.18);
-      color: #fff;
-    }
-
-    .availability-day:disabled {
-      cursor: not-allowed;
-      border-color: #2f2f2f;
-      color: #666;
-      background: #080808;
-    }
-
-    .availability-day span,
-    .availability-day strong,
-    .availability-day em {
-      display: block;
-    }
-
-    .availability-day span {
-      color: inherit;
-      font-size: 9px;
-      text-transform: uppercase;
-    }
-
-    .availability-day strong {
-      margin: 2px 0 3px;
-      font-size: 16px;
-      line-height: 1;
-    }
-
-    .availability-day em {
-      color: var(--live);
-      font-size: 9px;
-      font-style: normal;
-      line-height: 1.15;
-      overflow-wrap: anywhere;
-    }
-
-    .availability-day:disabled em { color: #666; }
-
     .two { grid-template-columns: 1fr 1fr; }
     .three { grid-template-columns: repeat(3, 1fr); }
     .passenger-main-grid { grid-template-columns: minmax(0, 1fr) 128px; }
@@ -1428,12 +1291,6 @@
       .return-trip-row {
         grid-template-columns: 1fr;
       }
-      .availability-calendar-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-      .availability-day {
-        min-height: 66px;
-      }
       .booking-panel-head {
         display: grid;
         gap: 6px;
@@ -1621,26 +1478,6 @@
         height: 230px;
         min-height: 230px;
       }
-      .availability-calendar {
-        padding: 8px;
-      }
-      .availability-calendar-head {
-        display: grid;
-        gap: 4px;
-      }
-      .availability-calendar-head span {
-        text-align: left;
-      }
-      .availability-calendar-grid {
-        gap: 5px;
-      }
-      .availability-day {
-        min-height: 62px;
-        padding: 6px 4px;
-      }
-      .availability-day strong {
-        font-size: 14px;
-      }
       .route-range {
         left: 8px;
         bottom: 34px;
@@ -1779,9 +1616,8 @@
             </select>
           </div>
           <div class="date-field">
-            <label for="requestDateTrigger">Date</label>
-            <button id="requestDateTrigger" class="date-picker-trigger" type="button" aria-expanded="false" aria-controls="availabilityCalendar">Choose date</button>
-            <select id="requestDate" class="date-picker-native" required tabindex="-1" aria-hidden="true"></select>
+            <label for="requestDate">Date</label>
+            <select id="requestDate" required></select>
           </div>
           <div class="time-field">
             <label for="requestTime">Departure time</label>
@@ -1815,13 +1651,6 @@
             </select>
           </div>
           <div class="return-trip-note">Return leg is requested only. Pilot confirms weather, daylight, duty, aircraft availability, and passenger timing before approval.</div>
-        </div>
-        <div id="availabilityCalendar" class="availability-calendar" aria-label="Flight request availability calendar">
-          <div class="availability-calendar-head">
-            <strong>Request availability</strong>
-            <span>Green dates accept requests. Pilot confirmation remains required.</span>
-          </div>
-          <div id="availabilityCalendarGrid" class="availability-calendar-grid"></div>
         </div>
       </section>
 
@@ -2357,12 +2186,6 @@
       return '24H NOTICE';
     }
 
-    function displayDatePrice(share) {
-      if (share === 'Pilot confirms') return 'Pilot review';
-      if (share === 'Choose different airports') return 'Choose route';
-      return share.replace(' / pax', '');
-    }
-
     function updateDatePriceLabels(dep, arr) {
       const share = routePrice(dep, arr);
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
@@ -2382,25 +2205,6 @@
         const currentOption = [...picker.options].find(option => option.value === previousValue && !option.disabled);
         if (!currentOption) picker.value = [...picker.options].find(option => !option.disabled)?.value || '';
       });
-      const selectedDateOption = [...el('requestDate').options].find(option => option.value === el('requestDate').value);
-      el('requestDateTrigger').textContent = selectedDateOption?.textContent || 'Choose date';
-      renderAvailabilityCalendar(dep, arr);
-    }
-
-    function renderAvailabilityCalendar(dep, arr) {
-      const share = displayDatePrice(routePrice(dep, arr));
-      const selectedDate = el('requestDate').value;
-      const isRegattaRoute = ['EFHV-EFHN', 'EFHN-EFHV'].includes(`${dep?.icao || ''}-${arr?.icao || ''}`);
-      const routeLabel = isRegattaRoute ? 'Regatta request' : 'Request available';
-      el('availabilityCalendarGrid').innerHTML = [...el('requestDate').options].slice(0, 28).map(option => {
-        const date = new Date(`${option.value}T12:00:00`);
-        const weekday = date.toLocaleDateString('en-GB', { weekday: 'short' });
-        const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-        const available = !option.disabled;
-        const selected = option.value === selectedDate;
-        const detail = available ? `${routeLabel} / ${share}` : requestDateUnavailableReason(option.value);
-        return `<button class="availability-day ${available ? 'is-available' : ''} ${selected ? 'is-selected' : ''}" type="button" data-booking-date="${escapeHtml(option.value)}" ${available ? '' : 'disabled'}><span>${escapeHtml(weekday)}</span><strong>${escapeHtml(day)}</strong><em>${escapeHtml(detail)}</em></button>`;
-      }).join('');
     }
 
     function updateReturnTripFields() {
@@ -2634,22 +2438,6 @@
       el('dep').value = el('arr').value;
       el('arr').value = depValue;
       refreshSummary();
-    });
-    el('requestDateTrigger').addEventListener('click', () => {
-      const calendar = el('availabilityCalendar');
-      const isOpen = calendar.classList.toggle('show');
-      el('requestDateTrigger').setAttribute('aria-expanded', String(isOpen));
-      if (isOpen) calendar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-    el('availabilityCalendarGrid').addEventListener('click', (event) => {
-      const dateButton = event.target.closest('[data-booking-date]');
-      if (!dateButton || dateButton.disabled) return;
-      el('requestDate').value = dateButton.getAttribute('data-booking-date');
-      updateReturnTripFields();
-      resetSubmitFeedback();
-      refreshSummary();
-      el('availabilityCalendar').classList.remove('show');
-      el('requestDateTrigger').setAttribute('aria-expanded', 'false');
     });
     el('carryOnBags').addEventListener('change', updateBaggageFields);
     el('seats').addEventListener('change', () => {
