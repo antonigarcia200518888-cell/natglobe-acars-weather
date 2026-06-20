@@ -122,7 +122,7 @@
     .clock {
       font-size: clamp(14px, 1.4vw, 18px);
       color: #bdbdbd;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       text-transform: uppercase;
     }
 
@@ -130,7 +130,7 @@
       color: #bdbdbd;
       font-size: clamp(12px, 1.3vw, 17px);
       line-height: 1.35;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .mode {
@@ -139,7 +139,7 @@
       display: flex;
       align-items: center;
       padding: 8px 12px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       background: linear-gradient(180deg, #050505 0%, #0b0b0b 100%);
       color: var(--live);
       text-transform: uppercase;
@@ -150,15 +150,15 @@
     .search-card, .card {
       background: #000;
       border: 2px solid var(--line);
-      padding: 12px;
-      margin-bottom: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
     }
 
     .route-map-card {
       border: 2px solid var(--line);
       background: #000;
-      padding: 12px;
-      margin-bottom: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
     }
 
     .route-map-head {
@@ -167,8 +167,8 @@
       gap: 12px;
       align-items: flex-start;
       border-bottom: 1px solid #555;
-      padding-bottom: 10px;
-      margin-bottom: 12px;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .route-map-title {
@@ -191,7 +191,7 @@
       position: relative;
       width: 100%;
       height: clamp(360px, 44vw, 520px);
-      min-height: 360px;
+      min-height: 340px;
       margin: 0 auto;
       border: 1px solid #555;
       background:
@@ -328,12 +328,12 @@
     .aircraft-feature {
       display: grid;
       grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1fr);
-      gap: 12px;
+      gap: 10px;
       align-items: stretch;
     }
 
     .aircraft-photo {
-      min-height: 190px;
+      min-height: 170px;
       border: 1px solid #555;
       background:
         radial-gradient(circle at 50% 78%, rgba(0,0,0,0.12), transparent 30%),
@@ -346,7 +346,7 @@
     .aircraft-photo img {
       width: 100%;
       height: 100%;
-      min-height: 190px;
+      min-height: 170px;
       object-fit: contain;
       display: block;
       padding: 10px;
@@ -355,12 +355,12 @@
 
     .aircraft-feature-copy {
       border: 1px solid #555;
-      padding: 14px;
+      padding: 12px;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.06), transparent 48%),
         #050505;
       display: grid;
-      gap: 12px;
+      gap: 10px;
       align-content: start;
       text-transform: uppercase;
     }
@@ -572,17 +572,21 @@
     .layout {
       display: grid;
       grid-template-columns: minmax(0, 0.9fr) minmax(340px, 0.55fr);
-      gap: 12px;
+      gap: 10px;
       align-items: start;
     }
 
     .summary-card {
       position: sticky;
-      top: 16px;
+      top: 10px;
+    }
+
+    aside .seat-options {
+      grid-template-columns: 1fr;
     }
 
     .review-card {
-      margin-top: 12px;
+      margin-top: 0;
       border-color: rgba(102,255,153,0.65);
     }
 
@@ -596,7 +600,7 @@
     }
 
     .section-title {
-      margin: 0 0 14px;
+      margin: 0 0 10px;
       font-size: 15px;
       color: var(--muted);
       font-weight: 700;
@@ -606,14 +610,14 @@
 
     .route-summary {
       display: grid;
-      gap: 12px;
-      margin-bottom: 18px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     .route-box {
       border: 1px solid #666;
       border-radius: 0;
-      padding: 14px;
+      padding: 10px;
       background: #050505;
     }
 
@@ -630,8 +634,8 @@
 
     .quote-label {
       border: 1px solid #666;
-      padding: 8px 10px;
-      margin-bottom: 10px;
+      padding: 7px 9px;
+      margin-bottom: 8px;
       color: #d7d7d7;
       text-transform: uppercase;
       font-size: 12px;
@@ -669,7 +673,7 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-      margin: 12px 0 14px;
+      margin: 8px 0 10px;
     }
 
     .readiness-item {
@@ -719,12 +723,12 @@
 
     .passenger-list {
       display: grid;
-      gap: 12px;
+      gap: 10px;
     }
 
     .passenger-card {
       border: 1px solid #666;
-      padding: 12px;
+      padding: 10px;
       background: #050505;
     }
 
@@ -739,21 +743,21 @@
     .question-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
     .seat-map {
       border: 1px solid #666;
-      padding: 12px;
+      padding: 10px;
       background: #050505;
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
     .seat-map-shell {
       border: 1px solid #555;
-      padding: 14px;
+      padding: 10px;
       background: #000;
       display: grid;
       place-items: center;
@@ -833,7 +837,7 @@
     .extras-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     .seat-options {
@@ -841,22 +845,22 @@
     }
 
     .request-panel {
-      margin-top: 12px;
+      margin-top: 0;
       border: 1px solid #555;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.05), transparent 62%),
         #030303;
-      padding: 12px;
+      padding: 10px;
     }
 
     .request-panel-header {
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 10px;
       border-bottom: 1px solid #333;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
     }
 
     .request-panel-title {
@@ -885,7 +889,7 @@
     }
 
     .extras-section-title {
-      margin: 12px 0 8px;
+      margin: 10px 0 6px;
       color: #cfcfcf;
       font-size: 12px;
       text-transform: uppercase;
@@ -895,14 +899,14 @@
     .included-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     .included-card {
       border: 1px solid #444;
       background: #0b0b0b;
-      padding: 12px;
-      min-height: 78px;
+      padding: 10px;
+      min-height: 68px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -924,7 +928,7 @@
     .extra-option,
     .seat-option {
       border: 1px solid #666;
-      padding: 12px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
       gap: 5px;
@@ -937,12 +941,12 @@
         linear-gradient(180deg, rgba(255,255,255,0.06), transparent 56%),
         #050505;
       cursor: pointer;
-      min-height: 82px;
+      min-height: 76px;
       position: relative;
     }
 
     .seat-option {
-      min-height: 92px;
+      min-height: 78px;
       justify-content: space-between;
     }
 
@@ -979,7 +983,7 @@
     }
 
     .extra-option {
-      min-height: 112px;
+      min-height: 100px;
       justify-content: space-between;
     }
 
@@ -1120,8 +1124,8 @@
     .status-tracker {
       display: none;
       border: 2px solid var(--line);
-      padding: 12px;
-      margin-bottom: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
       background: #000;
       text-transform: uppercase;
     }
@@ -1170,12 +1174,12 @@
 
     .submit-footer {
       border: 2px solid var(--line);
-      padding: 12px;
+      padding: 10px;
       background: #000;
-      margin-top: 12px;
+      margin-top: 10px;
       display: grid;
       grid-template-columns: 1fr minmax(260px, 0.35fr);
-      gap: 12px;
+      gap: 10px;
       align-items: center;
     }
 
@@ -1201,7 +1205,9 @@
         padding: 10px;
         margin-bottom: 10px;
       }
-      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options, .extras-grid, .included-grid { grid-template-columns: 1fr; }
+      .layout, .two, .three, .passenger-main-grid, .question-grid, .submit-footer, .status-steps, .seat-options { grid-template-columns: 1fr; }
+      .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .request-panel-header {
         align-items: flex-start;
         flex-direction: column;
@@ -1239,10 +1245,8 @@
         font-size: 10px;
       }
       .booking-note { text-align: left; max-width: none; }
-      .layout > aside { order: -1; }
       .summary-card {
         position: static;
-        border-color: rgba(102,255,153,0.65);
       }
       .review-card .summary-list {
         grid-template-columns: 1fr;
@@ -1356,6 +1360,14 @@
       .extra-option {
         min-height: auto;
         padding: 10px;
+      }
+      .included-card strong,
+      .extra-option strong {
+        font-size: 12px;
+      }
+      .included-card span,
+      .extra-option span {
+        font-size: 10px;
       }
       .seat-visual { font-size: 8px; }
       .mobile-booking-bar {
