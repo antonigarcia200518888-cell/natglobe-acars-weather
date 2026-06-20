@@ -11,6 +11,12 @@ iPad-friendly ACARS-style METAR/TAF weather report generator with nearby-airfiel
 5. Once deployed, open the Render URL on your iPad.
 6. In Safari, use **Share > Add to Home Screen**.
 
+### Booking database
+
+The booking system uses temporary memory until a PostgreSQL connection is configured. For real bookings, create a Render Postgres database and add its internal connection string to the web service as `DATABASE_URL`. On the next deploy the app creates its booking request, availability, and operations timeline tables automatically.
+
+Do not use the temporary mode for production passenger or identity data: Render restarts clear it.
+
 ## Local run
 
 ```bash

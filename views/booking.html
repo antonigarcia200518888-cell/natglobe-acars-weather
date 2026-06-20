@@ -445,10 +445,49 @@
     }
 
     .availability-calendar {
+      display: none;
       margin-top: 12px;
       border: 1px solid #555;
       padding: 10px;
       background: #030303;
+    }
+
+    .availability-calendar.show { display: block; }
+
+    .date-field { position: relative; }
+
+    .date-picker-native { display: none; }
+
+    .date-picker-trigger {
+      width: 100%;
+      min-height: 52px;
+      border: 2px solid var(--line);
+      background: #000;
+      color: #fff;
+      padding: 10px 38px 10px 12px;
+      font-family: inherit;
+      font-size: clamp(15px, 1.45vw, 20px);
+      text-align: left;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .date-picker-trigger::after {
+      content: 'CAL';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--live);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .date-picker-trigger:hover,
+    .date-picker-trigger:focus-visible {
+      border-color: var(--live);
+      outline: none;
+      box-shadow: inset 0 0 14px rgba(102,255,153,0.10);
     }
 
     .availability-calendar-head {
@@ -1740,8 +1779,9 @@
             </select>
           </div>
           <div class="date-field">
-            <label for="requestDate">Date</label>
-            <select id="requestDate" required></select>
+            <label for="requestDateTrigger">Date</label>
+            <button id="requestDateTrigger" class="date-picker-trigger" type="button" aria-expanded="false" aria-controls="availabilityCalendar">Choose date</button>
+            <select id="requestDate" class="date-picker-native" required tabindex="-1" aria-hidden="true"></select>
           </div>
           <div class="time-field">
             <label for="requestTime">Departure time</label>
@@ -1776,7 +1816,7 @@
           </div>
           <div class="return-trip-note">Return leg is requested only. Pilot confirms weather, daylight, duty, aircraft availability, and passenger timing before approval.</div>
         </div>
-        <div class="availability-calendar" aria-label="Flight request availability calendar">
+        <div id="availabilityCalendar" class="availability-calendar" aria-label="Flight request availability calendar">
           <div class="availability-calendar-head">
             <strong>Request availability</strong>
             <span>Green dates accept requests. Pilot confirmation remains required.</span>
@@ -2045,6 +2085,7 @@
     let depMarker = null;
     let arrMarker = null;
     let submitTouched = false;
+    let pilotAvailability = new Map();
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -2306,7 +2347,14 @@
     function requestDateIsAvailable(value) {
       const time = el('requestTime').value || '10:00';
       const departure = new Date(`${value}T${time}:00`);
-      return Number.isFinite(departure.getTime()) && departure.getTime() >= Date.now() + (24 * 60 * 60 * 1000);
+      const pilotRule = pilotAvailability.get(value);
+      return pilotRule?.isOpen !== false && Number.isFinite(departure.getTime()) && departure.getTime() >= Date.now() + (24 * 60 * 60 * 1000);
+    }
+
+    function requestDateUnavailableReason(value) {
+      const pilotRule = pilotAvailability.get(value);
+      if (pilotRule?.isOpen === false) return pilotRule.note || 'UNAVAILABLE';
+      return '24H NOTICE';
     }
 
     function displayDatePrice(share) {
@@ -2329,11 +2377,13 @@
             ? !requestDateIsAvailable(option.value)
             : roundtrip && outboundDate && option.value < outboundDate;
           option.disabled = unavailable;
-          option.textContent = `${dateLabel} / ${unavailable ? (id === 'requestDate' ? '24H NOTICE' : 'AFTER OUTBOUND') : share}`;
+          option.textContent = `${dateLabel} / ${unavailable ? (id === 'requestDate' ? requestDateUnavailableReason(option.value) : 'AFTER OUTBOUND') : share}`;
         });
         const currentOption = [...picker.options].find(option => option.value === previousValue && !option.disabled);
         if (!currentOption) picker.value = [...picker.options].find(option => !option.disabled)?.value || '';
       });
+      const selectedDateOption = [...el('requestDate').options].find(option => option.value === el('requestDate').value);
+      el('requestDateTrigger').textContent = selectedDateOption?.textContent || 'Choose date';
       renderAvailabilityCalendar(dep, arr);
     }
 
@@ -2348,7 +2398,7 @@
         const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
         const available = !option.disabled;
         const selected = option.value === selectedDate;
-        const detail = available ? `${routeLabel} / ${share}` : '24H notice';
+        const detail = available ? `${routeLabel} / ${share}` : requestDateUnavailableReason(option.value);
         return `<button class="availability-day ${available ? 'is-available' : ''} ${selected ? 'is-selected' : ''}" type="button" data-booking-date="${escapeHtml(option.value)}" ${available ? '' : 'disabled'}><span>${escapeHtml(weekday)}</span><strong>${escapeHtml(day)}</strong><em>${escapeHtml(detail)}</em></button>`;
       }).join('');
     }
@@ -2562,6 +2612,14 @@
       mode.textContent = 'MODE: PRIVATE ROUTE NETWORK ONLINE / REQUEST READY';
     }
 
+    async function loadBookingAvailability() {
+      const res = await fetch('/api/booking-availability', { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      pilotAvailability = new Map((data.dates || []).map(item => [item.date, item]));
+      refreshSummary();
+    }
+
     form.addEventListener('change', () => {
       updateReturnTripFields();
       resetSubmitFeedback();
@@ -2577,6 +2635,12 @@
       el('arr').value = depValue;
       refreshSummary();
     });
+    el('requestDateTrigger').addEventListener('click', () => {
+      const calendar = el('availabilityCalendar');
+      const isOpen = calendar.classList.toggle('show');
+      el('requestDateTrigger').setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) calendar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
     el('availabilityCalendarGrid').addEventListener('click', (event) => {
       const dateButton = event.target.closest('[data-booking-date]');
       if (!dateButton || dateButton.disabled) return;
@@ -2584,6 +2648,8 @@
       updateReturnTripFields();
       resetSubmitFeedback();
       refreshSummary();
+      el('availabilityCalendar').classList.remove('show');
+      el('requestDateTrigger').setAttribute('aria-expanded', 'false');
     });
     el('carryOnBags').addEventListener('change', updateBaggageFields);
     el('seats').addEventListener('change', () => {
@@ -2666,6 +2732,7 @@
     populateAirports(FALLBACK_AIRPORTS);
     renderPassengerFields();
     updateBaggageFields();
+    loadBookingAvailability().catch(() => {});
     updateConnectionBadge();
     tick();
     setInterval(tick, 1000);

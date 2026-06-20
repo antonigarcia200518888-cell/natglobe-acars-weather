@@ -278,6 +278,65 @@
       color: var(--danger);
     }
 
+    .availability-controls,
+    .timeline-compose {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .availability-controls input,
+    .availability-controls select,
+    .timeline-compose textarea {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #777;
+      background: #000;
+      color: #fff;
+      padding: 9px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .timeline-compose textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .availability-controls .btn,
+    .timeline-compose .btn {
+      min-height: 44px;
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .ops-mini-status {
+      color: #8d8d8d;
+      font-size: 11px;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
+    .timeline-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .timeline-event {
+      border-left: 2px solid var(--accent);
+      padding: 7px 9px;
+      background: #000;
+      color: #d7d7d7;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .timeline-event strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
     .booking-message {
       border: 2px solid var(--line);
       padding: 12px;
@@ -354,6 +413,17 @@
     <div class="layout">
       <aside class="panel">
         <div class="panel-title">REQUEST QUEUE</div>
+        <div class="brief-title">Date availability</div>
+        <div class="availability-controls">
+          <input id="availabilityDate" type="date" aria-label="Availability date" />
+          <select id="availabilityState" aria-label="Availability state">
+            <option value="OPEN">Open for requests</option>
+            <option value="CLOSED">Close date</option>
+          </select>
+          <input id="availabilityNote" type="text" maxlength="120" placeholder="Optional ops note" />
+          <button id="saveAvailabilityBtn" class="btn ghost" type="button">SAVE DATE RULE</button>
+          <div id="availabilityStatus" class="ops-mini-status">No custom date rule selected.</div>
+        </div>
         <div id="requestList" class="request-list"></div>
       </aside>
 
@@ -406,6 +476,14 @@
               <div class="brief-line"><span>Total</span><strong id="briefTotal">.....</strong></div>
               <div class="brief-line"><span>Note</span><strong id="briefPriceNote">.....</strong></div>
             </div>
+            <div class="brief-card full">
+              <div class="brief-title">Operations timeline</div>
+              <div id="timelineList" class="timeline-list"><div class="timeline-event">Select a request to load its timeline.</div></div>
+              <div class="timeline-compose">
+                <textarea id="timelineNote" placeholder="Internal pilot or dispatch note. Not visible to the booker."></textarea>
+                <button id="addTimelineNoteBtn" class="btn ghost" type="button">ADD INTERNAL NOTE</button>
+              </div>
+            </div>
           </div>
           <pre id="bookingMessage" class="booking-message">NATGLOBE BOOKING REQUEST
 ------------------------
@@ -446,6 +524,14 @@ END OF MESSAGE</pre>
     const approveBtn = el('approveBtn');
     const needsInfoBtn = el('needsInfoBtn');
     const declineBtn = el('declineBtn');
+    const availabilityDate = el('availabilityDate');
+    const availabilityState = el('availabilityState');
+    const availabilityNote = el('availabilityNote');
+    const availabilityStatus = el('availabilityStatus');
+    const saveAvailabilityBtn = el('saveAvailabilityBtn');
+    const timelineList = el('timelineList');
+    const timelineNote = el('timelineNote');
+    const addTimelineNoteBtn = el('addTimelineNoteBtn');
 
     let requests = [];
     let selected = null;
@@ -517,6 +603,21 @@ END OF MESSAGE</pre>
       `).join('');
     }
 
+    function renderTimeline(events) {
+      timelineList.innerHTML = events.length ? events.slice().reverse().map(event => `
+        <div class="timeline-event">
+          <strong>${escapeHtml(event.type || 'UPDATE')} / ${escapeHtml(event.createdAt ? new Date(event.createdAt).toLocaleString('en-GB', { hour12: false }) : '')}</strong>
+          ${escapeHtml(event.note || 'No additional note.')}
+        </div>
+      `).join('') : '<div class="timeline-event">No timeline events yet.</div>';
+    }
+
+    async function loadTimeline(requestId) {
+      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/timeline`, { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) renderTimeline(data.events || []);
+    }
+
     function renderList() {
       requestList.innerHTML = requests.map(req => `
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
@@ -557,6 +658,7 @@ END OF MESSAGE</pre>
       setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
       renderAlerts(req);
       renderManifest(req);
+      loadTimeline(req.id).catch(() => {});
       renderList();
     }
 
@@ -600,6 +702,26 @@ END OF MESSAGE</pre>
       mode.textContent = 'MODE: BOOKING OPS LIVE';
     }
 
+    async function saveAvailability() {
+      if (!availabilityDate.value) {
+        availabilityStatus.textContent = 'Select a date first.';
+        return;
+      }
+      availabilityStatus.textContent = 'Saving date rule...';
+      const res = await fetch(`/api/booking-ops/availability/${encodeURIComponent(availabilityDate.value)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isOpen: availabilityState.value === 'OPEN',
+          note: availabilityNote.value
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      availabilityStatus.textContent = res.ok
+        ? `${data.date} ${data.isOpen ? 'open for requests' : 'closed'}${data.note ? ` / ${data.note}` : ''}`
+        : (data.error || 'Unable to save date rule.');
+    }
+
     requestList.addEventListener('click', (event) => {
       const row = event.target.closest('[data-id]');
       if (!row) return;
@@ -616,6 +738,17 @@ END OF MESSAGE</pre>
     approveBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'APPROVED' }));
     needsInfoBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'NEEDS INFO' }));
     declineBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'DECLINED' }));
+    saveAvailabilityBtn.addEventListener('click', () => saveAvailability());
+    addTimelineNoteBtn.addEventListener('click', async () => {
+      const note = timelineNote.value.trim();
+      if (!selected || !note) {
+        mode.textContent = 'MODE: SELECT REQUEST AND WRITE NOTE';
+        return;
+      }
+      await updateSelected({ timelineNote: note });
+      timelineNote.value = '';
+      loadTimeline(selected.id).catch(() => {});
+    });
 
     refreshBtn.addEventListener('click', () => loadRequests());
 

@@ -94,6 +94,98 @@ const costShareFlights = [
 ];
 
 const bookingRequests = [];
+const bookingAvailability = new Map();
+const bookingTimeline = new Map();
+let bookingPool = null;
+
+async function initializeBookingStore() {
+  if (!process.env.DATABASE_URL) {
+    console.warn('BOOKING STORE: DATABASE_URL not set; using temporary runtime storage.');
+    return;
+  }
+
+  try {
+    const { Pool } = await import('pg');
+    bookingPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    await bookingPool.query(`
+      CREATE TABLE IF NOT EXISTS booking_requests (
+        id TEXT PRIMARY KEY,
+        payload JSONB NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS booking_availability (
+        date DATE PRIMARY KEY,
+        is_open BOOLEAN NOT NULL,
+        note TEXT NOT NULL DEFAULT '',
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS booking_timeline (
+        id TEXT PRIMARY KEY,
+        request_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        note TEXT NOT NULL DEFAULT '',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    const [requests, availability, timeline] = await Promise.all([
+      bookingPool.query('SELECT payload FROM booking_requests ORDER BY created_at ASC'),
+      bookingPool.query('SELECT date, is_open, note, updated_at FROM booking_availability'),
+      bookingPool.query('SELECT id, request_id, event_type, note, created_at FROM booking_timeline ORDER BY created_at ASC')
+    ]);
+    bookingRequests.push(...requests.rows.map(row => row.payload));
+    availability.rows.forEach(row => bookingAvailability.set(String(row.date).slice(0, 10), {
+      isOpen: row.is_open,
+      note: row.note,
+      updatedAt: row.updated_at
+    }));
+    timeline.rows.forEach(row => {
+      const items = bookingTimeline.get(row.request_id) || [];
+      items.push({ id: row.id, type: row.event_type, note: row.note, createdAt: row.created_at });
+      bookingTimeline.set(row.request_id, items);
+    });
+    console.log(`BOOKING STORE: loaded ${bookingRequests.length} requests.`);
+  } catch (err) {
+    bookingPool = null;
+    console.error('BOOKING STORE: database unavailable; using temporary runtime storage.', err.message);
+  }
+}
+
+const bookingStoreReady = initializeBookingStore();
+
+async function persistBookingRequest(request) {
+  if (!bookingPool) return;
+  await bookingPool.query(
+    `INSERT INTO booking_requests (id, payload, created_at) VALUES ($1, $2::jsonb, $3)
+     ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
+    [request.id, JSON.stringify(request), request.createdAt || new Date().toISOString()]
+  );
+}
+
+async function persistAvailability(date, item) {
+  if (!bookingPool) return;
+  await bookingPool.query(
+    `INSERT INTO booking_availability (date, is_open, note, updated_at) VALUES ($1, $2, $3, NOW())
+     ON CONFLICT (date) DO UPDATE SET is_open = EXCLUDED.is_open, note = EXCLUDED.note, updated_at = NOW()`,
+    [date, item.isOpen, item.note || '']
+  );
+}
+
+async function addBookingTimelineEvent(requestId, type, note = '') {
+  const item = { id: `TML-${randomUUID().slice(0, 8).toUpperCase()}`, type, note, createdAt: new Date().toISOString() };
+  const items = bookingTimeline.get(requestId) || [];
+  items.push(item);
+  bookingTimeline.set(requestId, items);
+  if (bookingPool) {
+    await bookingPool.query(
+      'INSERT INTO booking_timeline (id, request_id, event_type, note, created_at) VALUES ($1, $2, $3, $4, $5)',
+      [item.id, requestId, item.type, item.note, item.createdAt]
+    );
+  }
+  return item;
+}
 
 const bookingAirports = [
   { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', type: 'controlled', lat: 60.3172, lon: 24.9633 },
@@ -2062,7 +2154,8 @@ app.get('/api/booking-airports', async (req, res) => {
   }
 });
 
-app.get('/api/cost-share-flights', (req, res) => {
+app.get('/api/cost-share-flights', async (req, res) => {
+  await bookingStoreReady;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.json({
@@ -2071,7 +2164,36 @@ app.get('/api/cost-share-flights', (req, res) => {
   });
 });
 
-app.get('/api/booking-ops/requests', requirePilotAccess, (req, res) => {
+app.get('/api/booking-availability', async (req, res) => {
+  await bookingStoreReady;
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    dates: [...bookingAvailability.entries()].map(([date, item]) => ({ date, ...item }))
+  });
+});
+
+app.get('/api/booking-ops/availability', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  res.json({ dates: [...bookingAvailability.entries()].map(([date, item]) => ({ date, ...item })) });
+});
+
+app.put('/api/booking-ops/availability/:date', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const date = String(req.params.date || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'VALID DATE REQUIRED' });
+  const isOpen = req.body?.isOpen === true || req.body?.isOpen === 'true';
+  const item = {
+    isOpen,
+    note: normalizeBookingText(req.body?.note, 120),
+    updatedAt: new Date().toISOString()
+  };
+  bookingAvailability.set(date, item);
+  await persistAvailability(date, item);
+  res.json({ date, ...item });
+});
+
+app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.json({
@@ -2082,7 +2204,8 @@ app.get('/api/booking-ops/requests', requirePilotAccess, (req, res) => {
   });
 });
 
-app.patch('/api/booking-ops/requests/:id', requirePilotAccess, (req, res) => {
+app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
 
@@ -2093,6 +2216,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, (req, res) => {
     const allowedPayments = new Set(['UNPAID', 'DEPOSIT PAID', 'PAID', 'REFUNDED']);
     if (!allowedPayments.has(paymentStatus)) return res.status(400).json({ error: 'INVALID PAYMENT STATUS' });
     request.paymentStatus = paymentStatus;
+    await addBookingTimelineEvent(request.id, 'PAYMENT STATUS', paymentStatus);
   }
 
   if (pilotDecision) {
@@ -2103,7 +2227,12 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, (req, res) => {
     if (pilotDecision === 'NEEDS INFO') request.status = 'NEEDS INFO';
     if (pilotDecision === 'DECLINED') request.status = 'DECLINED';
     if (pilotDecision === 'PENDING') request.status = 'REQUESTED';
+    await addBookingTimelineEvent(request.id, 'PILOT DECISION', pilotDecision);
   }
+
+  const timelineNote = normalizeBookingText(req.body?.timelineNote, 300);
+  if (timelineNote) await addBookingTimelineEvent(request.id, 'OPS NOTE', timelineNote);
+  await persistBookingRequest(request);
 
   res.json({
     request: {
@@ -2113,7 +2242,14 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, (req, res) => {
   });
 });
 
+app.get('/api/booking-ops/requests/:id/timeline', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const requestId = String(req.params.id || '').trim().toUpperCase();
+  res.json({ events: bookingTimeline.get(requestId) || [] });
+});
+
 app.post('/api/booking-requests', async (req, res) => {
+  await bookingStoreReady;
   const flight = costShareFlights.find(item => item.id === String(req.body?.flightId || ''));
   const [depAirport, arrAirport] = await Promise.all([
     getBookingAirport(req.body?.dep || flight?.dep),
@@ -2269,6 +2405,8 @@ app.post('/api/booking-requests', async (req, res) => {
   };
 
   bookingRequests.push(request);
+  await persistBookingRequest(request);
+  await addBookingTimelineEvent(request.id, 'REQUEST RECEIVED', 'Booker submitted request.');
 
   res.status(201).json({
     request,
