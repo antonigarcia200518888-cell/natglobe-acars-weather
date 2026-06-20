@@ -63,13 +63,13 @@
       min-width: 0;
     }
 
-    .brand-logo-mark {
-      width: clamp(108px, 12vw, 156px);
-      max-height: 48px;
+    .brand-logo {
+      width: clamp(76px, 9vw, 112px);
+      aspect-ratio: 1;
       object-fit: contain;
       background: #f4f4f4;
       border: 1px solid #555;
-      padding: 5px 8px;
+      padding: 5px;
     }
 
     .title {
@@ -1333,9 +1333,8 @@
     }
 
     @media (max-width: 520px) {
-      .brand-logo-mark {
-        width: 104px;
-        max-height: 42px;
+      .brand-logo {
+        width: 72px;
         padding: 4px 6px;
       }
       .title {
@@ -1418,7 +1417,7 @@
   <main class="frame">
     <div class="title-row">
       <div class="brand-lockup">
-        <img class="brand-logo-mark" src="/booking-logo-mark.png" alt="Private aviation logo mark" />
+        <img class="brand-logo" src="/natglobe-logo.png" alt="Private aviation logo" />
         <div>
           <div class="title">PRIVATE FLIGHT BOOKING</div>
           <div class="subtitle">This is not a commercial transport service - private flight operated under equal-share cost-shared remuneration only.</div>
