@@ -318,6 +318,32 @@
       text-transform: uppercase;
     }
 
+    .wallet-actions {
+      display: grid;
+      grid-template-columns: minmax(180px, 0.6fr) minmax(260px, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .wallet-actions select {
+      min-height: 52px;
+      width: 100%;
+      border: 2px solid var(--line);
+      background: #000;
+      color: #fff;
+      padding: 10px;
+      font-family: inherit;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .wallet-actions .btn { margin: 0; }
+    .wallet-actions .btn:disabled,
+    .wallet-actions select:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     .timeline-list {
       display: grid;
       gap: 7px;
@@ -392,7 +418,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
@@ -510,6 +536,11 @@ END OF MESSAGE</pre>
             <button id="needsInfoBtn" class="btn ghost" type="button">NEEDS INFO</button>
             <button id="declineBtn" class="btn ghost" type="button">DECLINE</button>
           </div>
+          <div class="wallet-actions">
+            <select id="walletPassenger" aria-label="Wallet pass passenger"></select>
+            <button id="walletPassBtn" class="btn" type="button">DOWNLOAD APPLE WALLET PASS</button>
+          </div>
+          <div id="walletPassStatus" class="ops-mini-status">Pilot approval and Wallet signing setup required.</div>
           <button id="copyBtn" class="btn" type="button">COPY BOOKING MESSAGE</button>
           <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
           <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
@@ -542,6 +573,9 @@ END OF MESSAGE</pre>
     const timelineNote = el('timelineNote');
     const addTimelineNoteBtn = el('addTimelineNoteBtn');
     const regattaBriefCard = el('regattaBriefCard');
+    const walletPassenger = el('walletPassenger');
+    const walletPassBtn = el('walletPassBtn');
+    const walletPassStatus = el('walletPassStatus');
 
     let requests = [];
     let selected = null;
@@ -613,6 +647,19 @@ END OF MESSAGE</pre>
       `).join('');
     }
 
+    function updateWalletControls(req) {
+      const passengers = req.passengers?.length ? req.passengers : [{ number: 1, name: req.name }];
+      walletPassenger.innerHTML = passengers.map(passenger =>
+        `<option value="${escapeHtml(passenger.number || 1)}">PAX ${escapeHtml(passenger.number || 1)} / ${escapeHtml(passenger.name || 'PRIVATE GUEST')}</option>`
+      ).join('');
+      const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
+      walletPassenger.disabled = !approved;
+      walletPassBtn.disabled = !approved;
+      walletPassStatus.textContent = approved
+        ? 'Ready to issue a passenger Apple Wallet pass.'
+        : 'Pilot approval required before issuing a Wallet pass.';
+    }
+
     function renderTimeline(events) {
       timelineList.innerHTML = events.length ? events.slice().reverse().map(event => `
         <div class="timeline-event">
@@ -675,6 +722,7 @@ END OF MESSAGE</pre>
       setText('briefRegattaNotes', req.regattaNotes || 'NIL');
       renderAlerts(req);
       renderManifest(req);
+      updateWalletControls(req);
       loadTimeline(req.id).catch(() => {});
       renderList();
     }
@@ -764,6 +812,27 @@ END OF MESSAGE</pre>
       }
       await updateSelected({ timelineNote: note });
       timelineNote.value = '';
+      loadTimeline(selected.id).catch(() => {});
+    });
+    walletPassBtn.addEventListener('click', async () => {
+      if (!selected) return;
+      walletPassStatus.textContent = 'Preparing Apple Wallet pass...';
+      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/wallet-pass/${encodeURIComponent(walletPassenger.value)}`, { cache: 'no-store' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        walletPassStatus.textContent = data.error || 'Unable to generate Wallet pass.';
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${selected.id}-PAX${walletPassenger.value}.pkpass`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      walletPassStatus.textContent = 'Wallet pass downloaded. Open it on iPhone to add it to Wallet.';
       loadTimeline(selected.id).catch(() => {});
     });
 

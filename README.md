@@ -17,6 +17,22 @@ The booking system uses temporary memory until a PostgreSQL connection is config
 
 Do not use the temporary mode for production passenger or identity data: Render restarts clear it.
 
+### Apple Wallet passes
+
+Approved bookings can generate one Apple Wallet boarding pass per passenger from Booking Ops. Apple requires every `.pkpass` bundle to be signed with a Pass Type ID certificate. Create a Pass Type ID and its certificate in the Apple Developer account, then add these Render secret environment variables:
+
+```text
+WALLET_PASS_TYPE_IDENTIFIER=pass.com.your-company.privateflight
+WALLET_TEAM_IDENTIFIER=YOUR_APPLE_TEAM_ID
+WALLET_ORGANIZATION_NAME=NatGlobe Aviation
+WALLET_SIGNER_CERT_BASE64=<base64 of Pass Type ID signing certificate PEM>
+WALLET_SIGNER_KEY_BASE64=<base64 of matching private key PEM>
+WALLET_SIGNER_KEY_PASSPHRASE=<private key passphrase, if used>
+WALLET_WWDR_BASE64=<base64 of Apple WWDR intermediate certificate PEM>
+```
+
+Keep certificates and keys in Render secrets only. Never commit them or send them in chat. Wallet passes intentionally exclude passport, date-of-birth, medical, and other sensitive booking data.
+
 ## Local run
 
 ```bash

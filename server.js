@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
@@ -13,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 const PILOT_ACCESS_CODE = process.env.PILOT_ACCESS_CODE || 'NATGLOBEOPS';
 const PILOT_COOKIE_NAME = 'ng_pilot_access';
 const BOOKING_COOKIE_VALUE = 'enabled';
+const WALLET_ASSETS_DIR = path.join(__dirname, 'wallet-assets');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -396,6 +398,107 @@ function normalizeBookingSeats(input) {
   const seats = Number(input);
   if (!Number.isFinite(seats)) return 1;
   return Math.max(1, Math.min(3, Math.round(seats)));
+}
+
+function readWalletCredential(base64Name, pathName) {
+  if (process.env[base64Name]) return Buffer.from(process.env[base64Name], 'base64');
+  if (process.env[pathName]) return fs.readFileSync(process.env[pathName]);
+  return null;
+}
+
+function getWalletCertificates() {
+  const signerCert = readWalletCredential('WALLET_SIGNER_CERT_BASE64', 'WALLET_SIGNER_CERT_PATH');
+  const signerKey = readWalletCredential('WALLET_SIGNER_KEY_BASE64', 'WALLET_SIGNER_KEY_PATH');
+  const wwdr = readWalletCredential('WALLET_WWDR_BASE64', 'WALLET_WWDR_PATH');
+  const passTypeIdentifier = String(process.env.WALLET_PASS_TYPE_IDENTIFIER || '').trim();
+  const teamIdentifier = String(process.env.WALLET_TEAM_IDENTIFIER || '').trim();
+  if (!signerCert || !signerKey || !wwdr || !passTypeIdentifier || !teamIdentifier) return null;
+  return {
+    signerCert,
+    signerKey,
+    wwdr,
+    signerKeyPassphrase: process.env.WALLET_SIGNER_KEY_PASSPHRASE || undefined,
+    passTypeIdentifier,
+    teamIdentifier,
+    organizationName: String(process.env.WALLET_ORGANIZATION_NAME || 'NatGlobe Aviation').trim()
+  };
+}
+
+function walletAsset(name) {
+  return fs.readFileSync(path.join(WALLET_ASSETS_DIR, name));
+}
+
+async function createWalletPass(request, passenger) {
+  const certificates = getWalletCertificates();
+  if (!certificates) {
+    const error = new Error('APPLE WALLET SIGNING NOT CONFIGURED');
+    error.code = 'WALLET_NOT_CONFIGURED';
+    throw error;
+  }
+
+  const { PKPass } = await import('passkit-generator');
+  const serialNumber = `NG-${request.id}-${passenger.number || 1}`.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
+  const barcodeMessage = JSON.stringify({
+    reference: request.id,
+    passenger: passenger.number || 1,
+    route: request.route,
+    date: request.requestDate
+  });
+  const passProps = {
+    formatVersion: 1,
+    passTypeIdentifier: certificates.passTypeIdentifier,
+    teamIdentifier: certificates.teamIdentifier,
+    serialNumber,
+    organizationName: certificates.organizationName,
+    description: 'Private flight boarding pass',
+    logoText: 'PRIVATE FLIGHT',
+    foregroundColor: 'rgb(255, 255, 255)',
+    backgroundColor: 'rgb(0, 0, 0)',
+    labelColor: 'rgb(102, 255, 153)',
+    groupingIdentifier: `NATGLOBE-${request.id}`,
+    suppressStripShine: true,
+    barcodes: [{
+      format: 'PKBarcodeFormatQR',
+      message: barcodeMessage,
+      messageEncoding: 'iso-8859-1',
+      altText: request.id
+    }],
+    boardingPass: {
+      transitType: 'PKTransitTypeAir',
+      headerFields: [{ key: 'flight', label: 'PRIVATE FLIGHT', value: request.id }],
+      primaryFields: [
+        { key: 'from', label: 'FROM', value: request.depName || request.dep || 'DEPARTURE' },
+        { key: 'to', label: 'TO', value: request.arrName || request.arr || 'ARRIVAL' }
+      ],
+      secondaryFields: [
+        { key: 'passenger', label: 'PASSENGER', value: passenger.name || 'PRIVATE GUEST' },
+        { key: 'date', label: 'DATE', value: request.requestDate || 'TBD' }
+      ],
+      auxiliaryFields: [
+        { key: 'boarding', label: 'BOARDING', value: request.requestTime || 'TBD' },
+        { key: 'aircraft', label: 'AIRCRAFT', value: request.aircraft || 'PA-28R-200' }
+      ],
+      backFields: [
+        { key: 'reference', label: 'BOOKING REFERENCE', value: request.id },
+        { key: 'luggage', label: 'LUGGAGE', value: request.carryOnBags === 'YES' ? `${request.bagType || 'DECLARED'} / ${request.baggageWeightKg || '0'} KG` : 'NO LUGGAGE DECLARED' },
+        { key: 'notice', label: 'IMPORTANT', value: 'Private flight request. Final operation remains subject to pilot decision, weather, aircraft serviceability, and applicable rules.' }
+      ]
+    }
+  };
+  const pass = new PKPass({
+    'pass.json': Buffer.from(JSON.stringify(passProps)),
+    'icon.png': walletAsset('icon.png'),
+    'icon@2x.png': walletAsset('icon@2x.png'),
+    'icon@3x.png': walletAsset('icon@3x.png'),
+    'logo.png': walletAsset('logo.png'),
+    'logo@2x.png': walletAsset('logo@2x.png')
+  }, {
+    wwdr: certificates.wwdr,
+    signerCert: certificates.signerCert,
+    signerKey: certificates.signerKey,
+    signerKeyPassphrase: certificates.signerKeyPassphrase
+  }, {});
+  return { buffer: pass.getAsBuffer(), serialNumber };
 }
 
 function publicFlightView(flight) {
@@ -2250,6 +2353,31 @@ app.get('/api/booking-ops/requests/:id/timeline', requirePilotAccess, async (req
   await bookingStoreReady;
   const requestId = String(req.params.id || '').trim().toUpperCase();
   res.json({ events: bookingTimeline.get(requestId) || [] });
+});
+
+app.get('/api/booking-ops/requests/:id/wallet-pass/:passengerNumber', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  if (request.pilotDecision !== 'APPROVED' || request.status !== 'CONFIRMED') {
+    return res.status(409).json({ error: 'PILOT APPROVAL REQUIRED BEFORE WALLET PASS GENERATION' });
+  }
+  const passengerNumber = Number(req.params.passengerNumber);
+  const passengers = request.passengers?.length ? request.passengers : [{ number: 1, name: request.name }];
+  const passenger = passengers.find(item => Number(item.number) === passengerNumber);
+  if (!passenger) return res.status(404).json({ error: 'PASSENGER NOT FOUND' });
+
+  try {
+    const { buffer } = await createWalletPass(request, passenger);
+    await addBookingTimelineEvent(request.id, 'APPLE WALLET PASS GENERATED', `Passenger ${passenger.number || 1}`);
+    res.setHeader('Content-Type', 'application/vnd.apple.pkpass');
+    res.setHeader('Content-Disposition', `attachment; filename="${request.id}-PAX${passenger.number || 1}.pkpass"`);
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(buffer);
+  } catch (err) {
+    console.error('WALLET PASS:', err.message);
+    res.status(err.code === 'WALLET_NOT_CONFIGURED' ? 503 : 500).json({ error: err.message || 'WALLET PASS GENERATION FAILED' });
+  }
 });
 
 app.post('/api/booking-requests', async (req, res) => {

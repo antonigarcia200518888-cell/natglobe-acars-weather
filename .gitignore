@@ -1,0 +1,4 @@
+node_modules/
+wallet-certificates/
+*.p12
+*.key
