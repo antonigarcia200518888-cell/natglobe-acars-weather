@@ -191,6 +191,7 @@
     .brief-card.wide { grid-column: span 6; }
     .brief-card.full { grid-column: 1 / -1; }
     .brief-card.third { grid-column: span 4; }
+    .brief-card[hidden] { display: none; }
 
     .brief-title {
       color: var(--muted);
@@ -476,6 +477,14 @@
               <div class="brief-line"><span>Total</span><strong id="briefTotal">.....</strong></div>
               <div class="brief-line"><span>Note</span><strong id="briefPriceNote">.....</strong></div>
             </div>
+            <div id="regattaBriefCard" class="brief-card full" hidden>
+              <div class="brief-title">Hanko Regatta coordination</div>
+              <div class="brief-line"><span>Role</span><strong id="briefRegattaProfile">.....</strong></div>
+              <div class="brief-line"><span>Arrival</span><strong id="briefRegattaArrival">.....</strong></div>
+              <div class="brief-line"><span>Transfer</span><strong id="briefRegattaTransfer">.....</strong></div>
+              <div class="brief-line"><span>Equipment</span><strong id="briefRegattaGear">.....</strong></div>
+              <div class="brief-line"><span>Notes</span><strong id="briefRegattaNotes">.....</strong></div>
+            </div>
             <div class="brief-card full">
               <div class="brief-title">Operations timeline</div>
               <div id="timelineList" class="timeline-list"><div class="timeline-event">Select a request to load its timeline.</div></div>
@@ -532,6 +541,7 @@ END OF MESSAGE</pre>
     const timelineList = el('timelineList');
     const timelineNote = el('timelineNote');
     const addTimelineNoteBtn = el('addTimelineNoteBtn');
+    const regattaBriefCard = el('regattaBriefCard');
 
     let requests = [];
     let selected = null;
@@ -656,6 +666,13 @@ END OF MESSAGE</pre>
       setText('briefPrice', `${money(req.costPerSeatEur)} / PAX`);
       setText('briefTotal', money(req.estimatedTotalEur));
       setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
+      const hasRegattaDetails = Boolean(req.regattaProfile || req.regattaNotes);
+      regattaBriefCard.hidden = !hasRegattaDetails;
+      setText('briefRegattaProfile', req.regattaProfile || 'NIL');
+      setText('briefRegattaArrival', req.regattaArrival || 'FLEXIBLE');
+      setText('briefRegattaTransfer', req.regattaTransfer || 'NIL');
+      setText('briefRegattaGear', req.regattaGear || 'NIL');
+      setText('briefRegattaNotes', req.regattaNotes || 'NIL');
       renderAlerts(req);
       renderManifest(req);
       loadTimeline(req.id).catch(() => {});

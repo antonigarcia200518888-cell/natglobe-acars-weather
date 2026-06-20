@@ -468,6 +468,9 @@ function formatBookingMessage(request) {
   const returnLine = request.tripType === 'ROUNDTRIP'
     ? `RETURN ${request.returnDate || 'DATE TBD'} ${request.returnTime || 'TIME TBD'}   FLEX ${request.returnFlexibility || 'NIL'}`
     : 'RETURN NIL';
+  const regattaLine = request.regattaProfile
+    ? `REGATTA ${request.regattaProfile}   ETA ${request.regattaArrival || 'FLEXIBLE'}   XFER ${request.regattaTransfer || 'NIL'}   GEAR ${request.regattaGear || 'NIL'}   RMK ${request.regattaNotes || 'NIL'}`
+    : null;
 
   return [
     'NATGLOBE BOOKING REQUEST',
@@ -481,6 +484,7 @@ function formatBookingMessage(request) {
     `EMERG ${request.emergencyName || 'NIL'} / ${request.emergencyPhone || 'NIL'}`,
     `PURPOSE ${request.flightPurpose || 'NIL'}   FLEX ${request.scheduleFlexibility || 'NIL'}`,
     returnLine,
+    ...(regattaLine ? [regattaLine] : []),
     `MED ${request.medicalStatus || 'NIL'}   SUBST ${request.substancesStatus || 'NIL'}`,
     `BAG ${request.carryOnBags || 'NIL'}   WT ${request.baggageWeightKg || '0'}KG   PWRBANK ${request.powerBanks || 'NIL'}`,
     `BAG TYPE ${request.bagType || 'NIL'}`,
@@ -2314,6 +2318,12 @@ app.post('/api/booking-requests', async (req, res) => {
     ? req.body.extras.map(item => normalizeBookingText(item, 40)).filter(Boolean).join(' / ')
     : normalizeBookingText(req.body?.extras, 160);
   const extrasNotes = normalizeBookingText(req.body?.extrasNotes, 140);
+  const isHankoRoute = depAirport.icao === 'EFHN' || arrAirport.icao === 'EFHN';
+  const regattaProfile = isHankoRoute ? normalizeBookingText(req.body?.regattaProfile, 40) : '';
+  const regattaArrival = isHankoRoute ? normalizeBookingText(req.body?.regattaArrival, 40) : '';
+  const regattaTransfer = isHankoRoute ? normalizeBookingText(req.body?.regattaTransfer, 60) : '';
+  const regattaGear = isHankoRoute ? normalizeBookingText(req.body?.regattaGear, 40) : '';
+  const regattaNotes = isHankoRoute ? normalizeBookingText(req.body?.regattaNotes, 140) : '';
   const medicalStatus = normalizeBookingText(req.body?.medicalStatus, 80);
   const substancesStatus = normalizeBookingText(req.body?.substancesStatus, 80);
   const flightPurpose = normalizeBookingText(req.body?.flightPurpose, 40);
@@ -2392,6 +2402,11 @@ app.post('/api/booking-requests', async (req, res) => {
     seatPreference,
     extras,
     extrasNotes,
+    regattaProfile,
+    regattaArrival,
+    regattaTransfer,
+    regattaGear,
+    regattaNotes,
     medicalStatus,
     substancesStatus,
     flightPurpose,

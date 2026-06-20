@@ -469,6 +469,30 @@
       align-self: end;
     }
 
+    .regatta-details {
+      display: none;
+      margin-top: 10px;
+      border: 1px solid rgba(102,255,153,0.55);
+      padding: 10px;
+      background: linear-gradient(180deg, rgba(102,255,153,0.07), rgba(0,0,0,0.96));
+    }
+
+    .regatta-details.show { display: block; }
+
+    .regatta-details-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .regatta-details-copy {
+      color: #bdbdbd;
+      font-size: 12px;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
     .two { grid-template-columns: 1fr 1fr; }
     .three { grid-template-columns: repeat(3, 1fr); }
     .passenger-main-grid { grid-template-columns: minmax(0, 1fr) 128px; }
@@ -1316,6 +1340,7 @@
       .return-trip-row {
         grid-template-columns: 1fr;
       }
+      .regatta-details-grid { grid-template-columns: 1fr 1fr; }
       .booking-panel-head {
         display: grid;
         gap: 6px;
@@ -1498,6 +1523,7 @@
         grid-column: auto;
       }
       .swap-field label { display: none; }
+      .regatta-details-grid { grid-template-columns: 1fr; }
       .swap-btn { min-height: 44px; }
       .route-map-shell {
         height: 230px;
@@ -1683,6 +1709,53 @@
             </select>
           </div>
           <div class="return-trip-note">Return leg is requested only. Pilot confirms weather, daylight, duty, aircraft availability, and passenger timing before approval.</div>
+        </div>
+      </section>
+
+      <section id="regattaTravelDetails" class="regatta-details" aria-label="Hanko Regatta travel details">
+        <div class="booking-kicker">Hanko Regatta travel details</div>
+        <div class="regatta-details-copy">Share the practical details that help the flight team coordinate a smooth arrival. All arrangements remain subject to operational confirmation.</div>
+        <div class="regatta-details-grid">
+          <div>
+            <label for="regattaProfile">Your role</label>
+            <select id="regattaProfile">
+              <option value="GUEST / SPECTATOR">Guest / spectator</option>
+              <option value="COMPETITOR">Competitor</option>
+              <option value="CREW MEMBER">Crew member</option>
+              <option value="SPONSOR / VIP GUEST">Sponsor / VIP guest</option>
+            </select>
+          </div>
+          <div>
+            <label for="regattaArrival">Preferred arrival</label>
+            <select id="regattaArrival">
+              <option value="FLEXIBLE">Flexible</option>
+              <option value="MORNING / 07:00-10:00">Morning / 07:00-10:00</option>
+              <option value="MIDDAY / 10:00-13:00">Midday / 10:00-13:00</option>
+              <option value="AFTERNOON / 13:00-17:00">Afternoon / 13:00-17:00</option>
+            </select>
+          </div>
+          <div>
+            <label for="regattaTransfer">Hanko transfer</label>
+            <select id="regattaTransfer">
+              <option value="NO TRANSFER REQUESTED">No transfer requested</option>
+              <option value="MARINA / HARBOUR TRANSFER">Marina / harbour transfer</option>
+              <option value="EVENT VENUE TRANSFER">Event venue transfer</option>
+              <option value="ARRANGE WITH FLIGHT TEAM">Arrange with flight team</option>
+            </select>
+          </div>
+          <div>
+            <label for="regattaGear">Regatta equipment</label>
+            <select id="regattaGear">
+              <option value="NO SPECIAL EQUIPMENT">No special equipment</option>
+              <option value="SMALL SAILING BAG">Small sailing bag</option>
+              <option value="EQUIPMENT CASE">Equipment case</option>
+              <option value="PLEASE CONTACT ME">Please contact me</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <label for="regattaNotes">Regatta notes</label>
+          <input id="regattaNotes" type="text" maxlength="140" placeholder="Marina, race start, team name, transfer address, or other timing details" />
         </div>
       </section>
 
@@ -2295,6 +2368,11 @@
       }
     }
 
+    function updateRegattaTravelDetails(dep, arr) {
+      const isHankoRoute = dep?.icao === 'EFHN' || arr?.icao === 'EFHN';
+      el('regattaTravelDetails').classList.toggle('show', isHankoRoute);
+    }
+
     function routePrice(dep, arr) {
       if (!dep || !arr) return 'Pilot confirms';
       if (dep.icao === arr.icao) return 'Choose different airports';
@@ -2359,6 +2437,7 @@
       const dep = selectedAirport('dep');
       const arr = selectedAirport('arr');
       updateDatePriceLabels(dep, arr);
+      updateRegattaTravelDetails(dep, arr);
       el('depCode').textContent = dep?.city || '----';
       el('arrCode').textContent = arr?.city || '----';
       el('routeNames').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
@@ -2566,6 +2645,11 @@
             seatPreference: el('seatPreference').value || checkedValue('seatPreference', 'NO PREFERENCE'),
             extras: checkedValues('extras'),
             extrasNotes: el('extrasNotes').value,
+            regattaProfile: el('regattaProfile').value,
+            regattaArrival: el('regattaArrival').value,
+            regattaTransfer: el('regattaTransfer').value,
+            regattaGear: el('regattaGear').value,
+            regattaNotes: el('regattaNotes').value,
             flightPurpose: 'PRIVATE FLIGHT REQUEST',
             scheduleFlexibility: 'PILOT MAY SUGGEST BEST OPERATIONAL TIME',
             contractAccepted: true,
