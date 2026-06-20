@@ -765,6 +765,8 @@
       box-shadow: inset 0 0 0 1px rgba(102,255,153,0.12);
     }
 
+    .mobile-completion-markers { display: none; }
+
     .summary-list .summary-requests {
       align-items: flex-start;
       flex-direction: column;
@@ -812,6 +814,49 @@
       text-transform: uppercase;
       margin-bottom: 10px;
     }
+
+    .passenger-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      padding: 0;
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .passenger-toggle-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .passenger-toggle em {
+      color: var(--live);
+      font-size: 10px;
+      font-style: normal;
+      text-transform: uppercase;
+    }
+
+    .passenger-toggle .passenger-title {
+      display: block;
+      margin-bottom: 0;
+    }
+
+    .passenger-summary {
+      display: none;
+      margin-top: 7px;
+      color: #bdbdbd;
+      font-size: 11px;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .passenger-card.is-collapsed .passenger-fields { display: none; }
+    .passenger-card.is-collapsed .passenger-summary { display: block; }
+    .passenger-card.is-collapsed { border-color: rgba(102,255,153,0.6); }
 
     .question-grid {
       display: grid;
@@ -1317,6 +1362,26 @@
         font-size: 13px;
         letter-spacing: 0.35px;
       }
+      .mobile-completion-markers {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 5px;
+        margin: 0 0 8px;
+      }
+      .mobile-completion-markers span {
+        border: 1px solid #444;
+        padding: 6px 4px;
+        color: #777;
+        background: #050505;
+        font-size: 9px;
+        line-height: 1.15;
+        text-align: center;
+        text-transform: uppercase;
+      }
+      .mobile-completion-markers span.is-complete {
+        border-color: rgba(102,255,153,0.7);
+        color: var(--live);
+      }
       .layout, .two, .three, .passenger-main-grid, .question-grid, .baggage-request-grid, .submit-footer, .status-steps, .seat-options { grid-template-columns: 1fr; }
       .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1383,6 +1448,9 @@
       }
       .passenger-title {
         font-size: 12px;
+      }
+      .passenger-summary {
+        font-size: 10px;
       }
       .declaration,
       .fine-print {
@@ -1631,6 +1699,12 @@
       Hanko Regatta service: request your preferred itinerary at least 24 hours before departure.
     </div>
     <div id="mode" class="mode">SERVICE: PRIVATE AVIATION REQUEST / FLIGHT TEAM REVIEW</div>
+    <div class="mobile-completion-markers" aria-label="Booking completion">
+      <span id="markerRoute">Itinerary</span>
+      <span id="markerTravellers">Travellers</span>
+      <span id="markerLuggage">Luggage</span>
+      <span id="markerReview">Review</span>
+    </div>
 
     <form id="bookingForm">
       <section class="route-map-card" aria-label="Selected flight route map">
@@ -2419,18 +2493,49 @@
       node.textContent = ready ? readyText : pendingText;
     }
 
+    function setMobileMarker(id, complete) {
+      el(id).classList.toggle('is-complete', complete);
+    }
+
+    function passengerHasRequiredDetails(passenger) {
+      return Boolean(
+        passenger?.name &&
+        passenger?.weightKg &&
+        passenger?.email &&
+        passenger?.phone &&
+        passenger?.dob &&
+        passenger?.passportCountry &&
+        passenger?.nationalId
+      );
+    }
+
+    function refreshPassengerCardState(passengers) {
+      [...passengerList.querySelectorAll('.passenger-card')].forEach((card, index) => {
+        const complete = passengerHasRequiredDetails(passengers[index]);
+        card.dataset.complete = String(complete);
+        const toggleLabel = card.querySelector('.passenger-toggle em');
+        if (toggleLabel && !card.classList.contains('is-collapsed')) {
+          toggleLabel.textContent = complete ? 'Collapse' : '';
+        }
+      });
+    }
+
     function updateReadiness(dep, arr) {
       const passengers = collectPassengers(false);
       const passengerCount = Number(el('seats').value || 1);
-      const completePassengers = passengers.length >= passengerCount && passengers.every(passenger =>
-        passenger.name && passenger.weightKg && passenger.email && passenger.phone && passenger.dob && passenger.nationalId
-      );
+      const completePassengers = passengers.length >= passengerCount && passengers.every(passengerHasRequiredDetails);
+      refreshPassengerCardState(passengers);
       const routeReady = !!(dep && arr && dep.icao !== arr.icao);
       const safetyReady = el('safetyAgreement').checked;
+      const luggageReady = el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value);
       setReady('readyRoute', routeReady, 'Route selected', 'Route pending');
       setReady('readyPassengers', completePassengers, 'Traveller details ready', 'Traveller details pending');
       setReady('readySafety', safetyReady, 'Safety accepted', 'Safety acceptance pending');
-      setReady('readyBaggage', true, el('carryOnBags').value === 'YES' ? 'Baggage declared' : 'No baggage declared', 'Baggage reviewed');
+      setReady('readyBaggage', luggageReady, el('carryOnBags').value === 'YES' ? 'Luggage declared' : 'No luggage declared', 'Luggage weight pending');
+      setMobileMarker('markerRoute', routeReady);
+      setMobileMarker('markerTravellers', completePassengers);
+      setMobileMarker('markerLuggage', luggageReady);
+      setMobileMarker('markerReview', routeReady && completePassengers && safetyReady && luggageReady);
     }
 
     function refreshSummary() {
@@ -2468,12 +2573,18 @@
       passengerList.innerHTML = Array.from({ length: count }, (_, index) => {
         const passenger = existing[index] || {};
         const lead = index === 0;
+        const complete = passengerHasRequiredDetails(passenger);
+        const collapsed = count > 1 && index < count - 1 && complete;
         const countryOptions = PASSPORT_COUNTRIES.map(([value, label]) =>
           `<option value="${escapeHtml(value)}" ${passenger.passportCountry === value ? 'selected' : ''}>${escapeHtml(label)}</option>`
         ).join('');
         return `
-          <div class="passenger-card" data-passenger="${index}">
-            <div class="passenger-title">${lead ? 'Lead passenger' : `Passenger ${index + 1}`}</div>
+          <div class="passenger-card ${collapsed ? 'is-collapsed' : ''}" data-passenger="${index}" data-complete="${complete}">
+            <button class="passenger-toggle" type="button" aria-expanded="${!collapsed}">
+              <span class="passenger-toggle-row"><span class="passenger-title">${lead ? 'Lead traveller' : `Traveller ${index + 1}`}</span><em>${collapsed ? 'Edit' : complete ? 'Collapse' : ''}</em></span>
+            </button>
+            <div class="passenger-summary">${escapeHtml(passenger.name || 'Traveller')} / ${escapeHtml(passenger.weightKg || '--')} KG / ${escapeHtml(passenger.email || 'contact pending')}</div>
+            <div class="passenger-fields">
             <div class="grid passenger-main-grid">
               <div><label for="pax${index}Name">Full name</label><input id="pax${index}Name" data-pax-field="name" type="text" autocomplete="${lead ? 'name' : 'off'}" value="${escapeHtml(passenger.name)}" required /></div>
               <div class="input-unit"><label for="pax${index}Weight">Weight</label><input id="pax${index}Weight" class="compact-number" data-pax-field="weightKg" type="number" min="1" max="250" inputmode="numeric" value="${escapeHtml(passenger.weightKg)}" required /><span class="unit">KG</span></div>
@@ -2486,6 +2597,7 @@
             <div class="grid two" style="margin-top:12px;">
               <div><label for="pax${index}PassportCountry">Passport country</label><select id="pax${index}PassportCountry" data-pax-field="passportCountry" required>${countryOptions}</select></div>
               <div><label for="pax${index}Id">Identity / passport number</label><input id="pax${index}Id" data-pax-field="nationalId" type="text" value="${escapeHtml(passenger.nationalId)}" required /></div>
+            </div>
             </div>
           </div>
         `;
@@ -2596,6 +2708,15 @@
     el('seats').addEventListener('change', () => {
       renderPassengerFields();
       refreshSummary();
+    });
+    passengerList.addEventListener('click', (event) => {
+      const toggle = event.target.closest('.passenger-toggle');
+      if (!toggle) return;
+      const card = toggle.closest('.passenger-card');
+      if (!card || card.dataset.complete !== 'true') return;
+      const collapsed = card.classList.toggle('is-collapsed');
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+      toggle.querySelector('em').textContent = collapsed ? 'Edit' : 'Collapse';
     });
     form.querySelectorAll('input[name="seatPreference"]').forEach(input => {
       input.addEventListener('change', () => setSeatPreference(input.value));
