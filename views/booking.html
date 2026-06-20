@@ -32,6 +32,7 @@
       background: var(--bg);
       color: var(--fg);
       font-family: "Courier New", Courier, monospace;
+      scroll-behavior: smooth;
     }
 
     body {
@@ -1249,15 +1250,23 @@
     }
 
     @media (max-width: 900px) {
-      body { padding: 10px 8px calc(92px + env(safe-area-inset-bottom)); }
+      body { padding: 8px 6px calc(104px + env(safe-area-inset-bottom)); }
       .frame {
         border-width: 1px;
-        padding: 12px 10px 14px;
+        padding: 10px 8px 14px;
       }
       .search-card, .card, .route-map-card {
         border-width: 1px;
         padding: 10px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+        background: linear-gradient(180deg, #030303 0%, #000 100%);
+        scroll-margin-top: 10px;
+      }
+      .section-title,
+      .booking-kicker,
+      .route-map-title {
+        font-size: 13px;
+        letter-spacing: 0.35px;
       }
       .layout, .two, .three, .passenger-main-grid, .question-grid, .baggage-request-grid, .submit-footer, .status-steps, .seat-options { grid-template-columns: 1fr; }
       .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1296,32 +1305,105 @@
         min-height: 310px;
       }
       .aircraft-feature, .amenity-grid { grid-template-columns: 1fr; }
+      .aircraft-feature {
+        gap: 10px;
+      }
       .aircraft-photo,
       .aircraft-photo img {
-        min-height: 150px;
+        min-height: 132px;
+        max-height: 190px;
+      }
+      .aircraft-feature-copy p {
+        font-size: 12px;
+        margin: 0 0 8px;
+      }
+      .amenity {
+        min-height: 38px;
+        font-size: 11px;
+        padding: 8px;
       }
       .seat-map-shell { padding: 12px 8px; }
       .seat-visual {
         font-size: 10px;
       }
       .booking-note { text-align: left; max-width: none; }
+      .passenger-card {
+        padding: 10px;
+        border-color: #666;
+      }
+      .passenger-title {
+        font-size: 12px;
+      }
+      .declaration,
+      .fine-print {
+        font-size: 12px;
+        line-height: 1.42;
+      }
       .summary-card {
         position: static;
       }
       .review-card .summary-list {
         grid-template-columns: 1fr;
       }
+      .summary-list li {
+        min-height: 40px;
+        padding: 8px 0;
+      }
       .route-line { align-items: flex-start; flex-direction: column; }
-      .title-row { flex-direction: column; }
-      .brand-lockup { align-items: flex-start; }
-      .connection-badge { white-space: normal; }
+      .title-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: start;
+        gap: 8px;
+      }
+      .brand-lockup {
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-logo {
+        width: 68px;
+        padding: 4px;
+      }
+      .title {
+        font-size: 23px;
+        line-height: 1.05;
+      }
+      .subtitle {
+        font-size: 10px;
+        line-height: 1.25;
+      }
+      .connection-badge {
+        white-space: nowrap;
+        min-height: 28px;
+        padding: 5px 7px;
+        font-size: 11px;
+      }
+      .clock {
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+      .intro {
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+      .mode {
+        min-height: 34px;
+        padding: 7px 9px;
+        margin-bottom: 8px;
+        font-size: 11px;
+        line-height: 1.25;
+      }
       input, select, textarea, .btn {
         font-size: 16px;
         min-height: 50px;
       }
+      label,
+      .question-label {
+        font-size: 12px;
+      }
       .swap-btn { min-height: 52px; font-size: 18px; }
       .submit-footer {
-        padding-bottom: 84px;
+        padding-bottom: 92px;
       }
       .mobile-booking-bar {
         position: fixed;
@@ -1334,8 +1416,8 @@
         gap: 8px;
         align-items: center;
         border: 2px solid var(--line);
-        background: rgba(0,0,0,0.96);
-        padding: 8px;
+        background: linear-gradient(180deg, rgba(12,12,12,0.98), rgba(0,0,0,0.98));
+        padding: 9px;
         box-shadow: 0 -12px 30px rgba(0,0,0,0.55);
       }
       .mobile-booking-bar strong {
@@ -1355,20 +1437,31 @@
       .mobile-booking-bar .btn {
         min-height: 46px;
         font-size: 14px;
+        box-shadow: 0 0 16px rgba(255,255,255,0.12);
       }
     }
 
     @media (max-width: 520px) {
       .brand-logo {
-        width: 72px;
-        padding: 4px 6px;
+        width: 58px;
+        padding: 3px;
       }
       .title {
-        font-size: 22px;
+        font-size: 20px;
         line-height: 1.1;
       }
+      .subtitle {
+        font-size: 9px;
+      }
+      .connection-badge {
+        padding: 4px 6px;
+      }
+      .wifi-icon {
+        width: 15px;
+        height: 15px;
+      }
       .intro {
-        font-size: 13px;
+        font-size: 12px;
       }
       .search-grid { grid-template-columns: 1fr; }
       .swap-field,
@@ -1382,8 +1475,8 @@
       .swap-field label { display: none; }
       .swap-btn { min-height: 44px; }
       .route-map-shell {
-        height: 245px;
-        min-height: 245px;
+        height: 230px;
+        min-height: 230px;
       }
       .route-range {
         left: 8px;
@@ -1431,8 +1524,21 @@
         font-size: 10px;
       }
       .seat-visual { font-size: 8px; }
+      .seat-options {
+        gap: 8px;
+      }
+      .seat-option {
+        min-height: auto;
+        padding: 9px;
+      }
+      .request-panel-header {
+        gap: 8px;
+      }
       .mobile-booking-bar {
         grid-template-columns: minmax(0, 1fr) minmax(138px, 0.82fr);
+        left: 6px;
+        right: 6px;
+        bottom: calc(6px + env(safe-area-inset-bottom));
       }
       .mobile-booking-bar .btn {
         font-size: 13px;
@@ -2162,7 +2268,7 @@
       requestSummary();
       updateReadiness(dep, arr);
       el('mobileTripLine').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select route';
-      el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'}`;
+      el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'} / ${routePrice(dep, arr)}`;
       updateRouteMap(dep, arr);
       if (dep && arr && dep.icao === arr.icao) setStatus('Choose different departure and destination airports', 'err');
       else if (dep && arr) setStatus('Route selected / Complete passenger manifest and declarations', 'ok');
