@@ -749,7 +749,7 @@
 
     .baggage-request-grid {
       display: grid;
-      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      grid-template-columns: minmax(320px, 0.62fr) minmax(0, 1.38fr);
       gap: 10px;
       align-items: start;
     }
@@ -758,10 +758,13 @@
       margin-bottom: 10px;
     }
 
-    .baggage-request-grid .question-grid,
+    .baggage-request-grid .question-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .baggage-request-grid .included-grid,
     .baggage-request-grid .extras-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .baggage-request-grid .request-panel-copy {
@@ -1229,6 +1232,8 @@
       .layout, .two, .three, .passenger-main-grid, .question-grid, .baggage-request-grid, .submit-footer, .status-steps, .seat-options { grid-template-columns: 1fr; }
       .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .baggage-request-grid .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .baggage-request-grid .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .request-panel-header {
         align-items: flex-start;
         flex-direction: column;
@@ -1535,72 +1540,6 @@
             </div>
           </div>
 
-          <div class="baggage-request-grid">
-            <div class="card">
-              <h2 class="section-title">Baggage</h2>
-              <div class="declaration">
-                <strong>Baggage declaration</strong>
-                Bags are subject to aircraft weight and balance and pilot approval. Declare power banks/lithium batteries. Do not bring prohibited dangerous goods such as flammable liquids, fireworks, firearms, corrosives, toxic chemicals, pressurized containers, or unsecured lithium batteries.
-              </div>
-              <div class="question-grid">
-                <div>
-                  <div class="question-label">Will you bring bags?</div>
-                  <select id="carryOnBags"><option value="NO">No</option><option value="YES">Yes</option></select>
-                </div>
-                <div class="input-unit"><label for="baggageWeightKg">Total baggage weight</label><input id="baggageWeightKg" class="compact-number" type="number" min="0" max="50" inputmode="decimal" placeholder="0" /><span class="unit">KG</span></div>
-                <div>
-                  <div class="question-label">Power banks / lithium batteries?</div>
-                  <select id="powerBanks"><option value="NO">No</option><option value="YES">Yes</option></select>
-                </div>
-                <div>
-                  <div class="question-label">Number of bags</div>
-                  <select id="bagCount"><option value="0">0 bags</option><option value="1">1 bag</option><option value="2">2 bags</option><option value="3">3 bags</option></select>
-                </div>
-              </div>
-              <div style="margin-top:12px;">
-                <label for="bagType">Bag type / dimensions</label>
-                <input id="bagType" type="text" placeholder="Soft backpack, small duffel, dimensions if known" />
-              </div>
-            </div>
-
-            <div class="card">
-              <h2 class="section-title">Onboard requests</h2>
-              <div class="request-panel">
-                <div class="request-panel-header">
-                  <div>
-                    <div class="request-panel-title">Onboard requests</div>
-                    <div class="request-panel-copy">Select anything you would like operations to prepare or confirm. Requests are reviewed with pilot approval, aircraft limits, passenger fitness, and local rules before the flight is confirmed.</div>
-                  </div>
-                  <div class="request-panel-status">Request menu</div>
-                </div>
-
-                <div class="extras-section-title">Included on board</div>
-                <div class="included-grid" aria-label="Included onboard items">
-                  <div class="included-card"><strong>Chilled water</strong><span>Included</span></div>
-                  <div class="included-card"><strong>USB-C charging</strong><span>Planned</span></div>
-                  <div class="included-card"><strong>Starlink Wi-Fi</strong><span>Planned</span></div>
-                </div>
-
-                <div class="extras-section-title">Request for this flight</div>
-                <div class="extras-grid" aria-label="Optional onboard and transfer requests">
-                  <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><strong>Wine service</strong><span class="confirm-badge">Pilot approval</span><span>Light onboard wine request for eligible passengers.</span><em class="request-status">Tap to request</em></label>
-                  <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><strong>Champagne</strong><span class="confirm-badge">Pilot approval</span><span>Celebration request reviewed before flight.</span><em class="request-status">Tap to request</em></label>
-                  <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><strong>Beer / long drink</strong><span class="confirm-badge">Pilot approval</span><span>Beer, long drink, or similar refreshment request.</span><em class="request-status">Tap to request</em></label>
-                  <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><strong>Soft drinks</strong><span>Non-alcoholic drinks beyond the included water.</span><em class="request-status">Tap to request</em></label>
-                  <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><strong>Light snacks</strong><span>Small sealed snacks suitable for a light aircraft cabin.</span><em class="request-status">Tap to request</em></label>
-                  <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><span class="confirm-badge">Separate confirm</span><span>Ground transport coordination to or from the airfield.</span><em class="request-status">Tap to request</em></label>
-                </div>
-                <div style="margin-top:12px;">
-                  <label for="extrasNotes">Request details</label>
-                  <input id="extrasNotes" type="text" placeholder="Example: champagne for 2, pickup address, preferred soft drinks, timing" />
-                </div>
-                <div class="fine-print" style="margin-top:10px;">
-                  Alcohol is never guaranteed and may be declined by the pilot or operations. Transfers and catering are separate requests and may affect final pricing.
-                </div>
-              </div>
-            </div>
-          </div>
-
         </section>
 
         <aside>
@@ -1629,6 +1568,72 @@
             </div>
           </div>
         </aside>
+      </div>
+
+      <div class="baggage-request-grid">
+        <div class="card">
+          <h2 class="section-title">Baggage</h2>
+          <div class="declaration">
+            <strong>Baggage declaration</strong>
+            Bags are subject to aircraft weight and balance and pilot approval. Declare power banks/lithium batteries. Do not bring prohibited dangerous goods such as flammable liquids, fireworks, firearms, corrosives, toxic chemicals, pressurized containers, or unsecured lithium batteries.
+          </div>
+          <div class="question-grid">
+            <div>
+              <div class="question-label">Will you bring bags?</div>
+              <select id="carryOnBags"><option value="NO">No</option><option value="YES">Yes</option></select>
+            </div>
+            <div class="input-unit"><label for="baggageWeightKg">Total baggage weight</label><input id="baggageWeightKg" class="compact-number" type="number" min="0" max="50" inputmode="decimal" placeholder="0" /><span class="unit">KG</span></div>
+            <div>
+              <div class="question-label">Power banks / lithium batteries?</div>
+              <select id="powerBanks"><option value="NO">No</option><option value="YES">Yes</option></select>
+            </div>
+            <div>
+              <div class="question-label">Number of bags</div>
+              <select id="bagCount"><option value="0">0 bags</option><option value="1">1 bag</option><option value="2">2 bags</option><option value="3">3 bags</option></select>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <label for="bagType">Bag type / dimensions</label>
+            <input id="bagType" type="text" placeholder="Soft backpack, small duffel, dimensions if known" />
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title">Onboard requests</h2>
+          <div class="request-panel">
+            <div class="request-panel-header">
+              <div>
+                <div class="request-panel-title">Onboard requests</div>
+                <div class="request-panel-copy">Select anything you would like operations to prepare or confirm. Requests are reviewed with pilot approval, aircraft limits, passenger fitness, and local rules before the flight is confirmed.</div>
+              </div>
+              <div class="request-panel-status">Request menu</div>
+            </div>
+
+            <div class="extras-section-title">Included on board</div>
+            <div class="included-grid" aria-label="Included onboard items">
+              <div class="included-card"><strong>Chilled water</strong><span>Included</span></div>
+              <div class="included-card"><strong>USB-C charging</strong><span>Planned</span></div>
+              <div class="included-card"><strong>Starlink Wi-Fi</strong><span>Planned</span></div>
+            </div>
+
+            <div class="extras-section-title">Request for this flight</div>
+            <div class="extras-grid" aria-label="Optional onboard and transfer requests">
+              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><strong>Wine service</strong><span class="confirm-badge">Pilot approval</span><span>Light onboard wine request for eligible passengers.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><strong>Champagne</strong><span class="confirm-badge">Pilot approval</span><span>Celebration request reviewed before flight.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><strong>Beer / long drink</strong><span class="confirm-badge">Pilot approval</span><span>Beer, long drink, or similar refreshment request.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><strong>Soft drinks</strong><span>Non-alcoholic drinks beyond the included water.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><strong>Light snacks</strong><span>Small sealed snacks suitable for a light aircraft cabin.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><span class="confirm-badge">Separate confirm</span><span>Ground transport coordination to or from the airfield.</span><em class="request-status">Tap to request</em></label>
+            </div>
+            <div style="margin-top:12px;">
+              <label for="extrasNotes">Request details</label>
+              <input id="extrasNotes" type="text" placeholder="Example: champagne for 2, pickup address, preferred soft drinks, timing" />
+            </div>
+            <div class="fine-print" style="margin-top:10px;">
+              Alcohol is never guaranteed and may be declined by the pilot or operations. Transfers and catering are separate requests and may affect final pricing.
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="card review-card">
