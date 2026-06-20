@@ -796,6 +796,33 @@
 
     .front-left { left: 37.8%; top: 16.5%; width: 16%; height: 35%; }
     .front-right { left: 37.8%; top: 52.5%; width: 16%; height: 35%; }
+
+    .rear-seat-marker {
+      position: absolute;
+      left: 66.7%;
+      width: 16%;
+      height: 35%;
+      border: 2px solid var(--live);
+      border-radius: 10px;
+      color: var(--live);
+      background: rgba(0,0,0,0.28);
+      box-shadow: 0 0 0 2px rgba(102,255,153,0.38) inset, 0 0 18px rgba(102,255,153,0.42);
+      display: none;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 900;
+      text-transform: uppercase;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .rear-seat-marker.is-selected {
+      display: grid;
+    }
+
+    .rear-seat-marker.left { top: 16.5%; }
+    .rear-seat-marker.right { top: 52.5%; }
+
     .seat-visual.blocked {
       color: #d7d7d7;
       border-color: rgba(255,255,255,0.42);
@@ -1553,7 +1580,9 @@
                 <div class="cabin-visual">
                   <img class="seat-map-image" src="/pa28-seat-map.png" alt="PA-28R-200 cabin seat map" />
                   <button class="seat-visual blocked front-left" type="button" disabled>Pilot</button>
-                  <button class="seat-visual blocked front-right" type="button" disabled>Crew</button>
+                  <button class="seat-visual blocked front-right" type="button" disabled>Pilot</button>
+                  <div id="rearLeftMarker" class="rear-seat-marker left is-selected">RL</div>
+                  <div id="rearRightMarker" class="rear-seat-marker right">RR</div>
                 </div>
               </div>
               <input id="seatPreference" type="hidden" value="REAR LEFT WINDOW" />
@@ -2067,6 +2096,8 @@
       el('seatPreference').value = value;
       const radio = form.querySelector(`input[name="seatPreference"][value="${value}"]`);
       if (radio) radio.checked = true;
+      el('rearLeftMarker').classList.toggle('is-selected', value === 'REAR LEFT WINDOW');
+      el('rearRightMarker').classList.toggle('is-selected', value === 'REAR RIGHT WINDOW');
     }
 
     function populateAirports(list) {
