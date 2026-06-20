@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NatGlobe Aviation / Private Flight Booking</title>
+  <title>Private Flight Booking</title>
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -1344,8 +1344,8 @@
       <div class="brand-lockup">
         <img class="brand-logo" src="/natglobe-logo.png" alt="NatGlobe Aviation logo" />
         <div>
-          <div class="title">NATGLOBE AVIATION / PRIVATE FLIGHT BOOKING</div>
-          <div class="subtitle">Private cost-share flight request / pilot reviewed operations</div>
+          <div class="title">PRIVATE FLIGHT BOOKING</div>
+          <div class="subtitle">This is not a commercial transport service - private flight operated under equal-share cost-shared remuneration only.</div>
         </div>
       </div>
       <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
@@ -1872,7 +1872,7 @@
 
       routeRange.textContent = `FLIGHT TIME: ${formatFlightTime(dep, arr)}`;
       routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
-      routeMapLabel.textContent = `${dep.country} / ${arr.country} cost-share route`;
+      routeMapLabel.textContent = `${dep.country} / ${arr.country} equal-share private route`;
       drawRouteOnMap(dep, arr);
     }
 
