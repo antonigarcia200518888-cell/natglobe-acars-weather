@@ -373,6 +373,10 @@ function formatBookingMessage(request) {
     `DOB ${passenger.dob || 'NIL'}   PPT CTRY ${passenger.passportCountry || 'NIL'}   ID ${passenger.nationalId || 'NIL'}   TEL ${passenger.phone || 'NIL'}   EMAIL ${passenger.email || 'NIL'}`
   ]);
 
+  const returnLine = request.tripType === 'ROUNDTRIP'
+    ? `RETURN ${request.returnDate || 'DATE TBD'} ${request.returnTime || 'TIME TBD'}   FLEX ${request.returnFlexibility || 'NIL'}`
+    : 'RETURN NIL';
+
   return [
     'NATGLOBE BOOKING REQUEST',
     '------------------------',
@@ -384,6 +388,7 @@ function formatBookingMessage(request) {
     ...passengerLines,
     `EMERG ${request.emergencyName || 'NIL'} / ${request.emergencyPhone || 'NIL'}`,
     `PURPOSE ${request.flightPurpose || 'NIL'}   FLEX ${request.scheduleFlexibility || 'NIL'}`,
+    returnLine,
     `MED ${request.medicalStatus || 'NIL'}   SUBST ${request.substancesStatus || 'NIL'}`,
     `BAG ${request.carryOnBags || 'NIL'}   WT ${request.baggageWeightKg || '0'}KG   PWRBANK ${request.powerBanks || 'NIL'}`,
     `BAG TYPE ${request.bagType || 'NIL'}`,
@@ -2156,6 +2161,9 @@ app.post('/api/booking-requests', async (req, res) => {
   const requestDate = normalizeBookingText(req.body?.requestDate, 20);
   const requestTime = normalizeBookingText(req.body?.requestTime, 16);
   const tripType = req.body?.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
+  const returnDate = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnDate, 20) : '';
+  const returnTime = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnTime, 16) : '';
+  const returnFlexibility = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnFlexibility, 60) : '';
   const dob = leadPassenger.dob;
   const weightKg = leadPassenger.weightKg;
   const nationalId = leadPassenger.nationalId;
@@ -2198,6 +2206,10 @@ app.post('/api/booking-requests', async (req, res) => {
     return res.status(400).json({ error: 'DATE, ETD, AND WEIGHT REQUIRED' });
   }
 
+  if (tripType === 'ROUNDTRIP' && (!returnDate || !returnTime)) {
+    return res.status(400).json({ error: 'RETURN DATE AND TIME REQUIRED FOR ROUNDTRIP' });
+  }
+
   if (carryOnBags === 'YES' && (!baggageWeightKg || baggageWeightKg === 'N/A')) {
     return res.status(400).json({ error: 'BAGGAGE WEIGHT REQUIRED WHEN BAGS ARE YES' });
   }
@@ -2224,6 +2236,9 @@ app.post('/api/booking-requests', async (req, res) => {
     requestDate,
     requestTime,
     tripType,
+    returnDate,
+    returnTime,
+    returnFlexibility,
     seats,
     passengers,
     name,

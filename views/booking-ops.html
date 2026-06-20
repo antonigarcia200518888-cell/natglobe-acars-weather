@@ -34,7 +34,7 @@
     }
 
     .frame {
-      width: min(1180px, 100%);
+      width: min(1320px, 100%);
       border: 2px solid var(--line);
       padding: 22px 20px 18px;
       background: #000;
@@ -90,7 +90,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(290px, 0.55fr) minmax(0, 1fr);
+      grid-template-columns: minmax(310px, 0.45fr) minmax(0, 1fr);
       gap: 12px;
     }
 
@@ -131,6 +131,21 @@
       box-shadow: inset 0 0 0 1px var(--accent);
     }
 
+    .request-topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .request-chip {
+      border: 1px solid #555;
+      padding: 2px 5px;
+      color: var(--live);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
     .meta-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -156,6 +171,111 @@
       display: block;
       color: #fff;
       overflow-wrap: anywhere;
+    }
+
+    .ops-brief {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .brief-card {
+      border: 1px solid #555;
+      background: #050505;
+      padding: 10px;
+      min-width: 0;
+      text-transform: uppercase;
+    }
+
+    .brief-card.wide { grid-column: span 6; }
+    .brief-card.full { grid-column: 1 / -1; }
+    .brief-card.third { grid-column: span 4; }
+
+    .brief-title {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .brief-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      border-top: 1px solid #222;
+      padding: 7px 0;
+      color: #d7d7d7;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .brief-line:first-of-type { border-top: 0; padding-top: 0; }
+
+    .brief-line span {
+      color: #8d8d8d;
+      flex: 0 0 auto;
+    }
+
+    .brief-line strong {
+      color: #fff;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .manifest-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .manifest-card {
+      border: 1px solid #444;
+      padding: 8px;
+      background: #000;
+      color: #d7d7d7;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .manifest-card strong {
+      display: block;
+      color: #fff;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .ops-alerts {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .ops-alert {
+      border: 1px solid #555;
+      padding: 8px;
+      background: #030303;
+      color: #d7d7d7;
+      text-transform: uppercase;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .ops-alert.good {
+      border-color: var(--live);
+      color: var(--live);
+    }
+
+    .ops-alert.warn {
+      border-color: var(--warn);
+      color: var(--warn);
+    }
+
+    .ops-alert.danger {
+      border-color: var(--danger);
+      color: var(--danger);
     }
 
     .booking-message {
@@ -212,7 +332,9 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list { grid-template-columns: 1fr; }
+      .brief-card.wide,
+      .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
       .badge { white-space: normal; }
     }
@@ -246,6 +368,45 @@
             <div class="meta"><span>DECISION</span><strong id="decision">.....</strong></div>
             <div class="meta"><span>PAYMENT</span><strong id="payment">.....</strong></div>
           </div>
+          <div id="opsAlerts" class="ops-alerts"></div>
+          <div class="ops-brief">
+            <div class="brief-card wide">
+              <div class="brief-title">Route and schedule</div>
+              <div class="brief-line"><span>Outbound</span><strong id="briefOutbound">.....</strong></div>
+              <div class="brief-line"><span>Return</span><strong id="briefReturn">.....</strong></div>
+              <div class="brief-line"><span>Aircraft</span><strong id="briefAircraft">.....</strong></div>
+              <div class="brief-line"><span>Created</span><strong id="briefCreated">.....</strong></div>
+            </div>
+            <div class="brief-card wide">
+              <div class="brief-title">Lead passenger and contact</div>
+              <div class="brief-line"><span>Name</span><strong id="briefLead">.....</strong></div>
+              <div class="brief-line"><span>Email</span><strong id="briefEmail">.....</strong></div>
+              <div class="brief-line"><span>Phone</span><strong id="briefPhone">.....</strong></div>
+              <div class="brief-line"><span>Safety</span><strong id="briefSafety">.....</strong></div>
+            </div>
+            <div class="brief-card full">
+              <div class="brief-title">Passenger manifest</div>
+              <div id="manifestList" class="manifest-list"></div>
+            </div>
+            <div class="brief-card third">
+              <div class="brief-title">Baggage</div>
+              <div class="brief-line"><span>Carry-on</span><strong id="briefBaggage">.....</strong></div>
+              <div class="brief-line"><span>Weight</span><strong id="briefBagWeight">.....</strong></div>
+              <div class="brief-line"><span>Power banks</span><strong id="briefPowerBanks">.....</strong></div>
+            </div>
+            <div class="brief-card third">
+              <div class="brief-title">Onboard requests</div>
+              <div class="brief-line"><span>Extras</span><strong id="briefExtras">.....</strong></div>
+              <div class="brief-line"><span>Notes</span><strong id="briefExtrasNotes">.....</strong></div>
+              <div class="brief-line"><span>Seat</span><strong id="briefSeat">.....</strong></div>
+            </div>
+            <div class="brief-card third">
+              <div class="brief-title">Commercial review</div>
+              <div class="brief-line"><span>Share</span><strong id="briefPrice">.....</strong></div>
+              <div class="brief-line"><span>Total</span><strong id="briefTotal">.....</strong></div>
+              <div class="brief-line"><span>Note</span><strong id="briefPriceNote">.....</strong></div>
+            </div>
+          </div>
           <pre id="bookingMessage" class="booking-message">NATGLOBE BOOKING REQUEST
 ------------------------
 NO REQUEST SELECTED
@@ -276,6 +437,8 @@ END OF MESSAGE</pre>
     const mode = el('mode');
     const requestList = el('requestList');
     const bookingMessage = el('bookingMessage');
+    const opsAlerts = el('opsAlerts');
+    const manifestList = el('manifestList');
     const copyBtn = el('copyBtn');
     const refreshBtn = el('refreshBtn');
     const logoutBtn = el('logoutBtn');
@@ -301,10 +464,63 @@ END OF MESSAGE</pre>
       }[ch]));
     }
 
+    function text(value, fallback = '.....') {
+      return value === 0 || value ? String(value) : fallback;
+    }
+
+    function money(value) {
+      return value === 0 || value ? `EUR ${value}` : 'TBD';
+    }
+
+    function setText(id, value, fallback = '.....') {
+      el(id).textContent = text(value, fallback);
+    }
+
+    function requestReturnText(req) {
+      if (req.tripType !== 'ROUNDTRIP') return 'No return leg requested';
+      return `${req.returnDate || 'DATE TBD'} ${req.returnTime || 'TIME TBD'} / ${req.returnFlexibility || 'PILOT CONFIRMS'}`;
+    }
+
+    function renderAlerts(req) {
+      const alerts = [];
+      alerts.push({ tone: req.status === 'CONFIRMED' ? 'good' : 'warn', label: `STATUS ${req.status || 'REQUESTED'}` });
+      alerts.push({ tone: req.pilotDecision === 'APPROVED' ? 'good' : req.pilotDecision === 'DECLINED' ? 'danger' : 'warn', label: `PILOT ${req.pilotDecision || 'PENDING'}` });
+      alerts.push({ tone: req.paymentStatus === 'PAID' ? 'good' : 'warn', label: `PAYMENT ${req.paymentStatus || 'UNPAID'}` });
+      if (req.tripType === 'ROUNDTRIP') alerts.push({ tone: 'warn', label: 'RETURN LEG REQUESTED' });
+      if (req.carryOnBags === 'YES') alerts.push({ tone: 'warn', label: `BAG ${req.baggageWeightKg || '?'}KG` });
+      if (String(req.extras || '').match(/WINE|CHAMPAGNE|BEER|LONG DRINK/i)) alerts.push({ tone: 'warn', label: 'ALCOHOL REQUEST' });
+      if (String(req.extras || '').match(/TRANSFER/i)) alerts.push({ tone: 'warn', label: 'TRANSFER REQUEST' });
+      if (req.contractAccepted) alerts.push({ tone: 'good', label: 'SAFETY ACCEPTED' });
+      opsAlerts.innerHTML = alerts.map(alert => `<div class="ops-alert ${alert.tone}">${escapeHtml(alert.label)}</div>`).join('');
+    }
+
+    function renderManifest(req) {
+      const passengers = req.passengers?.length ? req.passengers : [{
+        number: 1,
+        name: req.name,
+        email: req.email,
+        phone: req.phone,
+        dob: req.dob,
+        weightKg: req.weightKg,
+        passportCountry: req.passportCountry,
+        nationalId: req.nationalId
+      }];
+      manifestList.innerHTML = passengers.map(passenger => `
+        <div class="manifest-card">
+          <strong>PAX ${escapeHtml(passenger.number || 1)} / ${escapeHtml(passenger.name || 'NIL')}</strong>
+          WT ${escapeHtml(passenger.weightKg || 'NIL')}KG<br>
+          DOB ${escapeHtml(passenger.dob || 'NIL')}<br>
+          PPT ${escapeHtml(passenger.passportCountry || 'NIL')} / ID ${escapeHtml(passenger.nationalId || 'NIL')}<br>
+          TEL ${escapeHtml(passenger.phone || 'NIL')}<br>
+          ${escapeHtml(passenger.email || 'NIL')}
+        </div>
+      `).join('');
+    }
+
     function renderList() {
       requestList.innerHTML = requests.map(req => `
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
-          <strong>${escapeHtml(req.id)}</strong><br>
+          <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
           ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
           ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
           ${escapeHtml(req.pilotDecision || 'PENDING')} / ${escapeHtml(req.paymentStatus || 'UNPAID')}
@@ -322,6 +538,25 @@ END OF MESSAGE</pre>
       el('payment').textContent = req.paymentStatus || 'UNPAID';
       paymentStatus.value = req.paymentStatus || 'UNPAID';
       bookingMessage.textContent = req.bookingMessage || 'NO BOOKING MESSAGE';
+      setText('briefOutbound', `${req.depName || req.dep || 'DEP'} to ${req.arrName || req.arr || 'ARR'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}`);
+      setText('briefReturn', requestReturnText(req));
+      setText('briefAircraft', req.aircraft);
+      setText('briefCreated', req.createdAt ? new Date(req.createdAt).toLocaleString('en-GB', { hour12: false }) : '.....');
+      setText('briefLead', req.name);
+      setText('briefEmail', req.email);
+      setText('briefPhone', req.phone);
+      setText('briefSafety', req.contractAccepted ? 'Declaration accepted' : 'Not accepted');
+      setText('briefBaggage', req.carryOnBags || 'NIL');
+      setText('briefBagWeight', req.carryOnBags === 'YES' ? `${req.baggageWeightKg || '0'} KG / ${req.bagType || 'NIL'}` : 'N/A');
+      setText('briefPowerBanks', req.powerBanks || 'NIL');
+      setText('briefExtras', req.extras || 'NIL');
+      setText('briefExtrasNotes', req.extrasNotes || 'NIL');
+      setText('briefSeat', req.seatPreference || 'NO PREFERENCE');
+      setText('briefPrice', `${money(req.costPerSeatEur)} / PAX`);
+      setText('briefTotal', money(req.estimatedTotalEur));
+      setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
+      renderAlerts(req);
+      renderManifest(req);
       renderList();
     }
 

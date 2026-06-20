@@ -421,6 +421,28 @@
 
     .search-grid { grid-template-columns: 1.05fr 54px 1.05fr 0.78fr 0.72fr 0.68fr 0.55fr; }
     .route-field { min-width: 0; }
+    .return-trip-row {
+      display: none;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr);
+      gap: 12px;
+      margin-top: 12px;
+      border: 1px solid rgba(102,255,153,0.45);
+      background: rgba(102,255,153,0.04);
+      padding: 10px;
+    }
+
+    .return-trip-row.show {
+      display: grid;
+    }
+
+    .return-trip-note {
+      color: #8d8d8d;
+      font-size: 11px;
+      line-height: 1.35;
+      text-transform: uppercase;
+      align-self: end;
+    }
+
     .two { grid-template-columns: 1fr 1fr; }
     .three { grid-template-columns: repeat(3, 1fr); }
     .passenger-main-grid { grid-template-columns: minmax(0, 1fr) 128px; }
@@ -1253,8 +1275,12 @@
       .search-grid .trip-field,
       .search-grid .date-field,
       .search-grid .time-field,
-      .search-grid .seat-field {
+      .search-grid .seat-field,
+      .return-trip-row {
         grid-column: span 3;
+      }
+      .return-trip-row {
+        grid-template-columns: 1fr;
       }
       .booking-panel-head {
         display: grid;
@@ -1349,7 +1375,8 @@
       .search-grid .trip-field,
       .search-grid .date-field,
       .search-grid .time-field,
-      .search-grid .seat-field {
+      .search-grid .seat-field,
+      .return-trip-row {
         grid-column: auto;
       }
       .swap-field label { display: none; }
@@ -1498,6 +1525,26 @@
               <option value="3">3</option>
             </select>
           </div>
+        </div>
+        <div id="returnTripRow" class="return-trip-row" aria-live="polite">
+          <div>
+            <label for="returnDate">Return date</label>
+            <select id="returnDate"></select>
+          </div>
+          <div>
+            <label for="returnTime">Preferred return time</label>
+            <select id="returnTime"></select>
+          </div>
+          <div>
+            <label for="returnFlexibility">Return flexibility</label>
+            <select id="returnFlexibility">
+              <option value="SAME DAY REQUESTED">Same day requested</option>
+              <option value="FLEXIBLE RETURN TIME">Flexible return time</option>
+              <option value="PILOT TO ADVISE BEST RETURN">Pilot to advise best return</option>
+              <option value="OVERNIGHT / NEXT DAY REQUESTED">Overnight / next day requested</option>
+            </select>
+          </div>
+          <div class="return-trip-note">Return leg is requested only. Pilot confirms weather, daylight, duty, aircraft availability, and passenger timing before approval.</div>
         </div>
       </section>
 
@@ -1651,6 +1698,7 @@
           <li><span>Date</span><strong id="summaryDate">----</strong></li>
           <li><span>Departure</span><strong id="summaryTime">----</strong></li>
           <li><span>Trip type</span><strong id="summaryTripType">One way</strong></li>
+          <li id="summaryReturnRow"><span>Return</span><strong id="summaryReturn">Not requested</strong></li>
           <li><span>Est. flight time</span><strong id="summaryFlightTime">----</strong></li>
           <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
           <li><span>Baggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
@@ -2013,6 +2061,24 @@
       }
       el('requestTime').innerHTML = times.map(time => `<option value="${time}">${time}</option>`).join('');
       el('requestTime').value = '10:00';
+      el('returnDate').innerHTML = el('requestDate').innerHTML;
+      el('returnTime').innerHTML = times.map(time => `<option value="${time}">${time}</option>`).join('');
+      el('returnTime').value = '17:00';
+    }
+
+    function updateReturnTripFields() {
+      const roundtrip = el('tripType').value === 'ROUNDTRIP';
+      const wasVisible = el('returnTripRow').classList.contains('show');
+      el('returnTripRow').classList.toggle('show', roundtrip);
+      el('returnDate').required = roundtrip;
+      el('returnTime').required = roundtrip;
+      el('returnFlexibility').required = roundtrip;
+      if (roundtrip && (!wasVisible || !el('returnDate').value)) el('returnDate').value = el('requestDate').value;
+      if (!roundtrip) {
+        el('returnDate').required = false;
+        el('returnTime').required = false;
+        el('returnFlexibility').required = false;
+      }
     }
 
     function routePrice(dep, arr) {
@@ -2083,7 +2149,12 @@
       el('routeNames').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
       el('summaryDate').textContent = el('requestDate').value || '----';
       el('summaryTime').textContent = el('requestTime').value || '----';
-      el('summaryTripType').textContent = el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way';
+      const roundtrip = el('tripType').value === 'ROUNDTRIP';
+      el('summaryTripType').textContent = roundtrip ? 'Roundtrip' : 'One way';
+      el('summaryReturnRow').style.display = roundtrip ? '' : 'none';
+      el('summaryReturn').textContent = roundtrip
+        ? `${el('returnDate').value || 'Date pending'} / ${el('returnTime').value || 'Time pending'} / ${el('returnFlexibility').value || 'Pilot confirms'}`
+        : 'Not requested';
       el('summaryFlightTime').textContent = formatFlightTime(dep, arr);
       el('summarySeats').textContent = el('seats').value || '1';
       el('summaryBaggage').textContent = baggageSummary();
@@ -2197,6 +2268,7 @@
     }
 
     form.addEventListener('change', () => {
+      updateReturnTripFields();
       resetSubmitFeedback();
       refreshSummary();
     });
@@ -2247,6 +2319,9 @@
             requestDate: el('requestDate').value,
             requestTime: el('requestTime').value,
             tripType: el('tripType').value,
+            returnDate: el('tripType').value === 'ROUNDTRIP' ? el('returnDate').value : '',
+            returnTime: el('tripType').value === 'ROUNDTRIP' ? el('returnTime').value : '',
+            returnFlexibility: el('tripType').value === 'ROUNDTRIP' ? el('returnFlexibility').value : '',
             seats: el('seats').value,
             passengers: collectPassengers(),
             emergencyName: '',
@@ -2284,6 +2359,7 @@
     });
 
     fillPickerWheels();
+    updateReturnTripFields();
     populateAirports(FALLBACK_AIRPORTS);
     renderPassengerFields();
     updateBaggageFields();
