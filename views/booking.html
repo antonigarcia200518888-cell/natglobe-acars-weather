@@ -2431,7 +2431,8 @@
     function routePrice(dep, arr) {
       const cost = routeCost(dep, arr);
       if (typeof cost === 'string') return cost;
-      return `${cost.estimated ? 'Est. ' : ''}EUR ${cost.total} total / EUR ${cost.perPax} per pax`;
+      const seats = Number(el('seats').value || 1);
+      return `${cost.estimated ? 'Est. ' : ''}€${cost.total} EUR (${seats} PAX)`;
     }
 
     function baggageSummary() {
