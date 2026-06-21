@@ -1117,6 +1117,14 @@
       justify-content: space-between;
     }
 
+    .extra-option-head {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
     .extra-option input,
     .seat-option input {
       position: absolute;
@@ -1130,6 +1138,29 @@
       color: #fff;
       font-size: 13px;
       line-height: 1.1;
+    }
+
+    .extra-switch {
+      flex: 0 0 auto;
+      width: 42px;
+      height: 24px;
+      padding: 2px;
+      border: 1px solid #777;
+      border-radius: 999px;
+      background: #171717;
+      display: flex;
+      align-items: center;
+      transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .extra-switch::after {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f2f2f2;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.65);
+      transition: transform 160ms ease;
     }
 
     .confirm-badge {
@@ -1186,6 +1217,17 @@
     .extra-option:has(input:checked) .request-status::after {
       content: "Requested";
       font-size: 10px;
+    }
+
+    .extra-option:has(input:checked) .extra-switch {
+      border-color: var(--live);
+      background: var(--live);
+      box-shadow: 0 0 12px rgba(102,255,153,0.52);
+    }
+
+    .extra-option:has(input:checked) .extra-switch::after {
+      transform: translateX(18px);
+      background: #fff;
     }
 
     .declaration {
@@ -1872,12 +1914,12 @@
 
             <div class="extras-section-title">Request for this flight</div>
             <div class="extras-grid" aria-label="Optional onboard and transfer requests">
-              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><strong>Wine service</strong><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><strong>Champagne service</strong><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><strong>Beer / long drink</strong><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><strong>Soft drinks</strong><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><strong>Light snacks</strong><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
             </div>
             <div style="margin-top:12px;">
               <label for="extrasNotes">Request details</label>
