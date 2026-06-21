@@ -754,6 +754,8 @@
     }
 
     .mobile-completion-markers { display: none; }
+    .draft-status { margin: 8px 0 0; color: #8d8d8d; font-size: 10px; text-transform: uppercase; }
+    .draft-status.saved { color: var(--live); }
 
     .summary-list .summary-requests {
       align-items: flex-start;
@@ -1767,6 +1769,7 @@
       <span id="markerLuggage">Luggage</span>
       <span id="markerReview">Review</span>
     </div>
+    <div id="draftStatus" class="draft-status" aria-live="polite">Booking progress is saved locally on this device.</div>
 
     <form id="bookingForm">
       <section class="route-map-card" aria-label="Selected flight route map">
@@ -2112,6 +2115,7 @@
     const reviewDialogBody = el('reviewDialogBody');
     const saveTraveller = el('saveTraveller');
     const useSavedTraveller = el('useSavedTraveller');
+    const draftStatus = el('draftStatus');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -2124,6 +2128,9 @@
     let airports = [];
     let reviewConfirmed = false;
     const SAVED_TRAVELLER_KEY = 'private-flight-saved-lead-traveller-v1';
+    const BOOKING_DRAFT_KEY = 'private-flight-booking-draft-v1';
+    let draftSaveTimer = null;
+    let restoringDraft = false;
     let routeMap = null;
     let routeLayer = null;
     let depMarker = null;
@@ -2672,6 +2679,53 @@
       }
     }
 
+    function saveBookingDraft() {
+      if (restoringDraft) return;
+      const passengers = collectPassengers(false).map(passenger => ({
+        title: passenger.title || '', name: passenger.name || '', weightKg: passenger.weightKg || '',
+        email: passenger.email || '', phone: passenger.phone || '', passportCountry: passenger.passportCountry || ''
+      }));
+      const draft = {
+        dep: el('dep').value, arr: el('arr').value, requestDate: el('requestDate').value, requestTime: el('requestTime').value,
+        tripType: el('tripType').value, returnDate: el('returnDate').value, returnTime: el('returnTime').value, returnPlan: el('returnPlan').value,
+        seats: el('seats').value, passengers, bagCount: el('bagCount').value, bagType: el('bagType').value,
+        baggageWeightKg: el('baggageWeightKg').value, powerBanks: el('powerBanks').value, seatPreference: el('seatPreference').value,
+        extras: checkedValues('extras'), extrasNotes: el('extrasNotes').value, savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
+      draftStatus.textContent = 'Booking progress saved locally on this device.';
+      draftStatus.classList.add('saved');
+    }
+
+    function queueDraftSave() {
+      clearTimeout(draftSaveTimer);
+      draftSaveTimer = setTimeout(saveBookingDraft, 400);
+    }
+
+    function restoreBookingDraft() {
+      let draft;
+      try { draft = JSON.parse(localStorage.getItem(BOOKING_DRAFT_KEY) || 'null'); } catch { draft = null; }
+      if (!draft) return;
+      restoringDraft = true;
+      ['dep', 'arr', 'requestDate', 'requestTime', 'tripType', 'returnDate', 'returnTime', 'returnPlan', 'seats', 'bagCount', 'bagType', 'baggageWeightKg', 'powerBanks', 'seatPreference', 'extrasNotes'].forEach(id => {
+        if (draft[id] != null && el(id)) el(id).value = draft[id];
+      });
+      updateReturnTripFields();
+      renderPassengerFields();
+      (draft.passengers || []).forEach((passenger, index) => {
+        Object.entries(passenger).forEach(([key, value]) => {
+          const field = passengerList.querySelector(`[data-passenger="${index}"] [data-pax-field="${key}"]`);
+          if (field) field.value = value;
+        });
+      });
+      form.querySelectorAll('input[name="extras"]').forEach(input => { input.checked = (draft.extras || []).includes(input.value); });
+      setSeatPreference(draft.seatPreference || 'NO PREFERENCE');
+      updateBaggageFields();
+      restoringDraft = false;
+      draftStatus.textContent = 'Booking progress restored from this device.';
+      draftStatus.classList.add('saved');
+    }
+
     function updateSavedTravellerButton() {
       useSavedTraveller.disabled = !savedTravellerProfile();
     }
@@ -2815,10 +2869,12 @@
       updateReturnTripFields();
       resetSubmitFeedback();
       refreshSummary();
+      queueDraftSave();
     });
     form.addEventListener('input', () => {
       resetSubmitFeedback();
       refreshSummary();
+      queueDraftSave();
     });
     el('swapRoute').addEventListener('click', () => {
       const depValue = el('dep').value;
@@ -2925,6 +2981,9 @@
 
         setStatus('Request received', 'ok');
         setSubmitState('success', 'Request sent');
+        localStorage.removeItem(BOOKING_DRAFT_KEY);
+        draftStatus.textContent = 'Booking request sent. Local draft cleared.';
+        draftStatus.classList.remove('saved');
         const leadName = collectPassengers()[0]?.name || '';
         showConfirmation(`Thanks ${leadName}. Your request ${data.request.id} was sent for review. A pilot or dispatcher will review the route, aircraft, weather and weight/balance before confirming.`);
         bookingStatusRef.textContent = `REFERENCE ${data.request.id} / STATUS PILOT REVIEW PENDING`;
@@ -2943,6 +3002,7 @@
     renderPassengerFields();
     updateBaggageFields();
     updateSavedTravellerButton();
+    restoreBookingDraft();
     loadBookingAvailability().catch(() => {});
     updateConnectionBadge();
     tick();
