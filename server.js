@@ -445,12 +445,14 @@ function estimateBoardingPassFlightTime(depIcao, arrIcao) {
   const arrAirport = bookingAirports.find(airport => airport.icao === arrIcao);
   if (!depAirport || !arrAirport) return 'TBD';
   const minutes = Math.max(10, Math.round((kmToNm(haversineKm(depAirport, arrAirport)) / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
-  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}H ${String(minutes % 60).padStart(2, '0')}M`;
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}.${String(minutes % 60).padStart(2, '0')}`;
 }
 
 function boardingPassAirportLabel(icao, fallback) {
   const airport = bookingAirports.find(item => item.icao === icao);
-  return `${airport?.name || fallback || icao || 'TBD'} (${airport?.short || icao || '---'})`;
+  const displayNames = { Hyvinkaa: 'Hyvinkää', Pyhtaa: 'Pyhtää' };
+  const place = displayNames[airport?.city] || airport?.city || airport?.name || fallback || icao || 'TBD';
+  return `${place} (${airport?.short || icao || '---'})`;
 }
 
 function maskedPassport(passenger) {
@@ -458,7 +460,17 @@ function maskedPassport(passenger) {
   const raw = String(passenger.nationalId || '').replace(/\s/g, '');
   const lastFour = raw.slice(-4);
   const country = countryCodes[passenger.passportCountry] || String(passenger.passportCountry || 'PPT').slice(0, 3).toUpperCase();
-  return lastFour ? `${country}/****${lastFour}` : `${country}/VERIFIED`;
+  return lastFour ? `${country}/****-${lastFour}` : `${country}/VERIFIED`;
+}
+
+function formatBoardingPassDate(value) {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return match ? `${match[3]}.${match[2]}.${match[1]}` : (value || 'TBD');
+}
+
+function formatBoardingPassTime(value) {
+  const match = String(value || '').match(/^(\d{1,2}):(\d{2})$/);
+  return match ? `${String(match[1]).padStart(2, '0')}.${match[2]}` : (value || 'TBD');
 }
 
 function boardingPassArrivalTime(departureTime, depIcao, arrIcao) {
@@ -469,7 +481,7 @@ function boardingPassArrivalTime(departureTime, depIcao, arrIcao) {
   if (!depAirport || !arrAirport) return 'TBD';
   const minutes = Math.max(10, Math.round((kmToNm(haversineKm(depAirport, arrAirport)) / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
   const total = (Number(match[1]) * 60 + Number(match[2]) + minutes) % (24 * 60);
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}.${String(total % 60).padStart(2, '0')}`;
 }
 
 function publicBoardingPassView(request, passenger) {
@@ -479,15 +491,15 @@ function publicBoardingPassView(request, passenger) {
     passengerNumber: passenger.number || 1,
     from: boardingPassAirportLabel(request.dep, request.depName),
     to: boardingPassAirportLabel(request.arr, request.arrName),
-    date: request.requestDate || 'TBD',
-    boardingTime: request.requestTime || 'TBD',
+    date: formatBoardingPassDate(request.requestDate),
+    boardingTime: formatBoardingPassTime(request.requestTime),
     flightTime: estimateBoardingPassFlightTime(request.dep, request.arr),
     aircraft: request.aircraft || 'PA-28R-200',
     seat: request.seatPreference || 'REAR SEAT',
     gate: 'GA STAND',
     passport: maskedPassport(passenger),
     dob: 'VERIFIED',
-    departureTime: request.requestTime || 'TBD',
+    departureTime: formatBoardingPassTime(request.requestTime),
     arrivalTime: boardingPassArrivalTime(request.requestTime, request.dep, request.arr),
     baggage: request.carryOnBags === 'YES'
       ? `${request.baggageWeightKg || '0'} KG ${request.bagType || 'CARRY-ON'}`
