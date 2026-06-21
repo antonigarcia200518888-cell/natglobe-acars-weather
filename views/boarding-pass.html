@@ -32,8 +32,32 @@
     .dob { left: 88%; top: 71.2%; width: 8%; height: 5.4%; font-size: clamp(9px, 1.2vw, 20px); }
     .departure { left: 73.7%; top: 87%; width: 10%; height: 5.2%; font-size: clamp(10px, 1.5vw, 25px); }
     .arrival { left: 88%; top: 87%; width: 8%; height: 5.2%; font-size: clamp(10px, 1.5vw, 25px); }
+    .mobile-pass { display: none; }
     .error { max-width: 620px; padding: 30px; border: 1px solid rgba(255,255,255,.25); color: #fff; font: 16px/1.5 "Courier New", monospace; }
-    @media (max-width: 680px) { body { display: block; padding: 0; background: #11121a; } .heading { margin: 16px; } .shell { width: 100%; overflow-x: auto; } .ticket { width: 760px; margin: 0 auto 18px; } }
+    @media (max-width: 680px) {
+      body { display: block; padding: 0; background: #11121a; }
+      .heading { margin: 18px 18px 12px; font-size: 11px; }
+      .shell { width: 100%; }
+      .ticket { display: none !important; }
+      .mobile-pass:not([hidden]) { display: block; }
+      .mobile-pass { margin: 0 14px 24px; overflow: hidden; background: #f8f8f6; color: #101118; box-shadow: 0 22px 54px rgba(0,0,0,.42); }
+      .mobile-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px; background: linear-gradient(110deg, #0d0b3d, #312ac0); color: #fff; }
+      .mobile-brand { font: 400 29px/1 "Computer Says No", monospace; letter-spacing: .045em; }
+      .mobile-status { border: 1px solid rgba(255,255,255,.58); padding: 6px 8px; font: 600 10px/1 Poppins, sans-serif; letter-spacing: .08em; }
+      .mobile-hero { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 14px; padding: 20px 18px 16px; border-bottom: 1px dotted #5f6168; }
+      .mobile-label { color: #62646c; font: 600 10px/1.25 Poppins, Arial, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
+      .mobile-name { margin-top: 7px; font: 400 27px/1.05 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
+      .mobile-qr { width: 132px; height: 132px; background: #17115f; padding: 5px; }
+      .mobile-route { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 9px; padding: 18px; border-bottom: 1px dotted #5f6168; }
+      .mobile-airport { margin-top: 7px; font: 400 22px/1.08 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
+      .mobile-arrow { padding-bottom: 2px; font: 24px/1 Poppins, sans-serif; color: #555862; }
+      .mobile-grid { display: grid; grid-template-columns: repeat(2, 1fr); border-bottom: 1px dotted #5f6168; }
+      .mobile-detail { min-height: 82px; padding: 16px 18px; border-right: 1px solid rgba(16,17,24,.12); border-bottom: 1px solid rgba(16,17,24,.12); }
+      .mobile-detail:nth-child(2n) { border-right: 0; }
+      .mobile-detail:nth-last-child(-n+2) { border-bottom: 0; }
+      .mobile-value { margin-top: 8px; font: 400 20px/1.1 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
+      .mobile-note { padding: 14px 18px 18px; color: #4c4e56; font: 500 11px/1.45 Poppins, Arial, sans-serif; }
+    }
   </style>
 </head>
 <body>
@@ -54,6 +78,20 @@
       <div id="departure" class="field stub departure">00:00</div>
       <div id="arrival" class="field stub arrival">00:00</div>
     </section>
+    <section id="mobilePass" class="mobile-pass" hidden aria-label="Mobile private flight boarding pass">
+      <div class="mobile-top"><div class="mobile-brand">Private Flight</div><div class="mobile-status">CONFIRMED</div></div>
+      <div class="mobile-hero"><div><div class="mobile-label">Passenger</div><div id="mobilePassenger" class="mobile-name">Private guest</div><div class="mobile-label" style="margin-top:18px;">Boarding pass</div><div id="mobileReference" class="mobile-value">Reference</div></div><img id="mobileQr" class="mobile-qr" alt="Boarding pass QR code" /></div>
+      <div class="mobile-route"><div><div class="mobile-label">From</div><div id="mobileFrom" class="mobile-airport">Departure</div></div><div class="mobile-arrow">&#8594;</div><div><div class="mobile-label">To</div><div id="mobileTo" class="mobile-airport">Arrival</div></div></div>
+      <div class="mobile-grid">
+        <div class="mobile-detail"><div class="mobile-label">Date</div><div id="mobileDate" class="mobile-value">TBD</div></div>
+        <div class="mobile-detail"><div class="mobile-label">Boarding time</div><div id="mobileBoarding" class="mobile-value">TBD</div></div>
+        <div class="mobile-detail"><div class="mobile-label">Aircraft</div><div id="mobileAircraft" class="mobile-value">PA28-200R</div></div>
+        <div class="mobile-detail"><div class="mobile-label">Flight time</div><div id="mobileFlightTime" class="mobile-value">TBD</div></div>
+        <div class="mobile-detail"><div class="mobile-label">Passport</div><div id="mobilePassport" class="mobile-value">VERIFIED</div></div>
+        <div class="mobile-detail"><div class="mobile-label">Gate</div><div id="mobileGate" class="mobile-value">GA STAND</div></div>
+      </div>
+      <div class="mobile-note">Present this pass at the GA stand. Passport and booking details are verified by the pilot or ground team before boarding.</div>
+    </section>
     <div id="error" class="error" hidden>This boarding pass is not available.</div>
   </main>
   <script>
@@ -62,7 +100,7 @@
     fetch(`/api/boarding-passes/${encodeURIComponent(token)}`, { cache: 'no-store' })
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(({ pass }) => {
-        set('passenger', pass.passenger); set('stubName', pass.passenger); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', 'PA28-200R'); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); document.getElementById('qr').src = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false;
+        set('passenger', pass.passenger); set('stubName', pass.passenger); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', 'PA28-200R'); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', 'PA28-200R'); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false; document.getElementById('mobilePass').hidden = false;
       })
       .catch(() => { document.getElementById('error').hidden = false; });
   </script>
