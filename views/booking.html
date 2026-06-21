@@ -420,8 +420,11 @@
     .amenity-icon.charge { color: #ff8a3d; }
 
     .baggage-addon { margin-top: 12px; border: 1px solid #666; padding: 11px; background: #050505; }
-    .baggage-addon label { margin: 0; color: #fff; }
-    .baggage-addon input[type="checkbox"] { width: auto; min-height: 0; margin-right: 8px; accent-color: var(--live); }
+    .baggage-addon-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #fff; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+    .bag-counter { display: inline-grid; grid-template-columns: 32px 34px 32px; align-items: center; border: 1px solid #777; }
+    .bag-counter button { min-height: 32px; border: 0; background: #101010; color: #fff; font: 20px/1 "Courier New", monospace; cursor: pointer; }
+    .bag-counter button:hover { background: #222; color: var(--live); }
+    .bag-counter output { text-align: center; color: var(--live); font: 700 14px/1 "Courier New", monospace; }
     .baggage-options { display: none; margin-top: 12px; }
     .baggage-options.show { display: block; }
     .bag-limit { margin-top: 7px; color: var(--live); font-size: 11px; text-transform: uppercase; }
@@ -1836,14 +1839,13 @@
           <div class="declaration">
             Keep baggage within the selected limit and declare power banks. Dangerous goods, weapons, flammables, pressurised containers, chemicals, and unsecured batteries are not permitted.
           </div>
-          <input id="carryOnBags" type="hidden" value="NO" />
+          <input id="carryOnBags" type="hidden" value="NO" /><input id="bagCount" type="hidden" value="0" />
           <div class="baggage-addon">
-            <label><input id="addBaggage" type="checkbox" />Add baggage to this flight</label>
+            <div class="baggage-addon-head"><span>Add baggage to this flight</span><div class="bag-counter"><button id="removeBag" type="button" aria-label="Remove baggage">-</button><output id="bagCounter" aria-live="polite">0</output><button id="addBag" type="button" aria-label="Add baggage">+</button></div></div>
             <div id="baggageOptions" class="baggage-options">
               <div class="question-grid">
                 <div><label for="bagType">Baggage type</label><select id="bagType"><option value="CARRY-ON SUITCASE">Carry-on suitcase / max 15 KG</option><option value="SOFT DUFFLE BAG">Soft duffle bag / max 20 KG</option><option value="WEEKEND HOLDALL">Weekend holdall / max 15 KG</option><option value="SMALL BACKPACK">Small backpack / max 8 KG</option><option value="GARMENT BAG">Garment bag / max 10 KG</option><option value="OTHER BAG - PILOT REVIEW">Other bag / pilot review</option></select><div id="bagLimit" class="bag-limit">Maximum 15 KG</div></div>
                 <div class="input-unit"><label for="baggageWeightKg">Baggage weight</label><input id="baggageWeightKg" class="compact-number" type="number" min="0" max="15" inputmode="decimal" placeholder="0" /><span class="unit">KG</span></div>
-                <div><label for="bagCount">Number of bags</label><select id="bagCount"><option value="1">1 bag</option><option value="2">2 bags</option><option value="3">3 bags</option></select></div>
                 <div><label for="powerBanks">Power banks / lithium batteries?</label><select id="powerBanks"><option value="NO">No</option><option value="YES">Yes</option></select></div>
               </div>
             </div>
@@ -2578,8 +2580,9 @@
     }
 
     function updateBaggageFields() {
-      const hasBags = el('addBaggage').checked;
+      const hasBags = Number(el('bagCount').value) > 0;
       el('carryOnBags').value = hasBags ? 'YES' : 'NO';
+      el('bagCounter').textContent = el('bagCount').value;
       el('baggageOptions').classList.toggle('show', hasBags);
       el('baggageWeightKg').disabled = !hasBags;
       el('baggageWeightKg').required = hasBags;
@@ -2587,7 +2590,6 @@
       el('bagType').disabled = !hasBags;
       if (!hasBags) {
         el('baggageWeightKg').value = '';
-        el('bagCount').value = '1';
       } else {
         updateBagLimit();
       }
@@ -2638,7 +2640,13 @@
       refreshSummary();
     });
     locateMeBtn.addEventListener('click', locateUserOnMap);
-    el('addBaggage').addEventListener('change', updateBaggageFields);
+    function changeBagCount(delta) {
+      const next = Math.max(0, Math.min(3, Number(el('bagCount').value || 0) + delta));
+      el('bagCount').value = String(next);
+      updateBaggageFields();
+    }
+    el('addBag').addEventListener('click', () => changeBagCount(1));
+    el('removeBag').addEventListener('click', () => changeBagCount(-1));
     el('bagType').addEventListener('change', updateBagLimit);
     el('seats').addEventListener('change', () => {
       renderPassengerFields();
