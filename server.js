@@ -34,7 +34,6 @@ const SUGGESTED_ALTN_LIMIT = 12;
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
 const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/runways.csv';
 const OPERATING_COST_EUR_PER_HOUR = 300;
-const REIMBURSEMENT_DEFAULTS = { flightHours: 1, fuelBurnUsGalPerHour: 10, avgasEurPerUsGal: 13.25, aircraftFeeEurPerHour: 400, occupants: 4 };
 const FIXED_BOOKING_ROUTE_PRICES = {
   'EFHV-EFHN': { oneWay: 100, roundtrip: 200, label: 'FIXED HYVINKAA-HANKO' },
   'EFHN-EFHV': { oneWay: 100, roundtrip: 200, label: 'FIXED HANKO-HYVINKAA' },
@@ -772,23 +771,6 @@ function formatBookingMessage(request) {
     `RMK ${request.message || 'PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'}`,
     'END OF MESSAGE'
   ].join('\n');
-}
-
-function reimbursementForRequest(request) {
-  const saved = request.reimbursement || {};
-  const number = (value, fallback) => Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : fallback;
-  const flightHours = number(saved.flightHours, (request.dep === 'EFHV' && request.arr === 'EFHN') || (request.dep === 'EFHN' && request.arr === 'EFHV') ? 1 : REIMBURSEMENT_DEFAULTS.flightHours);
-  const fuelBurn = number(saved.fuelBurnUsGalPerHour, REIMBURSEMENT_DEFAULTS.fuelBurnUsGalPerHour);
-  const fuelPrice = number(saved.avgasEurPerUsGal, REIMBURSEMENT_DEFAULTS.avgasEurPerUsGal);
-  const aircraftRate = number(saved.aircraftFeeEurPerHour, REIMBURSEMENT_DEFAULTS.aircraftFeeEurPerHour);
-  const occupants = Math.max(1, Math.round(number(saved.occupants, REIMBURSEMENT_DEFAULTS.occupants)));
-  const airportFees = number(saved.airportFeesEur, (request.dep === 'EFHK' ? 500 : 0) + (request.arr === 'EFHK' ? 500 : 0));
-  const extras = number(saved.extrasEur, 0);
-  const fuelGallons = flightHours * fuelBurn;
-  const fuelTotal = fuelGallons * fuelPrice;
-  const aircraftTotal = flightHours * aircraftRate;
-  const total = fuelTotal + aircraftTotal + airportFees + extras;
-  return { flightHours, fuelBurn, fuelPrice, aircraftRate, occupants, airportFees, extras, fuelGallons, fuelTotal, aircraftTotal, total, sharePerOccupant: total / occupants };
 }
 
 function haversineKm(a, b) {
@@ -2542,15 +2524,6 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
 
   const timelineNote = normalizeBookingText(req.body?.timelineNote, 300);
   if (timelineNote) await addBookingTimelineEvent(request.id, 'OPS NOTE', timelineNote);
-  if (req.body?.reimbursement && typeof req.body.reimbursement === 'object') {
-    const value = req.body.reimbursement;
-    request.reimbursement = {
-      flightHours: Number(value.flightHours), fuelBurnUsGalPerHour: Number(value.fuelBurnUsGalPerHour),
-      avgasEurPerUsGal: Number(value.avgasEurPerUsGal), aircraftFeeEurPerHour: Number(value.aircraftFeeEurPerHour),
-      occupants: Number(value.occupants), airportFeesEur: Number(value.airportFeesEur), extrasEur: Number(value.extrasEur)
-    };
-    await addBookingTimelineEvent(request.id, 'REIMBURSEMENT UPDATED', 'Cost-share inputs updated.');
-  }
   await persistBookingRequest(request);
 
   res.json({
@@ -2559,19 +2532,6 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
       bookingMessage: formatBookingMessage(request)
     }
   });
-});
-
-app.get('/reimbursement/:id/:passengerNumber', requirePilotAccess, (req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
-  res.sendFile(path.join(__dirname, 'views', 'reimbursement-statement.html'));
-});
-
-app.get('/api/booking-ops/requests/:id/reimbursement/:passengerNumber', requirePilotAccess, async (req, res) => {
-  await bookingStoreReady;
-  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
-  const passenger = request && getRequestPassengers(request).find(item => Number(item.number) === Number(req.params.passengerNumber));
-  if (!request || !passenger) return res.status(404).json({ error: 'REIMBURSEMENT STATEMENT NOT FOUND' });
-  res.json({ request, passenger, calculation: reimbursementForRequest(request) });
 });
 
 app.delete('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {

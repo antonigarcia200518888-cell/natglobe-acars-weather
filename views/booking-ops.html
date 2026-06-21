@@ -515,16 +515,6 @@
               <div class="brief-line"><span>Note</span><strong id="briefPriceNote">.....</strong></div>
             </div>
             <div class="brief-card full">
-              <div class="brief-title">Reimbursement statement inputs</div>
-              <div class="brief-line"><span>Flight hours</span><input id="reimbHours" type="number" min="0" step="0.1" value="1" /></div>
-              <div class="brief-line"><span>AVGAS EUR / US GAL</span><input id="reimbFuelPrice" type="number" min="0" step="0.01" value="13.25" /></div>
-              <div class="brief-line"><span>Aircraft EUR / hour</span><input id="reimbAircraftRate" type="number" min="0" step="1" value="400" /></div>
-              <div class="brief-line"><span>Occupants (crew + passengers)</span><input id="reimbOccupants" type="number" min="1" step="1" value="4" /></div>
-              <div class="brief-line"><span>Airport fees EUR</span><input id="reimbAirportFees" type="number" min="0" step="1" value="0" /></div>
-              <div class="brief-line"><span>Approved extras EUR</span><input id="reimbExtras" type="number" min="0" step="0.01" value="0" /></div>
-              <div class="wallet-actions"><button id="saveReimbursementBtn" class="btn ghost" type="button">SAVE COSTS</button><button id="openReimbursementBtn" class="btn" type="button">OPEN REIMBURSEMENT STATEMENT</button></div>
-            </div>
-            <div class="brief-card full">
               <div class="brief-title">Operations timeline</div>
               <div id="timelineList" class="timeline-list"><div class="timeline-event">Select a request to load its timeline.</div></div>
               <div class="timeline-compose">
@@ -585,9 +575,6 @@ END OF MESSAGE</pre>
     const walletPassenger = el('walletPassenger');
     const webPassBtn = el('webPassBtn');
     const walletPassStatus = el('walletPassStatus');
-    const reimbursementFields = ['reimbHours','reimbFuelPrice','reimbAircraftRate','reimbOccupants','reimbAirportFees','reimbExtras'].map(el);
-    const saveReimbursementBtn = el('saveReimbursementBtn');
-    const openReimbursementBtn = el('openReimbursementBtn');
 
     let requests = [];
     let selected = null;
@@ -725,13 +712,6 @@ END OF MESSAGE</pre>
       setText('briefPrice', `${money(req.costPerSeatEur)} / PAX`);
       setText('briefTotal', money(req.estimatedTotalEur));
       setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
-      const reimbursement = req.reimbursement || {};
-      el('reimbHours').value = reimbursement.flightHours ?? 1;
-      el('reimbFuelPrice').value = reimbursement.avgasEurPerUsGal ?? 13.25;
-      el('reimbAircraftRate').value = reimbursement.aircraftFeeEurPerHour ?? 400;
-      el('reimbOccupants').value = reimbursement.occupants ?? 4;
-      el('reimbAirportFees').value = reimbursement.airportFeesEur ?? ((req.dep === 'EFHK' ? 500 : 0) + (req.arr === 'EFHK' ? 500 : 0));
-      el('reimbExtras').value = reimbursement.extrasEur ?? 0;
       renderAlerts(req);
       renderManifest(req);
       updateWalletControls(req);
@@ -809,8 +789,6 @@ END OF MESSAGE</pre>
       timelineNote.value = '';
       loadTimeline(selected.id).catch(() => {});
     });
-    saveReimbursementBtn.addEventListener('click', () => updateSelected({ reimbursement: { flightHours: el('reimbHours').value, fuelBurnUsGalPerHour: 10, avgasEurPerUsGal: el('reimbFuelPrice').value, aircraftFeeEurPerHour: el('reimbAircraftRate').value, occupants: el('reimbOccupants').value, airportFeesEur: el('reimbAirportFees').value, extrasEur: el('reimbExtras').value } }));
-    openReimbursementBtn.addEventListener('click', () => { if (selected) window.open(`/reimbursement/${encodeURIComponent(selected.id)}/${encodeURIComponent(walletPassenger.value || 1)}`, '_blank', 'noopener'); });
     webPassBtn.addEventListener('click', async () => {
       if (!selected) return;
       walletPassStatus.textContent = 'Issuing passenger flight pass...';
