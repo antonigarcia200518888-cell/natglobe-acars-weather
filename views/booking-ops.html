@@ -90,9 +90,11 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(310px, 0.45fr) minmax(0, 1fr);
+      grid-template-columns: minmax(260px, 0.32fr) minmax(0, 1fr);
       gap: 12px;
     }
+
+    .queue-panel { position: sticky; top: 18px; align-self: start; max-height: calc(100vh - 36px); overflow: auto; }
 
     .panel {
       border: 2px solid var(--line);
@@ -279,15 +281,12 @@
       color: var(--danger);
     }
 
-    .availability-controls,
     .timeline-compose {
       display: grid;
       gap: 8px;
       margin: 12px 0;
     }
 
-    .availability-controls input,
-    .availability-controls select,
     .timeline-compose textarea {
       width: 100%;
       min-height: 44px;
@@ -304,7 +303,6 @@
       resize: vertical;
     }
 
-    .availability-controls .btn,
     .timeline-compose .btn {
       min-height: 44px;
       margin: 0;
@@ -446,6 +444,7 @@
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
       .badge { white-space: normal; }
+      .queue-panel { position: static; max-height: none; }
     }
   </style>
 </head>
@@ -461,19 +460,8 @@
     <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
 
     <div class="layout">
-      <aside class="panel">
-        <div class="panel-title">REQUEST QUEUE</div>
-        <div class="brief-title">Date availability</div>
-        <div class="availability-controls">
-          <input id="availabilityDate" type="date" aria-label="Availability date" />
-          <select id="availabilityState" aria-label="Availability state">
-            <option value="OPEN">Open for requests</option>
-            <option value="CLOSED">Close date</option>
-          </select>
-          <input id="availabilityNote" type="text" maxlength="120" placeholder="Optional ops note" />
-          <button id="saveAvailabilityBtn" class="btn ghost" type="button">SAVE DATE RULE</button>
-          <div id="availabilityStatus" class="ops-mini-status">No custom date rule selected.</div>
-        </div>
+      <aside class="panel queue-panel">
+        <div class="panel-title">ACTIVE REQUESTS</div>
         <div id="requestList" class="request-list"></div>
       </aside>
 
@@ -526,14 +514,6 @@
               <div class="brief-line"><span>Total</span><strong id="briefTotal">.....</strong></div>
               <div class="brief-line"><span>Note</span><strong id="briefPriceNote">.....</strong></div>
             </div>
-            <div id="regattaBriefCard" class="brief-card full" hidden>
-              <div class="brief-title">Hanko Regatta coordination</div>
-              <div class="brief-line"><span>Role</span><strong id="briefRegattaProfile">.....</strong></div>
-              <div class="brief-line"><span>Arrival</span><strong id="briefRegattaArrival">.....</strong></div>
-              <div class="brief-line"><span>Transfer</span><strong id="briefRegattaTransfer">.....</strong></div>
-              <div class="brief-line"><span>Equipment</span><strong id="briefRegattaGear">.....</strong></div>
-              <div class="brief-line"><span>Notes</span><strong id="briefRegattaNotes">.....</strong></div>
-            </div>
             <div class="brief-card full">
               <div class="brief-title">Operations timeline</div>
               <div id="timelineList" class="timeline-list"><div class="timeline-event">Select a request to load its timeline.</div></div>
@@ -564,7 +544,6 @@ END OF MESSAGE</pre>
             <button id="webPassBtn" class="btn" type="button">ISSUE PASSENGER FLIGHT PASS</button>
           </div>
           <div id="walletPassStatus" class="ops-mini-status">Pilot approval required before issuing a passenger flight pass.</div>
-          <button id="copyBtn" class="btn" type="button">COPY BOOKING MESSAGE</button>
           <button id="printBtn" class="btn ghost" type="button">PRINT / SAVE AS PDF</button>
           <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
           <button id="deleteBtn" class="btn ghost danger" type="button">DELETE REQUEST</button>
@@ -582,7 +561,6 @@ END OF MESSAGE</pre>
     const bookingMessage = el('bookingMessage');
     const opsAlerts = el('opsAlerts');
     const manifestList = el('manifestList');
-    const copyBtn = el('copyBtn');
     const printBtn = el('printBtn');
     const refreshBtn = el('refreshBtn');
     const deleteBtn = el('deleteBtn');
@@ -591,15 +569,9 @@ END OF MESSAGE</pre>
     const approveBtn = el('approveBtn');
     const needsInfoBtn = el('needsInfoBtn');
     const declineBtn = el('declineBtn');
-    const availabilityDate = el('availabilityDate');
-    const availabilityState = el('availabilityState');
-    const availabilityNote = el('availabilityNote');
-    const availabilityStatus = el('availabilityStatus');
-    const saveAvailabilityBtn = el('saveAvailabilityBtn');
     const timelineList = el('timelineList');
     const timelineNote = el('timelineNote');
     const addTimelineNoteBtn = el('addTimelineNoteBtn');
-    const regattaBriefCard = el('regattaBriefCard');
     const walletPassenger = el('walletPassenger');
     const webPassBtn = el('webPassBtn');
     const walletPassStatus = el('walletPassStatus');
@@ -740,13 +712,6 @@ END OF MESSAGE</pre>
       setText('briefPrice', `${money(req.costPerSeatEur)} / PAX`);
       setText('briefTotal', money(req.estimatedTotalEur));
       setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
-      const hasRegattaDetails = Boolean(req.regattaProfile || req.regattaNotes);
-      regattaBriefCard.hidden = !hasRegattaDetails;
-      setText('briefRegattaProfile', req.regattaProfile || 'NIL');
-      setText('briefRegattaArrival', req.regattaArrival || 'FLEXIBLE');
-      setText('briefRegattaTransfer', req.regattaTransfer || 'NIL');
-      setText('briefRegattaGear', req.regattaGear || 'NIL');
-      setText('briefRegattaNotes', req.regattaNotes || 'NIL');
       renderAlerts(req);
       renderManifest(req);
       updateWalletControls(req);
@@ -795,36 +760,11 @@ END OF MESSAGE</pre>
       mode.textContent = 'MODE: BOOKING OPS LIVE';
     }
 
-    async function saveAvailability() {
-      if (!availabilityDate.value) {
-        availabilityStatus.textContent = 'Select a date first.';
-        return;
-      }
-      availabilityStatus.textContent = 'Saving date rule...';
-      const res = await fetch(`/api/booking-ops/availability/${encodeURIComponent(availabilityDate.value)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          isOpen: availabilityState.value === 'OPEN',
-          note: availabilityNote.value
-        })
-      });
-      const data = await res.json().catch(() => ({}));
-      availabilityStatus.textContent = res.ok
-        ? `${data.date} ${data.isOpen ? 'open for requests' : 'closed'}${data.note ? ` / ${data.note}` : ''}`
-        : (data.error || 'Unable to save date rule.');
-    }
-
     requestList.addEventListener('click', (event) => {
       const row = event.target.closest('[data-id]');
       if (!row) return;
       const req = requests.find(item => item.id === row.getAttribute('data-id'));
       if (req) selectRequest(req);
-    });
-
-    copyBtn.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(bookingMessage.textContent);
-      mode.textContent = 'MODE: BOOKING MESSAGE COPIED';
     });
 
     printBtn.addEventListener('click', () => {
@@ -839,7 +779,6 @@ END OF MESSAGE</pre>
     approveBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'APPROVED' }));
     needsInfoBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'NEEDS INFO' }));
     declineBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'DECLINED' }));
-    saveAvailabilityBtn.addEventListener('click', () => saveAvailability());
     addTimelineNoteBtn.addEventListener('click', async () => {
       const note = timelineNote.value.trim();
       if (!selected || !note) {

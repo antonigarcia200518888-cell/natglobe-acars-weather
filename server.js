@@ -746,10 +746,6 @@ function formatBookingMessage(request) {
   const returnLine = request.tripType === 'ROUNDTRIP'
     ? `RETURN ${request.returnDate || 'DATE TBD'} ${request.returnTime || 'TIME TBD'}   FLEX ${request.returnFlexibility || 'NIL'}`
     : 'RETURN NIL';
-  const regattaLine = request.regattaProfile
-    ? `REGATTA ${request.regattaProfile}   ETA ${request.regattaArrival || 'FLEXIBLE'}   XFER ${request.regattaTransfer || 'NIL'}   GEAR ${request.regattaGear || 'NIL'}   RMK ${request.regattaNotes || 'NIL'}`
-    : null;
-
   return [
     'PRIVATE FLIGHT OPERATIONS REQUEST',
     '------------------------',
@@ -762,7 +758,6 @@ function formatBookingMessage(request) {
     `EMERG ${request.emergencyName || 'NIL'} / ${request.emergencyPhone || 'NIL'}`,
     `PURPOSE ${request.flightPurpose || 'NIL'}   FLEX ${request.scheduleFlexibility || 'NIL'}`,
     returnLine,
-    ...(regattaLine ? [regattaLine] : []),
     `MED ${request.medicalStatus || 'NIL'}   SUBST ${request.substancesStatus || 'NIL'}`,
     `BAG ${request.carryOnBags || 'NIL'}   WT ${request.baggageWeightKg || '0'}KG   PWRBANK ${request.powerBanks || 'NIL'}`,
     `BAG TYPE ${request.bagType || 'NIL'}`,
