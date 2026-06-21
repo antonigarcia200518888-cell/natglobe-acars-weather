@@ -753,6 +753,7 @@ function formatBookingMessage(request) {
     `FLT ${request.flightId}   ${request.dep}-${request.arr}   ${request.requestDate} ${request.requestTime}`,
     `TITLE ${String(request.flightTitle || 'CUSTOM ROUTE').toUpperCase()}`,
     `A/C ${String(request.aircraft || AIRCRAFT_PROFILE.registration + ' / ' + AIRCRAFT_PROFILE.type).toUpperCase()}`,
+    `CREW CMD ${request.crew?.commander || 'UNASSIGNED'}   SIC ${request.crew?.secondary || 'NONE'}`,
     `PAX COUNT ${request.seats}`,
     ...passengerLines,
     `EMERG ${request.emergencyName || 'NIL'} / ${request.emergencyPhone || 'NIL'}`,
@@ -2524,6 +2525,16 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
 
   const timelineNote = normalizeBookingText(req.body?.timelineNote, 300);
   if (timelineNote) await addBookingTimelineEvent(request.id, 'OPS NOTE', timelineNote);
+  if (req.body?.crew && typeof req.body.crew === 'object') {
+    const allowedCrew = new Set(['ANTONI GARCIA', 'SAUL GARCIA', 'UNASSIGNED', 'NONE']);
+    const commander = normalizeBookingText(req.body.crew.commander, 40).toUpperCase();
+    const secondary = normalizeBookingText(req.body.crew.secondary, 40).toUpperCase();
+    if (!allowedCrew.has(commander) || !allowedCrew.has(secondary) || commander === 'NONE') {
+      return res.status(400).json({ error: 'INVALID CREW ASSIGNMENT' });
+    }
+    request.crew = { commander, secondary };
+    await addBookingTimelineEvent(request.id, 'CREW ASSIGNMENT', `CMD ${commander} / SIC ${secondary}`);
+  }
   await persistBookingRequest(request);
 
   res.json({

@@ -117,6 +117,9 @@
       gap: 8px;
     }
 
+    .queue-filters { display: grid; gap: 7px; margin-bottom: 12px; }
+    .queue-filters input, .queue-filters select { width: 100%; min-height: 38px; border: 1px solid #555; background: #000; color: #fff; padding: 7px; font: 12px "Courier New", monospace; text-transform: uppercase; }
+
     .request {
       border: 1px solid #555;
       padding: 9px;
@@ -462,6 +465,11 @@
     <div class="layout">
       <aside class="panel queue-panel">
         <div class="panel-title">ACTIVE REQUESTS</div>
+        <div class="queue-filters">
+          <input id="filterQuery" type="search" placeholder="Search route or passenger" />
+          <select id="filterStatus"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option></select>
+          <input id="filterDate" type="date" aria-label="Filter by departure date" />
+        </div>
         <div id="requestList" class="request-list"></div>
       </aside>
 
@@ -501,6 +509,12 @@
               <div class="brief-line"><span>Carry-on</span><strong id="briefBaggage">.....</strong></div>
               <div class="brief-line"><span>Weight</span><strong id="briefBagWeight">.....</strong></div>
               <div class="brief-line"><span>Power banks</span><strong id="briefPowerBanks">.....</strong></div>
+            </div>
+            <div class="brief-card third">
+              <div class="brief-title">Flight crew assignment</div>
+              <div class="brief-line"><span>Commander</span><select id="commander"><option value="UNASSIGNED">Unassigned</option><option value="ANTONI GARCIA">Antoni Garcia</option><option value="SAUL GARCIA">Saul Garcia</option></select></div>
+              <div class="brief-line"><span>Secondary pilot</span><select id="secondary"><option value="NONE">None assigned</option><option value="ANTONI GARCIA">Antoni Garcia</option><option value="SAUL GARCIA">Saul Garcia</option></select></div>
+              <button id="saveCrewBtn" class="btn ghost" type="button">SAVE CREW</button>
             </div>
             <div class="brief-card third">
               <div class="brief-title">Onboard requests</div>
@@ -575,6 +589,12 @@ END OF MESSAGE</pre>
     const walletPassenger = el('walletPassenger');
     const webPassBtn = el('webPassBtn');
     const walletPassStatus = el('walletPassStatus');
+    const filterQuery = el('filterQuery');
+    const filterStatus = el('filterStatus');
+    const filterDate = el('filterDate');
+    const commander = el('commander');
+    const secondary = el('secondary');
+    const saveCrewBtn = el('saveCrewBtn');
 
     let requests = [];
     let selected = null;
@@ -675,7 +695,12 @@ END OF MESSAGE</pre>
     }
 
     function renderList() {
-      requestList.innerHTML = requests.map(req => `
+      const query = filterQuery.value.trim().toUpperCase();
+      const visible = requests.filter(req => {
+        const matchesQuery = !query || `${req.id} ${req.route} ${req.name}`.toUpperCase().includes(query);
+        return matchesQuery && (filterStatus.value === 'ALL' || req.status === filterStatus.value) && (!filterDate.value || req.requestDate === filterDate.value);
+      });
+      requestList.innerHTML = visible.map(req => `
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
           <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
           ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
@@ -712,6 +737,8 @@ END OF MESSAGE</pre>
       setText('briefPrice', `${money(req.costPerSeatEur)} / PAX`);
       setText('briefTotal', money(req.estimatedTotalEur));
       setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
+      commander.value = req.crew?.commander || 'UNASSIGNED';
+      secondary.value = req.crew?.secondary || 'NONE';
       renderAlerts(req);
       renderManifest(req);
       updateWalletControls(req);
@@ -766,6 +793,10 @@ END OF MESSAGE</pre>
       const req = requests.find(item => item.id === row.getAttribute('data-id'));
       if (req) selectRequest(req);
     });
+
+    [filterQuery, filterStatus, filterDate].forEach(input => input.addEventListener('input', renderList));
+    filterStatus.addEventListener('change', renderList);
+    saveCrewBtn.addEventListener('click', () => updateSelected({ crew: { commander: commander.value, secondary: secondary.value } }));
 
     printBtn.addEventListener('click', () => {
       if (!selected) {
