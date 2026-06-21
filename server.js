@@ -204,6 +204,12 @@ const bookingAirports = [
   { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', type: 'controlled / GA', lat: 59.3544, lon: 17.9417 }
 ];
 
+const BOOKING_TERMINALS = {
+  EFHK: 'FINAVIA FBO',
+  EETN: 'FBO TALLINN VIP',
+  ESSB: 'IFLY FBO'
+};
+
 const EUROPE_COUNTRIES = new Set([
   'AL', 'AD', 'AT', 'BE', 'BA', 'BG', 'BY', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE',
   'ES', 'FI', 'FO', 'FR', 'GB', 'GG', 'GI', 'GR', 'HR', 'HU', 'IE', 'IM', 'IS',
@@ -458,9 +464,13 @@ function boardingPassAirportLabel(icao, fallback) {
 function maskedPassport(passenger) {
   const countryCodes = { Finland: 'FIN', Estonia: 'EST', Sweden: 'SWE', Norway: 'NOR', Denmark: 'DNK', Germany: 'DEU', France: 'FRA', Spain: 'ESP', Italy: 'ITA', Netherlands: 'NLD', Poland: 'POL', 'United Kingdom': 'GBR', Ireland: 'IRL', 'United States': 'USA', Canada: 'CAN' };
   const raw = String(passenger.nationalId || '').replace(/\s/g, '');
-  const lastFour = raw.slice(-4);
+  const visiblePart = raw.length > 4 ? raw.slice(0, -4) : '';
   const country = countryCodes[passenger.passportCountry] || String(passenger.passportCountry || 'PPT').slice(0, 3).toUpperCase();
-  return lastFour ? `${country}/****-${lastFour}` : `${country}/VERIFIED`;
+  return visiblePart ? `${country}/${visiblePart}****` : `${country}/VERIFIED`;
+}
+
+function boardingPassGate(icao) {
+  return BOOKING_TERMINALS[icao] || 'GA STAND';
 }
 
 function formatBoardingPassDate(value) {
@@ -499,9 +509,9 @@ function publicBoardingPassView(request, passenger) {
     flightTime: estimateBoardingPassFlightTime(request.dep, request.arr),
     aircraft: request.aircraft || 'PA-28R-200',
     seat: request.seatPreference || 'REAR SEAT',
-    gate: 'GA STAND',
+    gate: boardingPassGate(request.dep),
     passport: maskedPassport(passenger),
-    dob: 'VERIFIED',
+    dob: formatBoardingPassDate(passenger.dob),
     departureTime: formatBoardingPassTime(request.requestTime),
     arrivalTime: boardingPassArrivalTime(request.requestTime, request.dep, request.arr),
     baggage: request.carryOnBags === 'YES'

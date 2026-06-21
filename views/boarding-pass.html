@@ -19,6 +19,7 @@
     .paper { background: transparent; }
     .stub { color: #fff; background: transparent; }
     .passenger { left: 2.4%; top: 19.7%; width: 46%; height: 12.7%; font-size: clamp(18px, 4.1vw, 66px); }
+    .gate { left: 54%; top: 19.7%; width: 14%; height: 12.7%; font-size: clamp(14px, 2.85vw, 47px); }
     .from { left: 2.4%; top: 49.2%; width: 25.8%; height: 12.7%; font-size: clamp(16px, 3.7vw, 60px); }
     .date { left: 32.1%; top: 49.2%; width: 18.8%; height: 12.7%; font-size: clamp(16px, 3.45vw, 56px); }
     .aircraft { left: 54%; top: 49.2%; width: 14%; height: 12.7%; font-size: clamp(14px, 2.85vw, 47px); }
@@ -28,10 +29,10 @@
     .qr-wrap { position: absolute; left: 80.7%; top: 18.5%; width: 10.2%; aspect-ratio: 1; padding: .45%; }
     .qr { display: block; width: 100%; height: 100%; }
     .stub-name { left: 73.7%; top: 52.4%; width: 23.5%; height: 7%; justify-content: center; text-align: center; font-size: clamp(14px, 2.05vw, 34px); }
-    .passport { left: 73.7%; top: 71.2%; width: 13%; height: 5.4%; font-size: clamp(10px, 1.55vw, 26px); }
-    .dob { left: 88%; top: 71.2%; width: 8%; height: 5.4%; font-size: clamp(9px, 1.2vw, 20px); }
-    .departure { left: 73.7%; top: 87%; width: 10%; height: 5.2%; font-size: clamp(10px, 1.5vw, 25px); }
-    .arrival { left: 88%; top: 87%; width: 8%; height: 5.2%; font-size: clamp(10px, 1.5vw, 25px); }
+    .passport { left: 73.7%; top: 71.2%; width: 13%; height: 5.4%; font-size: clamp(10px, 1.35vw, 23px); }
+    .dob { left: 88%; top: 71.2%; width: 8%; height: 5.4%; font-size: clamp(10px, 1.35vw, 23px); }
+    .departure { left: 73.7%; top: 87%; width: 10%; height: 5.2%; font-size: clamp(10px, 1.35vw, 23px); }
+    .arrival { left: 88%; top: 87%; width: 8%; height: 5.2%; font-size: clamp(10px, 1.35vw, 23px); }
     .mobile-pass { display: none; }
     .error { max-width: 620px; padding: 30px; border: 1px solid rgba(255,255,255,.25); color: #fff; font: 16px/1.5 "Courier New", monospace; }
     @media (max-width: 680px) {
@@ -40,7 +41,7 @@
       .shell { width: 100%; }
       .ticket { display: none !important; }
       .mobile-pass:not([hidden]) { display: block; }
-      .mobile-pass { margin: 0 14px 24px; overflow: hidden; background: #f8f8f6; color: #101118; box-shadow: 0 22px 54px rgba(0,0,0,.42); }
+      .mobile-pass { display: flex; flex-direction: column; min-height: calc(100dvh - 56px); margin: 0 14px 0; overflow: hidden; background: #f8f8f6; color: #101118; box-shadow: 0 22px 54px rgba(0,0,0,.42); }
       .mobile-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px; background: linear-gradient(110deg, #0d0b3d, #312ac0); color: #fff; }
       .mobile-brand { font: 400 29px/1 "Computer Says No", monospace; letter-spacing: .045em; }
       .mobile-status { border: 1px solid rgba(255,255,255,.58); padding: 6px 8px; font: 600 10px/1 Poppins, sans-serif; letter-spacing: .08em; }
@@ -52,11 +53,12 @@
       .mobile-airport { margin-top: 7px; font: 400 22px/1.08 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
       .mobile-arrow { padding-bottom: 2px; font: 24px/1 Poppins, sans-serif; color: #555862; }
       .mobile-grid { display: grid; grid-template-columns: repeat(2, 1fr); border-bottom: 1px dotted #5f6168; }
-      .mobile-detail { min-height: 82px; padding: 16px 18px; border-right: 1px solid rgba(16,17,24,.12); border-bottom: 1px solid rgba(16,17,24,.12); }
+      .mobile-detail { min-height: 74px; padding: 12px 18px; border-right: 1px solid rgba(16,17,24,.12); border-bottom: 1px solid rgba(16,17,24,.12); }
       .mobile-detail:nth-child(2n) { border-right: 0; }
       .mobile-detail:nth-last-child(-n+2) { border-bottom: 0; }
+      .mobile-detail.full { grid-column: 1 / -1; border-right: 0; }
       .mobile-value { margin-top: 8px; font: 400 20px/1.1 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
-      .mobile-note { padding: 14px 18px 18px; color: #4c4e56; font: 500 11px/1.45 Poppins, Arial, sans-serif; }
+      .mobile-note { margin-top: auto; padding: 14px 18px 18px; color: #4c4e56; font: 500 11px/1.45 Poppins, Arial, sans-serif; }
     }
   </style>
 </head>
@@ -65,6 +67,7 @@
     <p class="heading">Private Flight / Passenger Information Pass</p>
     <section id="ticket" class="ticket" hidden aria-label="Private flight boarding pass">
       <div id="passenger" class="field paper passenger">Private guest</div>
+      <div id="gate" class="field paper gate">GA stand</div>
       <div id="from" class="field paper from">Departure</div>
       <div id="date" class="field paper date">Date</div>
       <div id="aircraft" class="field paper aircraft">PA28-200R</div>
@@ -88,9 +91,10 @@
         <div class="mobile-detail"><div class="mobile-label">Aircraft</div><div id="mobileAircraft" class="mobile-value">PA28-200R</div></div>
         <div class="mobile-detail"><div class="mobile-label">Flight time</div><div id="mobileFlightTime" class="mobile-value">TBD</div></div>
         <div class="mobile-detail"><div class="mobile-label">Passport</div><div id="mobilePassport" class="mobile-value">VERIFIED</div></div>
-        <div class="mobile-detail"><div class="mobile-label">Gate</div><div id="mobileGate" class="mobile-value">GA STAND</div></div>
+        <div class="mobile-detail"><div class="mobile-label">Date of birth</div><div id="mobileDob" class="mobile-value">TBD</div></div>
+        <div class="mobile-detail full"><div class="mobile-label">Gate</div><div id="mobileGate" class="mobile-value">GA STAND</div></div>
       </div>
-      <div class="mobile-note">Present this pass at the GA stand. Passport and booking details are verified by the pilot or ground team before boarding.</div>
+      <div class="mobile-note">Present this pass at the terminal shown above. Passport and booking details are verified by the pilot or ground team before boarding.</div>
     </section>
     <div id="error" class="error" hidden>This boarding pass is not available.</div>
   </main>
@@ -100,7 +104,7 @@
     fetch(`/api/boarding-passes/${encodeURIComponent(token)}`, { cache: 'no-store' })
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(({ pass }) => {
-        set('passenger', pass.passenger); set('stubName', pass.passenger); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', 'PA28-200R'); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', 'PA28-200R'); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false; document.getElementById('mobilePass').hidden = false;
+        set('passenger', pass.passenger); set('stubName', pass.passenger); set('gate', pass.gate); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', 'PA28-200R'); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', 'PA28-200R'); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileDob', pass.dob); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false; document.getElementById('mobilePass').hidden = false;
       })
       .catch(() => { document.getElementById('error').hidden = false; });
   </script>
