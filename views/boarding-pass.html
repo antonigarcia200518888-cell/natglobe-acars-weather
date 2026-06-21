@@ -14,10 +14,10 @@
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 28px; background: #11121a; font-family: Arial, Helvetica, sans-serif; }
     .shell { width: min(1280px, 100%); }
     .heading { margin: 0 0 12px; color: rgba(255,255,255,.78); font: 600 12px/1.4 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-    .ticket { position: relative; width: 100%; aspect-ratio: 2000 / 647; background: url('/boarding-pass-template.png') center / 100% 100% no-repeat; box-shadow: 0 28px 80px rgba(0,0,0,.42); overflow: hidden; }
+    .ticket { position: relative; width: 100%; aspect-ratio: 2000 / 647; background: url('/boarding-pass-template-clean.png') center / 100% 100% no-repeat; box-shadow: 0 28px 80px rgba(0,0,0,.42); overflow: hidden; }
     .field { position: absolute; display: flex; align-items: center; overflow: hidden; color: #050505; font-family: "Computer Says No", "Courier New", monospace; font-weight: 400; line-height: 1; text-transform: uppercase; white-space: nowrap; }
-    .paper { background: #fff; }
-    .stub { color: #fff; background: #211b83; }
+    .paper { background: transparent; }
+    .stub { color: #fff; background: transparent; }
     .passenger { left: 2.4%; top: 19.7%; width: 46%; height: 12.7%; font-size: clamp(18px, 4.1vw, 66px); }
     .from { left: 2.4%; top: 49.2%; width: 25.8%; height: 12.7%; font-size: clamp(16px, 3.7vw, 60px); }
     .date { left: 32.1%; top: 49.2%; width: 18.8%; height: 12.7%; font-size: clamp(16px, 3.45vw, 56px); }
@@ -25,7 +25,7 @@
     .to { left: 2.4%; top: 78.9%; width: 25.8%; height: 12.7%; font-size: clamp(16px, 3.7vw, 60px); }
     .boarding { left: 32.1%; top: 78.9%; width: 18.8%; height: 12.7%; font-size: clamp(16px, 3.45vw, 56px); }
     .flight-time { left: 54%; top: 78.9%; width: 14%; height: 12.7%; font-size: clamp(14px, 2.85vw, 47px); }
-    .qr-wrap { position: absolute; left: 80.7%; top: 18.5%; width: 10.2%; aspect-ratio: 1; padding: .45%; background: #211b83; }
+    .qr-wrap { position: absolute; left: 80.7%; top: 18.5%; width: 10.2%; aspect-ratio: 1; padding: .45%; }
     .qr { display: block; width: 100%; height: 100%; }
     .stub-name { left: 73.7%; top: 52.4%; width: 23.5%; height: 7%; font-size: clamp(12px, 1.75vw, 29px); }
     .passport { left: 73.7%; top: 71.2%; width: 13%; height: 5.4%; font-size: clamp(9px, 1.35vw, 23px); }
