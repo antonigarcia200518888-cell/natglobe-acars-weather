@@ -21,6 +21,8 @@ Do not use the temporary mode for production passenger or identity data: Render 
 
 After a pilot approves a booking, Booking Ops can issue one private web boarding-pass link for each passenger. The link opens a mobile-friendly ticket with a QR code and only shows trip details needed to board. Passport, date-of-birth, medical, contact, and emergency data are never included on the public pass.
 
+The ticket embeds the `Computer Says No` font by Christian Munk under CC BY-SA 3.0. Its font file and accompanying licence are kept in `public/fonts/`.
+
 ### Apple Wallet passes
 
 Approved bookings can generate one Apple Wallet boarding pass per passenger from Booking Ops. Apple requires every `.pkpass` bundle to be signed with a Pass Type ID certificate. Create a Pass Type ID and its certificate in the Apple Developer account, then add these Render secret environment variables:
