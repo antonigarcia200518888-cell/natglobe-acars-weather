@@ -495,7 +495,7 @@
 
     .two { grid-template-columns: 1fr 1fr; }
     .three { grid-template-columns: repeat(3, 1fr); }
-    .passenger-main-grid { grid-template-columns: minmax(0, 1fr) 128px; }
+    .passenger-main-grid { grid-template-columns: 112px minmax(0, 1fr) 128px; }
 
     label {
       display: block;
@@ -2499,6 +2499,7 @@
 
     function passengerHasRequiredDetails(passenger) {
       return Boolean(
+        passenger?.title &&
         passenger?.name &&
         passenger?.weightKg &&
         passenger?.email &&
@@ -2586,6 +2587,7 @@
             <div class="passenger-summary">${escapeHtml(passenger.name || 'Traveller')} / ${escapeHtml(passenger.weightKg || '--')} KG / ${escapeHtml(passenger.email || 'contact pending')}</div>
             <div class="passenger-fields">
             <div class="grid passenger-main-grid">
+              <div><label for="pax${index}Title">Title</label><select id="pax${index}Title" data-pax-field="title" required><option value="">Select</option>${['MR', 'MS', 'MX', 'DR'].map(title => `<option value="${title}" ${passenger.title === title ? 'selected' : ''}>${title}.</option>`).join('')}</select></div>
               <div><label for="pax${index}Name">Full name</label><input id="pax${index}Name" data-pax-field="name" type="text" autocomplete="${lead ? 'name' : 'off'}" value="${escapeHtml(passenger.name)}" required /></div>
               <div class="input-unit"><label for="pax${index}Weight">Weight</label><input id="pax${index}Weight" class="compact-number" data-pax-field="weightKg" type="number" min="1" max="250" inputmode="numeric" value="${escapeHtml(passenger.weightKg)}" required /><span class="unit">KG</span></div>
             </div>

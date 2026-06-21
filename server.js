@@ -485,9 +485,12 @@ function boardingPassArrivalTime(departureTime, depIcao, arrIcao) {
 }
 
 function publicBoardingPassView(request, passenger) {
+  const title = ['MR', 'MS', 'MX', 'DR'].includes(String(passenger.title || '').toUpperCase())
+    ? `${String(passenger.title).toUpperCase()}. `
+    : '';
   return {
     reference: request.id,
-    passenger: passenger.name || 'PRIVATE GUEST',
+    passenger: `${title}${passenger.name || 'PRIVATE GUEST'}`,
     passengerNumber: passenger.number || 1,
     from: boardingPassAirportLabel(request.dep, request.depName),
     to: boardingPassAirportLabel(request.arr, request.arrName),
@@ -2545,6 +2548,7 @@ app.post('/api/booking-requests', async (req, res) => {
   const submittedPassengers = Array.isArray(req.body?.passengers) ? req.body.passengers : [];
   const passengers = submittedPassengers.length ? submittedPassengers.slice(0, seats).map((passenger, index) => ({
     number: index + 1,
+    title: normalizeBookingText(passenger?.title, 8).toUpperCase(),
     name: normalizeBookingText(passenger?.name, 60),
     email: normalizeBookingEmail(passenger?.email),
     phone: normalizeBookingText(passenger?.phone, 40),
@@ -2555,6 +2559,7 @@ app.post('/api/booking-requests', async (req, res) => {
     boardingPassToken: createBoardingPassToken()
   })) : [{
     number: 1,
+    title: normalizeBookingText(req.body?.title, 8).toUpperCase(),
     name: normalizeBookingText(req.body?.name, 60),
     email: normalizeBookingEmail(req.body?.email),
     phone: normalizeBookingText(req.body?.phone, 40),
@@ -2566,7 +2571,7 @@ app.post('/api/booking-requests', async (req, res) => {
   }];
 
   while (passengers.length < seats) {
-    passengers.push({ number: passengers.length + 1, name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '', boardingPassToken: createBoardingPassToken() });
+    passengers.push({ number: passengers.length + 1, title: '', name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '', boardingPassToken: createBoardingPassToken() });
   }
 
   const leadPassenger = passengers[0] || {};
@@ -2611,6 +2616,7 @@ app.post('/api/booking-requests', async (req, res) => {
   }
 
   const missingPassenger = passengers.find(passenger => (
+    !['MR', 'MS', 'MX', 'DR'].includes(passenger.title) ||
     !passenger.name ||
     !passenger.email ||
     !passenger.email.includes('@') ||

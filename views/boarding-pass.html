@@ -13,6 +13,7 @@
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 28px; background: #11121a; font-family: Arial, Helvetica, sans-serif; }
     .shell { width: min(1280px, 100%); }
+    .heading { margin: 0 0 12px; color: rgba(255,255,255,.82); font: 600 13px/1.4 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
     .ticket { position: relative; width: 100%; aspect-ratio: 2000 / 647; background: url('/boarding-pass-template-clean.png') center / 100% 100% no-repeat; box-shadow: 0 28px 80px rgba(0,0,0,.42); overflow: hidden; }
     .field { position: absolute; display: flex; align-items: center; overflow: hidden; color: #050505; font-family: "Computer Says No", "Courier New", monospace; font-weight: 400; line-height: 1; text-transform: uppercase; white-space: nowrap; }
     .paper { background: transparent; }
@@ -32,11 +33,12 @@
     .departure { left: 73.7%; top: 87%; width: 10%; height: 5.2%; font-size: clamp(10px, 1.5vw, 25px); }
     .arrival { left: 88%; top: 87%; width: 8%; height: 5.2%; font-size: clamp(10px, 1.5vw, 25px); }
     .error { max-width: 620px; padding: 30px; border: 1px solid rgba(255,255,255,.25); color: #fff; font: 16px/1.5 "Courier New", monospace; }
-    @media (max-width: 680px) { body { display: block; padding: 0; background: #11121a; } .shell { width: 100%; overflow-x: auto; } .ticket { width: 760px; margin: 0 auto 18px; } }
+    @media (max-width: 680px) { body { display: block; padding: 0; background: #11121a; } .heading { margin: 16px; } .shell { width: 100%; overflow-x: auto; } .ticket { width: 760px; margin: 0 auto 18px; } }
   </style>
 </head>
 <body>
   <main class="shell">
+    <p class="heading">Private Flight / Passenger Information Pass</p>
     <section id="ticket" class="ticket" hidden aria-label="Private flight boarding pass">
       <div id="passenger" class="field paper passenger">Private guest</div>
       <div id="from" class="field paper from">Departure</div>
