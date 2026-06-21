@@ -1293,6 +1293,52 @@
       box-shadow: inset 0 0 0 1px var(--danger);
     }
 
+    .route-outlook {
+      border: 1px solid #666;
+      padding: 10px;
+      margin: 10px 0;
+      background: #050505;
+      text-transform: uppercase;
+    }
+
+    .route-outlook-head,
+    .traveller-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .route-outlook-head strong { color: #fff; font-size: 13px; }
+    .route-outlook-head span { color: var(--live); font-size: 10px; }
+    .outlook-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .outlook-item { border: 1px solid #444; padding: 8px; min-height: 56px; }
+    .outlook-item span { display: block; color: #8d8d8d; font-size: 10px; margin-bottom: 4px; }
+    .outlook-item strong { display: block; color: #fff; font-size: 12px; line-height: 1.25; }
+
+    .traveller-tools { margin-bottom: 10px; }
+    .traveller-tools-copy { color: #8d8d8d; font-size: 11px; text-transform: uppercase; }
+    .traveller-tools-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+    .mini-btn { border: 1px solid #777; background: #080808; color: #fff; padding: 7px 9px; font: 700 10px/1 "Courier New", monospace; text-transform: uppercase; cursor: pointer; }
+    .mini-btn:hover { border-color: var(--live); color: var(--live); }
+    .mini-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .review-dialog[hidden] { display: none; }
+    .review-dialog { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,0.78); }
+    .review-dialog-card { width: min(680px, 100%); max-height: min(760px, calc(100vh - 32px)); overflow: auto; border: 2px solid var(--live); padding: 16px; background: #050505; box-shadow: 0 0 30px rgba(102,255,153,0.22); text-transform: uppercase; }
+    .review-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; border-bottom: 1px solid #555; padding-bottom: 12px; }
+    .review-dialog-head h2 { margin: 0; color: #fff; font-size: 17px; }
+    .review-dialog-head p { margin: 6px 0 0; color: #999; font-size: 11px; line-height: 1.35; }
+    .review-close { border: 0; background: transparent; color: #fff; font: 24px/1 Arial, sans-serif; cursor: pointer; }
+    .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+    .review-item { border: 1px solid #555; padding: 9px; min-height: 57px; }
+    .review-item span { display: block; color: #8d8d8d; font-size: 10px; margin-bottom: 4px; }
+    .review-item strong { color: #fff; font-size: 13px; line-height: 1.25; word-break: break-word; }
+    .review-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .review-actions .btn { width: 100%; }
+    .review-cancel { border: 1px solid #777; background: #111; color: #fff; font: 700 12px "Courier New", monospace; text-transform: uppercase; cursor: pointer; }
+    body:has(.review-dialog:not([hidden])) .mobile-booking-bar { display: none; }
+
     .status-tracker {
       display: none;
       border: 2px solid var(--line);
@@ -1413,6 +1459,10 @@
         color: var(--live);
       }
       .layout, .two, .three, .passenger-main-grid, .question-grid, .baggage-request-grid, .submit-footer, .status-steps, .seat-options { grid-template-columns: 1fr; }
+      .outlook-grid { grid-template-columns: 1fr; }
+      .traveller-tools { align-items: flex-start; flex-direction: column; }
+      .traveller-tools-actions { justify-content: flex-start; }
+      .review-grid, .review-actions { grid-template-columns: 1fr; }
       .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .baggage-request-grid .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1750,6 +1800,15 @@
         </div>
       </section>
 
+      <section class="route-outlook" aria-live="polite">
+        <div class="route-outlook-head"><strong>Route outlook</strong><span id="outlookStatus">Pilot weather check pending</span></div>
+        <div class="outlook-grid">
+          <div class="outlook-item"><span>Departure daylight</span><strong id="outlookDeparture">Select route</strong></div>
+          <div class="outlook-item"><span>Arrival daylight</span><strong id="outlookArrival">Select route</strong></div>
+          <div class="outlook-item"><span>Weather briefing</span><strong id="outlookWeather">Issued after pilot review</strong></div>
+        </div>
+      </section>
+
       <section class="search-card">
         <div class="booking-panel-head">
           <div class="booking-kicker">Your itinerary</div>
@@ -1832,6 +1891,13 @@
         <section>
           <div class="card">
             <h2 class="section-title">Traveller details</h2>
+            <div class="traveller-tools">
+              <div class="traveller-tools-copy">Save your lead traveller details on this device. Passport number is never stored.</div>
+              <div class="traveller-tools-actions">
+                <button id="useSavedTraveller" class="mini-btn" type="button" disabled>Use saved traveller</button>
+                <button id="saveTraveller" class="mini-btn" type="button">Save lead traveller</button>
+              </div>
+            </div>
             <div id="passengerList" class="passenger-list"></div>
           </div>
 
@@ -1988,6 +2054,20 @@
     </form>
   </main>
 
+  <div id="reviewDialog" class="review-dialog" role="dialog" aria-modal="true" aria-labelledby="reviewDialogTitle" hidden>
+    <div class="review-dialog-card">
+      <div class="review-dialog-head">
+        <div><h2 id="reviewDialogTitle">Review your flight request</h2><p>Check the journey details before sending it to the flight team.</p></div>
+        <button id="closeReview" class="review-close" type="button" aria-label="Close review">×</button>
+      </div>
+      <div id="reviewDialogBody" class="review-grid"></div>
+      <div class="review-actions">
+        <button id="editReview" class="review-cancel" type="button">Go back and edit</button>
+        <button id="confirmReview" class="btn" type="button">Send flight request</button>
+      </div>
+    </div>
+  </div>
+
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -2047,6 +2127,10 @@
     const routeMapShell = el('routeMapShell');
     const routeMapFallback = el('routeMapFallback');
     const locateMeBtn = el('locateMeBtn');
+    const reviewDialog = el('reviewDialog');
+    const reviewDialogBody = el('reviewDialogBody');
+    const saveTraveller = el('saveTraveller');
+    const useSavedTraveller = el('useSavedTraveller');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
@@ -2057,6 +2141,8 @@
     };
 
     let airports = [];
+    let reviewConfirmed = false;
+    const SAVED_TRAVELLER_KEY = 'private-flight-saved-lead-traveller-v1';
     let routeMap = null;
     let routeLayer = null;
     let depMarker = null;
@@ -2094,6 +2180,7 @@
     }
 
     function resetSubmitFeedback() {
+      reviewConfirmed = false;
       if (submitBooking.classList.contains('is-error') || submitBooking.classList.contains('is-success')) {
         setSubmitState('');
         confirmation.className = 'confirmation';
@@ -2341,6 +2428,31 @@
       return Number.isFinite(mins) ? formatMinutes(mins) : mins;
     }
 
+    function daylightState(airport, dateValue, timeValue, extraMinutes = 0) {
+      if (!airport || !dateValue || !timeValue) return 'Time pending';
+      const date = new Date(`${dateValue}T12:00:00`);
+      if (Number.isNaN(date.getTime())) return 'Time pending';
+      const day = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+      const latitudeFactor = Math.sin(Math.abs(Number(airport.lat) || 60) * Math.PI / 180);
+      const daylightHours = 12 + (6 * Math.sin(((day - 80) / 365) * Math.PI * 2) * latitudeFactor);
+      const sunrise = 12 - daylightHours / 2;
+      const sunset = 12 + daylightHours / 2;
+      const [hours, minutes] = timeValue.split(':').map(Number);
+      const localHours = ((hours || 0) + ((minutes || 0) + extraMinutes) / 60) % 24;
+      if (localHours >= sunrise && localHours <= sunset) return 'Daylight expected';
+      if (localHours >= sunrise - 0.75 && localHours <= sunset + 0.75) return 'Twilight expected';
+      return 'Night operation';
+    }
+
+    function updateRouteOutlook(dep, arr) {
+      const mins = flightMinutes(dep, arr);
+      const travelMinutes = Number.isFinite(mins) ? mins : 0;
+      el('outlookDeparture').textContent = daylightState(dep, el('requestDate').value, el('requestTime').value);
+      el('outlookArrival').textContent = daylightState(arr, el('requestDate').value, el('requestTime').value, travelMinutes);
+      el('outlookWeather').textContent = dep && arr ? 'Pilot briefing before confirmation' : 'Issued after pilot review';
+      el('outlookStatus').textContent = dep && arr ? 'Pilot weather check pending' : 'Select a route';
+    }
+
     function fillPickerWheels() {
       const today = new Date();
       el('requestDate').innerHTML = Array.from({ length: 120 }, (_, index) => {
@@ -2529,6 +2641,7 @@
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
       requestSummary();
+      updateRouteOutlook(dep, arr);
       updateReadiness(dep, arr);
       el('mobileTripLine').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select route';
       el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'} / ${routePrice(dep, arr)}`;
@@ -2592,6 +2705,81 @@
         });
         return passenger;
       });
+    }
+
+    function savedTravellerProfile() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SAVED_TRAVELLER_KEY) || 'null');
+        return saved && typeof saved === 'object' ? saved : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function updateSavedTravellerButton() {
+      useSavedTraveller.disabled = !savedTravellerProfile();
+    }
+
+    function saveLeadTraveller() {
+      const traveller = collectPassengers(false)[0] || {};
+      if (!traveller.name || !traveller.email || !traveller.phone) {
+        setStatus('Add the lead traveller name, email, and mobile before saving', 'err', true);
+        return;
+      }
+      const profile = {
+        title: traveller.title || '',
+        name: traveller.name,
+        weightKg: traveller.weightKg || '',
+        email: traveller.email,
+        phone: traveller.phone,
+        passportCountry: traveller.passportCountry || ''
+      };
+      localStorage.setItem(SAVED_TRAVELLER_KEY, JSON.stringify(profile));
+      updateSavedTravellerButton();
+      setStatus('Lead traveller saved on this device. Passport number is not stored.', 'ok', true);
+    }
+
+    function useSavedLeadTraveller() {
+      const profile = savedTravellerProfile();
+      if (!profile) return;
+      const fieldMap = { title: 'pax0Title', name: 'pax0Name', weightKg: 'pax0Weight', email: 'pax0Email', phone: 'pax0Phone', passportCountry: 'pax0PassportCountry' };
+      Object.entries(fieldMap).forEach(([key, id]) => {
+        if (profile[key] && el(id)) el(id).value = profile[key];
+      });
+      refreshSummary();
+      setStatus('Saved lead traveller added. Date of birth and passport number are still required.', 'ok', true);
+    }
+
+    function reviewItem(label, value) {
+      return `<div class="review-item"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value || 'Not selected')}</strong></div>`;
+    }
+
+    function showReviewDialog() {
+      const dep = selectedAirport('dep');
+      const arr = selectedAirport('arr');
+      const travellers = collectPassengers(false);
+      const lead = travellers[0] || {};
+      const allTravellerNames = travellers.map(traveller => `${traveller.title || ''} ${traveller.name || 'Traveller'}`.trim()).join(' / ');
+      const extras = checkedValues('extras');
+      reviewDialogBody.innerHTML = [
+        reviewItem('Route', dep && arr ? `${dep.city} to ${arr.city}` : ''),
+        reviewItem('Departure', `${el('requestDate').value || ''} / ${el('requestTime').value || ''}`),
+        reviewItem('Trip', el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way'),
+        reviewItem('Flight time', formatFlightTime(dep, arr)),
+        reviewItem('Travellers', allTravellerNames || `${el('seats').value || 1} passenger`),
+        reviewItem('Lead contact', lead.email || ''),
+        reviewItem('Luggage', baggageSummary()),
+        reviewItem('Seat preference', el('seatPreference').value || checkedValue('seatPreference', 'No preference')),
+        reviewItem('Cabin requests', extras.length ? extras.join(' / ') : 'None selected'),
+        reviewItem('Total flight cost', routePrice(dep, arr))
+      ].join('');
+      reviewDialog.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeReviewDialog() {
+      reviewDialog.hidden = true;
+      document.body.style.overflow = '';
     }
 
     function checkedValue(name, fallback = '') {
@@ -2691,6 +2879,18 @@
     el('addBag').addEventListener('click', () => changeBagCount(1));
     el('removeBag').addEventListener('click', () => changeBagCount(-1));
     el('bagType').addEventListener('change', updateBagLimit);
+    saveTraveller.addEventListener('click', saveLeadTraveller);
+    useSavedTraveller.addEventListener('click', useSavedLeadTraveller);
+    el('closeReview').addEventListener('click', closeReviewDialog);
+    el('editReview').addEventListener('click', closeReviewDialog);
+    el('confirmReview').addEventListener('click', () => {
+      reviewConfirmed = true;
+      closeReviewDialog();
+      form.requestSubmit(submitBooking);
+    });
+    reviewDialog.addEventListener('click', (event) => {
+      if (event.target === reviewDialog) closeReviewDialog();
+    });
     el('seats').addEventListener('change', () => {
       renderPassengerFields();
       refreshSummary();
@@ -2721,6 +2921,11 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (!reviewConfirmed) {
+        showReviewDialog();
+        return;
+      }
+      reviewConfirmed = false;
       submitTouched = true;
       confirmation.className = 'confirmation';
       setSubmitState('sending', 'Sending request...');
@@ -2780,6 +2985,7 @@
     populateAirports(FALLBACK_AIRPORTS);
     renderPassengerFields();
     updateBaggageFields();
+    updateSavedTravellerButton();
     loadBookingAvailability().catch(() => {});
     updateConnectionBadge();
     tick();
