@@ -2414,6 +2414,11 @@ app.get('/boarding-pass/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
 });
 
+app.get('/pass/:reference/passenger-information-pass/:token', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
+});
+
 app.get('/pass-check/:token', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'pass-verification.html'));
@@ -2596,7 +2601,7 @@ app.post('/api/booking-ops/requests/:id/boarding-pass/:passengerNumber/link', re
   }
 
   res.json({
-    url: `/boarding-pass/${passenger.boardingPassToken}`,
+    url: `/pass/${encodeURIComponent(request.id)}/passenger-information-pass/${passenger.boardingPassToken}`,
     passenger: passenger.number || 1
   });
 });
