@@ -466,11 +466,16 @@ function isBoardingPassReady(request) {
 }
 
 function estimateBoardingPassFlightTime(depIcao, arrIcao) {
+  const minutes = estimateBoardingPassFlightMinutes(depIcao, arrIcao);
+  if (minutes === null) return 'TBD';
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}.${String(minutes % 60).padStart(2, '0')}`;
+}
+
+function estimateBoardingPassFlightMinutes(depIcao, arrIcao) {
   const depAirport = bookingAirports.find(airport => airport.icao === depIcao);
   const arrAirport = bookingAirports.find(airport => airport.icao === arrIcao);
-  if (!depAirport || !arrAirport) return 'TBD';
-  const minutes = Math.max(10, Math.round((kmToNm(haversineKm(depAirport, arrAirport)) / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
-  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}.${String(minutes % 60).padStart(2, '0')}`;
+  if (!depAirport || !arrAirport) return null;
+  return Math.max(10, Math.round((kmToNm(haversineKm(depAirport, arrAirport)) / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
 }
 
 function boardingPassAirportLabel(icao, fallback) {
@@ -523,6 +528,53 @@ function boardingPassArrivalTime(departureTime, depIcao, arrIcao) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}.${String(total % 60).padStart(2, '0')}`;
 }
 
+function assignedPassengerSeat(request, passenger) {
+  const selected = String(request.seatPreference || '').trim().toUpperCase();
+  if (selected && selected !== 'NO PREFERENCE') return selected;
+  return Number(passenger.number || 1) % 2 === 0 ? 'REAR RIGHT' : 'REAR LEFT';
+}
+
+function boardingPassBaggage(request) {
+  if (request.carryOnBags !== 'YES') return 'NO BAGGAGE DECLARED';
+  return `${request.bagType || 'CARRY-ON'} / ${request.baggageWeightKg || '0'} KG`;
+}
+
+function icsEscape(value) {
+  return String(value || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+}
+
+function bookingCalendarDateTime(date, time, addMinutes = 0) {
+  const match = `${date || ''}T${time || ''}`.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  const stamp = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5]) + addMinutes));
+  return `${stamp.getUTCFullYear()}${String(stamp.getUTCMonth() + 1).padStart(2, '0')}${String(stamp.getUTCDate()).padStart(2, '0')}T${String(stamp.getUTCHours()).padStart(2, '0')}${String(stamp.getUTCMinutes()).padStart(2, '0')}00`;
+}
+
+function buildBoardingPassCalendar(request, passenger) {
+  const start = bookingCalendarDateTime(request.requestDate, request.requestTime);
+  const duration = estimateBoardingPassFlightMinutes(request.dep, request.arr) || 60;
+  const end = bookingCalendarDateTime(request.requestDate, request.requestTime, duration);
+  if (!start || !end) return null;
+  const route = `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`;
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Private Flight//Passenger Pass//EN',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${icsEscape(`${request.id}-${passenger.number || 1}@privateflight`)}`,
+    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}`,
+    `DTSTART;TZID=Europe/Helsinki:${start}`,
+    `DTEND;TZID=Europe/Helsinki:${end}`,
+    `SUMMARY:${icsEscape(`Private Flight ${request.id}`)}`,
+    `LOCATION:${icsEscape(boardingPassGate(request.dep))}`,
+    `DESCRIPTION:${icsEscape(`${route}\nPassenger: ${passenger.name || 'PRIVATE GUEST'}\nSeat: ${assignedPassengerSeat(request, passenger)}\nBaggage: ${boardingPassBaggage(request)}`)}`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+    ''
+  ].join('\r\n');
+}
+
 function publicBoardingPassView(request, passenger) {
   const title = ['MR', 'MS', 'MX', 'DR'].includes(String(passenger.title || '').toUpperCase())
     ? `${String(passenger.title).toUpperCase()}. `
@@ -538,15 +590,14 @@ function publicBoardingPassView(request, passenger) {
     boardingTime: formatBoardingPassTime(request.requestTime),
     flightTime: estimateBoardingPassFlightTime(request.dep, request.arr),
     aircraft: request.aircraft || 'PA-28R-200',
-    seat: request.seatPreference || 'REAR SEAT',
+    seat: assignedPassengerSeat(request, passenger),
     gate: boardingPassGate(request.dep),
     passport: maskedPassport(passenger),
     dob: formatBoardingPassDate(passenger.dob),
     departureTime: formatBoardingPassTime(request.requestTime),
     arrivalTime: boardingPassArrivalTime(request.requestTime, request.dep, request.arr),
-    baggage: request.carryOnBags === 'YES'
-      ? `${request.baggageWeightKg || '0'} KG ${request.bagType || 'CARRY-ON'}`
-      : 'NO BAGGAGE DECLARED',
+    baggage: boardingPassBaggage(request),
+    checkIn: `ARRIVE 20 MIN BEFORE ${formatBoardingPassTime(request.requestTime)}`,
     status: passStatus.label,
     statusTone: passStatus.tone
   };
@@ -2363,6 +2414,11 @@ app.get('/boarding-pass/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
 });
 
+app.get('/pass-check/:token', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'pass-verification.html'));
+});
+
 app.post('/api/pilot-login', (req, res) => {
   const code = String(req.body?.code || '').trim();
   if (code !== PILOT_ACCESS_CODE) {
@@ -2556,6 +2612,45 @@ app.get('/api/boarding-passes/:token', async (req, res) => {
   res.json({ pass: publicBoardingPassView(request, passenger) });
 });
 
+app.get('/api/pass-check/:token', async (req, res) => {
+  await bookingStoreReady;
+  const token = String(req.params.token || '').trim();
+  const request = bookingRequests.find(item => getRequestPassengers(item).some(passenger => passenger.boardingPassToken === token));
+  if (!request || !isBoardingPassReady(request)) return res.status(404).json({ error: 'PASS NOT VALID' });
+  const passenger = getRequestPassengers(request).find(item => item.boardingPassToken === token);
+  if (!passenger) return res.status(404).json({ error: 'PASS NOT VALID' });
+  const pass = publicBoardingPassView(request, passenger);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    verification: {
+      status: pass.status,
+      statusTone: pass.statusTone,
+      reference: pass.reference,
+      passenger: pass.passenger,
+      route: `${pass.from} to ${pass.to}`,
+      date: pass.date,
+      boardingTime: pass.boardingTime,
+      seat: pass.seat,
+      baggage: pass.baggage,
+      gate: pass.gate
+    }
+  });
+});
+
+app.get('/api/boarding-passes/:token/calendar.ics', async (req, res) => {
+  await bookingStoreReady;
+  const token = String(req.params.token || '').trim();
+  const request = bookingRequests.find(item => getRequestPassengers(item).some(passenger => passenger.boardingPassToken === token));
+  if (!request || !isBoardingPassReady(request)) return res.status(404).end();
+  const passenger = getRequestPassengers(request).find(item => item.boardingPassToken === token);
+  const calendar = passenger ? buildBoardingPassCalendar(request, passenger) : null;
+  if (!calendar) return res.status(400).json({ error: 'FLIGHT DATE AND TIME REQUIRED' });
+  res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${request.id}-PAX${passenger.number || 1}.ics"`);
+  res.setHeader('Cache-Control', 'no-store');
+  res.send(calendar);
+});
+
 app.get('/api/boarding-passes/:token/qr', async (req, res) => {
   await bookingStoreReady;
   const token = String(req.params.token || '').trim();
@@ -2566,7 +2661,7 @@ app.get('/api/boarding-passes/:token/qr', async (req, res) => {
 
   try {
     const QRCode = (await import('qrcode')).default;
-    const passUrl = `${req.protocol}://${req.get('host')}/boarding-pass/${encodeURIComponent(token)}`;
+    const passUrl = `${req.protocol}://${req.get('host')}/pass-check/${encodeURIComponent(token)}`;
     const svg = await QRCode.toString(passUrl, {
       type: 'svg',
       margin: 1,

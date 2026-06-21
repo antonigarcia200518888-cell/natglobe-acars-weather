@@ -19,6 +19,17 @@
     .pass-status.pending { color: #ffcc66; }
     .pass-status.declined, .pass-status.completed { color: #ff6b6b; }
     .ticket { position: relative; width: 100%; aspect-ratio: 2000 / 647; background: url('/boarding-pass-template-clean.png') center / 100% 100% no-repeat; box-shadow: 0 28px 80px rgba(0,0,0,.42); overflow: hidden; }
+    .boarding-information { margin-top: 14px; border-top: 2px solid #ff6b6b; padding: 12px 0 0; color: #fff; }
+    .boarding-information[hidden] { display: none; }
+    .boarding-information-title { margin: 0 0 10px; color: #ff6b6b; font: 600 11px/1 Poppins, Arial, sans-serif; letter-spacing: .11em; text-transform: uppercase; }
+    .boarding-information-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 8px; align-items: stretch; }
+    .boarding-detail { min-width: 0; border: 1px solid rgba(255,255,255,.24); padding: 9px 10px; }
+    .boarding-detail span { display: block; color: rgba(255,255,255,.58); font: 600 9px/1.2 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .boarding-detail strong { display: block; margin-top: 6px; color: #fff; font: 400 18px/1 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
+    .boarding-detail.alert { border-color: rgba(255,107,107,.7); }
+    .boarding-detail.alert strong { color: #ff6b6b; }
+    .calendar-link { display: flex; align-items: center; justify-content: center; min-width: 156px; border: 1px solid #fff; color: #fff; padding: 10px; font: 600 10px/1 Poppins, Arial, sans-serif; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+    .calendar-link:hover { border-color: #66ff99; color: #66ff99; }
     .field { position: absolute; display: flex; align-items: center; overflow: hidden; color: #050505; font-family: "Computer Says No", "Courier New", monospace; font-weight: 400; line-height: 1; text-transform: uppercase; white-space: nowrap; }
     .paper { background: transparent; }
     .stub { color: #fff; background: transparent; }
@@ -46,6 +57,7 @@
       .pass-status { padding: 6px 8px; font-size: 9px; }
       .shell { width: 100%; }
       .ticket { display: none !important; }
+      .boarding-information { display: none !important; }
       .mobile-pass { display: none !important; }
       .orientation-notice { min-height: calc(100dvh - 56px); padding: 28px; display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; font: 500 15px/1.5 Poppins, Arial, sans-serif; }
       .orientation-notice strong { display: block; margin-bottom: 8px; font: 400 27px/1 "Computer Says No", monospace; letter-spacing: .04em; }
@@ -73,6 +85,11 @@
       .heading { font-size: 10px; }
       .orientation-notice { display: none; }
       .ticket { display: block !important; width: min(100%, 1180px); margin: 0 auto; }
+      .boarding-information { width: min(100%, 1180px); margin-left: auto; margin-right: auto; }
+    }
+    @media (max-width: 760px) and (orientation: landscape) {
+      .boarding-information-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .calendar-link { min-height: 44px; }
     }
   </style>
 </head>
@@ -95,6 +112,16 @@
       <div id="dob" class="field stub dob">VERIFIED</div>
       <div id="departure" class="field stub departure">00:00</div>
       <div id="arrival" class="field stub arrival">00:00</div>
+    </section>
+    <section id="boardingInformation" class="boarding-information" hidden aria-label="Boarding information">
+      <h2 class="boarding-information-title">Boarding Information</h2>
+      <div class="boarding-information-grid">
+        <div class="boarding-detail"><span>Seat</span><strong id="passSeat">Rear left</strong></div>
+        <div class="boarding-detail"><span>Baggage</span><strong id="passBaggage">No baggage declared</strong></div>
+        <div class="boarding-detail"><span>Gate</span><strong id="passGate">GA stand</strong></div>
+        <div class="boarding-detail alert"><span>Arrival</span><strong id="passCheckIn">Arrive 20 min before</strong></div>
+        <a id="calendarLink" class="calendar-link" href="#" download>ADD TO CALENDAR</a>
+      </div>
     </section>
     <section id="mobilePass" class="mobile-pass" hidden aria-label="Mobile private flight boarding pass">
       <div class="mobile-top"><div class="mobile-brand">Private Flight</div><div class="mobile-status">CONFIRMED</div></div>
@@ -119,7 +146,7 @@
     fetch(`/api/boarding-passes/${encodeURIComponent(token)}`, { cache: 'no-store' })
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(({ pass }) => {
-        set('passenger', pass.passenger); set('stubName', pass.passenger); set('gate', pass.gate); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', 'PA28-200R'); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', 'PA28-200R'); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileDob', pass.dob); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; const passStatus = document.getElementById('passStatus'); passStatus.textContent = pass.status; passStatus.className = `pass-status ${pass.statusTone || ''}`; if (window.matchMedia('(max-width: 900px)').matches && window.screen?.orientation?.lock) window.screen.orientation.lock('landscape').catch(() => {}); document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false; document.getElementById('mobilePass').hidden = false;
+        set('passenger', pass.passenger); set('stubName', pass.passenger); set('gate', pass.gate); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', pass.aircraft); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); set('passSeat', pass.seat); set('passBaggage', pass.baggage); set('passGate', pass.gate); set('passCheckIn', pass.checkIn); document.getElementById('calendarLink').href = `/api/boarding-passes/${encodeURIComponent(token)}/calendar.ics`; const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', pass.aircraft); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileDob', pass.dob); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; const passStatus = document.getElementById('passStatus'); passStatus.textContent = pass.status; passStatus.className = `pass-status ${pass.statusTone || ''}`; if (window.matchMedia('(max-width: 900px)').matches && window.screen?.orientation?.lock) window.screen.orientation.lock('landscape').catch(() => {}); document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false; document.getElementById('boardingInformation').hidden = false; document.getElementById('mobilePass').hidden = false;
       })
       .catch(() => { document.getElementById('error').hidden = false; });
   </script>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#11121a" />
+  <title>Passenger Flight Pass Check</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    @font-face { font-family: "Computer Says No"; src: url('/fonts/computer-says-no.woff2') format('woff2'); font-display: swap; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 22px; background: #11121a; color: #fff; font-family: Poppins, Arial, sans-serif; }
+    .check { width: min(560px, 100%); border: 1px solid rgba(255,255,255,.3); padding: 20px; background: #151621; }
+    .eyebrow { margin: 0 0 12px; color: rgba(255,255,255,.6); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+    .result { margin: 0 0 18px; color: #66ff99; font: 400 clamp(30px, 9vw, 48px)/1 "Computer Says No", monospace; letter-spacing: .04em; }
+    .result.pending { color: #ffcc66; } .result.declined, .result.completed, .result.invalid { color: #ff6b6b; }
+    .reference { padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.22); color: #fff; font: 400 21px/1 "Computer Says No", monospace; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin-top: 14px; background: rgba(255,255,255,.14); }
+    .item { min-width: 0; padding: 13px; background: #151621; }
+    .item span { display: block; color: rgba(255,255,255,.55); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .item strong { display: block; margin-top: 7px; font: 400 18px/1.1 "Computer Says No", monospace; overflow-wrap: anywhere; text-transform: uppercase; }
+    .route { grid-column: 1 / -1; } .route strong { font-size: 22px; }
+    .note { margin: 16px 0 0; color: rgba(255,255,255,.56); font-size: 11px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main class="check">
+    <p class="eyebrow">Private Flight / Passenger Pass Check</p>
+    <h1 id="result" class="result">CHECKING</h1>
+    <div id="reference" class="reference">...</div>
+    <div id="details" class="grid" hidden>
+      <div class="item route"><span>Route</span><strong id="route">...</strong></div>
+      <div class="item"><span>Passenger</span><strong id="passenger">...</strong></div>
+      <div class="item"><span>Date</span><strong id="date">...</strong></div>
+      <div class="item"><span>Boarding</span><strong id="boarding">...</strong></div>
+      <div class="item"><span>Seat</span><strong id="seat">...</strong></div>
+      <div class="item"><span>Baggage</span><strong id="baggage">...</strong></div>
+      <div class="item"><span>Gate</span><strong id="gate">...</strong></div>
+    </div>
+    <p class="note">Use this screen to confirm the passenger flight pass before boarding. Passenger passport details are checked separately by the pilot or ground team.</p>
+  </main>
+  <script>
+    const token = location.pathname.split('/').filter(Boolean).pop();
+    const set = (id, value) => document.getElementById(id).textContent = value || 'TBD';
+    fetch(`/api/pass-check/${encodeURIComponent(token)}`, { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(({ verification }) => {
+        const result = document.getElementById('result');
+        result.textContent = verification.status;
+        result.className = `result ${verification.statusTone || ''}`;
+        set('reference', verification.reference); set('route', verification.route); set('passenger', verification.passenger); set('date', verification.date); set('boarding', verification.boardingTime); set('seat', verification.seat); set('baggage', verification.baggage); set('gate', verification.gate);
+        document.getElementById('details').hidden = false;
+        document.title = `${verification.reference} / Pass Check`;
+      })
+      .catch(() => { const result = document.getElementById('result'); result.textContent = 'NOT VALID'; result.className = 'result invalid'; document.getElementById('reference').textContent = 'NO ACTIVE PASS FOUND'; });
+  </script>
+</body>
+</html>
