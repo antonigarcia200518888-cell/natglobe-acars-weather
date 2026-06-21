@@ -166,6 +166,12 @@ async function persistBookingRequest(request) {
   );
 }
 
+async function removeBookingRequest(requestId) {
+  if (!bookingPool) return;
+  await bookingPool.query('DELETE FROM booking_timeline WHERE request_id = $1', [requestId]);
+  await bookingPool.query('DELETE FROM booking_requests WHERE id = $1', [requestId]);
+}
+
 async function persistAvailability(date, item) {
   if (!bookingPool) return;
   await bookingPool.query(
@@ -203,6 +209,19 @@ const bookingAirports = [
   { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Kuressaare', country: 'Estonia', type: 'regional / GA', lat: 58.2300, lon: 22.5095 },
   { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', type: 'controlled / GA', lat: 59.3544, lon: 17.9417 }
 ];
+
+function nextBookingReference(depIcao, arrIcao) {
+  const dep = bookingAirports.find(airport => airport.icao === depIcao);
+  const arr = bookingAirports.find(airport => airport.icao === arrIcao);
+  const route = `${dep?.short || depIcao || 'DEP'}-${arr?.short || arrIcao || 'ARR'}`.toUpperCase();
+  const prefix = `${route}-`;
+  const highest = bookingRequests.reduce((max, request) => {
+    if (!String(request.id || '').startsWith(prefix)) return max;
+    const sequence = Number(String(request.id).slice(prefix.length));
+    return Number.isInteger(sequence) ? Math.max(max, sequence) : max;
+  }, 0);
+  return `${prefix}${String(highest + 1).padStart(3, '0')}`;
+}
 
 const BOOKING_TERMINALS = {
   EFHK: 'FINAVIA FBO',
@@ -681,7 +700,7 @@ function formatBookingMessage(request) {
     : null;
 
   return [
-    'NATGLOBE BOOKING REQUEST',
+    'PRIVATE FLIGHT OPERATIONS REQUEST',
     '------------------------',
     `REF ${request.id}   STATUS ${request.status}`,
     `FLT ${request.flightId}   ${request.dep}-${request.arr}   ${request.requestDate} ${request.requestTime}`,
@@ -2459,6 +2478,17 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
   });
 });
 
+app.delete('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const requestId = String(req.params.id || '').trim().toUpperCase();
+  const index = bookingRequests.findIndex(item => item.id === requestId);
+  if (index === -1) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  bookingRequests.splice(index, 1);
+  bookingTimeline.delete(requestId);
+  await removeBookingRequest(requestId);
+  res.json({ ok: true, id: requestId });
+});
+
 app.get('/api/booking-ops/requests/:id/timeline', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   const requestId = String(req.params.id || '').trim().toUpperCase();
@@ -2671,7 +2701,7 @@ app.post('/api/booking-requests', async (req, res) => {
   const priceEstimate = estimateBookingPrice(depAirport, arrAirport, seats, tripType);
 
   const request = {
-    id: `BRQ-${randomUUID().slice(0, 8).toUpperCase()}`,
+    id: nextBookingReference(depAirport.icao, arrAirport.icao),
     flightId: flight?.id || `NG-RQ-${Date.now().toString().slice(-5)}`,
     flightTitle: flight?.title || `${depAirport.city} to ${arrAirport.city}`,
     route: `${depAirport.icao}-${arrAirport.icao}`,
