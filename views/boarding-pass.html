@@ -13,7 +13,11 @@
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 28px; background: #11121a; font-family: Arial, Helvetica, sans-serif; }
     .shell { width: min(1280px, 100%); }
-    .heading { margin: 0 0 12px; color: rgba(255,255,255,.82); font: 600 13px/1.4 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .pass-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+    .heading { margin: 0; color: rgba(255,255,255,.82); font: 600 13px/1.4 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .pass-status { border: 1px solid currentColor; padding: 7px 10px; color: #66ff99; font: 600 10px/1 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+    .pass-status.pending { color: #ffcc66; }
+    .pass-status.declined, .pass-status.completed { color: #ff6b6b; }
     .ticket { position: relative; width: 100%; aspect-ratio: 2000 / 647; background: url('/boarding-pass-template-clean.png') center / 100% 100% no-repeat; box-shadow: 0 28px 80px rgba(0,0,0,.42); overflow: hidden; }
     .field { position: absolute; display: flex; align-items: center; overflow: hidden; color: #050505; font-family: "Computer Says No", "Courier New", monospace; font-weight: 400; line-height: 1; text-transform: uppercase; white-space: nowrap; }
     .paper { background: transparent; }
@@ -33,15 +37,18 @@
     .dob { left: 88%; top: 71.2%; width: 8%; height: 5.4%; font-size: clamp(10px, 1.35vw, 23px); }
     .departure { left: 73.7%; top: 87%; width: 10%; height: 5.2%; font-size: clamp(10px, 1.35vw, 23px); }
     .arrival { left: 88%; top: 87%; width: 8%; height: 5.2%; font-size: clamp(10px, 1.35vw, 23px); }
-    .mobile-pass { display: none; }
+    .mobile-pass, .orientation-notice { display: none; }
     .error { max-width: 620px; padding: 30px; border: 1px solid rgba(255,255,255,.25); color: #fff; font: 16px/1.5 "Courier New", monospace; }
     @media (max-width: 680px) {
       body { display: block; padding: 0; background: #11121a; }
-      .heading { margin: 18px 18px 12px; font-size: 11px; }
+      .pass-header { margin: 0; padding: 14px 16px 10px; }
+      .heading { font-size: 10px; }
+      .pass-status { padding: 6px 8px; font-size: 9px; }
       .shell { width: 100%; }
       .ticket { display: none !important; }
-      .mobile-pass:not([hidden]) { display: block; }
-      .mobile-pass { display: flex; flex-direction: column; min-height: calc(100dvh - 56px); margin: 0 14px 0; overflow: hidden; background: #f8f8f6; color: #101118; box-shadow: 0 22px 54px rgba(0,0,0,.42); }
+      .mobile-pass { display: none !important; }
+      .orientation-notice { min-height: calc(100dvh - 56px); padding: 28px; display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; font: 500 15px/1.5 Poppins, Arial, sans-serif; }
+      .orientation-notice strong { display: block; margin-bottom: 8px; font: 400 27px/1 "Computer Says No", monospace; letter-spacing: .04em; }
       .mobile-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px; background: linear-gradient(110deg, #0d0b3d, #312ac0); color: #fff; }
       .mobile-brand { font: 400 29px/1 "Computer Says No", monospace; letter-spacing: .045em; }
       .mobile-status { border: 1px solid rgba(255,255,255,.58); padding: 6px 8px; font: 600 10px/1 Poppins, sans-serif; letter-spacing: .08em; }
@@ -60,11 +67,19 @@
       .mobile-value { margin-top: 8px; font: 400 20px/1.1 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
       .mobile-note { margin-top: auto; padding: 14px 18px 18px; color: #4c4e56; font: 500 11px/1.45 Poppins, Arial, sans-serif; }
     }
+    @media (max-width: 900px) and (orientation: landscape) {
+      body { display: grid; place-items: center; min-height: 100dvh; padding: 10px; }
+      .pass-header { width: min(100%, 1180px); padding: 0 0 8px; }
+      .heading { font-size: 10px; }
+      .orientation-notice { display: none; }
+      .ticket { display: block !important; width: min(100%, 1180px); margin: 0 auto; }
+    }
   </style>
 </head>
 <body>
   <main class="shell">
-    <p class="heading">Private Flight / Passenger Information Pass</p>
+    <div class="pass-header"><p class="heading">Private Flight / Passenger Information Pass</p><div id="passStatus" class="pass-status">CONFIRMED</div></div>
+    <div id="orientationNotice" class="orientation-notice"><div><strong>Rotate your phone</strong>Turn your phone sideways to view your private flight passenger pass.</div></div>
     <section id="ticket" class="ticket" hidden aria-label="Private flight boarding pass">
       <div id="passenger" class="field paper passenger">Private guest</div>
       <div id="gate" class="field paper gate">GA stand</div>
@@ -104,7 +119,7 @@
     fetch(`/api/boarding-passes/${encodeURIComponent(token)}`, { cache: 'no-store' })
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(({ pass }) => {
-        set('passenger', pass.passenger); set('stubName', pass.passenger); set('gate', pass.gate); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', 'PA28-200R'); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', 'PA28-200R'); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileDob', pass.dob); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false; document.getElementById('mobilePass').hidden = false;
+        set('passenger', pass.passenger); set('stubName', pass.passenger); set('gate', pass.gate); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', 'PA28-200R'); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', 'PA28-200R'); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileDob', pass.dob); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; const passStatus = document.getElementById('passStatus'); passStatus.textContent = pass.status; passStatus.className = `pass-status ${pass.statusTone || ''}`; if (window.matchMedia('(max-width: 900px)').matches && window.screen?.orientation?.lock) window.screen.orientation.lock('landscape').catch(() => {}); document.title = `${pass.reference} / Private Flight`; document.getElementById('ticket').hidden = false; document.getElementById('mobilePass').hidden = false;
       })
       .catch(() => { document.getElementById('error').hidden = false; });
   </script>

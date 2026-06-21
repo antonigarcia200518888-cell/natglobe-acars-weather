@@ -473,6 +473,16 @@ function boardingPassGate(icao) {
   return BOOKING_TERMINALS[icao] || 'GA STAND';
 }
 
+function boardingPassStatus(request) {
+  const departure = new Date(`${request.requestDate || ''}T${request.requestTime || '00:00'}:00`);
+  if (!Number.isNaN(departure.getTime()) && Date.now() > departure.getTime() + (4 * 60 * 60 * 1000)) {
+    return { label: 'COMPLETED', tone: 'completed' };
+  }
+  if (request.status === 'DECLINED') return { label: 'DECLINED', tone: 'declined' };
+  if (request.status === 'NEEDS INFO') return { label: 'PENDING', tone: 'pending' };
+  return { label: 'CONFIRMED', tone: 'confirmed' };
+}
+
 function formatBoardingPassDate(value) {
   const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
   return match ? `${match[3]}.${match[2]}.${match[1]}` : (value || 'TBD');
@@ -498,6 +508,7 @@ function publicBoardingPassView(request, passenger) {
   const title = ['MR', 'MS', 'MX', 'DR'].includes(String(passenger.title || '').toUpperCase())
     ? `${String(passenger.title).toUpperCase()}. `
     : '';
+  const passStatus = boardingPassStatus(request);
   return {
     reference: request.id,
     passenger: `${title}${passenger.name || 'PRIVATE GUEST'}`,
@@ -517,7 +528,8 @@ function publicBoardingPassView(request, passenger) {
     baggage: request.carryOnBags === 'YES'
       ? `${request.baggageWeightKg || '0'} KG ${request.bagType || 'CARRY-ON'}`
       : 'NO BAGGAGE DECLARED',
-    status: 'CONFIRMED'
+    status: passStatus.label,
+    statusTone: passStatus.tone
   };
 }
 
