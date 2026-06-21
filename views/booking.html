@@ -415,6 +415,10 @@
       line-height: 1.25;
     }
 
+    .amenity-icon { display: inline-block; width: 16px; height: 16px; margin: 0 6px -3px 0; vertical-align: baseline; }
+    .amenity-icon.wifi, .amenity-icon.water { color: #58a6ff; }
+    .amenity-icon.charge { color: #ff8a3d; }
+
     .booking-panel-head {
       display: flex;
       justify-content: space-between;
@@ -1761,9 +1765,9 @@
           </div>
           <p>Private touring comfort for short regional flights, with a personal cabin and practical onboard essentials.</p>
           <div class="amenity-grid">
-            <div class="amenity">Starlink Wi-Fi planned onboard</div>
-            <div class="amenity">USB-C charging available</div>
-            <div class="amenity">Chilled Water included</div>
+            <div class="amenity"><svg class="amenity-icon wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 9c5.4-4.5 12.6-4.5 18 0"/><path d="M6.5 13c3.3-2.7 7.7-2.7 11 0"/><path d="M10 17c1.2-1 2.8-1 4 0"/><path d="M12 21h.01"/></svg>Starlink Wi-Fi planned onboard</div>
+            <div class="amenity"><svg class="amenity-icon charge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 5 14h6l-1 8 9-13h-6z"/></svg>USB-C charging available</div>
+            <div class="amenity"><svg class="amenity-icon water" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11Z"/></svg>Chilled Water included</div>
           </div>
         </div>
       </section>
