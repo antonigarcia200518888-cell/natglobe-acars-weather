@@ -1271,6 +1271,8 @@
     }
 
     .check input { width: auto; min-height: auto; margin-top: 2px; }
+    .signature-field { margin-top: 10px; border: 1px solid #666; padding: 10px; background: #050505; }
+    .signature-field small { display: block; margin-top: 7px; color: #999; font-size: 10px; line-height: 1.35; text-transform: uppercase; }
 
     .confirmation {
       display: none;
@@ -1883,6 +1885,11 @@
             </div>
             <div class="consent">
               <label class="check"><input id="safetyAgreement" type="checkbox" required /> I have read and accept the passenger safety declaration and will declare anything relevant before the flight.</label>
+              <div class="signature-field">
+                <label for="safetySignature">Typed signature</label>
+                <input id="safetySignature" type="text" autocomplete="name" placeholder="Type your full legal name" required />
+                <small>Your signature is used to process this declaration and is not saved as signature text. The booking records only the acceptance and signing time.</small>
+              </div>
             </div>
           </div>
 
@@ -2559,15 +2566,16 @@
       refreshPassengerCardState(passengers);
       const routeReady = !!(dep && arr && dep.icao !== arr.icao);
       const safetyReady = el('safetyAgreement').checked;
+      const signatureReady = Boolean(el('safetySignature').value.trim());
       const luggageReady = el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value);
       setReady('readyRoute', routeReady, 'Route selected', 'Route pending');
       setReady('readyPassengers', completePassengers, 'Traveller details ready', 'Traveller details pending');
-      setReady('readySafety', safetyReady, 'Safety accepted', 'Safety acceptance pending');
+      setReady('readySafety', safetyReady && signatureReady, 'Safety accepted and signed', 'Safety acceptance and signature pending');
       setReady('readyBaggage', luggageReady, el('carryOnBags').value === 'YES' ? 'Luggage declared' : 'No luggage declared', 'Luggage weight pending');
       setMobileMarker('markerRoute', routeReady);
       setMobileMarker('markerTravellers', completePassengers);
       setMobileMarker('markerLuggage', luggageReady);
-      setMobileMarker('markerReview', routeReady && completePassengers && safetyReady && luggageReady);
+      setMobileMarker('markerReview', routeReady && completePassengers && safetyReady && signatureReady && luggageReady);
     }
 
     function refreshSummary() {
@@ -2898,6 +2906,7 @@
             emergencyPhone: '',
             medicalStatus: el('safetyAgreement').checked ? 'SAFETY DECLARATION ACCEPTED' : 'NOT ACCEPTED',
             substancesStatus: el('safetyAgreement').checked ? 'PASSENGER AGREES TO DECLARE BEFORE FLIGHT' : 'NOT ACCEPTED',
+            signatureProcessed: Boolean(el('safetySignature').value.trim() && el('safetyAgreement').checked),
             carryOnBags: el('carryOnBags').value,
             baggageWeightKg: el('carryOnBags').value === 'YES' ? el('baggageWeightKg').value : 'N/A',
             bagType: `${el('bagCount').value} BAG(S) / ${el('bagType').value}`,

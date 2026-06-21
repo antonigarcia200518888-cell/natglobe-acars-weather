@@ -2384,6 +2384,11 @@ app.get('/booking', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'booking.html'));
 });
 
+app.get('/booking-status', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'booking-status.html'));
+});
+
 app.get('/booking-start', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'booking-login.html'));
@@ -2447,6 +2452,31 @@ app.get('/api/booking-airports', async (req, res) => {
     console.error(err);
     res.status(500).json({ airports: bookingAirports });
   }
+});
+
+app.get('/api/booking-status', async (req, res) => {
+  await bookingStoreReady;
+  const reference = String(req.query?.reference || '').trim().toUpperCase();
+  const email = String(req.query?.email || '').trim().toLowerCase();
+  const request = bookingRequests.find(item => item.id === reference && String(item.email || '').trim().toLowerCase() === email);
+  if (!request) return res.status(404).json({ error: 'BOOKING NOT FOUND' });
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    booking: {
+      reference: request.id,
+      status: request.status || 'REQUESTED',
+      pilotDecision: request.pilotDecision || 'PENDING',
+      paymentStatus: request.paymentStatus || 'UNPAID',
+      title: request.flightTitle,
+      route: `${request.depName || request.dep} to ${request.arrName || request.arr}`,
+      departure: `${request.requestDate || ''} ${request.requestTime || ''}`.trim(),
+      tripType: request.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY',
+      passengers: request.seats,
+      aircraft: request.aircraft,
+      flightTime: request.flightTime || 'Pilot confirms',
+      seatPreference: request.seatPreference || 'To be assigned'
+    }
+  });
 });
 
 app.get('/api/cost-share-flights', async (req, res) => {
@@ -2770,6 +2800,7 @@ app.post('/api/booking-requests', async (req, res) => {
   const flightPurpose = normalizeBookingText(req.body?.flightPurpose, 40);
   const scheduleFlexibility = normalizeBookingText(req.body?.scheduleFlexibility, 60);
   const contractAccepted = req.body?.contractAccepted === true || req.body?.contractAccepted === 'true';
+  const signatureProcessed = req.body?.signatureProcessed === true || req.body?.signatureProcessed === 'true';
 
   if (!name || !email || !email.includes('@')) {
     return res.status(400).json({ error: 'LEAD PASSENGER NAME AND VALID EMAIL REQUIRED' });
@@ -2804,6 +2835,9 @@ app.post('/api/booking-requests', async (req, res) => {
 
   if (!contractAccepted) {
     return res.status(400).json({ error: 'CONTRACT AGREEMENT MUST BE ACCEPTED' });
+  }
+  if (!signatureProcessed) {
+    return res.status(400).json({ error: 'SAFETY DECLARATION SIGNATURE REQUIRED' });
   }
 
   const priceEstimate = estimateBookingPrice(depAirport, arrAirport, seats, tripType);
@@ -2854,6 +2888,7 @@ app.post('/api/booking-requests', async (req, res) => {
     flightPurpose,
     scheduleFlexibility,
     contractAccepted,
+    signatureProcessedAt: new Date().toISOString(),
     pilotDecision: 'PENDING',
     paymentStatus: 'UNPAID',
     message,

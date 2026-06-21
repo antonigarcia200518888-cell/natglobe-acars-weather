@@ -88,6 +88,14 @@
       text-transform: uppercase;
     }
 
+    .ops-calendar { border: 2px solid var(--line); padding: 12px; margin-bottom: 12px; background: #050505; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .calendar-day { border: 1px solid #555; padding: 9px; min-height: 92px; }
+    .calendar-day strong { display:block; color: var(--live); font-size: 12px; margin-bottom: 7px; }
+    .calendar-flight { border-top: 1px solid #333; padding: 6px 0; color: #ddd; font-size: 11px; line-height: 1.35; cursor: pointer; text-transform: uppercase; }
+    .calendar-flight:first-of-type { border-top: 0; padding-top: 0; }
+    .calendar-flight:hover { color: #fff; }
+
     .layout {
       display: grid;
       grid-template-columns: minmax(260px, 0.32fr) minmax(0, 1fr);
@@ -448,6 +456,7 @@
       .title-row { flex-direction: column; }
       .badge { white-space: normal; }
       .queue-panel { position: static; max-height: none; }
+      .calendar-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -461,6 +470,7 @@
     <div id="clock" class="clock">UTC --:--:--</div>
     <div class="intro">Customer-facing booking requests converted into structured pilot and dispatch messages.</div>
     <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
+    <section class="ops-calendar"><div class="panel-title">OPERATIONS CALENDAR</div><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></section>
 
     <div class="layout">
       <aside class="panel queue-panel">
@@ -595,6 +605,7 @@ END OF MESSAGE</pre>
     const commander = el('commander');
     const secondary = el('secondary');
     const saveCrewBtn = el('saveCrewBtn');
+    const opsCalendar = el('opsCalendar');
 
     let requests = [];
     let selected = null;
@@ -710,6 +721,15 @@ END OF MESSAGE</pre>
       `).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
     }
 
+    function renderCalendar() {
+      const grouped = requests.filter(req => req.requestDate).reduce((map, req) => {
+        (map.get(req.requestDate) || map.set(req.requestDate, []).get(req.requestDate)).push(req);
+        return map;
+      }, new Map());
+      const days = [...grouped.keys()].sort().slice(0, 12);
+      opsCalendar.innerHTML = days.length ? days.map(date => `<div class="calendar-day"><strong>${escapeHtml(date)}</strong>${grouped.get(date).sort((a,b) => String(a.requestTime).localeCompare(String(b.requestTime))).map(req => `<div class="calendar-flight" data-calendar-id="${escapeHtml(req.id)}">${escapeHtml(req.requestTime || '--:--')} / ${escapeHtml(req.route)}<br>${escapeHtml(req.crew?.commander || 'CMD UNASSIGNED')} / ${escapeHtml(req.status)}</div>`).join('')}</div>`).join('') : '<div class="calendar-day">No scheduled booking requests yet.</div>';
+    }
+
     function selectRequest(req) {
       selected = req;
       el('ref').textContent = req.id || '.....';
@@ -783,6 +803,7 @@ END OF MESSAGE</pre>
       requests = data.requests || [];
       selected = null;
       renderList();
+      renderCalendar();
       if (requests[0]) selectRequest(requests[0]);
       mode.textContent = 'MODE: BOOKING OPS LIVE';
     }
@@ -791,6 +812,11 @@ END OF MESSAGE</pre>
       const row = event.target.closest('[data-id]');
       if (!row) return;
       const req = requests.find(item => item.id === row.getAttribute('data-id'));
+      if (req) selectRequest(req);
+    });
+    opsCalendar.addEventListener('click', (event) => {
+      const row = event.target.closest('[data-calendar-id]');
+      const req = requests.find(item => item.id === row?.getAttribute('data-calendar-id'));
       if (req) selectRequest(req);
     });
 
