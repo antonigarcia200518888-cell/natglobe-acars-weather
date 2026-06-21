@@ -88,6 +88,10 @@
     }
 
     .connection-badge.conn-good { color: var(--live); }
+
+    .portal-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .portal-link { border: 1px solid #666; color: #d7d7d7; background: #050505; padding: 8px 10px; font: 700 12px "Courier New", monospace; text-decoration: none; text-transform: uppercase; }
+    .portal-link:hover { border-color: var(--live); color: var(--live); }
     .connection-badge.conn-weak { color: var(--warn); }
     .connection-badge.conn-offline { color: var(--danger); }
 
@@ -974,6 +978,7 @@
         flex-direction: column;
         align-items: flex-start;
       }
+      .portal-links { display: grid; grid-template-columns: 1fr; }
 
       .grid, .grid-2, .actions, .utility-actions, .options-groups, .performance-grid, .performance-row, .performance-actions {
         grid-template-columns: 1fr;
@@ -1009,6 +1014,12 @@
     </div>
 
     <div id="utcClock" class="utc-clock">UTC --:--:--</div>
+
+    <nav class="portal-links" aria-label="Private flight tools">
+      <a class="portal-link" href="/booking">Private flight booking</a>
+      <a class="portal-link" href="/booking-start">Crew or passenger access</a>
+      <a class="portal-link" href="/booking-ops">Booking operations</a>
+    </nav>
 
     <div class="intro">
       Choose exactly what weather sections to include. ORIG / DEST are automatic from DEP / ARR.
