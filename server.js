@@ -743,9 +743,15 @@ function formatBookingMessage(request) {
     `DOB ${passenger.dob || 'NIL'}   PPT CTRY ${passenger.passportCountry || 'NIL'}   ID ${passenger.nationalId || 'NIL'}   TEL ${passenger.phone || 'NIL'}   EMAIL ${passenger.email || 'NIL'}`
   ]);
 
+  const bagType = String(request.bagType || '').replace(/\s*\/\s*$/, '').trim();
+  const extras = String(request.extras || '').trim();
+  const extrasNote = String(request.extrasNotes || '').trim();
+  const emergency = request.emergencyName || request.emergencyPhone
+    ? `EMERG ${request.emergencyName || 'NIL'} / ${request.emergencyPhone || 'NIL'}`
+    : null;
   const returnLine = request.tripType === 'ROUNDTRIP'
-    ? `RETURN ${request.returnDate || 'DATE TBD'} ${request.returnTime || 'TIME TBD'}   PAX ${request.returnPlan || request.returnFlexibility || 'NIL'}`
-    : 'RETURN NIL';
+    ? `RETURN ${request.returnDate || 'DATE TBD'} ${request.returnTime || 'TIME TBD'}   TRAVELLERS ${request.returnPlan || request.returnFlexibility || 'TO BE CONFIRMED'}`
+    : null;
   return [
     'PRIVATE FLIGHT OPERATIONS REQUEST',
     '------------------------',
@@ -756,22 +762,18 @@ function formatBookingMessage(request) {
     `CREW CMD ${request.crew?.commander || 'UNASSIGNED'}   SIC ${request.crew?.secondary || 'NONE'}`,
     `PAX COUNT ${request.seats}`,
     ...passengerLines,
-    `EMERG ${request.emergencyName || 'NIL'} / ${request.emergencyPhone || 'NIL'}`,
-    `PURPOSE ${request.flightPurpose || 'NIL'}   FLEX ${request.scheduleFlexibility || 'NIL'}`,
+    emergency,
     returnLine,
-    `MED ${request.medicalStatus || 'NIL'}   SUBST ${request.substancesStatus || 'NIL'}`,
-    `BAG ${request.carryOnBags || 'NIL'}   WT ${request.baggageWeightKg || '0'}KG   PWRBANK ${request.powerBanks || 'NIL'}`,
-    `BAG TYPE ${request.bagType || 'NIL'}`,
-    `SEAT PREF ${request.seatPreference || 'NO PREFERENCE'}`,
-    `EXTRAS ${request.extras || 'NIL'}   EXTRA RMK ${request.extrasNotes || 'NIL'}`,
+    request.carryOnBags === 'YES' ? `BAG YES   WT ${request.baggageWeightKg || '0'}KG   PWRBANK ${request.powerBanks || 'NO'}` : null,
+    request.carryOnBags === 'YES' && bagType ? `BAG TYPE ${bagType}` : null,
+    request.seatPreference && request.seatPreference !== 'NO PREFERENCE' ? `SEAT PREF ${request.seatPreference}` : null,
+    extras ? `EXTRAS ${extras}${extrasNote ? `   RMK ${extrasNote}` : ''}` : null,
     `TRIP ${request.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY'}   PRICE EUR ${request.costPerSeatEur || 'TBD'} / PAX   TOTAL EUR ${request.estimatedTotalEur || 'TBD'}`,
     `PRICE NOTE ${request.priceNote || 'PILOT CONFIRMS FINAL PRICE'}`,
     `PILOT DECISION ${request.pilotDecision || 'PENDING'}   PAYMENT ${request.paymentStatus || 'UNPAID'}`,
-    '',
-    `AGREEMENT ${request.contractAccepted ? 'ACCEPTED' : 'NOT ACCEPTED'} / RULES SAFETY PAYMENT PILOT CONFIRM REQUIRED.`,
-    `RMK ${request.message || 'PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'}`,
+    request.message ? `RMK ${request.message}` : null,
     'END OF MESSAGE'
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 }
 
 function haversineKm(a, b) {
