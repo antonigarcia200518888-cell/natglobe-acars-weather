@@ -568,7 +568,7 @@ END OF MESSAGE</pre>
             <button id="webPassBtn" class="btn" type="button">ISSUE PASSENGER FLIGHT PASS</button>
           </div>
           <div id="walletPassStatus" class="ops-mini-status">Pilot approval required before issuing a passenger flight pass.</div>
-          <button id="printBtn" class="btn ghost" type="button">PRINT / SAVE AS PDF</button>
+          <button id="openPdfBtn" class="btn ghost" type="button">OPEN PDF</button>
           <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
           <button id="deleteBtn" class="btn ghost danger" type="button">DELETE REQUEST</button>
           <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
@@ -585,7 +585,7 @@ END OF MESSAGE</pre>
     const bookingMessage = el('bookingMessage');
     const opsAlerts = el('opsAlerts');
     const manifestList = el('manifestList');
-    const printBtn = el('printBtn');
+    const openPdfBtn = el('openPdfBtn');
     const refreshBtn = el('refreshBtn');
     const deleteBtn = el('deleteBtn');
     const logoutBtn = el('logoutBtn');
@@ -824,12 +824,13 @@ END OF MESSAGE</pre>
     filterStatus.addEventListener('change', renderList);
     saveCrewBtn.addEventListener('click', () => updateSelected({ crew: { commander: commander.value, secondary: secondary.value } }));
 
-    printBtn.addEventListener('click', () => {
+    openPdfBtn.addEventListener('click', () => {
       if (!selected) {
         mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
         return;
       }
-      window.print();
+      const pdfWindow = window.open(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/pdf`, '_blank', 'noopener');
+      if (!pdfWindow) mode.textContent = 'MODE: POP-UP BLOCKED / ALLOW POP-UPS TO OPEN PDF';
     });
 
     paymentStatus.addEventListener('change', () => updateSelected({ paymentStatus: paymentStatus.value }));

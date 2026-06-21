@@ -2499,6 +2499,29 @@ app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
   });
 });
 
+app.get('/api/booking-ops/requests/:id/pdf', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  const pdfDoc = await PDFDocument.create();
+  const font = await pdfDoc.embedFont(StandardFonts.Courier);
+  const bold = await pdfDoc.embedFont(StandardFonts.CourierBold);
+  const page = pdfDoc.addPage([595.28, 841.89]);
+  page.drawRectangle({ x: 0, y: 0, width: 595.28, height: 841.89, color: rgb(1, 1, 1) });
+  page.drawText('PRIVATE FLIGHT OPERATIONS REQUEST', { x: 42, y: 795, size: 16, font: bold, color: rgb(0.04, 0.05, 0.12) });
+  let y = 765;
+  for (const line of formatBookingMessage(request).split('\n')) {
+    page.drawText(line.slice(0, 90), { x: 42, y, size: 9.5, font: line.startsWith('PRIVATE') || line.startsWith('REF ') ? bold : font, color: rgb(0.08, 0.08, 0.08) });
+    y -= 13;
+    if (y < 45) break;
+  }
+  const pdf = Buffer.from(await pdfDoc.save());
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${request.id}-OPERATIONS-REQUEST.pdf"`);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.send(pdf);
+});
+
 app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
