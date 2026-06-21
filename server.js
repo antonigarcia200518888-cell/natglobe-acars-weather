@@ -589,7 +589,7 @@ function publicBoardingPassView(request, passenger) {
     date: formatBoardingPassDate(request.requestDate),
     boardingTime: formatBoardingPassTime(request.requestTime),
     flightTime: estimateBoardingPassFlightTime(request.dep, request.arr),
-    aircraft: request.aircraft || 'PA-28R-200',
+    aircraft: 'PA28-200R',
     seat: assignedPassengerSeat(request, passenger),
     gate: boardingPassGate(request.dep),
     passport: maskedPassport(passenger),
