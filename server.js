@@ -744,7 +744,7 @@ function formatBookingMessage(request) {
   ]);
 
   const returnLine = request.tripType === 'ROUNDTRIP'
-    ? `RETURN ${request.returnDate || 'DATE TBD'} ${request.returnTime || 'TIME TBD'}   FLEX ${request.returnFlexibility || 'NIL'}`
+    ? `RETURN ${request.returnDate || 'DATE TBD'} ${request.returnTime || 'TIME TBD'}   PAX ${request.returnPlan || request.returnFlexibility || 'NIL'}`
     : 'RETURN NIL';
   return [
     'PRIVATE FLIGHT OPERATIONS REQUEST',
@@ -2731,7 +2731,7 @@ app.post('/api/booking-requests', async (req, res) => {
   const tripType = req.body?.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
   const returnDate = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnDate, 20) : '';
   const returnTime = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnTime, 16) : '';
-  const returnFlexibility = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnFlexibility, 60) : '';
+  const returnPlan = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnPlan, 60) : '';
   const dob = leadPassenger.dob;
   const weightKg = leadPassenger.weightKg;
   const nationalId = leadPassenger.nationalId;
@@ -2813,7 +2813,7 @@ app.post('/api/booking-requests', async (req, res) => {
     tripType,
     returnDate,
     returnTime,
-    returnFlexibility,
+    returnPlan,
     seats,
     passengers,
     name,

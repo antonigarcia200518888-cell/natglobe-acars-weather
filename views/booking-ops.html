@@ -607,7 +607,7 @@ END OF MESSAGE</pre>
 
     function requestReturnText(req) {
       if (req.tripType !== 'ROUNDTRIP') return 'No return leg requested';
-      return `${req.returnDate || 'DATE TBD'} ${req.returnTime || 'TIME TBD'} / ${req.returnFlexibility || 'PILOT CONFIRMS'}`;
+      return `${req.returnDate || 'DATE TBD'} ${req.returnTime || 'TIME TBD'} / ${req.returnPlan || req.returnFlexibility || 'PASSENGERS TO BE CONFIRMED'}`;
     }
 
     function renderAlerts(req) {

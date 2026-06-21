@@ -454,21 +454,13 @@
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr);
       gap: 12px;
       margin-top: 12px;
-      border: 1px solid rgba(102,255,153,0.45);
-      background: rgba(102,255,153,0.04);
+      border: 1px solid #555;
+      background: #050505;
       padding: 10px;
     }
 
     .return-trip-row.show {
       display: grid;
-    }
-
-    .return-trip-note {
-      color: #8d8d8d;
-      font-size: 11px;
-      line-height: 1.35;
-      text-transform: uppercase;
-      align-self: end;
     }
 
     .two { grid-template-columns: 1fr 1fr; }
@@ -1749,15 +1741,13 @@
             <select id="returnTime"></select>
           </div>
           <div>
-            <label for="returnFlexibility">Return flexibility</label>
-            <select id="returnFlexibility">
-              <option value="SAME DAY REQUESTED">Same day requested</option>
-              <option value="FLEXIBLE RETURN TIME">Flexible return time</option>
-              <option value="PILOT TO ADVISE BEST RETURN">Pilot to advise best return</option>
-              <option value="OVERNIGHT / NEXT DAY REQUESTED">Overnight / next day requested</option>
+            <label for="returnPlan">Return travellers</label>
+            <select id="returnPlan">
+              <option value="SAME PASSENGERS AS OUTBOUND">Same passengers as outbound</option>
+              <option value="RETURN PASSENGERS TO BE CONFIRMED">Return passengers to be confirmed</option>
+              <option value="PARTIAL GROUP RETURN">Only part of the group returning</option>
             </select>
           </div>
-          <div class="return-trip-note">Return leg is requested only. Pilot confirms weather, daylight, duty, aircraft availability, and passenger timing before approval.</div>
         </div>
       </section>
 
@@ -2361,12 +2351,12 @@
       el('returnTripRow').classList.toggle('show', roundtrip);
       el('returnDate').required = roundtrip;
       el('returnTime').required = roundtrip;
-      el('returnFlexibility').required = roundtrip;
+      el('returnPlan').required = roundtrip;
       if (roundtrip && (!wasVisible || !el('returnDate').value)) el('returnDate').value = el('requestDate').value;
       if (!roundtrip) {
         el('returnDate').required = false;
         el('returnTime').required = false;
-        el('returnFlexibility').required = false;
+        el('returnPlan').required = false;
       }
     }
 
@@ -2475,7 +2465,7 @@
       el('summaryTripType').textContent = roundtrip ? 'Roundtrip' : 'One way';
       el('summaryReturnRow').style.display = roundtrip ? '' : 'none';
       el('summaryReturn').textContent = roundtrip
-        ? `${el('returnDate').value || 'Date pending'} / ${el('returnTime').value || 'Time pending'} / ${el('returnFlexibility').value || 'Pilot confirms'}`
+        ? `${el('returnDate').value || 'Date pending'} / ${el('returnTime').value || 'Time pending'} / ${el('returnPlan').value || 'Passengers to be confirmed'}`
         : 'Not requested';
       el('summaryFlightTime').textContent = formatFlightTime(dep, arr);
       el('summarySeats').textContent = el('seats').value || '1';
@@ -2676,7 +2666,7 @@
             tripType: el('tripType').value,
             returnDate: el('tripType').value === 'ROUNDTRIP' ? el('returnDate').value : '',
             returnTime: el('tripType').value === 'ROUNDTRIP' ? el('returnTime').value : '',
-            returnFlexibility: el('tripType').value === 'ROUNDTRIP' ? el('returnFlexibility').value : '',
+            returnPlan: el('tripType').value === 'ROUNDTRIP' ? el('returnPlan').value : '',
             seats: el('seats').value,
             passengers: collectPassengers(),
             emergencyName: '',
