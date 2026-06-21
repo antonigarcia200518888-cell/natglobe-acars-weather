@@ -1293,28 +1293,12 @@
       box-shadow: inset 0 0 0 1px var(--danger);
     }
 
-    .route-outlook {
-      border: 1px solid #666;
-      padding: 10px;
-      margin: 10px 0;
-      background: #050505;
-      text-transform: uppercase;
-    }
-
-    .route-outlook-head,
     .traveller-tools {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
     }
-
-    .route-outlook-head strong { color: #fff; font-size: 13px; }
-    .route-outlook-head span { color: var(--live); font-size: 10px; }
-    .outlook-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-    .outlook-item { border: 1px solid #444; padding: 8px; min-height: 56px; }
-    .outlook-item span { display: block; color: #8d8d8d; font-size: 10px; margin-bottom: 4px; }
-    .outlook-item strong { display: block; color: #fff; font-size: 12px; line-height: 1.25; }
 
     .traveller-tools { margin-bottom: 10px; }
     .traveller-tools-copy { color: #8d8d8d; font-size: 11px; text-transform: uppercase; }
@@ -1459,7 +1443,6 @@
         color: var(--live);
       }
       .layout, .two, .three, .passenger-main-grid, .question-grid, .baggage-request-grid, .submit-footer, .status-steps, .seat-options { grid-template-columns: 1fr; }
-      .outlook-grid { grid-template-columns: 1fr; }
       .traveller-tools { align-items: flex-start; flex-direction: column; }
       .traveller-tools-actions { justify-content: flex-start; }
       .review-grid, .review-actions { grid-template-columns: 1fr; }
@@ -1800,15 +1783,6 @@
         </div>
       </section>
 
-      <section class="route-outlook" aria-live="polite">
-        <div class="route-outlook-head"><strong>Route outlook</strong><span id="outlookStatus">Pilot weather check pending</span></div>
-        <div class="outlook-grid">
-          <div class="outlook-item"><span>Departure daylight</span><strong id="outlookDeparture">Select route</strong></div>
-          <div class="outlook-item"><span>Arrival daylight</span><strong id="outlookArrival">Select route</strong></div>
-          <div class="outlook-item"><span>Weather briefing</span><strong id="outlookWeather">Issued after pilot review</strong></div>
-        </div>
-      </section>
-
       <section class="search-card">
         <div class="booking-panel-head">
           <div class="booking-kicker">Your itinerary</div>
@@ -1999,7 +1973,7 @@
       </div>
 
       <div class="card review-card">
-        <h2 class="section-title">Journey overview</h2>
+        <h2 class="section-title">Trip details</h2>
         <div class="quote-label">Private flight request review</div>
         <div class="readiness-grid" aria-label="Booking readiness">
           <div id="readyRoute" class="readiness-item">Route pending</div>
@@ -2428,31 +2402,6 @@
       return Number.isFinite(mins) ? formatMinutes(mins) : mins;
     }
 
-    function daylightState(airport, dateValue, timeValue, extraMinutes = 0) {
-      if (!airport || !dateValue || !timeValue) return 'Time pending';
-      const date = new Date(`${dateValue}T12:00:00`);
-      if (Number.isNaN(date.getTime())) return 'Time pending';
-      const day = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
-      const latitudeFactor = Math.sin(Math.abs(Number(airport.lat) || 60) * Math.PI / 180);
-      const daylightHours = 12 + (6 * Math.sin(((day - 80) / 365) * Math.PI * 2) * latitudeFactor);
-      const sunrise = 12 - daylightHours / 2;
-      const sunset = 12 + daylightHours / 2;
-      const [hours, minutes] = timeValue.split(':').map(Number);
-      const localHours = ((hours || 0) + ((minutes || 0) + extraMinutes) / 60) % 24;
-      if (localHours >= sunrise && localHours <= sunset) return 'Daylight expected';
-      if (localHours >= sunrise - 0.75 && localHours <= sunset + 0.75) return 'Twilight expected';
-      return 'Night operation';
-    }
-
-    function updateRouteOutlook(dep, arr) {
-      const mins = flightMinutes(dep, arr);
-      const travelMinutes = Number.isFinite(mins) ? mins : 0;
-      el('outlookDeparture').textContent = daylightState(dep, el('requestDate').value, el('requestTime').value);
-      el('outlookArrival').textContent = daylightState(arr, el('requestDate').value, el('requestTime').value, travelMinutes);
-      el('outlookWeather').textContent = dep && arr ? 'Pilot briefing before confirmation' : 'Issued after pilot review';
-      el('outlookStatus').textContent = dep && arr ? 'Pilot weather check pending' : 'Select a route';
-    }
-
     function fillPickerWheels() {
       const today = new Date();
       el('requestDate').innerHTML = Array.from({ length: 120 }, (_, index) => {
@@ -2641,7 +2590,6 @@
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
       requestSummary();
-      updateRouteOutlook(dep, arr);
       updateReadiness(dep, arr);
       el('mobileTripLine').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select route';
       el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'} / ${routePrice(dep, arr)}`;
