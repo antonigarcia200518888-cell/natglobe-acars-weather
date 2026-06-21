@@ -1297,19 +1297,6 @@
       box-shadow: inset 0 0 0 1px var(--danger);
     }
 
-    .traveller-tools {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .traveller-tools { margin-bottom: 10px; }
-    .traveller-tools-copy { color: #8d8d8d; font-size: 11px; text-transform: uppercase; }
-    .traveller-tools-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
-    .mini-btn { border: 1px solid #777; background: #080808; color: #fff; padding: 7px 9px; font: 700 10px/1 "Courier New", monospace; text-transform: uppercase; cursor: pointer; }
-    .mini-btn:hover { border-color: var(--live); color: var(--live); }
-    .mini-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
     .review-dialog[hidden] { display: none; }
     .review-dialog { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,0.78); }
@@ -1447,8 +1434,6 @@
         color: var(--live);
       }
       .layout, .two, .three, .passenger-main-grid, .question-grid, .baggage-request-grid, .submit-footer, .status-steps, .seat-options { grid-template-columns: 1fr; }
-      .traveller-tools { align-items: flex-start; flex-direction: column; }
-      .traveller-tools-actions { justify-content: flex-start; }
       .review-grid, .review-actions { grid-template-columns: 1fr; }
       .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1870,13 +1855,6 @@
         <section>
           <div class="card">
             <h2 class="section-title">Traveller details</h2>
-            <div class="traveller-tools">
-              <div class="traveller-tools-copy">Save your lead traveller details on this device. Passport number is never stored.</div>
-              <div class="traveller-tools-actions">
-                <button id="useSavedTraveller" class="mini-btn" type="button" disabled>Use saved traveller</button>
-                <button id="saveTraveller" class="mini-btn" type="button">Save lead traveller</button>
-              </div>
-            </div>
             <div id="passengerList" class="passenger-list"></div>
           </div>
 
@@ -2113,8 +2091,6 @@
     const locateMeBtn = el('locateMeBtn');
     const reviewDialog = el('reviewDialog');
     const reviewDialogBody = el('reviewDialogBody');
-    const saveTraveller = el('saveTraveller');
-    const useSavedTraveller = el('useSavedTraveller');
     const draftStatus = el('draftStatus');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
@@ -2127,7 +2103,6 @@
 
     let airports = [];
     let reviewConfirmed = false;
-    const SAVED_TRAVELLER_KEY = 'private-flight-saved-lead-traveller-v1';
     const BOOKING_DRAFT_KEY = 'private-flight-booking-draft-v1';
     let draftSaveTimer = null;
     let restoringDraft = false;
@@ -2618,7 +2593,6 @@
       const existing = collectPassengers(false);
       passengerList.innerHTML = Array.from({ length: count }, (_, index) => {
         const passenger = existing[index] || {};
-        const lead = index === 0;
         const complete = passengerHasRequiredDetails(passenger);
         const collapsed = count > 1 && index < count - 1 && complete;
         const countryOptions = PASSPORT_COUNTRIES.map(([value, label]) =>
@@ -2627,18 +2601,18 @@
         return `
           <div class="passenger-card ${collapsed ? 'is-collapsed' : ''}" data-passenger="${index}" data-complete="${complete}">
             <button class="passenger-toggle" type="button" aria-expanded="${!collapsed}">
-              <span class="passenger-toggle-row"><span class="passenger-title">${lead ? 'Lead traveller' : `Traveller ${index + 1}`}</span><em>${collapsed ? 'Edit' : complete ? 'Collapse' : ''}</em></span>
+              <span class="passenger-toggle-row"><span class="passenger-title">Passenger ${index + 1}</span><em>${collapsed ? 'Edit' : complete ? 'Collapse' : ''}</em></span>
             </button>
             <div class="passenger-summary">${escapeHtml(passenger.name || 'Traveller')} / ${escapeHtml(passenger.weightKg || '--')} KG / ${escapeHtml(passenger.email || 'contact pending')}</div>
             <div class="passenger-fields">
             <div class="grid passenger-main-grid">
               <div><label for="pax${index}Title">Title</label><select id="pax${index}Title" data-pax-field="title" required><option value="">Select</option>${['MR', 'MS', 'MX', 'DR'].map(title => `<option value="${title}" ${passenger.title === title ? 'selected' : ''}>${title}.</option>`).join('')}</select></div>
-              <div><label for="pax${index}Name">Full name</label><input id="pax${index}Name" data-pax-field="name" type="text" autocomplete="${lead ? 'name' : 'off'}" value="${escapeHtml(passenger.name)}" required /></div>
+              <div><label for="pax${index}Name">Full name</label><input id="pax${index}Name" data-pax-field="name" type="text" autocomplete="${index === 0 ? 'name' : 'off'}" value="${escapeHtml(passenger.name)}" required /></div>
               <div class="input-unit"><label for="pax${index}Weight">Weight</label><input id="pax${index}Weight" class="compact-number" data-pax-field="weightKg" type="number" min="1" max="250" inputmode="numeric" value="${escapeHtml(passenger.weightKg)}" required /><span class="unit">KG</span></div>
             </div>
             <div class="grid three" style="margin-top:12px;">
-              <div><label for="pax${index}Email">Email</label><input id="pax${index}Email" data-pax-field="email" type="email" autocomplete="${lead ? 'email' : 'off'}" value="${escapeHtml(passenger.email)}" required /></div>
-              <div><label for="pax${index}Phone">Mobile</label><input id="pax${index}Phone" data-pax-field="phone" type="tel" autocomplete="${lead ? 'tel' : 'off'}" value="${escapeHtml(passenger.phone)}" required /></div>
+              <div><label for="pax${index}Email">Email</label><input id="pax${index}Email" data-pax-field="email" type="email" autocomplete="${index === 0 ? 'email' : 'off'}" value="${escapeHtml(passenger.email)}" required /></div>
+              <div><label for="pax${index}Phone">Mobile</label><input id="pax${index}Phone" data-pax-field="phone" type="tel" autocomplete="${index === 0 ? 'tel' : 'off'}" value="${escapeHtml(passenger.phone)}" required /></div>
               <div><label for="pax${index}Dob">Date of birth</label><input id="pax${index}Dob" data-pax-field="dob" type="date" max="${new Date().toISOString().slice(0, 10)}" value="${escapeHtml(dateInputValue(passenger.dob))}" required /></div>
             </div>
             <div class="grid two" style="margin-top:12px;">
@@ -2668,15 +2642,6 @@
         });
         return passenger;
       });
-    }
-
-    function savedTravellerProfile() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(SAVED_TRAVELLER_KEY) || 'null');
-        return saved && typeof saved === 'object' ? saved : null;
-      } catch {
-        return null;
-      }
     }
 
     function saveBookingDraft() {
@@ -2726,40 +2691,6 @@
       draftStatus.classList.add('saved');
     }
 
-    function updateSavedTravellerButton() {
-      useSavedTraveller.disabled = !savedTravellerProfile();
-    }
-
-    function saveLeadTraveller() {
-      const traveller = collectPassengers(false)[0] || {};
-      if (!traveller.name || !traveller.email || !traveller.phone) {
-        setStatus('Add the lead traveller name, email, and mobile before saving', 'err', true);
-        return;
-      }
-      const profile = {
-        title: traveller.title || '',
-        name: traveller.name,
-        weightKg: traveller.weightKg || '',
-        email: traveller.email,
-        phone: traveller.phone,
-        passportCountry: traveller.passportCountry || ''
-      };
-      localStorage.setItem(SAVED_TRAVELLER_KEY, JSON.stringify(profile));
-      updateSavedTravellerButton();
-      setStatus('Lead traveller saved on this device. Passport number is not stored.', 'ok', true);
-    }
-
-    function useSavedLeadTraveller() {
-      const profile = savedTravellerProfile();
-      if (!profile) return;
-      const fieldMap = { title: 'pax0Title', name: 'pax0Name', weightKg: 'pax0Weight', email: 'pax0Email', phone: 'pax0Phone', passportCountry: 'pax0PassportCountry' };
-      Object.entries(fieldMap).forEach(([key, id]) => {
-        if (profile[key] && el(id)) el(id).value = profile[key];
-      });
-      refreshSummary();
-      setStatus('Saved lead traveller added. Date of birth and passport number are still required.', 'ok', true);
-    }
-
     function reviewItem(label, value) {
       return `<div class="review-item"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value || 'Not selected')}</strong></div>`;
     }
@@ -2777,7 +2708,7 @@
         reviewItem('Trip', el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way'),
         reviewItem('Flight time', formatFlightTime(dep, arr)),
         reviewItem('Travellers', allTravellerNames || `${el('seats').value || 1} passenger`),
-        reviewItem('Lead contact', lead.email || ''),
+        reviewItem('Booking contact', lead.email || ''),
         reviewItem('Luggage', baggageSummary()),
         reviewItem('Seat preference', el('seatPreference').value || checkedValue('seatPreference', 'No preference')),
         reviewItem('Cabin requests', extras.length ? extras.join(' / ') : 'None selected'),
@@ -2891,8 +2822,6 @@
     el('addBag').addEventListener('click', () => changeBagCount(1));
     el('removeBag').addEventListener('click', () => changeBagCount(-1));
     el('bagType').addEventListener('change', updateBagLimit);
-    saveTraveller.addEventListener('click', saveLeadTraveller);
-    useSavedTraveller.addEventListener('click', useSavedLeadTraveller);
     el('closeReview').addEventListener('click', closeReviewDialog);
     el('editReview').addEventListener('click', closeReviewDialog);
     el('confirmReview').addEventListener('click', () => {
@@ -3001,7 +2930,6 @@
     populateAirports(FALLBACK_AIRPORTS);
     renderPassengerFields();
     updateBaggageFields();
-    updateSavedTravellerButton();
     restoreBookingDraft();
     loadBookingAvailability().catch(() => {});
     updateConnectionBadge();
