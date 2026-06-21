@@ -23,6 +23,8 @@
     .item strong { display: block; margin-top: 7px; font: 400 18px/1.1 "Computer Says No", monospace; overflow-wrap: anywhere; text-transform: uppercase; }
     .route { grid-column: 1 / -1; } .route strong { font-size: 22px; }
     .note { margin: 16px 0 0; color: rgba(255,255,255,.56); font-size: 11px; line-height: 1.5; }
+    .open-pass { display: none; width: 100%; min-height: 48px; margin-top: 14px; border: 1px solid #66ff99; background: #66ff99; color: #07110a; font: 600 13px Poppins, Arial, sans-serif; text-transform: uppercase; cursor: pointer; }
+    .open-pass.show { display: block; }
   </style>
 </head>
 <body>
@@ -39,6 +41,7 @@
       <div class="item"><span>Baggage</span><strong id="baggage">...</strong></div>
       <div class="item"><span>Gate</span><strong id="gate">...</strong></div>
     </div>
+    <button id="openPass" class="open-pass" type="button">Open passenger flight pass</button>
     <p class="note">Use this screen to confirm the passenger flight pass before boarding. Passenger passport details are checked separately by the pilot or ground team.</p>
   </main>
   <script>
@@ -52,9 +55,13 @@
         result.className = `result ${verification.statusTone || ''}`;
         set('reference', verification.reference); set('route', verification.route); set('passenger', verification.passenger); set('date', verification.date); set('boarding', verification.boardingTime); set('seat', verification.seat); set('baggage', verification.baggage); set('gate', verification.gate);
         document.getElementById('details').hidden = false;
+        document.getElementById('openPass').classList.add('show');
         document.title = `${verification.reference} / Pass Check`;
       })
       .catch(() => { const result = document.getElementById('result'); result.textContent = 'NOT VALID'; result.className = 'result invalid'; document.getElementById('reference').textContent = 'NO ACTIVE PASS FOUND'; });
+    document.getElementById('openPass').addEventListener('click', () => {
+      location.href = `/pass/${encodeURIComponent(document.getElementById('reference').textContent)}/passenger-information-pass/${encodeURIComponent(token)}`;
+    });
   </script>
 </body>
 </html>
