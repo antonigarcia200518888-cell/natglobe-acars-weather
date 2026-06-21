@@ -419,6 +419,10 @@
     .amenity-icon.wifi, .amenity-icon.water { color: #58a6ff; }
     .amenity-icon.charge { color: #ff8a3d; }
 
+    .summary-list .total-cost { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; padding-top: 12px; border-top: 1px solid var(--live); }
+    .summary-list .total-cost strong { color: var(--live); font-size: 15px; }
+    .summary-list .total-cost em { grid-column: 1 / -1; color: #9a9a9a; font-size: 10px; font-style: normal; text-transform: uppercase; }
+
     .booking-panel-head {
       display: flex;
       justify-content: space-between;
@@ -1909,7 +1913,7 @@
           <li><span>Est. flight time</span><strong id="summaryFlightTime">----</strong></li>
           <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
           <li><span>Luggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
-          <li><span>Estimated share</span><strong id="summaryCost">Flight team confirms</strong></li>
+          <li class="total-cost"><span>Total flight cost</span><strong id="summaryCost">Flight team confirms</strong><em>Extras charged separately</em></li>
           <li class="summary-requests"><span>Cabin requests</span><div id="summaryRequests" class="request-pill-list"><span class="request-pill">None selected</span></div></li>
         </ul>
       </div>
@@ -2364,22 +2368,28 @@
       }
     }
 
-    function routePrice(dep, arr) {
+    function routeCost(dep, arr) {
       if (!dep || !arr) return 'Pilot confirms';
       if (dep.icao === arr.icao) return 'Choose different airports';
       const seats = Number(el('seats').value || 1);
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
       const fixed = FIXED_ROUTE_PRICES[`${dep.icao}-${arr.icao}`];
       if (fixed) {
-        const price = roundtrip ? fixed.roundtrip : fixed.oneWay;
-        return `EUR ${price} / pax`;
+        const perPax = roundtrip ? fixed.roundtrip : fixed.oneWay;
+        return { total: perPax * seats, perPax, estimated: false };
       }
       const mins = flightMinutes(dep, arr);
       if (!Number.isFinite(mins)) return 'Pilot confirms';
       const pricedMinutes = roundtrip ? mins * 2 : mins;
       const total = Math.ceil(((pricedMinutes / 60) * OPERATING_COST_EUR_PER_HOUR) / 5) * 5;
       const perPax = Math.ceil((total / Math.max(1, seats)) / 5) * 5;
-      return `Est. EUR ${perPax} / pax`;
+      return { total, perPax, estimated: true };
+    }
+
+    function routePrice(dep, arr) {
+      const cost = routeCost(dep, arr);
+      if (typeof cost === 'string') return cost;
+      return `${cost.estimated ? 'Est. ' : ''}EUR ${cost.total} total / EUR ${cost.perPax} per pax`;
     }
 
     function baggageSummary() {
