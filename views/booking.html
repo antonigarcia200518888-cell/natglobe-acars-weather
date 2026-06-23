@@ -324,8 +324,9 @@
       color: #fff;
       font-size: 13px;
       text-transform: uppercase;
-      padding: 4px 0;
-      background: transparent;
+      border: 1px solid #555;
+      padding: 7px 9px;
+      background: rgba(0,0,0,0.72);
       z-index: 700;
     }
 
@@ -728,43 +729,6 @@
     }
 
     .summary-list strong { color: #fff; text-align: right; }
-
-    .readiness-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin: 8px 0 10px;
-    }
-
-    .readiness-item {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid #444;
-      background: #050505;
-      color: #8d8d8d;
-      padding: 8px 9px;
-      font-size: 11px;
-      line-height: 1.2;
-      text-transform: uppercase;
-    }
-
-    .readiness-item::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      height: 3px;
-      background: #333;
-      transition: background 180ms ease;
-    }
-
-    .readiness-item.ready {
-      border-color: rgba(102,255,153,0.75);
-      color: var(--live);
-      box-shadow: inset 0 0 0 1px rgba(102,255,153,0.12);
-    }
-    .readiness-item.ready::after { background: var(--live); }
 
     .booking-progress {
       display: grid;
@@ -1711,9 +1675,6 @@
       .request-panel-copy {
         font-size: 11px;
       }
-      .readiness-grid {
-        grid-template-columns: 1fr;
-      }
       .summary-list li {
         gap: 8px;
       }
@@ -1778,13 +1739,6 @@
 
     <div id="clock" class="clock">UTC --:--:--</div>
     <div id="mode" class="mode">SERVICE: PRIVATE AVIATION REQUEST / FLIGHT TEAM REVIEW</div>
-    <div class="booking-progress" aria-label="Booking completion">
-      <span id="markerRoute"><i aria-hidden="true"></i>Itinerary</span>
-      <span id="markerTravellers"><i aria-hidden="true"></i>Passengers</span>
-      <span id="markerSafety"><i aria-hidden="true"></i>Safety</span>
-      <span id="markerLuggage"><i aria-hidden="true"></i>Luggage</span>
-      <span id="markerReview"><i aria-hidden="true"></i>Review</span>
-    </div>
     <div id="draftStatus" class="draft-status" aria-live="polite">Booking progress is saved locally on this device.</div>
 
     <form id="bookingForm">
@@ -1943,6 +1897,7 @@
           <input id="carryOnBags" type="hidden" value="NO" /><input id="bagCount" type="hidden" value="0" />
           <div class="baggage-addon">
             <div class="baggage-addon-head"><span>Add baggage to this flight</span><div class="bag-counter"><button id="removeBag" type="button" aria-label="Remove baggage">-</button><output id="bagCounter" aria-live="polite">0</output><button id="addBag" type="button" aria-label="Add baggage">+</button></div></div>
+            <div class="fine-print" style="margin-top:8px;">One standard carry-on bag is included in the flight price. Additional luggage remains subject to aircraft loading and pilot approval.</div>
             <div id="baggageOptions" class="baggage-options">
               <div class="question-grid">
                 <div><label for="bagType">Baggage type</label><select id="bagType"><option value="CARRY-ON SUITCASE">Carry-on suitcase / max 15 KG</option><option value="SOFT DUFFLE BAG">Soft duffle bag / max 20 KG</option><option value="WEEKEND HOLDALL">Weekend holdall / max 15 KG</option><option value="SMALL BACKPACK">Small backpack / max 8 KG</option><option value="GARMENT BAG">Garment bag / max 10 KG</option><option value="OTHER BAG - PILOT REVIEW">Other bag / pilot review</option></select><div id="bagLimit" class="bag-limit">Maximum 15 KG</div></div>
@@ -1994,12 +1949,6 @@
       <div class="card review-card">
         <h2 class="section-title">Trip details</h2>
         <div class="quote-label">Private flight request review</div>
-        <div class="readiness-grid" aria-label="Booking readiness">
-          <div id="readyRoute" class="readiness-item">Route pending</div>
-          <div id="readyPassengers" class="readiness-item">Traveller details pending</div>
-          <div id="readySafety" class="readiness-item">Safety acceptance pending</div>
-          <div id="readyBaggage" class="readiness-item">Baggage reviewed</div>
-        </div>
         <div class="route-summary">
           <div class="route-box">
             <div class="route-line"><span id="depCode">----</span><span>to</span><span id="arrCode">----</span></div>
@@ -2017,6 +1966,14 @@
           <li class="total-cost"><span>Total flight cost</span><strong id="summaryCost">Flight team confirms</strong><em>Includes 1 standard carry-on bag. Extras charged separately.</em></li>
           <li class="summary-requests"><span>Cabin requests</span><div id="summaryRequests" class="request-pill-list"><span class="request-pill">None selected</span></div></li>
         </ul>
+      </div>
+
+      <div class="booking-progress" aria-label="Booking completion">
+        <span id="markerRoute"><i aria-hidden="true"></i>Itinerary</span>
+        <span id="markerTravellers"><i aria-hidden="true"></i>Passengers</span>
+        <span id="markerSafety"><i aria-hidden="true"></i>Safety</span>
+        <span id="markerLuggage"><i aria-hidden="true"></i>Luggage</span>
+        <span id="markerReview"><i aria-hidden="true"></i>Review</span>
       </div>
 
       <div class="submit-footer">
@@ -2534,12 +2491,6 @@
       el('summaryRequests').innerHTML = items.map(item => `<span class="request-pill">${escapeHtml(item)}</span>`).join('');
     }
 
-    function setReady(id, ready, readyText, pendingText) {
-      const node = el(id);
-      node.classList.toggle('ready', ready);
-      node.textContent = ready ? readyText : pendingText;
-    }
-
     function setMobileMarker(id, complete) {
       el(id).classList.toggle('is-complete', complete);
     }
@@ -2579,10 +2530,6 @@
       const safetyReady = el('safetyAgreement').checked;
       const signatureReady = Boolean(el('safetySignature').value.trim());
       const luggageReady = el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value);
-      setReady('readyRoute', routeReady, 'Route selected', 'Route pending');
-      setReady('readyPassengers', completePassengers, 'Traveller details ready', 'Traveller details pending');
-      setReady('readySafety', safetyReady && signatureReady, 'Safety accepted and signed', 'Safety acceptance and signature pending');
-      setReady('readyBaggage', luggageReady, el('carryOnBags').value === 'YES' ? 'Luggage declared' : 'No luggage declared', 'Luggage weight pending');
       setMobileMarker('markerRoute', routeReady);
       setMobileMarker('markerTravellers', completePassengers);
       setMobileMarker('markerSafety', safetyReady && signatureReady);
