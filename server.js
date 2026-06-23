@@ -307,21 +307,21 @@ function emailPriceSummary(request) {
 
 function privateFlightEmailHtml({ status, reference, greeting, intro, details, sections = [], closing = [] }) {
   const detailRows = details.map(([label, value]) => `
-    <tr><td bgcolor="#000000" style="padding:10px 0;border-bottom:1px solid #4a4a4a;width:42%;font-weight:700;color:#ffffff">${escapeEmailHtml(label)}</td><td bgcolor="#000000" style="padding:10px 0;border-bottom:1px solid #4a4a4a;color:#f2f2f2">${escapeEmailHtml(value)}</td></tr>`).join('');
+    <tr><td bgcolor="#181818" style="padding:10px 0;border-bottom:1px solid #4a4a4a;width:42%;font-weight:700;color:#ffffff">${escapeEmailHtml(label)}</td><td bgcolor="#181818" style="padding:10px 0;border-bottom:1px solid #4a4a4a;color:#f2f2f2">${escapeEmailHtml(value)}</td></tr>`).join('');
   const sectionHtml = sections.map(section => `
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;border-collapse:collapse"><tr><td bgcolor="#0b0b0b" style="padding:9px 13px;border:1px solid #66ff99;color:#66ff99;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</td></tr><tr><td bgcolor="#000000" style="padding:10px 0;color:#f2f2f2">${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.6;color:#f2f2f2">${escapeEmailHtml(line)}</p>`).join('')}</td></tr></table>`).join('');
-  return `<!doctype html><html><body bgcolor="#000000" style="margin:0;padding:0;background-color:#000000;font-family:'Courier New',Courier,monospace;color:#f2f2f2">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000" style="width:100%;background-color:#000000;border-collapse:collapse"><tr><td align="center" bgcolor="#000000" style="padding:24px 12px;background-color:#000000">
-      <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000" style="width:100%;max-width:680px;background-color:#000000;border:2px solid #ffffff;border-collapse:collapse">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;border-collapse:collapse"><tr><td bgcolor="#111111" style="padding:9px 13px;border:1px solid #66ff99;color:#66ff99;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</td></tr><tr><td bgcolor="#181818" style="padding:10px 0;color:#f2f2f2">${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.6;color:#f2f2f2">${escapeEmailHtml(line)}</p>`).join('')}</td></tr></table>`).join('');
+  return `<!doctype html><html><body bgcolor="#181818" style="margin:0;padding:0;background-color:#181818;font-family:'Courier New',Courier,monospace;color:#f2f2f2">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#181818" style="width:100%;background-color:#181818;border-collapse:collapse"><tr><td align="center" bgcolor="#181818" style="padding:24px 12px;background-color:#181818">
+      <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#181818" style="width:100%;max-width:680px;background-color:#181818;border:2px solid #ffffff;border-collapse:collapse">
         <tr><td bgcolor="#050505" style="padding:24px 28px;background-color:#050505;border-bottom:1px solid #66ff99">
           <div style="font-size:12px;letter-spacing:.12em;color:#cfcfcf">NGA PRIVATE AVIATION</div>
           <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em;color:#66ff99">${escapeEmailHtml(status)}</div>
           <div style="margin-top:13px;font-size:13px;color:#f2f2f2">REFERENCE: <strong style="color:#ffffff">${escapeEmailHtml(reference)}</strong></div>
         </td></tr>
-        <tr><td bgcolor="#000000" style="padding:28px;background-color:#000000">
+        <tr><td bgcolor="#181818" style="padding:28px;background-color:#181818">
           <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:#ffffff">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
           <p style="margin:0 0 22px;line-height:1.65;color:#f2f2f2">${escapeEmailHtml(intro)}</p>
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000" style="width:100%;background-color:#000000;border-collapse:collapse;font-size:14px">${detailRows}</table>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#181818" style="width:100%;background-color:#181818;border-collapse:collapse;font-size:14px">${detailRows}</table>
           ${sectionHtml}
           ${closing.map(line => `<p style="margin:6px 0;line-height:1.5;color:#f2f2f2">${escapeEmailHtml(line)}</p>`).join('')}
         </td></tr>
@@ -331,21 +331,17 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
 }
 
 function requestReceivedEmailHtml({ reference, greeting, details }) {
-  const cells = details.map(([label, value]) => `<td width="50%" valign="top" bgcolor="#050505" style="padding:10px;border:1px solid #555555"><div style="margin-bottom:5px;color:#999999;font-size:10px;letter-spacing:.06em;text-transform:uppercase">${escapeEmailHtml(label)}</div><div style="color:#f2f2f2;font-size:13px;font-weight:700;line-height:1.35;text-transform:uppercase">${escapeEmailHtml(value)}</div></td>`);
-  const rows = [];
-  for (let index = 0; index < cells.length; index += 2) {
-    rows.push(`<tr>${cells[index]}${cells[index + 1] || '<td width="50%" bgcolor="#050505" style="border:1px solid #555555"></td>'}</tr>`);
-  }
-  return `<!doctype html><html><body bgcolor="#000000" style="margin:0;padding:0;background-color:#000000;font-family:'Courier New',Courier,monospace;color:#ffffff">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000" style="width:100%;background-color:#000000"><tr><td align="center" style="padding:24px 12px">
-      <table role="presentation" width="720" cellspacing="0" cellpadding="0" border="0" bgcolor="#050505" style="width:100%;max-width:720px;background-color:#050505;border:2px solid #66ff99;border-collapse:collapse">
+  const lines = details.map(([label, value]) => `<tr><td bgcolor="#111111" style="padding:11px 0;border-bottom:1px solid #4a4a4a;color:#aaaaaa;font-size:11px;letter-spacing:.06em;text-transform:uppercase">${escapeEmailHtml(label)}</td><td align="right" bgcolor="#111111" style="padding:11px 0;border-bottom:1px solid #4a4a4a;color:#f2f2f2;font-size:13px;font-weight:700;line-height:1.35;text-transform:uppercase">${escapeEmailHtml(value)}</td></tr>`).join('');
+  return `<!doctype html><html><body bgcolor="#181818" style="margin:0;padding:0;background-color:#181818;font-family:'Courier New',Courier,monospace;color:#ffffff">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#181818" style="width:100%;background-color:#181818"><tr><td align="center" style="padding:24px 12px">
+      <table role="presentation" width="720" cellspacing="0" cellpadding="0" border="0" bgcolor="#111111" style="width:100%;max-width:720px;background-color:#111111;border:2px solid #66ff99;border-collapse:collapse">
         <tr><td style="padding:20px">
           <div style="color:#66ff99;font-size:11px;letter-spacing:.08em;text-transform:uppercase">Private Flight</div>
-          <div style="margin:10px 0 14px;color:#ffffff;font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:700;line-height:1;text-transform:uppercase">Request Received</div>
+          <div style="margin:10px 0 14px;color:#ffffff;font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:700;line-height:1;text-transform:uppercase">REQUEST RECEIVED</div>
           <p style="margin:0;color:#bbbbbb;font-size:12px;line-height:1.55;text-transform:uppercase">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p>
           <div style="margin:16px 0;padding:12px;border:1px solid #ffffff;color:#66ff99;font-size:22px;font-weight:700;line-height:1">REFERENCE ${escapeEmailHtml(reference)}</div>
           <p style="margin:0 0 14px;color:#f2f2f2;font-size:14px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse">${rows.join('')}</table>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#111111" style="width:100%;background-color:#111111;border-collapse:collapse">${lines}</table>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;width:100%;border-top:1px solid #555555;border-collapse:collapse">
             <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #66ff99;color:#66ff99;font-size:12px;text-transform:uppercase"><strong>Request received</strong><br><span style="color:#bbbbbb">Your flight details have been received.</span></td></tr>
             <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #555555;color:#f2f2f2;font-size:12px;text-transform:uppercase"><strong>Pilot and operations review</strong><br><span style="color:#aaaaaa">Route, weather, aircraft, and loading are checked.</span></td></tr>
