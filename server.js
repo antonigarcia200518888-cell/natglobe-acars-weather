@@ -244,21 +244,110 @@ async function notifyPilotOfBooking(request) {
   });
 }
 
+function emailPassengerNames(request) {
+  const passengers = getRequestPassengers(request).filter(passenger => passenger.name);
+  const names = passengers.map(passenger => {
+    const title = String(passenger.title || '').trim().toUpperCase();
+    const prefix = title === 'MR' ? 'Mr.' : title === 'MS' ? 'Ms.' : title === 'DR' ? 'Dr.' : '';
+    return `${prefix ? `${prefix} ` : ''}${passenger.name}`.trim();
+  });
+  if (!names.length) return 'Private Flight Guest';
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(', ')}, and ${names.at(-1)}`;
+}
+
+function emailDate(value) {
+  const date = new Date(`${value || ''}T12:00:00`);
+  return Number.isNaN(date.getTime())
+    ? (value || 'To be confirmed')
+    : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+}
+
+function emailAirportLocation(request) {
+  if (request.dep === 'EFHV') {
+    return ['Hyvinkää Aerodrome', 'Lentokentäntie 50', '05820 Hyvinkää', 'Finland'];
+  }
+  const airport = bookingAirports.find(item => item.icao === request.dep);
+  return [boardingPassGate(request.dep), airport?.name || request.depName || request.dep, airport?.country || 'Finland'];
+}
+
+function passengerPassLinks(request) {
+  return getRequestPassengers(request)
+    .filter(passenger => passenger.boardingPassToken)
+    .map(passenger => `${passenger.name || `Passenger ${passenger.number || 1}`}: ${PUBLIC_SITE_URL}/private-flight-information-pass/${encodeURIComponent(request.id)}/${passenger.boardingPassToken}`);
+}
+
 async function notifyBookerOfBooking(request) {
   const recipient = String(request.email || '').trim();
   return sendBookingEmail({
     to: recipient,
     subject: `Private flight request received / ${request.id}`,
     text: [
-      'Your private flight request has been received.',
+      `Dear ${emailPassengerNames(request)},`,
       '',
+      'Thank you for your private flight request. Our operations team has received it and will contact you within 24 hours of the requested flight.',
+      '',
+      'REQUESTED FLIGHT DETAILS',
       `Booking reference: ${request.id}`,
-      `Route: ${request.depName || request.dep} to ${request.arrName || request.arr}`,
-      `Requested departure: ${request.requestDate} ${request.requestTime}`,
+      `Route: ${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`,
+      `Date: ${emailDate(request.requestDate)}`,
+      `Requested departure: ${formatBoardingPassTime(request.requestTime)} Local Time`,
+      `Estimated flight time: ${estimateBoardingPassFlightTime(request.dep, request.arr).replace('.', 'H ')}M`,
       `Passengers: ${request.seats}`,
+      `Baggage: ${boardingPassBaggage(request)}`,
       '',
-      'This is a request only and is not a flight confirmation.',
-      'A pilot or operations team member will review the route, aircraft, weather, and loading requirements before contacting you.'
+      'This is a request only and is not a flight confirmation. A pilot will review the route, weather, aircraft availability, loading, and operational requirements before confirming the flight.',
+      '',
+      'Kind regards,',
+      'NGA Private Aviation'
+    ].join('\n')
+  });
+}
+
+async function notifyBookerOfApproval(request) {
+  const recipient = String(request.email || '').trim();
+  const passLinks = passengerPassLinks(request);
+  const agreementUrl = String(process.env.BOOKING_AGREEMENT_URL || '').trim();
+  const reimbursementUrl = String(process.env.BOOKING_REIMBURSEMENT_URL || '').trim();
+  return sendBookingEmail({
+    to: recipient,
+    subject: `Flight confirmed / ${request.id}`,
+    text: [
+      `Dear ${emailPassengerNames(request)},`,
+      '',
+      'We are pleased to confirm that your private flight request has been approved, subject to normal day-of-flight weather and operational checks.',
+      '',
+      'DEPARTURE DETAILS',
+      `Route: ${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`,
+      `Date: ${emailDate(request.requestDate)}`,
+      `Boarding time: ${boardingPassBoardingTime(request.requestTime)} Local Time`,
+      `Scheduled departure: ${formatBoardingPassTime(request.requestTime)} Local Time`,
+      `Aircraft: ${request.aircraft || 'OH-PMK / Piper PA-28R-200 Arrow II'}`,
+      '',
+      'AIRPORT LOCATION',
+      ...emailAirportLocation(request),
+      '',
+      'Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.',
+      '',
+      'PASSENGER FLIGHT INFORMATION PASSES',
+      ...(passLinks.length ? passLinks : ['Passenger passes will be issued by operations shortly.']),
+      '',
+      'PASSENGER DOCUMENTATION',
+      agreementUrl ? `Private Flight Agreement: ${agreementUrl}` : 'Private Flight Agreement: to be provided by operations.',
+      reimbursementUrl ? `Reimbursement Statement: ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.',
+      '',
+      'BAGGAGE AND ITEMS ON BOARD',
+      'Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.',
+      '',
+      'Please notify us as soon as possible if your plans or baggage change, or if you expect to arrive late.',
+      '',
+      'Kind regards,',
+      'Antoni Garcia',
+      'Pilot in Command',
+      'NGA Private Aviation',
+      '+358 41 314 5148',
+      'antonigarcia200518@icloud.com'
     ].join('\n')
   });
 }
@@ -277,6 +366,18 @@ async function deliverBookingNotifications(request) {
     }
   } catch (err) {
     console.error('BOOKER EMAIL:', err.message);
+  }
+}
+
+async function deliverApprovalNotification(request) {
+  try {
+    if (await notifyBookerOfApproval(request)) {
+      request.confirmationEmailSentAt = new Date().toISOString();
+      await persistBookingRequest(request);
+      await addBookingTimelineEvent(request.id, 'FLIGHT CONFIRMATION EMAIL', 'Passenger flight confirmation and pass links sent.');
+    }
+  } catch (err) {
+    console.error('CONFIRMATION EMAIL:', err.message);
   }
 }
 
@@ -2631,6 +2732,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
 
   const paymentStatus = String(req.body?.paymentStatus || '').trim().toUpperCase();
   const pilotDecision = String(req.body?.pilotDecision || '').trim().toUpperCase();
+  const wasApproved = request.pilotDecision === 'APPROVED' && request.status === 'CONFIRMED';
 
   if (paymentStatus) {
     const allowedPayments = new Set(['UNPAID', 'DEPOSIT PAID', 'PAID', 'REFUNDED']);
@@ -2670,6 +2772,9 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
       bookingMessage: formatBookingMessage(request)
     }
   });
+  if (pilotDecision === 'APPROVED' && !wasApproved && !request.confirmationEmailSentAt) {
+    void deliverApprovalNotification(request);
+  }
 });
 
 app.delete('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {

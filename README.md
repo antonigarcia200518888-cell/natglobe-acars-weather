@@ -26,6 +26,13 @@ GOOGLE_APPS_SCRIPT_EMAIL_SECRET=<long private shared secret>
 PILOT_NOTIFICATION_EMAIL=info.ngaprivateaviation@gmail.com
 ```
 
+When set, these optional public document links are included in the automatic flight-confirmation email sent after pilot approval:
+
+```text
+BOOKING_AGREEMENT_URL=<public Private Flight Agreement URL>
+BOOKING_REIMBURSEMENT_URL=<public Reimbursement Statement URL>
+```
+
 The booking contact receives a receipt with the reference, route, requested departure, and passenger count. Operations receives a separate alert. Neither email includes passport, medical, identity, emergency, or signature data.
 
 ### Web boarding passes
