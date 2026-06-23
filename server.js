@@ -213,7 +213,10 @@ async function sendBookingEmail({ to, subject, text }) {
   if (gmailUser && gmailAppPassword && to) {
     const transport = nodemailer.createTransport({
       service: 'gmail',
-      auth: { user: gmailUser, pass: gmailAppPassword }
+      auth: { user: gmailUser, pass: gmailAppPassword },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000
     });
     await transport.sendMail({
       from: gmailSender,
@@ -261,6 +264,23 @@ async function notifyBookerOfBooking(request) {
       'A pilot or operations team member will review the route, aircraft, weather, and loading requirements before contacting you.'
     ].join('\n')
   });
+}
+
+async function deliverBookingNotifications(request) {
+  try {
+    if (await notifyPilotOfBooking(request)) {
+      await addBookingTimelineEvent(request.id, 'PILOT EMAIL NOTIFICATION', 'New booking notification sent.');
+    }
+  } catch (err) {
+    console.error('BOOKING EMAIL:', err.message);
+  }
+  try {
+    if (await notifyBookerOfBooking(request)) {
+      await addBookingTimelineEvent(request.id, 'PASSENGER EMAIL NOTIFICATION', 'Booking receipt sent to the booking contact.');
+    }
+  } catch (err) {
+    console.error('BOOKER EMAIL:', err.message);
+  }
 }
 
 const bookingAirports = [
@@ -2977,16 +2997,6 @@ app.post('/api/booking-requests', async (req, res) => {
   bookingRequests.push(request);
   await persistBookingRequest(request);
   await addBookingTimelineEvent(request.id, 'REQUEST RECEIVED', 'Booker submitted request.');
-  try {
-    if (await notifyPilotOfBooking(request)) await addBookingTimelineEvent(request.id, 'PILOT EMAIL NOTIFICATION', 'New booking notification sent.');
-  } catch (err) {
-    console.error('BOOKING EMAIL:', err.message);
-  }
-  try {
-    if (await notifyBookerOfBooking(request)) await addBookingTimelineEvent(request.id, 'PASSENGER EMAIL NOTIFICATION', 'Booking receipt sent to the booking contact.');
-  } catch (err) {
-    console.error('BOOKER EMAIL:', err.message);
-  }
 
   res.status(201).json({
     request: {
@@ -2996,6 +3006,7 @@ app.post('/api/booking-requests', async (req, res) => {
     },
     confirmationText: 'REQUEST RECEIVED. PILOT CONFIRMATION REQUIRED BEFORE ANY FLIGHT IS BOOKED.'
   });
+  void deliverBookingNotifications(request);
 });
 
 app.get('/api/airport-runways', async (req, res) => {
