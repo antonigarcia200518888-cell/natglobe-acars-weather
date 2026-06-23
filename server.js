@@ -18,7 +18,7 @@ const WALLET_ASSETS_DIR = path.join(__dirname, 'wallet-assets');
 
 // The public domain opens the passenger experience. ACARS remains available to crew at /acars.
 app.get('/', (req, res) => {
-  res.redirect('/NGA-PRIVATE-FLIGHT-BOOKINGS');
+  res.redirect('/bookings');
 });
 
 app.get('/acars', (req, res) => {
@@ -2406,9 +2406,13 @@ app.get('/booking', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'booking.html'));
 });
 
-app.get('/NGA-PRIVATE-FLIGHT-BOOKINGS', (req, res) => {
+app.get('/bookings', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'booking.html'));
+});
+
+app.get('/NGA-PRIVATE-FLIGHT-BOOKINGS', (req, res) => {
+  res.redirect('/bookings');
 });
 
 app.get('/booking-confirmation', (req, res) => {
