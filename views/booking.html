@@ -1413,6 +1413,26 @@
       display: none;
     }
 
+    .booking-support {
+      margin: 16px 0 4px;
+      padding-top: 12px;
+      border-top: 1px solid #444;
+      color: #a8a8a8;
+      font-size: 12px;
+      line-height: 1.45;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .booking-support a {
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .booking-support a:hover,
+    .booking-support a:focus-visible { color: var(--live); outline: none; }
+
     @media (max-width: 900px) {
       body { padding: 8px 6px calc(104px + env(safe-area-inset-bottom)); }
       .frame {
@@ -2023,6 +2043,8 @@
         </div>
         <button id="mobileSubmitBooking" class="btn" type="button">Submit request</button>
       </div>
+
+      <footer class="booking-support">Questions about your request? Email <a href="mailto:info.ngaprivateaviation@gmail.com">info.ngaprivateaviation@gmail.com</a></footer>
 
     </form>
   </main>
