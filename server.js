@@ -16,6 +16,15 @@ const PILOT_COOKIE_NAME = 'ng_pilot_access';
 const BOOKING_COOKIE_VALUE = 'enabled';
 const WALLET_ASSETS_DIR = path.join(__dirname, 'wallet-assets');
 
+// The public domain opens the passenger experience. ACARS remains available to crew at /acars.
+app.get('/', (req, res) => {
+  res.redirect('/NGA-PRIVATE-FLIGHT-BOOKINGS');
+});
+
+app.get('/acars', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
