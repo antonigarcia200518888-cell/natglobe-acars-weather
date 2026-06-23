@@ -195,6 +195,30 @@ async function addBookingTimelineEvent(requestId, type, note = '') {
   return item;
 }
 
+async function notifyPilotOfBooking(request) {
+  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
+  const recipient = String(process.env.PILOT_NOTIFICATION_EMAIL || '').trim();
+  const sender = String(process.env.BOOKING_EMAIL_FROM || '').trim();
+  if (!apiKey || !recipient || !sender) return false;
+  const subject = `New private flight request ${request.id}`;
+  const text = [
+    `Reference: ${request.id}`,
+    `Route: ${request.depName || request.dep} to ${request.arrName || request.arr}`,
+    `Departure: ${request.requestDate} ${request.requestTime}`,
+    `Passengers: ${request.seats}`,
+    `Status: ${request.status}`,
+    '',
+    'Open Booking Operations to review the request.'
+  ].join('\n');
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: sender, to: [recipient], subject, text })
+  });
+  if (!response.ok) throw new Error(`EMAIL NOTIFICATION FAILED ${response.status}`);
+  return true;
+}
+
 const bookingAirports = [
   { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', type: 'controlled', lat: 60.3172, lon: 24.9633 },
   { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.6544, lon: 24.8811 },
@@ -2886,6 +2910,11 @@ app.post('/api/booking-requests', async (req, res) => {
   bookingRequests.push(request);
   await persistBookingRequest(request);
   await addBookingTimelineEvent(request.id, 'REQUEST RECEIVED', 'Booker submitted request.');
+  try {
+    if (await notifyPilotOfBooking(request)) await addBookingTimelineEvent(request.id, 'PILOT EMAIL NOTIFICATION', 'New booking notification sent.');
+  } catch (err) {
+    console.error('BOOKING EMAIL:', err.message);
+  }
 
   res.status(201).json({
     request: {

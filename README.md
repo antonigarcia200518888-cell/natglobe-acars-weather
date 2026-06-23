@@ -17,6 +17,18 @@ The booking system uses temporary memory until a PostgreSQL connection is config
 
 Do not use the temporary mode for production passenger or identity data: Render restarts clear it.
 
+### Pilot booking emails
+
+To notify the pilot automatically when a new request arrives, create a verified sender in [Resend](https://resend.com/) and add these Render environment variables:
+
+```text
+RESEND_API_KEY=<your Resend API key>
+BOOKING_EMAIL_FROM=Private Flight <bookings@your-verified-domain.com>
+PILOT_NOTIFICATION_EMAIL=pilot@example.com
+```
+
+The notification includes only the booking reference, route, requested time, passenger count, and status. It does not include passport, medical, or identity data.
+
 ### Web boarding passes
 
 After a pilot approves a booking, Booking Ops can issue one private web boarding-pass link for each passenger. The link opens a mobile-friendly ticket with a QR code and only shows trip details needed to board. Passport, date-of-birth, medical, contact, and emergency data are never included on the public pass.
