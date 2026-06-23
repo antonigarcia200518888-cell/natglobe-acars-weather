@@ -1739,6 +1739,13 @@
 
     <div id="clock" class="clock">UTC --:--:--</div>
     <div id="mode" class="mode">SERVICE: PRIVATE AVIATION REQUEST / FLIGHT TEAM REVIEW</div>
+    <div class="booking-progress" aria-label="Booking completion">
+      <span data-progress-step="route"><i aria-hidden="true"></i>Itinerary</span>
+      <span data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</span>
+      <span data-progress-step="safety"><i aria-hidden="true"></i>Safety</span>
+      <span data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</span>
+      <span data-progress-step="review"><i aria-hidden="true"></i>Review</span>
+    </div>
     <div id="draftStatus" class="draft-status" aria-live="polite">Booking progress is saved locally on this device.</div>
 
     <form id="bookingForm">
@@ -1946,6 +1953,14 @@
         </div>
       </div>
 
+      <div class="booking-progress" aria-label="Booking completion">
+        <span data-progress-step="route"><i aria-hidden="true"></i>Itinerary</span>
+        <span data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</span>
+        <span data-progress-step="safety"><i aria-hidden="true"></i>Safety</span>
+        <span data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</span>
+        <span data-progress-step="review"><i aria-hidden="true"></i>Review</span>
+      </div>
+
       <div class="card review-card">
         <h2 class="section-title">Trip details</h2>
         <div class="quote-label">Private flight request review</div>
@@ -1966,14 +1981,6 @@
           <li class="total-cost"><span>Total flight cost</span><strong id="summaryCost">Flight team confirms</strong><em>Includes 1 standard carry-on bag. Extras charged separately.</em></li>
           <li class="summary-requests"><span>Cabin requests</span><div id="summaryRequests" class="request-pill-list"><span class="request-pill">None selected</span></div></li>
         </ul>
-      </div>
-
-      <div class="booking-progress" aria-label="Booking completion">
-        <span id="markerRoute"><i aria-hidden="true"></i>Itinerary</span>
-        <span id="markerTravellers"><i aria-hidden="true"></i>Passengers</span>
-        <span id="markerSafety"><i aria-hidden="true"></i>Safety</span>
-        <span id="markerLuggage"><i aria-hidden="true"></i>Luggage</span>
-        <span id="markerReview"><i aria-hidden="true"></i>Review</span>
       </div>
 
       <div class="submit-footer">
@@ -2491,8 +2498,10 @@
       el('summaryRequests').innerHTML = items.map(item => `<span class="request-pill">${escapeHtml(item)}</span>`).join('');
     }
 
-    function setMobileMarker(id, complete) {
-      el(id).classList.toggle('is-complete', complete);
+    function setMobileMarker(step, complete) {
+      document.querySelectorAll(`[data-progress-step="${step}"]`).forEach(marker => {
+        marker.classList.toggle('is-complete', complete);
+      });
     }
 
     function passengerHasRequiredDetails(passenger) {
@@ -2530,11 +2539,11 @@
       const safetyReady = el('safetyAgreement').checked;
       const signatureReady = Boolean(el('safetySignature').value.trim());
       const luggageReady = el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value);
-      setMobileMarker('markerRoute', routeReady);
-      setMobileMarker('markerTravellers', completePassengers);
-      setMobileMarker('markerSafety', safetyReady && signatureReady);
-      setMobileMarker('markerLuggage', luggageReady);
-      setMobileMarker('markerReview', routeReady && completePassengers && safetyReady && signatureReady && luggageReady);
+      setMobileMarker('route', routeReady);
+      setMobileMarker('travellers', completePassengers);
+      setMobileMarker('safety', safetyReady && signatureReady);
+      setMobileMarker('luggage', luggageReady);
+      setMobileMarker('review', routeReady && completePassengers && safetyReady && signatureReady && luggageReady);
     }
 
     function refreshSummary() {
