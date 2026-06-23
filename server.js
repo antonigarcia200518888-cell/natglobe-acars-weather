@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import dns from 'node:dns';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
 import nodemailer from 'nodemailer';
@@ -216,6 +217,7 @@ async function sendBookingEmail({ to, subject, text }) {
       port: 465,
       secure: true,
       family: 4,
+      lookup: (hostname, options, callback) => dns.lookup(hostname, { ...options, family: 4 }, callback),
       auth: { user: gmailUser, pass: gmailAppPassword },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
