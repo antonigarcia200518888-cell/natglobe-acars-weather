@@ -1,10 +1,8 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import dns from 'node:dns';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
-import nodemailer from 'nodemailer';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { airports as bundledAirports } from './data/airports.js';
 
@@ -208,31 +206,25 @@ async function addBookingTimelineEvent(requestId, type, note = '') {
 }
 
 async function sendBookingEmail({ to, subject, text }) {
-  const gmailUser = String(process.env.GMAIL_SMTP_USER || '').trim();
-  const gmailAppPassword = String(process.env.GMAIL_SMTP_APP_PASSWORD || '').trim();
-  const gmailSender = String(process.env.GMAIL_SMTP_FROM || `NGA Private Aviation <${gmailUser}>`).trim();
-  if (gmailUser && gmailAppPassword && to) {
-    const transport = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      family: 4,
-      lookup: (hostname, options, callback) => dns.lookup(hostname, { ...options, family: 4 }, callback),
-      auth: { user: gmailUser, pass: gmailAppPassword },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000
+  const endpoint = String(process.env.GOOGLE_APPS_SCRIPT_EMAIL_URL || '').trim();
+  const secret = String(process.env.GOOGLE_APPS_SCRIPT_EMAIL_SECRET || '').trim();
+  if (!endpoint || !secret || !to) return false;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ secret, to, subject, text }),
+      signal: controller.signal
     });
-    await transport.sendMail({
-      from: gmailSender,
-      to,
-      replyTo: gmailUser,
-      subject,
-      text
-    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || `EMAIL RELAY FAILED ${response.status}`);
     return true;
+  } finally {
+    clearTimeout(timeout);
   }
-  return false;
 }
 
 async function notifyPilotOfBooking(request) {

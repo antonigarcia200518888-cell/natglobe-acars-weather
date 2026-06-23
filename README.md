@@ -18,12 +18,11 @@ Do not use the temporary mode for production passenger or identity data: Render 
 
 ### Booking emails
 
-To automatically notify operations and send the booking contact a request receipt, enable two-step verification on the Gmail account, create a Google App Password for Mail, then add these Render environment variables:
+To automatically notify operations and send the booking contact a request receipt without paid SMTP, deploy a Google Apps Script email relay that sends through the Gmail account. Add these Render environment variables:
 
 ```text
-GMAIL_SMTP_USER=info.ngaprivateaviation@gmail.com
-GMAIL_SMTP_APP_PASSWORD=<Google App Password>
-GMAIL_SMTP_FROM=NGA Private Aviation <info.ngaprivateaviation@gmail.com>
+GOOGLE_APPS_SCRIPT_EMAIL_URL=<Apps Script web app URL>
+GOOGLE_APPS_SCRIPT_EMAIL_SECRET=<long private shared secret>
 PILOT_NOTIFICATION_EMAIL=info.ngaprivateaviation@gmail.com
 ```
 
