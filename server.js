@@ -205,7 +205,7 @@ async function addBookingTimelineEvent(requestId, type, note = '') {
   return item;
 }
 
-async function sendBookingEmail({ to, subject, text }) {
+async function sendBookingEmail({ to, subject, text, html = '' }) {
   const endpoint = String(process.env.GOOGLE_APPS_SCRIPT_EMAIL_URL || '').trim();
   const secret = String(process.env.GOOGLE_APPS_SCRIPT_EMAIL_SECRET || '').trim();
   if (!endpoint || !secret || !to) return false;
@@ -216,7 +216,7 @@ async function sendBookingEmail({ to, subject, text }) {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ secret, to, subject, text }),
+      body: JSON.stringify({ secret, to, subject, text, html }),
       signal: controller.signal
     });
     const responseText = await response.text();
@@ -281,14 +281,72 @@ function emailAirportLocation(request) {
   return [boardingPassGate(request.dep), airport?.name || request.depName || request.dep, airport?.country || 'Finland'];
 }
 
+function escapeEmailHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function emailFlightTime(request) {
+  const time = estimateBoardingPassFlightTime(request.dep, request.arr);
+  const match = String(time).match(/^(\d{2})\.(\d{2})$/);
+  return match ? `${match[1]}H ${match[2]}M` : time;
+}
+
+function privateFlightEmailHtml({ status, reference, greeting, intro, details, sections = [], closing = [] }) {
+  const detailRows = details.map(([label, value]) => `
+    <tr><td style="padding:9px 0;border-bottom:1px solid #d9dde3;width:42%;font-weight:700;color:#111827">${escapeEmailHtml(label)}</td><td style="padding:9px 0;border-bottom:1px solid #d9dde3;color:#28313c">${escapeEmailHtml(value)}</td></tr>`).join('');
+  const sectionHtml = sections.map(section => `
+    <section style="margin:24px 0">
+      <div style="margin:0 0 10px;padding:9px 13px;background:#071f4b;color:#ffffff;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</div>
+      ${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.55;color:#28313c">${escapeEmailHtml(line)}</p>`).join('')}
+    </section>`).join('');
+  return `<!doctype html><html><body style="margin:0;padding:24px;background:#eef1f4;font-family:'Courier New',Courier,monospace;color:#111827">
+    <main style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #d5dbe3">
+      <header style="padding:24px 28px;background:#071f4b;color:#ffffff">
+        <div style="font-size:12px;letter-spacing:.12em;opacity:.78">NGA PRIVATE AVIATION</div>
+        <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em">${escapeEmailHtml(status)}</div>
+        <div style="margin-top:13px;font-size:13px">REFERENCE: <strong>${escapeEmailHtml(reference)}</strong></div>
+      </header>
+      <div style="padding:28px">
+        <p style="margin:0 0 18px;font-size:16px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
+        <p style="margin:0 0 22px;line-height:1.6;color:#28313c">${escapeEmailHtml(intro)}</p>
+        <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;font-size:14px">${detailRows}</table>
+        ${sectionHtml}
+        ${closing.map(line => `<p style="margin:6px 0;line-height:1.45;color:#28313c">${escapeEmailHtml(line)}</p>`).join('')}
+      </div>
+    </main>
+  </body></html>`;
+}
+
 function passengerPassLinks(request) {
   return getRequestPassengers(request)
     .filter(passenger => passenger.boardingPassToken)
     .map(passenger => `${passenger.name || `Passenger ${passenger.number || 1}`}: ${PUBLIC_SITE_URL}/private-flight-information-pass/${encodeURIComponent(request.id)}/${passenger.boardingPassToken}`);
 }
 
+function passengerPassItems(request) {
+  return getRequestPassengers(request)
+    .filter(passenger => passenger.boardingPassToken)
+    .map(passenger => ({
+      label: passenger.name || `Passenger ${passenger.number || 1}`,
+      url: `${PUBLIC_SITE_URL}/private-flight-information-pass/${encodeURIComponent(request.id)}/${passenger.boardingPassToken}`
+    }));
+}
+
 async function notifyBookerOfBooking(request) {
   const recipient = String(request.email || '').trim();
+  const details = [
+    ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`],
+    ['Date', emailDate(request.requestDate)],
+    ['Requested departure', `${formatBoardingPassTime(request.requestTime)} Local Time`],
+    ['Estimated flight time', emailFlightTime(request)],
+    ['Passengers', request.seats],
+    ['Baggage', boardingPassBaggage(request)]
+  ];
   return sendBookingEmail({
     to: recipient,
     subject: `Private flight request received / ${request.id}`,
@@ -299,10 +357,10 @@ async function notifyBookerOfBooking(request) {
       '',
       'REQUESTED FLIGHT DETAILS',
       `Booking reference: ${request.id}`,
-      `Route: ${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`,
+      `Route: ${details[0][1]}`,
       `Date: ${emailDate(request.requestDate)}`,
       `Requested departure: ${formatBoardingPassTime(request.requestTime)} Local Time`,
-      `Estimated flight time: ${estimateBoardingPassFlightTime(request.dep, request.arr).replace('.', 'H ')}M`,
+      `Estimated flight time: ${emailFlightTime(request)}`,
       `Passengers: ${request.seats}`,
       `Baggage: ${boardingPassBaggage(request)}`,
       '',
@@ -310,15 +368,42 @@ async function notifyBookerOfBooking(request) {
       '',
       'Kind regards,',
       'NGA Private Aviation'
-    ].join('\n')
+    ].join('\n'),
+    html: privateFlightEmailHtml({
+      status: 'REQUEST RECEIVED',
+      reference: request.id,
+      greeting: emailPassengerNames(request),
+      intro: 'Thank you for your private flight request. Our operations team has received it and will contact you within 24 hours of the requested flight.',
+      details,
+      sections: [{
+        title: 'NEXT STEP',
+        lines: ['This is a request only and is not a flight confirmation. A pilot will review the route, weather, aircraft availability, loading, and operational requirements before confirming the flight.']
+      }],
+      closing: ['Kind regards,', 'NGA Private Aviation']
+    })
   });
 }
 
 async function notifyBookerOfApproval(request) {
   const recipient = String(request.email || '').trim();
   const passLinks = passengerPassLinks(request);
+  const passItems = passengerPassItems(request);
   const agreementUrl = String(process.env.BOOKING_AGREEMENT_URL || '').trim();
   const reimbursementUrl = String(process.env.BOOKING_REIMBURSEMENT_URL || '').trim();
+  const details = [
+    ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`],
+    ['Date', emailDate(request.requestDate)],
+    ['Boarding time', `${boardingPassBoardingTime(request.requestTime)} Local Time`],
+    ['Scheduled departure', `${formatBoardingPassTime(request.requestTime)} Local Time`],
+    ['Aircraft', request.aircraft || 'OH-PMK / Piper PA-28R-200 Arrow II']
+  ];
+  const passHtml = passItems.length
+    ? passItems.map(item => `<p style="margin:10px 0"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="color:#071f4b;font-weight:700;word-break:break-all">OPEN FLIGHT INFORMATION PASS</a></p>`).join('')
+    : '<p style="margin:8px 0;line-height:1.55;color:#28313c">Passenger passes will be issued by operations shortly.</p>';
+  const documentHtml = [
+    agreementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(agreementUrl)}" style="color:#071f4b;font-weight:700">OPEN PRIVATE FLIGHT AGREEMENT</a></p>` : '<p style="margin:8px 0;color:#28313c">Private Flight Agreement: to be provided by operations.</p>',
+    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#071f4b;font-weight:700">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#28313c">Reimbursement Statement: to be provided by operations.</p>'
+  ].join('');
   return sendBookingEmail({
     to: recipient,
     subject: `Flight confirmed / ${request.id}`,
@@ -328,11 +413,11 @@ async function notifyBookerOfApproval(request) {
       'We are pleased to confirm that your private flight request has been approved, subject to normal day-of-flight weather and operational checks.',
       '',
       'DEPARTURE DETAILS',
-      `Route: ${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`,
+      `Route: ${details[0][1]}`,
       `Date: ${emailDate(request.requestDate)}`,
       `Boarding time: ${boardingPassBoardingTime(request.requestTime)} Local Time`,
       `Scheduled departure: ${formatBoardingPassTime(request.requestTime)} Local Time`,
-      `Aircraft: ${request.aircraft || 'OH-PMK / Piper PA-28R-200 Arrow II'}`,
+      `Aircraft: ${details[4][1]}`,
       '',
       'AIRPORT LOCATION',
       ...emailAirportLocation(request),
@@ -357,7 +442,22 @@ async function notifyBookerOfApproval(request) {
       'NGA Private Aviation',
       '+358 41 314 5148',
       'antonigarcia200518@icloud.com'
-    ].join('\n')
+    ].join('\n'),
+    html: privateFlightEmailHtml({
+      status: 'FLIGHT CONFIRMED',
+      reference: request.id,
+      greeting: emailPassengerNames(request),
+      intro: 'We are pleased to confirm that your private flight request has been approved, subject to normal day-of-flight weather and operational checks.',
+      details,
+      sections: [
+        { title: 'AIRPORT LOCATION', lines: emailAirportLocation(request) },
+        { title: 'PASSENGER FLIGHT INFORMATION PASSES', html: passHtml },
+        { title: 'PASSENGER DOCUMENTATION', html: documentHtml },
+        { title: 'BAGGAGE AND ITEMS ON BOARD', lines: ['Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.'] },
+        { title: 'BOARDING REMINDER', lines: ['Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.'] }
+      ],
+      closing: ['Kind regards,', 'Antoni Garcia', 'Pilot in Command', 'NGA Private Aviation', '+358 41 314 5148', 'antonigarcia200518@icloud.com']
+    })
   });
 }
 
