@@ -306,24 +306,30 @@ function emailPriceSummary(request) {
 }
 
 function privateFlightEmailHtml({ status, reference, greeting, intro, details, sections = [], closing = [] }) {
+  const navy = '#06285d';
+  const silver = '#8b9199';
+  const paper = '#ffffff';
+  const confidentiality = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:collapse"><tr><td bgcolor="#fff5f5" style="padding:12px 14px;border:1px solid #b42318;color:#8f1712;font-size:11px;line-height:1.55"><strong>CONFIDENTIAL PASSENGER INFORMATION</strong><br>This email and any linked flight information may contain sensitive passenger data. It is intended only for the named recipient and must not be shared, copied, or misused.</td></tr></table>`;
   const detailRows = details.map(([label, value]) => `
-    <tr><td bgcolor="#181818" style="padding:10px 0;border-bottom:1px solid #4a4a4a;width:42%;font-weight:700;color:#ffffff">${escapeEmailHtml(label)}</td><td bgcolor="#181818" style="padding:10px 0;border-bottom:1px solid #4a4a4a;color:#f2f2f2">${escapeEmailHtml(value)}</td></tr>`).join('');
+    <tr><td bgcolor="${paper}" style="padding:10px 0;border-bottom:1px solid #d5d8dc;width:42%;font-weight:700;color:${navy}">${escapeEmailHtml(label)}</td><td bgcolor="${paper}" style="padding:10px 0;border-bottom:1px solid #d5d8dc;color:#15171a">${escapeEmailHtml(value)}</td></tr>`).join('');
   const sectionHtml = sections.map(section => `
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;border-collapse:collapse"><tr><td bgcolor="#111111" style="padding:9px 13px;border:1px solid #66ff99;color:#66ff99;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</td></tr><tr><td bgcolor="#181818" style="padding:10px 0;color:#f2f2f2">${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.6;color:#f2f2f2">${escapeEmailHtml(line)}</p>`).join('')}</td></tr></table>`).join('');
-  return `<!doctype html><html><body bgcolor="#181818" style="margin:0;padding:0;background-color:#181818;font-family:'Courier New',Courier,monospace;color:#f2f2f2">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#181818" style="width:100%;background-color:#181818;border-collapse:collapse"><tr><td align="center" bgcolor="#181818" style="padding:24px 12px;background-color:#181818">
-      <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#181818" style="width:100%;max-width:680px;background-color:#181818;border:2px solid #ffffff;border-collapse:collapse">
-        <tr><td bgcolor="#050505" style="padding:24px 28px;background-color:#050505;border-bottom:1px solid #66ff99">
-          <div style="font-size:12px;letter-spacing:.12em;color:#cfcfcf">NGA PRIVATE AVIATION</div>
-          <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em;color:#66ff99">${escapeEmailHtml(status)}</div>
-          <div style="margin-top:13px;font-size:13px;color:#f2f2f2">REFERENCE: <strong style="color:#ffffff">${escapeEmailHtml(reference)}</strong></div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;border-collapse:collapse"><tr><td bgcolor="${navy}" style="padding:9px 13px;border:1px solid ${navy};color:#ffffff;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</td></tr><tr><td bgcolor="${paper}" style="padding:10px 0;color:#15171a">${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.6;color:#15171a">${escapeEmailHtml(line)}</p>`).join('')}</td></tr></table>`).join('');
+  return `<!doctype html><html><body bgcolor="#ffffff" style="margin:0;padding:0;background-color:#ffffff;font-family:'Courier New',Courier,monospace;color:#15171a">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse"><tr><td align="center" bgcolor="#ffffff" style="padding:24px 12px;background-color:#ffffff">
+      <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:680px;background-color:#ffffff;border:2px solid ${navy};border-collapse:collapse">
+        <tr><td bgcolor="#ffffff" style="padding:20px 28px;background-color:#ffffff;border-bottom:2px solid ${navy}">
+          <img src="${PUBLIC_SITE_URL}/nga-private-aviation-logo.png" alt="NGA Private Aviation" width="154" style="display:block;width:154px;max-width:100%;height:auto;border:0;margin:0 0 15px" />
+          <div style="font-size:12px;letter-spacing:.12em;color:${silver}">NGA PRIVATE AVIATION</div>
+          <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em;color:${navy}">${escapeEmailHtml(status)}</div>
+          <div style="margin-top:13px;font-size:13px;color:#3f454c">REFERENCE: <strong style="color:${navy}">${escapeEmailHtml(reference)}</strong></div>
         </td></tr>
-        <tr><td bgcolor="#181818" style="padding:28px;background-color:#181818">
-          <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:#ffffff">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
-          <p style="margin:0 0 22px;line-height:1.65;color:#f2f2f2">${escapeEmailHtml(intro)}</p>
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#181818" style="width:100%;background-color:#181818;border-collapse:collapse;font-size:14px">${detailRows}</table>
+        <tr><td bgcolor="#ffffff" style="padding:28px;background-color:#ffffff">
+          <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:#15171a">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
+          <p style="margin:0 0 22px;line-height:1.65;color:#15171a">${escapeEmailHtml(intro)}</p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse;font-size:14px">${detailRows}</table>
           ${sectionHtml}
-          ${closing.map(line => `<p style="margin:6px 0;line-height:1.5;color:#f2f2f2">${escapeEmailHtml(line)}</p>`).join('')}
+          ${closing.map(line => `<p style="margin:6px 0;line-height:1.5;color:#15171a">${escapeEmailHtml(line)}</p>`).join('')}
+          ${confidentiality}
         </td></tr>
       </table>
     </td></tr></table>
@@ -331,26 +337,28 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
 }
 
 function requestReceivedEmailHtml({ reference, greeting, details }) {
-  const shell = '#202124';
-  const panel = '#242628';
-  const lines = details.map(([label, value]) => `<tr><td bgcolor="${panel}" style="padding:11px 0;border-bottom:1px solid #55585c;color:#c8cdd2;font-size:11px;letter-spacing:.06em;text-transform:uppercase">${escapeEmailHtml(label)}</td><td align="right" bgcolor="${panel}" style="padding:11px 0;border-bottom:1px solid #55585c;color:#ffffff;font-size:13px;font-weight:700;line-height:1.35;text-transform:uppercase">${escapeEmailHtml(value)}</td></tr>`).join('');
-  return `<!doctype html><html><head><style>@font-face{font-family:'Computer Says No';src:url('${PUBLIC_SITE_URL}/fonts/computer-says-no.woff2') format('woff2');font-weight:700;font-style:normal}</style></head><body bgcolor="${shell}" style="margin:0;padding:0;background-color:${shell};font-family:'Courier New',Courier,monospace;color:#ffffff">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${shell}" style="width:100%;background-color:${shell}"><tr><td align="center" bgcolor="${shell}" style="padding:24px 12px;background-color:${shell}">
-      <table role="presentation" width="720" cellspacing="0" cellpadding="0" border="0" bgcolor="${panel}" style="width:100%;max-width:720px;background-color:${panel};border:2px solid #66ff99;border-collapse:collapse">
-        <tr><td bgcolor="${panel}" style="padding:20px;background-color:${panel}">
-          <div style="color:#66ff99;font-size:11px;letter-spacing:.08em;text-transform:uppercase">Private Flight</div>
-          <div style="margin:10px 0 14px;color:#ffffff;font-family:'Computer Says No','Courier New',Courier,monospace;font-size:32px;font-weight:700;line-height:1;text-transform:uppercase">REQUEST RECEIVED</div>
-          <p style="margin:0;color:#d0d4d8;font-size:12px;line-height:1.55;text-transform:uppercase">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p>
-          <div style="margin:16px 0;padding:12px;border:1px solid #ffffff;color:#66ff99;font-family:'Computer Says No','Courier New',Courier,monospace;font-size:24px;font-weight:700;line-height:1">REFERENCE ${escapeEmailHtml(reference)}</div>
-          <p style="margin:0 0 14px;color:#f2f2f2;font-size:14px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${panel}" style="width:100%;background-color:${panel};border-collapse:collapse">${lines}</table>
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;width:100%;border-top:1px solid #555555;border-collapse:collapse">
-            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #66ff99;color:#66ff99;font-size:12px;text-transform:uppercase"><strong>Request received</strong><br><span style="color:#bbbbbb">Your flight details have been received.</span></td></tr>
-            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #555555;color:#f2f2f2;font-size:12px;text-transform:uppercase"><strong>Pilot and operations review</strong><br><span style="color:#aaaaaa">Route, weather, aircraft, and loading are checked.</span></td></tr>
-            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #555555;color:#f2f2f2;font-size:12px;text-transform:uppercase"><strong>Payment instructions after approval</strong><br><span style="color:#aaaaaa">A Reimbursement Statement is issued once confirmed.</span></td></tr>
-            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #555555;color:#f2f2f2;font-size:12px;text-transform:uppercase"><strong>Final flight confirmation</strong><br><span style="color:#aaaaaa">Passenger passes and final details are sent by email.</span></td></tr>
+  const navy = '#06285d';
+  const silver = '#8b9199';
+  const lines = details.map(([label, value]) => `<tr><td bgcolor="#ffffff" style="padding:11px 0;border-bottom:1px solid #d5d8dc;color:${silver};font-size:11px;letter-spacing:.06em;text-transform:uppercase">${escapeEmailHtml(label)}</td><td align="right" bgcolor="#ffffff" style="padding:11px 0;border-bottom:1px solid #d5d8dc;color:${navy};font-size:13px;font-weight:700;line-height:1.35;text-transform:uppercase">${escapeEmailHtml(value)}</td></tr>`).join('');
+  return `<!doctype html><html><head><style>@font-face{font-family:'Computer Says No';src:url('${PUBLIC_SITE_URL}/fonts/computer-says-no.woff2') format('woff2');font-weight:700;font-style:normal}</style></head><body bgcolor="#ffffff" style="margin:0;padding:0;background-color:#ffffff;font-family:'Courier New',Courier,monospace;color:#15171a">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff"><tr><td align="center" bgcolor="#ffffff" style="padding:24px 12px;background-color:#ffffff">
+      <table role="presentation" width="720" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:720px;background-color:#ffffff;border:2px solid ${navy};border-collapse:collapse">
+        <tr><td bgcolor="#ffffff" style="padding:20px;background-color:#ffffff">
+          <img src="${PUBLIC_SITE_URL}/nga-private-aviation-logo.png" alt="NGA Private Aviation" width="154" style="display:block;width:154px;max-width:100%;height:auto;border:0;margin:0 0 15px" />
+          <div style="color:${silver};font-size:11px;letter-spacing:.08em;text-transform:uppercase">Private Flight</div>
+          <div style="margin:10px 0 14px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:32px;font-weight:700;line-height:1;text-transform:uppercase">REQUEST RECEIVED</div>
+          <p style="margin:0;color:#3f454c;font-size:12px;line-height:1.55;text-transform:uppercase">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p>
+          <div style="margin:16px 0;padding:12px;border:1px solid ${navy};color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:24px;font-weight:700;line-height:1">REFERENCE ${escapeEmailHtml(reference)}</div>
+          <p style="margin:0 0 14px;color:#15171a;font-size:14px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse">${lines}</table>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;width:100%;border-top:1px solid #d5d8dc;border-collapse:collapse">
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid ${navy};color:${navy};font-size:12px;text-transform:uppercase"><strong>Request received</strong><br><span style="color:#555b63">Your flight details have been received.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:#15171a;font-size:12px;text-transform:uppercase"><strong>Pilot and operations review</strong><br><span style="color:#555b63">Route, weather, aircraft, and loading are checked.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:#15171a;font-size:12px;text-transform:uppercase"><strong>Payment instructions after approval</strong><br><span style="color:#555b63">A Reimbursement Statement is issued once confirmed.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:#15171a;font-size:12px;text-transform:uppercase"><strong>Final flight confirmation</strong><br><span style="color:#555b63">Passenger passes and final details are sent by email.</span></td></tr>
           </table>
-          <div style="margin-top:16px;padding:11px 13px;border:1px solid rgba(102,255,153,.55);color:#f2f2f2;font-size:12px;line-height:1.55"><strong style="color:#66ff99">PAYMENT TERMS</strong><br>Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</div>
+          <div style="margin-top:16px;padding:11px 13px;border:1px solid ${navy};color:#15171a;font-size:12px;line-height:1.55"><strong style="color:${navy}">PAYMENT TERMS</strong><br>Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</div>
+          <div style="margin-top:16px;padding:12px 14px;border:1px solid #b42318;background-color:#fff5f5;color:#8f1712;font-size:11px;line-height:1.55"><strong>CONFIDENTIAL PASSENGER INFORMATION</strong><br>This email and any linked flight information may contain sensitive passenger data. It is intended only for the named recipient and must not be shared, copied, or misused.</div>
         </td></tr>
       </table>
     </td></tr></table>
