@@ -205,28 +205,56 @@ async function addBookingTimelineEvent(requestId, type, note = '') {
   return item;
 }
 
-async function notifyPilotOfBooking(request) {
+async function sendBookingEmail({ to, subject, text }) {
   const apiKey = String(process.env.RESEND_API_KEY || '').trim();
-  const recipient = String(process.env.PILOT_NOTIFICATION_EMAIL || '').trim();
   const sender = String(process.env.BOOKING_EMAIL_FROM || '').trim();
-  if (!apiKey || !recipient || !sender) return false;
-  const subject = `New private flight request ${request.id}`;
-  const text = [
-    `Reference: ${request.id}`,
-    `Route: ${request.depName || request.dep} to ${request.arrName || request.arr}`,
-    `Departure: ${request.requestDate} ${request.requestTime}`,
-    `Passengers: ${request.seats}`,
-    `Status: ${request.status}`,
-    '',
-    'Open Booking Operations to review the request.'
-  ].join('\n');
+  const replyTo = String(process.env.BOOKING_EMAIL_REPLY_TO || '').trim();
+  if (!apiKey || !sender || !to) return false;
+  const payload = { from: sender, to: [to], subject, text };
+  if (replyTo) payload.reply_to = replyTo;
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: sender, to: [recipient], subject, text })
+    body: JSON.stringify(payload)
   });
   if (!response.ok) throw new Error(`EMAIL NOTIFICATION FAILED ${response.status}`);
   return true;
+}
+
+async function notifyPilotOfBooking(request) {
+  const recipient = String(process.env.PILOT_NOTIFICATION_EMAIL || '').trim();
+  return sendBookingEmail({
+    to: recipient,
+    subject: `New private flight request ${request.id}`,
+    text: [
+      `Reference: ${request.id}`,
+      `Route: ${request.depName || request.dep} to ${request.arrName || request.arr}`,
+      `Departure: ${request.requestDate} ${request.requestTime}`,
+      `Passengers: ${request.seats}`,
+      `Status: ${request.status}`,
+      '',
+      'Open Booking Operations to review the request.'
+    ].join('\n')
+  });
+}
+
+async function notifyBookerOfBooking(request) {
+  const recipient = String(request.email || '').trim();
+  return sendBookingEmail({
+    to: recipient,
+    subject: `Private flight request received / ${request.id}`,
+    text: [
+      'Your private flight request has been received.',
+      '',
+      `Booking reference: ${request.id}`,
+      `Route: ${request.depName || request.dep} to ${request.arrName || request.arr}`,
+      `Requested departure: ${request.requestDate} ${request.requestTime}`,
+      `Passengers: ${request.seats}`,
+      '',
+      'This is a request only and is not a flight confirmation.',
+      'A pilot or operations team member will review the route, aircraft, weather, and loading requirements before contacting you.'
+    ].join('\n')
+  });
 }
 
 const bookingAirports = [
@@ -2453,9 +2481,7 @@ app.get('/booking-ops', (req, res) => {
 
 function sendBoardingPassPage(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  const template = fs.readFileSync(path.join(__dirname, 'views', 'boarding-pass.html'), 'utf8');
-  const manifestUrl = `/pass-manifest/${encodeURIComponent(req.params.token)}`;
-  res.type('html').send(template.replace('__PASS_MANIFEST__', manifestUrl));
+  res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
 }
 
 app.get('/boarding-pass/:token', (req, res) => {
@@ -2468,24 +2494,6 @@ app.get('/pass/:reference/passenger-information-pass/:token', (req, res) => {
 
 app.get('/private-flight-information-pass/:reference/:token', (req, res) => {
   sendBoardingPassPage(req, res);
-});
-
-app.get('/pass-manifest/:token', (req, res) => {
-  const token = String(req.params.token || '').trim();
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.type('application/manifest+json').json({
-    name: 'Private Flight Passenger Pass',
-    short_name: 'Flight Pass',
-    start_url: `/boarding-pass/${encodeURIComponent(token)}`,
-    scope: '/',
-    display: 'standalone',
-    background_color: '#11121a',
-    theme_color: '#16125e',
-    icons: [
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
-    ]
-  });
 });
 
 app.get('/pass-check/:token', (req, res) => {
@@ -2967,6 +2975,11 @@ app.post('/api/booking-requests', async (req, res) => {
     if (await notifyPilotOfBooking(request)) await addBookingTimelineEvent(request.id, 'PILOT EMAIL NOTIFICATION', 'New booking notification sent.');
   } catch (err) {
     console.error('BOOKING EMAIL:', err.message);
+  }
+  try {
+    if (await notifyBookerOfBooking(request)) await addBookingTimelineEvent(request.id, 'PASSENGER EMAIL NOTIFICATION', 'Booking receipt sent to the booking contact.');
+  } catch (err) {
+    console.error('BOOKER EMAIL:', err.message);
   }
 
   res.status(201).json({

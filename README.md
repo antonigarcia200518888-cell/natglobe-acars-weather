@@ -9,7 +9,6 @@ iPad-friendly ACARS-style METAR/TAF weather report generator with nearby-airfiel
 3. Build command: `npm install`
 4. Start command: `npm start`
 5. Once deployed, open the Render URL on your iPad.
-6. In Safari, use **Share > Add to Home Screen**.
 
 ### Booking database
 
@@ -17,17 +16,18 @@ The booking system uses temporary memory until a PostgreSQL connection is config
 
 Do not use the temporary mode for production passenger or identity data: Render restarts clear it.
 
-### Pilot booking emails
+### Booking emails
 
-To notify the pilot automatically when a new request arrives, create a verified sender in [Resend](https://resend.com/) and add these Render environment variables:
+To automatically notify operations and send the booking contact a request receipt, create a verified sender in [Resend](https://resend.com/) and add these Render environment variables:
 
 ```text
 RESEND_API_KEY=<your Resend API key>
 BOOKING_EMAIL_FROM=Private Flight <bookings@your-verified-domain.com>
-PILOT_NOTIFICATION_EMAIL=pilot@example.com
+BOOKING_EMAIL_REPLY_TO=info.ngaprivateaviation@gmail.com
+PILOT_NOTIFICATION_EMAIL=operations@example.com
 ```
 
-The notification includes only the booking reference, route, requested time, passenger count, and status. It does not include passport, medical, or identity data.
+The booking contact receives a receipt with the reference, route, requested departure, and passenger count. Operations receives a separate alert. Neither email includes passport, medical, identity, emergency, or signature data.
 
 ### Web boarding passes
 
