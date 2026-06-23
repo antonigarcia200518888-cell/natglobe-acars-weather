@@ -20,17 +20,15 @@
     .pass-status.pending { color: #ffcc66; }
     .pass-status.declined, .pass-status.completed { color: #ff6b6b; }
     .ticket { position: relative; width: 100%; aspect-ratio: 2000 / 647; background: url('/boarding-pass-template-clean.png') center / 100% 100% no-repeat; box-shadow: 0 28px 80px rgba(0,0,0,.42); overflow: hidden; }
-    .ticket-details { display: grid; grid-template-columns: minmax(150px, .7fr) minmax(260px, 1.55fr) auto; width: 100%; border: 1px solid rgba(255,255,255,.36); border-top: 0; background: #16125e; color: #fff; }
+    .ticket-details { display: grid; grid-template-columns: minmax(150px, .7fr) minmax(260px, 1.55fr); width: 100%; border: 1px solid rgba(255,255,255,.36); border-top: 0; background: #16125e; color: #fff; }
     .ticket-details[hidden] { display: none; }
     .ticket-detail { min-width: 0; padding: 10px 13px; border-right: 1px solid rgba(255,255,255,.25); }
     .ticket-detail span { display: block; color: rgba(255,255,255,.62); font: 600 9px/1.2 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
     .ticket-detail strong { display: block; margin-top: 6px; color: #fff; font: 400 18px/1 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
-    .calendar-link { display: flex; align-items: center; justify-content: center; min-width: 168px; color: #fff; padding: 10px 14px; font: 600 10px/1 Poppins, Arial, sans-serif; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
-    .calendar-link:hover { border-color: #66ff99; color: #66ff99; }
-    .pass-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
-    .home-screen-btn { min-height: 42px; border: 1px solid rgba(255,255,255,.55); background: transparent; color: #fff; padding: 10px 14px; font: 600 10px/1 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
-    .home-screen-btn:hover, .home-screen-btn:focus-visible { border-color: #66ff99; color: #66ff99; outline: none; }
-    .home-help { margin: 8px 0 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.35); color: rgba(255,255,255,.8); font: 500 11px/1.45 Poppins, Arial, sans-serif; text-align: right; }
+    .pass-actions { display: grid; width: min(280px, 100%); gap: 8px; margin: 12px 0 0 auto; }
+    .calendar-link, .home-screen-btn { display: flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid #d5d5d5; background: #d5d5d5; color: #11121a; padding: 10px 14px; font: 600 10px/1 Poppins, Arial, sans-serif; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; cursor: pointer; }
+    .calendar-link:hover, .calendar-link:focus-visible, .home-screen-btn:hover, .home-screen-btn:focus-visible { background: #fff; border-color: #fff; color: #11121a; outline: none; }
+    .home-help { width: min(420px, 100%); margin: 8px 0 0 auto; padding: 10px 12px; border: 1px solid rgba(255,255,255,.35); color: rgba(255,255,255,.8); font: 500 11px/1.45 Poppins, Arial, sans-serif; text-align: right; }
     .home-help[hidden] { display: none; }
     .arrival-notice { margin: 12px 0 0; color: #ff6b6b; font: 400 clamp(14px, 1.35vw, 20px)/1 "Computer Says No", monospace; letter-spacing: .04em; text-transform: uppercase; }
     .field { position: absolute; display: flex; align-items: center; overflow: hidden; color: #050505; font-family: "Computer Says No", "Courier New", monospace; font-weight: 400; line-height: 1; text-transform: uppercase; white-space: nowrap; }
@@ -60,7 +58,7 @@
       .pass-status { padding: 6px 8px; font-size: 9px; }
       .shell { width: 100%; }
       .ticket { display: none !important; }
-      .ticket-details, .arrival-notice { display: none !important; }
+      .ticket-details, .arrival-notice, .pass-actions, .home-help { display: none !important; }
       .mobile-pass { display: none !important; }
       .orientation-notice { min-height: calc(100dvh - 56px); padding: 28px; display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; font: 500 15px/1.5 Poppins, Arial, sans-serif; }
       .orientation-notice strong { display: block; margin-bottom: 8px; font: 400 27px/1 "Computer Says No", monospace; letter-spacing: .04em; }
@@ -88,11 +86,11 @@
       .heading { font-size: 10px; }
       .orientation-notice { display: none; }
       .ticket { display: block !important; width: min(100%, 1180px); margin: 0 auto; }
-      .ticket-details, .arrival-notice { width: min(100%, 1180px); margin-left: auto; margin-right: auto; }
+      .ticket-details, .arrival-notice, .pass-actions, .home-help { width: min(100%, 1180px); margin-left: auto; margin-right: auto; }
+      .pass-actions { display: grid !important; width: min(280px, 100%) !important; }
     }
     @media (max-width: 760px) and (orientation: landscape) {
-      .ticket-details { grid-template-columns: 1fr 1.6fr auto; }
-      .calendar-link { min-height: 44px; }
+      .ticket-details { grid-template-columns: 1fr 1.6fr; }
     }
   </style>
 </head>
@@ -119,11 +117,10 @@
     <section id="ticketDetails" class="ticket-details" hidden aria-label="Passenger ticket details">
       <div class="ticket-detail"><span>Seat</span><strong id="passSeat">Rear left</strong></div>
       <div class="ticket-detail"><span>Baggage</span><strong id="passBaggage">No baggage declared</strong></div>
-      <a id="calendarLink" class="calendar-link" href="#" download>ADD TO CALENDAR</a>
     </section>
-    <div id="passActions" class="pass-actions" hidden><button id="homeScreenBtn" class="home-screen-btn" type="button">ADD TO HOME SCREEN</button></div>
-    <div id="homeHelp" class="home-help" hidden></div>
     <p id="passCheckIn" class="arrival-notice" hidden>Arrive 20 min before</p>
+    <div id="passActions" class="pass-actions" hidden><a id="calendarLink" class="calendar-link" href="#" download>ADD TO CALENDAR</a><button id="homeScreenBtn" class="home-screen-btn" type="button">ADD TO HOME SCREEN</button></div>
+    <div id="homeHelp" class="home-help" hidden></div>
     <section id="mobilePass" class="mobile-pass" hidden aria-label="Mobile private flight boarding pass">
       <div class="mobile-top"><div class="mobile-brand">Private Flight</div><div class="mobile-status">CONFIRMED</div></div>
       <div class="mobile-hero"><div><div class="mobile-label">Passenger</div><div id="mobilePassenger" class="mobile-name">Private guest</div><div class="mobile-label" style="margin-top:18px;">Boarding pass</div><div id="mobileReference" class="mobile-value">Reference</div></div><img id="mobileQr" class="mobile-qr" alt="Boarding pass QR code" /></div>

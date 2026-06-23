@@ -551,6 +551,13 @@ function formatBoardingPassTime(value) {
   return match ? `${String(match[1]).padStart(2, '0')}.${match[2]}` : (value || 'TBD');
 }
 
+function boardingPassBoardingTime(departureTime) {
+  const match = String(departureTime || '').match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return 'TBD';
+  const minutes = ((Number(match[1]) * 60) + Number(match[2]) - 20 + (24 * 60)) % (24 * 60);
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}.${String(minutes % 60).padStart(2, '0')}`;
+}
+
 function boardingPassArrivalTime(departureTime, depIcao, arrIcao) {
   const match = String(departureTime || '').match(/^(\d{1,2}):(\d{2})$/);
   if (!match) return 'TBD';
@@ -621,7 +628,7 @@ function publicBoardingPassView(request, passenger) {
     from: boardingPassAirportLabel(request.dep, request.depName),
     to: boardingPassAirportLabel(request.arr, request.arrName),
     date: formatBoardingPassDate(request.requestDate),
-    boardingTime: formatBoardingPassTime(request.requestTime),
+    boardingTime: boardingPassBoardingTime(request.requestTime),
     flightTime: estimateBoardingPassFlightTime(request.dep, request.arr),
     aircraft: 'PA28-200R',
     seat: assignedPassengerSeat(request, passenger),
@@ -631,7 +638,7 @@ function publicBoardingPassView(request, passenger) {
     departureTime: formatBoardingPassTime(request.requestTime),
     arrivalTime: boardingPassArrivalTime(request.requestTime, request.dep, request.arr),
     baggage: boardingPassBaggage(request),
-    checkIn: `ARRIVE 20 MIN BEFORE ${formatBoardingPassTime(request.requestTime)}`,
+    checkIn: 'ARRIVE 20 MIN BEFORE DEPARTURE TIME',
     status: passStatus.label,
     statusTone: passStatus.tone
   };
@@ -684,7 +691,7 @@ async function createWalletPass(request, passenger) {
         { key: 'date', label: 'DATE', value: request.requestDate || 'TBD' }
       ],
       auxiliaryFields: [
-        { key: 'boarding', label: 'BOARDING', value: request.requestTime || 'TBD' },
+        { key: 'boarding', label: 'BOARDING', value: boardingPassBoardingTime(request.requestTime) },
         { key: 'aircraft', label: 'AIRCRAFT', value: request.aircraft || 'PA-28R-200' }
       ],
       backFields: [
