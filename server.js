@@ -219,8 +219,17 @@ async function sendBookingEmail({ to, subject, text }) {
       body: JSON.stringify({ secret, to, subject, text }),
       signal: controller.signal
     });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || !result.ok) throw new Error(result.error || `EMAIL RELAY FAILED ${response.status}`);
+    const responseText = await response.text();
+    let result = {};
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      // The diagnostic below makes a misconfigured Google Apps Script deployment visible in Render logs.
+    }
+    if (!response.ok || !result.ok) {
+      const detail = result.error || responseText.replace(/\s+/g, ' ').slice(0, 180) || `HTTP ${response.status}`;
+      throw new Error(`EMAIL RELAY FAILED ${response.status}: ${detail}`);
+    }
     return true;
   } finally {
     clearTimeout(timeout);
