@@ -212,7 +212,10 @@ async function sendBookingEmail({ to, subject, text }) {
   const gmailSender = String(process.env.GMAIL_SMTP_FROM || `NGA Private Aviation <${gmailUser}>`).trim();
   if (gmailUser && gmailAppPassword && to) {
     const transport = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      family: 4,
       auth: { user: gmailUser, pass: gmailAppPassword },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
