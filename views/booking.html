@@ -297,17 +297,25 @@
       right: 12px;
       top: 44px;
       z-index: 700;
-      min-height: 34px;
+      width: 36px;
+      height: 36px;
+      min-height: 36px;
       border: 1px solid #777;
       background: rgba(0,0,0,0.78);
       color: #fff;
-      padding: 7px 9px;
+      padding: 0;
+      display: grid;
+      place-items: center;
       font-family: inherit;
       font-size: 10px;
       font-weight: 700;
-      text-transform: uppercase;
       cursor: pointer;
     }
+
+    .locate-me-btn svg { width: 17px; height: 17px; }
+    .locate-me-btn.is-locating svg { animation: locate-pulse 0.8s ease-in-out infinite alternate; }
+    @keyframes locate-pulse { from { transform: scale(0.8); } to { transform: scale(1.08); } }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
     .locate-me-btn:hover,
     .locate-me-btn:focus-visible,
@@ -646,6 +654,8 @@
       grid-template-columns: 1fr;
     }
 
+    aside #luggageSection { margin-top: 10px; }
+
     .review-card {
       margin-top: 0;
       border-color: rgba(102,255,153,0.65);
@@ -864,7 +874,7 @@
 
     .baggage-request-grid {
       display: grid;
-      grid-template-columns: minmax(320px, 0.62fr) minmax(0, 1.38fr);
+      grid-template-columns: 1fr;
       gap: 10px;
       align-items: start;
     }
@@ -1672,9 +1682,10 @@
       }
       .locate-me-btn {
         right: 8px;
-        top: 42px;
+        top: 8px;
+        width: 34px;
+        height: 34px;
         min-height: 32px;
-        font-size: 9px;
       }
       .map-watermark {
         display: none;
@@ -1751,8 +1762,8 @@
     <div class="booking-progress" aria-label="Booking completion">
       <span data-progress-step="route"><i aria-hidden="true"></i>Itinerary</span>
       <span data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</span>
-      <span data-progress-step="safety"><i aria-hidden="true"></i>Safety</span>
       <span data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</span>
+      <span data-progress-step="extras"><i aria-hidden="true"></i>Extras</span>
       <span data-progress-step="review"><i aria-hidden="true"></i>Review</span>
     </div>
     <div id="draftStatus" class="draft-status" aria-live="polite">Booking progress is saved locally on this device.</div>
@@ -1768,7 +1779,7 @@
           <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
           <div class="map-watermark">Private route map</div>
           <div class="route-map-compass">N</div>
-          <button id="locateMeBtn" class="locate-me-btn" type="button">Locate me</button>
+          <button id="locateMeBtn" class="locate-me-btn" type="button" aria-label="Locate me" title="Locate me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7.8 18-3.5-7.7L3 9.8 21 3Z"/><path d="m9.5 13.5 4-4"/></svg><span class="sr-only">Locate me</span></button>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label"></div>
         </div>
@@ -1901,30 +1912,29 @@
               </div>
             </div>
           </div>
+          <div id="luggageSection" class="card">
+            <h2 class="section-title">Luggage declaration</h2>
+            <div class="declaration">
+              Keep baggage within the selected limit and declare power banks. Dangerous goods, weapons, flammables, pressurised containers, chemicals, and unsecured batteries are not permitted.
+            </div>
+            <input id="carryOnBags" type="hidden" value="NO" /><input id="bagCount" type="hidden" value="0" />
+            <div class="baggage-addon">
+              <div class="baggage-addon-head"><span>Add baggage to this flight</span><div class="bag-counter"><button id="removeBag" type="button" aria-label="Remove baggage">-</button><output id="bagCounter" aria-live="polite">0</output><button id="addBag" type="button" aria-label="Add baggage">+</button></div></div>
+              <div class="fine-print" style="margin-top:8px;">One standard carry-on bag is included in the flight price. Additional luggage remains subject to aircraft loading and pilot approval.</div>
+              <div id="baggageOptions" class="baggage-options">
+                <div class="question-grid">
+                  <div><label for="bagType">Baggage type</label><select id="bagType"><option value="CARRY-ON SUITCASE">Carry-on suitcase / max 15 KG</option><option value="SOFT DUFFLE BAG">Soft duffle bag / max 20 KG</option><option value="WEEKEND HOLDALL">Weekend holdall / max 15 KG</option><option value="SMALL BACKPACK">Small backpack / max 8 KG</option><option value="GARMENT BAG">Garment bag / max 10 KG</option><option value="OTHER BAG - PILOT REVIEW">Other bag / pilot review</option></select><div id="bagLimit" class="bag-limit">Maximum 15 KG</div></div>
+                  <div class="input-unit"><label for="baggageWeightKg">Baggage weight</label><input id="baggageWeightKg" class="compact-number" type="number" min="0" max="15" inputmode="decimal" placeholder="0" /><span class="unit">KG</span></div>
+                  <div><label for="powerBanks">Power banks / lithium batteries?</label><select id="powerBanks"><option value="NO">No</option><option value="YES">Yes</option></select></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
 
       <div class="baggage-request-grid">
-        <div class="card">
-          <h2 class="section-title">Luggage declaration</h2>
-          <div class="declaration">
-            Keep baggage within the selected limit and declare power banks. Dangerous goods, weapons, flammables, pressurised containers, chemicals, and unsecured batteries are not permitted.
-          </div>
-          <input id="carryOnBags" type="hidden" value="NO" /><input id="bagCount" type="hidden" value="0" />
-          <div class="baggage-addon">
-            <div class="baggage-addon-head"><span>Add baggage to this flight</span><div class="bag-counter"><button id="removeBag" type="button" aria-label="Remove baggage">-</button><output id="bagCounter" aria-live="polite">0</output><button id="addBag" type="button" aria-label="Add baggage">+</button></div></div>
-            <div class="fine-print" style="margin-top:8px;">One standard carry-on bag is included in the flight price. Additional luggage remains subject to aircraft loading and pilot approval.</div>
-            <div id="baggageOptions" class="baggage-options">
-              <div class="question-grid">
-                <div><label for="bagType">Baggage type</label><select id="bagType"><option value="CARRY-ON SUITCASE">Carry-on suitcase / max 15 KG</option><option value="SOFT DUFFLE BAG">Soft duffle bag / max 20 KG</option><option value="WEEKEND HOLDALL">Weekend holdall / max 15 KG</option><option value="SMALL BACKPACK">Small backpack / max 8 KG</option><option value="GARMENT BAG">Garment bag / max 10 KG</option><option value="OTHER BAG - PILOT REVIEW">Other bag / pilot review</option></select><div id="bagLimit" class="bag-limit">Maximum 15 KG</div></div>
-                <div class="input-unit"><label for="baggageWeightKg">Baggage weight</label><input id="baggageWeightKg" class="compact-number" type="number" min="0" max="15" inputmode="decimal" placeholder="0" /><span class="unit">KG</span></div>
-                <div><label for="powerBanks">Power banks / lithium batteries?</label><select id="powerBanks"><option value="NO">No</option><option value="YES">Yes</option></select></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
+        <div id="extrasSection" class="card">
           <h2 class="section-title">Cabin requests</h2>
           <div class="request-panel">
             <div class="request-panel-header">
@@ -1965,8 +1975,8 @@
       <div class="booking-progress" aria-label="Booking completion">
         <span data-progress-step="route"><i aria-hidden="true"></i>Itinerary</span>
         <span data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</span>
-        <span data-progress-step="safety"><i aria-hidden="true"></i>Safety</span>
         <span data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</span>
+        <span data-progress-step="extras"><i aria-hidden="true"></i>Extras</span>
         <span data-progress-step="review"><i aria-hidden="true"></i>Review</span>
       </div>
 
@@ -2118,6 +2128,8 @@
     let userLocationCircle = null;
     let submitTouched = false;
     let pilotAvailability = new Map();
+    let luggageSectionViewed = false;
+    let extrasSectionViewed = false;
 
     function pad(value) {
       return String(value).padStart(2, '0');
@@ -2304,10 +2316,14 @@
 
     function locateUserOnMap() {
       if (!navigator.geolocation) {
-        locateMeBtn.textContent = 'Location unavailable';
+        locateMeBtn.classList.remove('is-locating');
+        locateMeBtn.setAttribute('aria-label', 'Location unavailable');
+        locateMeBtn.title = 'Location unavailable';
         return;
       }
-      locateMeBtn.textContent = 'Locating...';
+      locateMeBtn.classList.add('is-locating');
+      locateMeBtn.setAttribute('aria-label', 'Locating');
+      locateMeBtn.title = 'Locating';
       navigator.geolocation.getCurrentPosition(position => {
         if (!initRouteMap()) return;
         const latLng = [position.coords.latitude, position.coords.longitude];
@@ -2330,10 +2346,14 @@
           interactive: false
         }).addTo(routeMap);
         routeMap.flyTo(latLng, Math.max(routeMap.getZoom(), 10), { animate: true, duration: 0.7 });
-        locateMeBtn.textContent = 'Location set';
+        locateMeBtn.classList.remove('is-locating');
+        locateMeBtn.setAttribute('aria-label', 'Your location is shown on the map');
+        locateMeBtn.title = 'Location set';
         locateMeBtn.classList.add('is-located');
       }, () => {
-        locateMeBtn.textContent = 'Enable location';
+        locateMeBtn.classList.remove('is-locating');
+        locateMeBtn.setAttribute('aria-label', 'Enable location');
+        locateMeBtn.title = 'Enable location';
       }, {
         enableHighAccuracy: false,
         timeout: 8000,
@@ -2513,6 +2533,29 @@
       });
     }
 
+    function watchBookingSection(id, onViewed) {
+      const target = el(id);
+      if (!target) return;
+      const markViewed = () => {
+        onViewed();
+        refreshSummary();
+      };
+      target.addEventListener('focusin', markViewed, { once: true });
+      target.addEventListener('pointerdown', markViewed, { once: true });
+      if (!('IntersectionObserver' in window)) return;
+      const observer = new IntersectionObserver(entries => {
+        if (!entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.35)) return;
+        markViewed();
+        observer.disconnect();
+      }, { threshold: [0.35] });
+      observer.observe(target);
+    }
+
+    function setupSectionProgress() {
+      watchBookingSection('luggageSection', () => { luggageSectionViewed = true; });
+      watchBookingSection('extrasSection', () => { extrasSectionViewed = true; });
+    }
+
     function passengerHasRequiredDetails(passenger) {
       return Boolean(
         passenger?.title &&
@@ -2545,14 +2588,13 @@
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
       const returnReady = !roundtrip || Boolean(el('returnDate').value && el('returnTime').value && el('returnPlan').value);
       const routeReady = Boolean(dep && arr && dep.icao !== arr.icao && el('requestDate').value && el('requestTime').value && returnReady);
-      const safetyReady = el('safetyAgreement').checked;
-      const signatureReady = Boolean(el('safetySignature').value.trim());
-      const luggageReady = el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value);
+      const luggageReady = luggageSectionViewed && (el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value));
+      const extrasReady = extrasSectionViewed;
       setMobileMarker('route', routeReady);
       setMobileMarker('travellers', completePassengers);
-      setMobileMarker('safety', safetyReady && signatureReady);
       setMobileMarker('luggage', luggageReady);
-      setMobileMarker('review', routeReady && completePassengers && safetyReady && signatureReady && luggageReady);
+      setMobileMarker('extras', extrasReady);
+      setMobileMarker('review', routeReady && completePassengers && luggageReady && extrasReady);
     }
 
     function refreshSummary() {
@@ -2934,6 +2976,7 @@
     renderPassengerFields();
     updateBaggageFields();
     restoreBookingDraft();
+    setupSectionProgress();
     loadBookingAvailability().catch(() => {});
     updateConnectionBadge();
     tick();
