@@ -27,6 +27,14 @@ BOOKING_EMAIL_REPLY_TO=info.ngaprivateaviation@gmail.com
 PILOT_NOTIFICATION_EMAIL=operations@example.com
 ```
 
+If the custom domain sender is not ready, Gmail can be used temporarily instead. Enable two-step verification on the Gmail account, create a Google App Password for Mail, then add these Render environment variables. Gmail takes priority when these values are present; remove them later to return to Resend.
+
+```text
+GMAIL_SMTP_USER=info.ngaprivateaviation@gmail.com
+GMAIL_SMTP_APP_PASSWORD=<Google App Password>
+GMAIL_SMTP_FROM=NGA Private Aviation <info.ngaprivateaviation@gmail.com>
+```
+
 The booking contact receives a receipt with the reference, route, requested departure, and passenger count. Operations receives a separate alert. Neither email includes passport, medical, identity, emergency, or signature data.
 
 ### Web boarding passes

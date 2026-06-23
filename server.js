@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
+import nodemailer from 'nodemailer';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { airports as bundledAirports } from './data/airports.js';
 
@@ -206,6 +207,24 @@ async function addBookingTimelineEvent(requestId, type, note = '') {
 }
 
 async function sendBookingEmail({ to, subject, text }) {
+  const gmailUser = String(process.env.GMAIL_SMTP_USER || '').trim();
+  const gmailAppPassword = String(process.env.GMAIL_SMTP_APP_PASSWORD || '').trim();
+  const gmailSender = String(process.env.GMAIL_SMTP_FROM || `NGA Private Aviation <${gmailUser}>`).trim();
+  if (gmailUser && gmailAppPassword && to) {
+    const transport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: gmailUser, pass: gmailAppPassword }
+    });
+    await transport.sendMail({
+      from: gmailSender,
+      to,
+      replyTo: gmailUser,
+      subject,
+      text
+    });
+    return true;
+  }
+
   const apiKey = String(process.env.RESEND_API_KEY || '').trim();
   const sender = String(process.env.BOOKING_EMAIL_FROM || '').trim();
   const replyTo = String(process.env.BOOKING_EMAIL_REPLY_TO || '').trim();

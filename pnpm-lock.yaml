@@ -11,6 +11,9 @@ importers:
       express:
         specifier: ^4.21.2
         version: 4.22.2
+      nodemailer:
+        specifier: ^9.0.1
+        version: 9.0.1
       passkit-generator:
         specifier: ^3.1.9
         version: 3.5.7
@@ -280,6 +283,10 @@ packages:
   node-forge@1.4.0:
     resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
     engines: {node: '>= 6.13.0'}
+
+  nodemailer@9.0.1:
+    resolution: {integrity: sha512-Gwv8SQewT616ZM/URn0H54b8PWo/Wum7md3EW2aWy1lO27+WZCX+Xyak3J+NlmHUjDh5ME+uesJUDRbR3Ye8Bw==}
+    engines: {node: '>=6.0.0'}
 
   object-inspect@1.13.4:
     resolution: {integrity: sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==}
@@ -772,6 +779,8 @@ snapshots:
   negotiator@0.6.3: {}
 
   node-forge@1.4.0: {}
+
+  nodemailer@9.0.1: {}
 
   object-inspect@1.13.4: {}
 
