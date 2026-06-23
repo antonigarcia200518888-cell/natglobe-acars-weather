@@ -296,27 +296,36 @@ function emailFlightTime(request) {
   return match ? `${match[1]}H ${match[2]}M` : time;
 }
 
+function emailPriceSummary(request) {
+  const perPassenger = request.costPerSeatEur;
+  const total = request.estimatedTotalEur;
+  if (typeof perPassenger === 'number' && typeof total === 'number') {
+    return `EUR ${total} total / EUR ${perPassenger} per passenger`;
+  }
+  return String(total || perPassenger || 'Price determined by request');
+}
+
 function privateFlightEmailHtml({ status, reference, greeting, intro, details, sections = [], closing = [] }) {
   const detailRows = details.map(([label, value]) => `
-    <tr><td style="padding:9px 0;border-bottom:1px solid #d9dde3;width:42%;font-weight:700;color:#111827">${escapeEmailHtml(label)}</td><td style="padding:9px 0;border-bottom:1px solid #d9dde3;color:#28313c">${escapeEmailHtml(value)}</td></tr>`).join('');
+    <tr><td style="padding:9px 0;border-bottom:1px solid #4a4a4a;width:42%;font-weight:700;color:#f2f2f2">${escapeEmailHtml(label)}</td><td style="padding:9px 0;border-bottom:1px solid #4a4a4a;color:#cfcfcf">${escapeEmailHtml(value)}</td></tr>`).join('');
   const sectionHtml = sections.map(section => `
     <section style="margin:24px 0">
-      <div style="margin:0 0 10px;padding:9px 13px;background:#071f4b;color:#ffffff;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</div>
-      ${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.55;color:#28313c">${escapeEmailHtml(line)}</p>`).join('')}
+      <div style="margin:0 0 10px;padding:9px 13px;background:#0b0b0b;border:1px solid rgba(102,255,153,.55);color:#66ff99;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</div>
+      ${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.55;color:#cfcfcf">${escapeEmailHtml(line)}</p>`).join('')}
     </section>`).join('');
-  return `<!doctype html><html><body style="margin:0;padding:24px;background:#eef1f4;font-family:'Courier New',Courier,monospace;color:#111827">
-    <main style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #d5dbe3">
-      <header style="padding:24px 28px;background:#071f4b;color:#ffffff">
-        <div style="font-size:12px;letter-spacing:.12em;opacity:.78">NGA PRIVATE AVIATION</div>
-        <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em">${escapeEmailHtml(status)}</div>
-        <div style="margin-top:13px;font-size:13px">REFERENCE: <strong>${escapeEmailHtml(reference)}</strong></div>
+  return `<!doctype html><html><body style="margin:0;padding:24px;background:#000000;font-family:'Courier New',Courier,monospace;color:#f2f2f2">
+    <main style="max-width:680px;margin:0 auto;background:#000000;border:2px solid #ffffff">
+      <header style="padding:24px 28px;background:#050505;border-bottom:1px solid rgba(102,255,153,.55);color:#f2f2f2">
+        <div style="font-size:12px;letter-spacing:.12em;color:#cfcfcf">NGA PRIVATE AVIATION</div>
+        <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em;color:#66ff99">${escapeEmailHtml(status)}</div>
+        <div style="margin-top:13px;font-size:13px;color:#cfcfcf">REFERENCE: <strong style="color:#f2f2f2">${escapeEmailHtml(reference)}</strong></div>
       </header>
       <div style="padding:28px">
-        <p style="margin:0 0 18px;font-size:16px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
-        <p style="margin:0 0 22px;line-height:1.6;color:#28313c">${escapeEmailHtml(intro)}</p>
+        <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:#f2f2f2">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
+        <p style="margin:0 0 22px;line-height:1.6;color:#cfcfcf">${escapeEmailHtml(intro)}</p>
         <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;font-size:14px">${detailRows}</table>
         ${sectionHtml}
-        ${closing.map(line => `<p style="margin:6px 0;line-height:1.45;color:#28313c">${escapeEmailHtml(line)}</p>`).join('')}
+        ${closing.map(line => `<p style="margin:6px 0;line-height:1.45;color:#cfcfcf">${escapeEmailHtml(line)}</p>`).join('')}
       </div>
     </main>
   </body></html>`;
@@ -345,7 +354,8 @@ async function notifyBookerOfBooking(request) {
     ['Requested departure', `${formatBoardingPassTime(request.requestTime)} Local Time`],
     ['Estimated flight time', emailFlightTime(request)],
     ['Passengers', request.seats],
-    ['Baggage', boardingPassBaggage(request)]
+    ['Baggage', boardingPassBaggage(request)],
+    ['Price estimate', emailPriceSummary(request)]
   ];
   return sendBookingEmail({
     to: recipient,
@@ -363,8 +373,10 @@ async function notifyBookerOfBooking(request) {
       `Estimated flight time: ${emailFlightTime(request)}`,
       `Passengers: ${request.seats}`,
       `Baggage: ${boardingPassBaggage(request)}`,
+      `Price estimate: ${emailPriceSummary(request)}`,
       '',
       'This is a request only and is not a flight confirmation. A pilot will review the route, weather, aircraft availability, loading, and operational requirements before confirming the flight.',
+      'Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.',
       '',
       'Kind regards,',
       'NGA Private Aviation'
@@ -378,6 +390,9 @@ async function notifyBookerOfBooking(request) {
       sections: [{
         title: 'NEXT STEP',
         lines: ['This is a request only and is not a flight confirmation. A pilot will review the route, weather, aircraft availability, loading, and operational requirements before confirming the flight.']
+      }, {
+        title: 'PAYMENT TERMS',
+        lines: ['Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.']
       }],
       closing: ['Kind regards,', 'NGA Private Aviation']
     })
@@ -395,14 +410,15 @@ async function notifyBookerOfApproval(request) {
     ['Date', emailDate(request.requestDate)],
     ['Boarding time', `${boardingPassBoardingTime(request.requestTime)} Local Time`],
     ['Scheduled departure', `${formatBoardingPassTime(request.requestTime)} Local Time`],
-    ['Aircraft', request.aircraft || 'OH-PMK / Piper PA-28R-200 Arrow II']
+    ['Aircraft', request.aircraft || 'OH-PMK / Piper PA-28R-200 Arrow II'],
+    ['Total price', emailPriceSummary(request)]
   ];
   const passHtml = passItems.length
-    ? passItems.map(item => `<p style="margin:10px 0"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="color:#071f4b;font-weight:700;word-break:break-all">OPEN FLIGHT INFORMATION PASS</a></p>`).join('')
-    : '<p style="margin:8px 0;line-height:1.55;color:#28313c">Passenger passes will be issued by operations shortly.</p>';
+    ? passItems.map(item => `<p style="margin:10px 0;color:#f2f2f2"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="color:#66ff99;font-weight:700;word-break:break-all">OPEN FLIGHT INFORMATION PASS</a></p>`).join('')
+    : '<p style="margin:8px 0;line-height:1.55;color:#cfcfcf">Passenger passes will be issued by operations shortly.</p>';
   const documentHtml = [
-    agreementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(agreementUrl)}" style="color:#071f4b;font-weight:700">OPEN PRIVATE FLIGHT AGREEMENT</a></p>` : '<p style="margin:8px 0;color:#28313c">Private Flight Agreement: to be provided by operations.</p>',
-    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#071f4b;font-weight:700">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#28313c">Reimbursement Statement: to be provided by operations.</p>'
+    agreementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(agreementUrl)}" style="color:#66ff99;font-weight:700">OPEN PRIVATE FLIGHT AGREEMENT</a></p>` : '<p style="margin:8px 0;color:#cfcfcf">Private Flight Agreement: to be provided by operations.</p>',
+    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#66ff99;font-weight:700">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#cfcfcf">Reimbursement Statement: to be provided by operations.</p>'
   ].join('');
   return sendBookingEmail({
     to: recipient,
@@ -418,6 +434,7 @@ async function notifyBookerOfApproval(request) {
       `Boarding time: ${boardingPassBoardingTime(request.requestTime)} Local Time`,
       `Scheduled departure: ${formatBoardingPassTime(request.requestTime)} Local Time`,
       `Aircraft: ${details[4][1]}`,
+      `Total price: ${emailPriceSummary(request)}`,
       '',
       'AIRPORT LOCATION',
       ...emailAirportLocation(request),
@@ -430,6 +447,9 @@ async function notifyBookerOfApproval(request) {
       'PASSENGER DOCUMENTATION',
       agreementUrl ? `Private Flight Agreement: ${agreementUrl}` : 'Private Flight Agreement: to be provided by operations.',
       reimbursementUrl ? `Reimbursement Statement: ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.',
+      '',
+      'PAYMENT TERMS',
+      'A Reimbursement Statement will be issued for this confirmed flight. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.',
       '',
       'BAGGAGE AND ITEMS ON BOARD',
       'Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.',
@@ -453,6 +473,7 @@ async function notifyBookerOfApproval(request) {
         { title: 'AIRPORT LOCATION', lines: emailAirportLocation(request) },
         { title: 'PASSENGER FLIGHT INFORMATION PASSES', html: passHtml },
         { title: 'PASSENGER DOCUMENTATION', html: documentHtml },
+        { title: 'PAYMENT TERMS', lines: ['A Reimbursement Statement will be issued for this confirmed flight. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.'] },
         { title: 'BAGGAGE AND ITEMS ON BOARD', lines: ['Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.'] },
         { title: 'BOARDING REMINDER', lines: ['Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.'] }
       ],
