@@ -224,20 +224,7 @@ async function sendBookingEmail({ to, subject, text }) {
     });
     return true;
   }
-
-  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
-  const sender = String(process.env.BOOKING_EMAIL_FROM || '').trim();
-  const replyTo = String(process.env.BOOKING_EMAIL_REPLY_TO || '').trim();
-  if (!apiKey || !sender || !to) return false;
-  const payload = { from: sender, to: [to], subject, text };
-  if (replyTo) payload.reply_to = replyTo;
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  if (!response.ok) throw new Error(`EMAIL NOTIFICATION FAILED ${response.status}`);
-  return true;
+  return false;
 }
 
 async function notifyPilotOfBooking(request) {

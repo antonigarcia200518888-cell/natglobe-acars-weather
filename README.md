@@ -18,21 +18,13 @@ Do not use the temporary mode for production passenger or identity data: Render 
 
 ### Booking emails
 
-To automatically notify operations and send the booking contact a request receipt, create a verified sender in [Resend](https://resend.com/) and add these Render environment variables:
-
-```text
-RESEND_API_KEY=<your Resend API key>
-BOOKING_EMAIL_FROM=Private Flight <bookings@your-verified-domain.com>
-BOOKING_EMAIL_REPLY_TO=info.ngaprivateaviation@gmail.com
-PILOT_NOTIFICATION_EMAIL=operations@example.com
-```
-
-If the custom domain sender is not ready, Gmail can be used temporarily instead. Enable two-step verification on the Gmail account, create a Google App Password for Mail, then add these Render environment variables. Gmail takes priority when these values are present; remove them later to return to Resend.
+To automatically notify operations and send the booking contact a request receipt, enable two-step verification on the Gmail account, create a Google App Password for Mail, then add these Render environment variables:
 
 ```text
 GMAIL_SMTP_USER=info.ngaprivateaviation@gmail.com
 GMAIL_SMTP_APP_PASSWORD=<Google App Password>
 GMAIL_SMTP_FROM=NGA Private Aviation <info.ngaprivateaviation@gmail.com>
+PILOT_NOTIFICATION_EMAIL=info.ngaprivateaviation@gmail.com
 ```
 
 The booking contact receives a receipt with the reference, route, requested departure, and passenger count. Operations receives a separate alert. Neither email includes passport, medical, identity, emergency, or signature data.
