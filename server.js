@@ -330,6 +330,35 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
   </body></html>`;
 }
 
+function requestReceivedEmailHtml({ reference, greeting, details }) {
+  const cells = details.map(([label, value]) => `<td width="50%" valign="top" bgcolor="#050505" style="padding:10px;border:1px solid #555555"><div style="margin-bottom:5px;color:#999999;font-size:10px;letter-spacing:.06em;text-transform:uppercase">${escapeEmailHtml(label)}</div><div style="color:#f2f2f2;font-size:13px;font-weight:700;line-height:1.35;text-transform:uppercase">${escapeEmailHtml(value)}</div></td>`);
+  const rows = [];
+  for (let index = 0; index < cells.length; index += 2) {
+    rows.push(`<tr>${cells[index]}${cells[index + 1] || '<td width="50%" bgcolor="#050505" style="border:1px solid #555555"></td>'}</tr>`);
+  }
+  return `<!doctype html><html><body bgcolor="#000000" style="margin:0;padding:0;background-color:#000000;font-family:'Courier New',Courier,monospace;color:#ffffff">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000" style="width:100%;background-color:#000000"><tr><td align="center" style="padding:24px 12px">
+      <table role="presentation" width="720" cellspacing="0" cellpadding="0" border="0" bgcolor="#050505" style="width:100%;max-width:720px;background-color:#050505;border:2px solid #66ff99;border-collapse:collapse">
+        <tr><td style="padding:20px">
+          <div style="color:#66ff99;font-size:11px;letter-spacing:.08em;text-transform:uppercase">Private Flight</div>
+          <div style="margin:10px 0 14px;color:#ffffff;font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:700;line-height:1;text-transform:uppercase">Request Received</div>
+          <p style="margin:0;color:#bbbbbb;font-size:12px;line-height:1.55;text-transform:uppercase">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p>
+          <div style="margin:16px 0;padding:12px;border:1px solid #ffffff;color:#66ff99;font-size:22px;font-weight:700;line-height:1">REFERENCE ${escapeEmailHtml(reference)}</div>
+          <p style="margin:0 0 14px;color:#f2f2f2;font-size:14px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse">${rows.join('')}</table>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;width:100%;border-top:1px solid #555555;border-collapse:collapse">
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #66ff99;color:#66ff99;font-size:12px;text-transform:uppercase"><strong>Request received</strong><br><span style="color:#bbbbbb">Your flight details have been received.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #555555;color:#f2f2f2;font-size:12px;text-transform:uppercase"><strong>Pilot and operations review</strong><br><span style="color:#aaaaaa">Route, weather, aircraft, and loading are checked.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #555555;color:#f2f2f2;font-size:12px;text-transform:uppercase"><strong>Payment instructions after approval</strong><br><span style="color:#aaaaaa">A Reimbursement Statement is issued once confirmed.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #555555;color:#f2f2f2;font-size:12px;text-transform:uppercase"><strong>Final flight confirmation</strong><br><span style="color:#aaaaaa">Passenger passes and final details are sent by email.</span></td></tr>
+          </table>
+          <div style="margin-top:16px;padding:11px 13px;border:1px solid rgba(102,255,153,.55);color:#f2f2f2;font-size:12px;line-height:1.55"><strong style="color:#66ff99">PAYMENT TERMS</strong><br>Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</div>
+        </td></tr>
+      </table>
+    </td></tr></table>
+  </body></html>`;
+}
+
 function passengerPassLinks(request) {
   return getRequestPassengers(request)
     .filter(passenger => passenger.boardingPassToken)
@@ -380,20 +409,10 @@ async function notifyBookerOfBooking(request) {
       'Kind regards,',
       'NGA Private Aviation'
     ].join('\n'),
-    html: privateFlightEmailHtml({
-      status: 'REQUEST RECEIVED',
+    html: requestReceivedEmailHtml({
       reference: request.id,
       greeting: emailPassengerNames(request),
-      intro: 'Thank you for your private flight request. Our operations team has received it and will contact you within 24 hours of the requested flight.',
-      details,
-      sections: [{
-        title: 'NEXT STEP',
-        lines: ['This is a request only and is not a flight confirmation. A pilot will review the route, weather, aircraft availability, loading, and operational requirements before confirming the flight.']
-      }, {
-        title: 'PAYMENT TERMS',
-        lines: ['Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.']
-      }],
-      closing: ['Kind regards,', 'NGA Private Aviation']
+      details
     })
   });
 }
