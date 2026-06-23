@@ -1275,6 +1275,9 @@
     .check input { width: auto; min-height: auto; margin-top: 2px; }
     .signature-field { margin-top: 10px; border: 1px solid #666; padding: 10px; background: #050505; }
     .signature-field small { display: block; margin-top: 7px; color: #999; font-size: 10px; line-height: 1.35; text-transform: uppercase; }
+    .field-missing { position: relative; }
+    .field-missing::after { content: "*"; position: absolute; top: -9px; right: 5px; z-index: 2; color: var(--danger); font: 700 22px/1 Arial, sans-serif; text-shadow: 0 0 8px rgba(255,107,107,0.55); }
+    .field-missing input, .field-missing select { border-color: var(--danger) !important; }
 
     .confirmation {
       display: none;
@@ -2791,13 +2794,20 @@
       refreshSummary();
     }
 
-    form.addEventListener('change', () => {
+    function clearFieldMarker(input) {
+      const wrapper = input?.type === 'checkbox' ? input.closest('.check') : input?.parentElement;
+      if (wrapper) wrapper.classList.remove('field-missing');
+    }
+
+    form.addEventListener('change', (event) => {
+      clearFieldMarker(event.target);
       updateReturnTripFields();
       resetSubmitFeedback();
       refreshSummary();
       queueDraftSave();
     });
-    form.addEventListener('input', () => {
+    form.addEventListener('input', (event) => {
+      clearFieldMarker(event.target);
       resetSubmitFeedback();
       refreshSummary();
       queueDraftSave();
@@ -2849,11 +2859,11 @@
 
     form.addEventListener('invalid', (event) => {
       submitTouched = true;
-      const missing = [...form.querySelectorAll(':invalid')].slice(0, 5).map(input => input.labels?.[0]?.textContent?.trim() || 'Required information');
-      const missingText = [...new Set(missing)].join(' / ');
-      setStatus(`Missing information: ${missingText}`, 'err');
+      form.querySelectorAll(':invalid').forEach(input => {
+        const wrapper = input.type === 'checkbox' ? input.closest('.check') : input.parentElement;
+        if (wrapper) wrapper.classList.add('field-missing');
+      });
       setSubmitState('error', 'Missing info');
-      showConfirmation(`Missing information: ${missingText}. Please complete the highlighted fields before sending the booking request.`, 'error');
       event.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, true);
 

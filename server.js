@@ -2397,6 +2397,11 @@ app.get('/booking', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'booking.html'));
 });
 
+app.get('/NGA-PRIVATE-FLIGHT-BOOKINGS', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'booking.html'));
+});
+
 app.get('/booking-confirmation', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'booking-confirmation.html'));
