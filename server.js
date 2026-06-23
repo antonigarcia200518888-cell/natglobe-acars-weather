@@ -35,8 +35,8 @@ const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/a
 const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/runways.csv';
 const OPERATING_COST_EUR_PER_HOUR = 300;
 const FIXED_BOOKING_ROUTE_PRICES = {
-  'EFHV-EFHN': { oneWay: 100, roundtrip: 200, label: 'FIXED HYVINKAA-HANKO' },
-  'EFHN-EFHV': { oneWay: 100, roundtrip: 200, label: 'FIXED HANKO-HYVINKAA' },
+  'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'FIXED HYVINKAA-HANKO' },
+  'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'FIXED HANKO-HYVINKAA' },
   'EFHK-EFHN': { oneWay: 1500, roundtrip: 3000, label: 'FIXED HELSINKI-HANKO' },
   'EFHN-EFHK': { oneWay: 1500, roundtrip: 3000, label: 'FIXED HANKO-HELSINKI' }
 };
@@ -715,18 +715,7 @@ function estimateBookingPrice(depAirport, arrAirport, seats, tripType) {
     };
   }
 
-  const distanceKm = haversineKm(depAirport, arrAirport);
-  const distanceNm = kmToNm(distanceKm);
-  const oneWayMinutes = Math.max(10, Math.round((distanceNm / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
-  const pricedMinutes = roundtrip ? oneWayMinutes * 2 : oneWayMinutes;
-  const totalEur = Math.ceil(((pricedMinutes / 60) * OPERATING_COST_EUR_PER_HOUR) / 5) * 5;
-  const perPassengerEur = Math.ceil((totalEur / Math.max(1, seats)) / 5) * 5;
-
-  return {
-    perPassengerEur,
-    totalEur,
-    note: `ESTIMATE ${OPERATING_COST_EUR_PER_HOUR} EUR/HR / ${AIRCRAFT_PROFILE.cruiseTasKt}KT`
-  };
+  return { perPassengerEur: 'ON REQUEST', totalEur: 'ON REQUEST', note: 'PRICE DETERMINED BY REQUEST' };
 }
 
 function formatBookingMessage(request) {
@@ -2382,6 +2371,11 @@ async function dispatchToPdfBuffer(data) {
 app.get('/booking', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'booking.html'));
+});
+
+app.get('/booking-confirmation', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'booking-confirmation.html'));
 });
 
 app.get('/booking-start', (req, res) => {

@@ -2095,8 +2095,8 @@
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
-      'EFHV-EFHN': { oneWay: 100, roundtrip: 200, label: 'Fixed Hyvinkää-Hanko' },
-      'EFHN-EFHV': { oneWay: 100, roundtrip: 200, label: 'Fixed Hanko-Hyvinkää' },
+      'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'Fixed Hyvinkää-Hanko' },
+      'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'Fixed Hanko-Hyvinkää' },
       'EFHK-EFHN': { oneWay: 1500, roundtrip: 3000, label: 'Fixed Helsinki-Hanko' },
       'EFHN-EFHK': { oneWay: 1500, roundtrip: 3000, label: 'Fixed Hanko-Helsinki' }
     };
@@ -2470,12 +2470,7 @@
         const perPax = roundtrip ? fixed.roundtrip : fixed.oneWay;
         return { total: perPax * seats, perPax, estimated: false };
       }
-      const mins = flightMinutes(dep, arr);
-      if (!Number.isFinite(mins)) return 'Pilot confirms';
-      const pricedMinutes = roundtrip ? mins * 2 : mins;
-      const total = Math.ceil(((pricedMinutes / 60) * OPERATING_COST_EUR_PER_HOUR) / 5) * 5;
-      const perPax = Math.ceil((total / Math.max(1, seats)) / 5) * 5;
-      return { total, perPax, estimated: true };
+      return 'Price on request';
     }
 
     function routePrice(dep, arr) {
@@ -2854,9 +2849,11 @@
 
     form.addEventListener('invalid', (event) => {
       submitTouched = true;
-      setStatus('Missing information / complete the highlighted fields', 'err');
+      const missing = [...form.querySelectorAll(':invalid')].slice(0, 5).map(input => input.labels?.[0]?.textContent?.trim() || 'Required information');
+      const missingText = [...new Set(missing)].join(' / ');
+      setStatus(`Missing information: ${missingText}`, 'err');
       setSubmitState('error', 'Missing info');
-      showConfirmation('Some required information is missing. Please complete the highlighted fields before sending the booking request.', 'error');
+      showConfirmation(`Missing information: ${missingText}. Please complete the highlighted fields before sending the booking request.`, 'error');
       event.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, true);
 
@@ -2913,11 +2910,10 @@
         localStorage.removeItem(BOOKING_DRAFT_KEY);
         draftStatus.textContent = 'Booking request sent. Local draft cleared.';
         draftStatus.classList.remove('saved');
-        const leadName = collectPassengers()[0]?.name || '';
-        showConfirmation(`Thanks ${leadName}. Your request ${data.request.id} was sent for review. A pilot or dispatcher will review the route, aircraft, weather and weight/balance before confirming.`);
-        bookingStatusRef.textContent = `REFERENCE ${data.request.id} / STATUS PILOT REVIEW PENDING`;
-        bookingStatusTracker.classList.add('show');
-        mode.textContent = 'MODE: REQUEST TRANSMITTED / CREW REVIEW PENDING';
+        const dep = selectedAirport('dep');
+        const arr = selectedAirport('arr');
+        sessionStorage.setItem('private-flight-confirmation-v1', JSON.stringify({ reference: data.request.id, route: `${dep?.city || 'Departure'} to ${arr?.city || 'Arrival'}`, date: el('requestDate').value, time: el('requestTime').value, trip: el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way', passengers: el('seats').value, flightTime: formatFlightTime(dep, arr), price: routePrice(dep, arr), luggage: baggageSummary() }));
+        window.location.href = '/booking-confirmation';
       } catch (err) {
         setSubmitState('error', 'Request failed');
         setStatus(err.message || 'Request failed', 'err');
