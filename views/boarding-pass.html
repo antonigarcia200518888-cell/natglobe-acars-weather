@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#16125e" />
   <title>Private Flight Boarding Pass</title>
+  <link rel="manifest" href="__PASS_MANIFEST__" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -26,6 +27,11 @@
     .ticket-detail strong { display: block; margin-top: 6px; color: #fff; font: 400 18px/1 "Computer Says No", monospace; text-transform: uppercase; overflow-wrap: anywhere; }
     .calendar-link { display: flex; align-items: center; justify-content: center; min-width: 168px; color: #fff; padding: 10px 14px; font: 600 10px/1 Poppins, Arial, sans-serif; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
     .calendar-link:hover { border-color: #66ff99; color: #66ff99; }
+    .pass-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    .home-screen-btn { min-height: 42px; border: 1px solid rgba(255,255,255,.55); background: transparent; color: #fff; padding: 10px 14px; font: 600 10px/1 Poppins, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+    .home-screen-btn:hover, .home-screen-btn:focus-visible { border-color: #66ff99; color: #66ff99; outline: none; }
+    .home-help { margin: 8px 0 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.35); color: rgba(255,255,255,.8); font: 500 11px/1.45 Poppins, Arial, sans-serif; text-align: right; }
+    .home-help[hidden] { display: none; }
     .arrival-notice { margin: 12px 0 0; color: #ff6b6b; font: 400 clamp(14px, 1.35vw, 20px)/1 "Computer Says No", monospace; letter-spacing: .04em; text-transform: uppercase; }
     .field { position: absolute; display: flex; align-items: center; overflow: hidden; color: #050505; font-family: "Computer Says No", "Courier New", monospace; font-weight: 400; line-height: 1; text-transform: uppercase; white-space: nowrap; }
     .paper { background: transparent; }
@@ -115,6 +121,8 @@
       <div class="ticket-detail"><span>Baggage</span><strong id="passBaggage">No baggage declared</strong></div>
       <a id="calendarLink" class="calendar-link" href="#" download>ADD TO CALENDAR</a>
     </section>
+    <div id="passActions" class="pass-actions" hidden><button id="homeScreenBtn" class="home-screen-btn" type="button">ADD TO HOME SCREEN</button></div>
+    <div id="homeHelp" class="home-help" hidden></div>
     <p id="passCheckIn" class="arrival-notice" hidden>Arrive 20 min before</p>
     <section id="mobilePass" class="mobile-pass" hidden aria-label="Mobile private flight boarding pass">
       <div class="mobile-top"><div class="mobile-brand">Private Flight</div><div class="mobile-status">CONFIRMED</div></div>
@@ -136,10 +144,34 @@
   <script>
     const token = location.pathname.split('/').filter(Boolean).pop();
     const set = (id, value) => document.getElementById(id).textContent = value || 'TBD';
+    const homeScreenBtn = document.getElementById('homeScreenBtn');
+    const homeHelp = document.getElementById('homeHelp');
+    const isAppleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    let installPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault();
+      installPrompt = event;
+    });
+
+    homeScreenBtn.addEventListener('click', async () => {
+      if (installPrompt) {
+        installPrompt.prompt();
+        await installPrompt.userChoice.catch(() => {});
+        installPrompt = null;
+        return;
+      }
+      homeHelp.hidden = false;
+      homeHelp.textContent = isAppleMobile
+        ? 'In Safari, tap Share, then choose Add to Home Screen.'
+        : 'Open your browser menu and choose Add to Home Screen or Install App.';
+    });
+
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/pass-sw.js', { scope: '/' }).catch(() => {});
     fetch(`/api/boarding-passes/${encodeURIComponent(token)}`, { cache: 'no-store' })
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(({ pass }) => {
-        set('passenger', pass.passenger); set('stubName', pass.passenger); set('gate', pass.gate); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', pass.aircraft); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); set('passSeat', pass.seat); set('passBaggage', pass.baggage); set('passCheckIn', pass.checkIn); document.getElementById('calendarLink').href = `/api/boarding-passes/${encodeURIComponent(token)}/calendar.ics`; const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', pass.aircraft); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileDob', pass.dob); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; const passStatus = document.getElementById('passStatus'); passStatus.textContent = pass.status; passStatus.className = `pass-status ${pass.statusTone || ''}`; if (window.matchMedia('(max-width: 900px)').matches && window.screen?.orientation?.lock) window.screen.orientation.lock('landscape').catch(() => {}); document.title = `${pass.reference} / Passenger Information Pass`; document.getElementById('ticket').hidden = false; document.getElementById('ticketDetails').hidden = false; document.getElementById('passCheckIn').hidden = false; document.getElementById('mobilePass').hidden = false;
+        set('passenger', pass.passenger); set('stubName', pass.passenger); set('gate', pass.gate); set('from', pass.from); set('to', pass.to); set('date', pass.date); set('boarding', pass.boardingTime); set('flightTime', pass.flightTime); set('aircraft', pass.aircraft); set('passport', pass.passport); set('dob', pass.dob); set('departure', pass.departureTime); set('arrival', pass.arrivalTime); set('passSeat', pass.seat); set('passBaggage', pass.baggage); set('passCheckIn', pass.checkIn); document.getElementById('calendarLink').href = `/api/boarding-passes/${encodeURIComponent(token)}/calendar.ics`; const qrUrl = `/api/boarding-passes/${encodeURIComponent(token)}/qr`; document.getElementById('qr').src = qrUrl; set('mobilePassenger', pass.passenger); set('mobileReference', pass.reference); set('mobileFrom', pass.from); set('mobileTo', pass.to); set('mobileDate', pass.date); set('mobileBoarding', pass.boardingTime); set('mobileAircraft', pass.aircraft); set('mobileFlightTime', pass.flightTime); set('mobilePassport', pass.passport); set('mobileDob', pass.dob); set('mobileGate', pass.gate); document.getElementById('mobileQr').src = qrUrl; const passStatus = document.getElementById('passStatus'); passStatus.textContent = pass.status; passStatus.className = `pass-status ${pass.statusTone || ''}`; if (window.matchMedia('(max-width: 900px)').matches && window.screen?.orientation?.lock) window.screen.orientation.lock('landscape').catch(() => {}); document.title = `${pass.reference} / Passenger Information Pass`; document.getElementById('ticket').hidden = false; document.getElementById('ticketDetails').hidden = false; document.getElementById('passActions').hidden = false; document.getElementById('passCheckIn').hidden = false; document.getElementById('mobilePass').hidden = false;
       })
       .catch(() => { document.getElementById('error').hidden = false; });
   </script>

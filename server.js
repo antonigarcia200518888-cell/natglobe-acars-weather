@@ -2443,14 +2443,37 @@ app.get('/booking-ops', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', fileName));
 });
 
-app.get('/boarding-pass/:token', (req, res) => {
+function sendBoardingPassPage(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
+  const template = fs.readFileSync(path.join(__dirname, 'views', 'boarding-pass.html'), 'utf8');
+  const manifestUrl = `/pass-manifest/${encodeURIComponent(req.params.token)}`;
+  res.type('html').send(template.replace('__PASS_MANIFEST__', manifestUrl));
+}
+
+app.get('/boarding-pass/:token', (req, res) => {
+  sendBoardingPassPage(req, res);
 });
 
 app.get('/pass/:reference/passenger-information-pass/:token', (req, res) => {
+  sendBoardingPassPage(req, res);
+});
+
+app.get('/pass-manifest/:token', (req, res) => {
+  const token = String(req.params.token || '').trim();
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
+  res.type('application/manifest+json').json({
+    name: 'Private Flight Passenger Pass',
+    short_name: 'Flight Pass',
+    start_url: `/boarding-pass/${encodeURIComponent(token)}`,
+    scope: '/',
+    display: 'standalone',
+    background_color: '#11121a',
+    theme_color: '#16125e',
+    icons: [
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+    ]
+  });
 });
 
 app.get('/pass-check/:token', (req, res) => {
