@@ -307,27 +307,26 @@ function emailPriceSummary(request) {
 
 function privateFlightEmailHtml({ status, reference, greeting, intro, details, sections = [], closing = [] }) {
   const detailRows = details.map(([label, value]) => `
-    <tr><td style="padding:9px 0;border-bottom:1px solid #4a4a4a;width:42%;font-weight:700;color:#f2f2f2">${escapeEmailHtml(label)}</td><td style="padding:9px 0;border-bottom:1px solid #4a4a4a;color:#cfcfcf">${escapeEmailHtml(value)}</td></tr>`).join('');
+    <tr><td bgcolor="#000000" style="padding:10px 0;border-bottom:1px solid #4a4a4a;width:42%;font-weight:700;color:#ffffff">${escapeEmailHtml(label)}</td><td bgcolor="#000000" style="padding:10px 0;border-bottom:1px solid #4a4a4a;color:#f2f2f2">${escapeEmailHtml(value)}</td></tr>`).join('');
   const sectionHtml = sections.map(section => `
-    <section style="margin:24px 0">
-      <div style="margin:0 0 10px;padding:9px 13px;background:#0b0b0b;border:1px solid rgba(102,255,153,.55);color:#66ff99;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</div>
-      ${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.55;color:#cfcfcf">${escapeEmailHtml(line)}</p>`).join('')}
-    </section>`).join('');
-  return `<!doctype html><html><body style="margin:0;padding:24px;background:#000000;font-family:'Courier New',Courier,monospace;color:#f2f2f2">
-    <main style="max-width:680px;margin:0 auto;background:#000000;border:2px solid #ffffff">
-      <header style="padding:24px 28px;background:#050505;border-bottom:1px solid rgba(102,255,153,.55);color:#f2f2f2">
-        <div style="font-size:12px;letter-spacing:.12em;color:#cfcfcf">NGA PRIVATE AVIATION</div>
-        <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em;color:#66ff99">${escapeEmailHtml(status)}</div>
-        <div style="margin-top:13px;font-size:13px;color:#cfcfcf">REFERENCE: <strong style="color:#f2f2f2">${escapeEmailHtml(reference)}</strong></div>
-      </header>
-      <div style="padding:28px">
-        <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:#f2f2f2">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
-        <p style="margin:0 0 22px;line-height:1.6;color:#cfcfcf">${escapeEmailHtml(intro)}</p>
-        <table role="presentation" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;font-size:14px">${detailRows}</table>
-        ${sectionHtml}
-        ${closing.map(line => `<p style="margin:6px 0;line-height:1.45;color:#cfcfcf">${escapeEmailHtml(line)}</p>`).join('')}
-      </div>
-    </main>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;border-collapse:collapse"><tr><td bgcolor="#0b0b0b" style="padding:9px 13px;border:1px solid #66ff99;color:#66ff99;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</td></tr><tr><td bgcolor="#000000" style="padding:10px 0;color:#f2f2f2">${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.6;color:#f2f2f2">${escapeEmailHtml(line)}</p>`).join('')}</td></tr></table>`).join('');
+  return `<!doctype html><html><body bgcolor="#000000" style="margin:0;padding:0;background-color:#000000;font-family:'Courier New',Courier,monospace;color:#f2f2f2">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000" style="width:100%;background-color:#000000;border-collapse:collapse"><tr><td align="center" bgcolor="#000000" style="padding:24px 12px;background-color:#000000">
+      <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000" style="width:100%;max-width:680px;background-color:#000000;border:2px solid #ffffff;border-collapse:collapse">
+        <tr><td bgcolor="#050505" style="padding:24px 28px;background-color:#050505;border-bottom:1px solid #66ff99">
+          <div style="font-size:12px;letter-spacing:.12em;color:#cfcfcf">NGA PRIVATE AVIATION</div>
+          <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em;color:#66ff99">${escapeEmailHtml(status)}</div>
+          <div style="margin-top:13px;font-size:13px;color:#f2f2f2">REFERENCE: <strong style="color:#ffffff">${escapeEmailHtml(reference)}</strong></div>
+        </td></tr>
+        <tr><td bgcolor="#000000" style="padding:28px;background-color:#000000">
+          <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:#ffffff">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
+          <p style="margin:0 0 22px;line-height:1.65;color:#f2f2f2">${escapeEmailHtml(intro)}</p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#000000" style="width:100%;background-color:#000000;border-collapse:collapse;font-size:14px">${detailRows}</table>
+          ${sectionHtml}
+          ${closing.map(line => `<p style="margin:6px 0;line-height:1.5;color:#f2f2f2">${escapeEmailHtml(line)}</p>`).join('')}
+        </td></tr>
+      </table>
+    </td></tr></table>
   </body></html>`;
 }
 
