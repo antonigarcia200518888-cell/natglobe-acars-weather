@@ -2060,7 +2060,7 @@
         <button id="mobileSubmitBooking" class="btn" type="button">Submit request</button>
       </div>
 
-      <div class="private-flight-notice"><strong>Private equal-share flight / non-commercial air transport.</strong><br>Each request is subject to pilot review, operational limits, and final confirmation before any flight takes place.</div>
+      <div class="private-flight-notice"><strong>Private equal-share flight / non-commercial air transport.</strong><br>Hyvinkää-Hanko is currently estimated at €129 per passenger, one way. The final cost-share contribution may change before confirmation to reflect the direct flight costs shared by all occupants, including the pilot.</div>
       <footer class="booking-support">Questions about your request? Email <a href="mailto:info.ngaprivateaviation@gmail.com">info.ngaprivateaviation@gmail.com</a></footer>
 
     </form>
@@ -2145,8 +2145,8 @@
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
-      'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'Fixed Hyvinkää-Hanko' },
-      'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'Fixed Hanko-Hyvinkää' },
+      'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'Estimated Hyvinkää-Hanko cost share', estimated: true },
+      'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'Estimated Hanko-Hyvinkää cost share', estimated: true },
       'EFHK-EFHN': { oneWay: 1500, roundtrip: 3000, label: 'Fixed Helsinki-Hanko' },
       'EFHN-EFHK': { oneWay: 1500, roundtrip: 3000, label: 'Fixed Hanko-Helsinki' }
     };
@@ -2529,7 +2529,7 @@
       const fixed = FIXED_ROUTE_PRICES[`${dep.icao}-${arr.icao}`];
       if (fixed) {
         const perPax = roundtrip ? fixed.roundtrip : fixed.oneWay;
-        return { total: perPax * seats, perPax, estimated: false };
+        return { total: perPax * seats, perPax, estimated: Boolean(fixed.estimated) };
       }
       return 'Price on request';
     }
@@ -2538,7 +2538,7 @@
       const cost = routeCost(dep, arr);
       if (typeof cost === 'string') return cost;
       const seats = Number(el('seats').value || 1);
-      return `${cost.estimated ? 'Est. ' : ''}€${cost.total} EUR (${seats} PAX)`;
+      return `${cost.estimated ? 'Approx. ' : ''}€${cost.total} EUR (${seats} PAX)`;
     }
 
     function baggageSummary() {

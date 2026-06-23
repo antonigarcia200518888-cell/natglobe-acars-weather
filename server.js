@@ -45,8 +45,8 @@ const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/a
 const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/runways.csv';
 const OPERATING_COST_EUR_PER_HOUR = 300;
 const FIXED_BOOKING_ROUTE_PRICES = {
-  'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'FIXED HYVINKAA-HANKO' },
-  'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'FIXED HANKO-HYVINKAA' },
+  'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'ESTIMATED HYVINKAA-HANKO COST SHARE' },
+  'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'ESTIMATED HANKO-HYVINKAA COST SHARE' },
   'EFHK-EFHN': { oneWay: 1500, roundtrip: 3000, label: 'FIXED HELSINKI-HANKO' },
   'EFHN-EFHK': { oneWay: 1500, roundtrip: 3000, label: 'FIXED HANKO-HELSINKI' }
 };
@@ -300,7 +300,8 @@ function emailPriceSummary(request) {
   const perPassenger = request.costPerSeatEur;
   const total = request.estimatedTotalEur;
   if (typeof perPassenger === 'number' && typeof total === 'number') {
-    return `EUR ${total} total / EUR ${perPassenger} per passenger`;
+    const prefix = String(request.priceNote || '').includes('ESTIMATED') ? 'Approx. ' : '';
+    return `${prefix}EUR ${total} total / EUR ${perPassenger} per passenger`;
   }
   return String(total || perPassenger || 'Price determined by request');
 }
