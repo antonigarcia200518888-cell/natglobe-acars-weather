@@ -29,7 +29,7 @@
 </head>
 <body>
   <main class="check">
-    <p class="eyebrow">Private Flight / Passenger Pass Check</p>
+    <p class="eyebrow">Private Flight Information Pass Check</p>
     <h1 id="result" class="result">CHECKING</h1>
     <div id="reference" class="reference">...</div>
     <div id="details" class="grid" hidden>
@@ -60,7 +60,7 @@
       })
       .catch(() => { const result = document.getElementById('result'); result.textContent = 'NOT VALID'; result.className = 'result invalid'; document.getElementById('reference').textContent = 'NO ACTIVE PASS FOUND'; });
     document.getElementById('openPass').addEventListener('click', () => {
-      location.href = `/pass/${encodeURIComponent(document.getElementById('reference').textContent)}/passenger-information-pass/${encodeURIComponent(token)}`;
+      location.href = `/private-flight-information-pass/${encodeURIComponent(document.getElementById('reference').textContent)}/${encodeURIComponent(token)}`;
     });
   </script>
 </body>

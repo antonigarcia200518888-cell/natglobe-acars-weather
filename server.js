@@ -15,6 +15,7 @@ const PILOT_ACCESS_CODE = process.env.PILOT_ACCESS_CODE || 'NATGLOBEOPS';
 const PILOT_COOKIE_NAME = 'ng_pilot_access';
 const BOOKING_COOKIE_VALUE = 'enabled';
 const WALLET_ASSETS_DIR = path.join(__dirname, 'wallet-assets');
+const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || 'https://ngaprivateaviation.com').replace(/\/$/, '');
 
 // The public domain opens the passenger experience. ACARS remains available to crew at /acars.
 app.get('/', (req, res) => {
@@ -2458,6 +2459,10 @@ app.get('/pass/:reference/passenger-information-pass/:token', (req, res) => {
   sendBoardingPassPage(req, res);
 });
 
+app.get('/private-flight-information-pass/:reference/:token', (req, res) => {
+  sendBoardingPassPage(req, res);
+});
+
 app.get('/pass-manifest/:token', (req, res) => {
   const token = String(req.params.token || '').trim();
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -2691,7 +2696,7 @@ app.post('/api/booking-ops/requests/:id/boarding-pass/:passengerNumber/link', re
   }
 
   res.json({
-    url: `/pass/${encodeURIComponent(request.id)}/passenger-information-pass/${passenger.boardingPassToken}`,
+    url: `/private-flight-information-pass/${encodeURIComponent(request.id)}/${passenger.boardingPassToken}`,
     passenger: passenger.number || 1
   });
 });
@@ -2756,7 +2761,7 @@ app.get('/api/boarding-passes/:token/qr', async (req, res) => {
 
   try {
     const QRCode = (await import('qrcode')).default;
-    const passUrl = `${req.protocol}://${req.get('host')}/pass-check/${encodeURIComponent(token)}`;
+    const passUrl = `${PUBLIC_SITE_URL}/pass-check/${encodeURIComponent(token)}`;
     const svg = await QRCode.toString(passUrl, {
       type: 'svg',
       margin: 1,

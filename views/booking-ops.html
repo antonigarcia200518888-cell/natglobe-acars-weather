@@ -859,10 +859,11 @@ END OF MESSAGE</pre>
         walletPassStatus.textContent = data.error || 'Unable to issue passenger flight pass.';
         return;
       }
-      const passWindow = window.open(data.url, '_blank', 'noopener');
+      const publicPassUrl = `https://ngaprivateaviation.com${data.url}`;
+      const passWindow = window.open(publicPassUrl, '_blank', 'noopener');
       walletPassStatus.textContent = passWindow
         ? 'Passenger flight pass opened in a new tab.'
-        : `Passenger flight pass ready: ${window.location.origin}${data.url}`;
+        : `Passenger flight pass ready: ${publicPassUrl}`;
       loadTimeline(selected.id).catch(() => {});
     });
 
