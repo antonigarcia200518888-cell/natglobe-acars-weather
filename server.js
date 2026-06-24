@@ -312,16 +312,16 @@ function emailPriceSummary(request) {
 }
 
 function privateFlightEmailHtml({ status, reference, greeting, intro, details, sections = [], closing = [] }) {
-  const navy = '#06285d';
-  const silver = '#8b9199';
+  const navy = '#031c45';
+  const silver = '#aeb5c0';
   const paper = '#ffffff';
-  const operationNotice = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:collapse"><tr><td bgcolor="#f3f5f7" style="padding:12px 14px;border-left:3px solid ${navy};color:#26313d;font-size:11px;line-height:1.55"><strong style="color:${navy}">PRIVATE NCO OPERATION</strong><br>This is a private, non-commercial NCO flight and remains subject to pilot decision and operational confirmation.</td></tr></table>`;
+  const operationNotice = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:collapse"><tr><td bgcolor="#f3f5f7" style="padding:12px 14px;border-left:3px solid ${navy};color:${navy};font-size:11px;line-height:1.55"><strong style="color:${navy}">PRIVATE NCO OPERATION</strong><br>This is a private, non-commercial NCO flight and remains subject to pilot decision and operational confirmation.</td></tr></table>`;
   const confidentiality = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:collapse"><tr><td bgcolor="#fff5f5" style="padding:12px 14px;border:1px solid #b42318;color:#8f1712;font-size:11px;line-height:1.55"><strong>CONFIDENTIAL PASSENGER INFORMATION</strong><br>This email and any linked flight information may contain sensitive passenger data. It is intended only for the named recipient and must not be shared, copied, or misused.</td></tr></table>`;
   const detailRows = details.map(([label, value]) => `
-    <tr><td bgcolor="${paper}" style="padding:10px 0;border-bottom:1px solid #d5d8dc;width:42%;font-weight:700;color:${navy}">${escapeEmailHtml(label)}</td><td bgcolor="${paper}" style="padding:10px 0;border-bottom:1px solid #d5d8dc;color:#15171a">${escapeEmailHtml(value)}</td></tr>`).join('');
+    <tr><td bgcolor="${paper}" style="padding:10px 0;border-bottom:1px solid #d5d8dc;width:42%;font-weight:700;color:${navy}">${escapeEmailHtml(label)}</td><td bgcolor="${paper}" style="padding:10px 0;border-bottom:1px solid #d5d8dc;color:${navy}">${escapeEmailHtml(value)}</td></tr>`).join('');
   const sectionHtml = sections.map(section => `
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;border-collapse:collapse"><tr><td bgcolor="${navy}" style="padding:9px 13px;border:1px solid ${navy};color:#ffffff;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</td></tr><tr><td bgcolor="${paper}" style="padding:10px 0;color:#15171a">${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.6;color:#15171a">${escapeEmailHtml(line)}</p>`).join('')}</td></tr></table>`).join('');
-  return `<!doctype html><html><head><style>@font-face{font-family:'Computer Says No';src:url('${PUBLIC_SITE_URL}/fonts/computer-says-no.woff2') format('woff2');font-weight:700;font-style:normal}</style></head><body bgcolor="#ffffff" style="margin:0;padding:0;background-color:#ffffff;font-family:'Courier New',Courier,monospace;color:#15171a">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;border-collapse:collapse"><tr><td bgcolor="${navy}" style="padding:9px 13px;border:1px solid ${navy};color:#ffffff;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</td></tr><tr><td bgcolor="${paper}" style="padding:10px 0;color:${navy}">${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.6;color:${navy}">${escapeEmailHtml(line)}</p>`).join('')}</td></tr></table>`).join('');
+  return `<!doctype html><html><head><style>@font-face{font-family:'Computer Says No';src:url('${PUBLIC_SITE_URL}/fonts/computer-says-no.woff2') format('woff2');font-weight:700;font-style:normal}</style></head><body bgcolor="#ffffff" style="margin:0;padding:0;background-color:#ffffff;font-family:'Courier New',Courier,monospace;color:${navy}">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse"><tr><td align="center" bgcolor="#ffffff" style="padding:24px 12px;background-color:#ffffff">
       <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:680px;background-color:#ffffff;border:2px solid ${navy};border-collapse:collapse">
         <tr><td bgcolor="#ffffff" style="padding:20px 28px;background-color:#ffffff;border-bottom:2px solid ${navy}">
@@ -331,11 +331,11 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
           <div style="margin-top:13px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:16px;font-weight:700;line-height:1.1">REFERENCE ${escapeEmailHtml(reference)}</div>
         </td></tr>
         <tr><td bgcolor="#ffffff" style="padding:28px;background-color:#ffffff">
-          <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:#15171a">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
-          <p style="margin:0 0 22px;line-height:1.65;color:#15171a">${escapeEmailHtml(intro)}</p>
+          <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:${navy}">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
+          <p style="margin:0 0 22px;line-height:1.65;color:${navy}">${escapeEmailHtml(intro)}</p>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse;font-size:14px">${detailRows}</table>
           ${sectionHtml}
-          ${closing.map(line => `<p style="margin:6px 0;line-height:1.5;color:#15171a">${escapeEmailHtml(line)}</p>`).join('')}
+          ${closing.map(line => `<p style="margin:6px 0;line-height:1.5;color:${navy}">${escapeEmailHtml(line)}</p>`).join('')}
           ${operationNotice}
           ${confidentiality}
         </td></tr>
@@ -345,28 +345,27 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
 }
 
 function requestReceivedEmailHtml({ reference, greeting, details }) {
-  const navy = '#06285d';
-  const silver = '#8b9199';
-  const lines = details.map(([label, value]) => `<tr><td bgcolor="#ffffff" style="padding:11px 0;border-bottom:1px solid #d5d8dc;color:${silver};font-size:11px;letter-spacing:.06em;text-transform:uppercase">${escapeEmailHtml(label)}</td><td align="right" bgcolor="#ffffff" style="padding:11px 0;border-bottom:1px solid #d5d8dc;color:${navy};font-size:13px;font-weight:700;line-height:1.35;text-transform:uppercase">${escapeEmailHtml(value)}</td></tr>`).join('');
-  return `<!doctype html><html><head><style>@font-face{font-family:'Computer Says No';src:url('${PUBLIC_SITE_URL}/fonts/computer-says-no.woff2') format('woff2');font-weight:700;font-style:normal}</style></head><body bgcolor="#ffffff" style="margin:0;padding:0;background-color:#ffffff;font-family:'Courier New',Courier,monospace;color:#15171a">
+  const navy = '#031c45';
+  const lines = details.map(([label, value]) => `<tr><td bgcolor="#ffffff" style="padding:11px 0;border-bottom:1px solid #d5d8dc;color:${navy};font-size:11px;letter-spacing:.06em;text-transform:uppercase">${escapeEmailHtml(label)}</td><td align="right" bgcolor="#ffffff" style="padding:11px 0;border-bottom:1px solid #d5d8dc;color:${navy};font-size:13px;font-weight:700;line-height:1.35;text-transform:uppercase">${escapeEmailHtml(value)}</td></tr>`).join('');
+  return `<!doctype html><html><head><style>@font-face{font-family:'Computer Says No';src:url('${PUBLIC_SITE_URL}/fonts/computer-says-no.woff2') format('woff2');font-weight:700;font-style:normal}</style></head><body bgcolor="#ffffff" style="margin:0;padding:0;background-color:#ffffff;font-family:'Courier New',Courier,monospace;color:${navy}">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff"><tr><td align="center" bgcolor="#ffffff" style="padding:24px 12px;background-color:#ffffff">
       <table role="presentation" width="720" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:720px;background-color:#ffffff;border:2px solid ${navy};border-collapse:collapse">
         <tr><td bgcolor="#ffffff" style="padding:20px;background-color:#ffffff">
           <img src="${PUBLIC_SITE_URL}/nga-private-aviation-logo.png" alt="NGA Private Aviation" width="154" style="display:block;width:154px;max-width:100%;height:auto;border:0;margin:0 0 15px" />
-          <div style="color:${silver};font-size:11px;letter-spacing:.08em;text-transform:uppercase">Private Flight</div>
+          <div style="color:${navy};font-size:11px;letter-spacing:.08em;text-transform:uppercase">Private Flight</div>
           <div style="margin:10px 0 14px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:24px;font-weight:700;line-height:1;text-transform:uppercase">REQUEST RECEIVED</div>
-          <p style="margin:0;color:#3f454c;font-size:12px;line-height:1.55;text-transform:uppercase">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p>
+          <p style="margin:0;color:${navy};font-size:12px;line-height:1.55;text-transform:uppercase">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p>
           <div style="margin:16px 0;padding:10px 12px;border:1px solid ${navy};color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:17px;font-weight:700;line-height:1">REFERENCE ${escapeEmailHtml(reference)}</div>
-          <p style="margin:0 0 14px;color:#15171a;font-size:14px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
+          <p style="margin:0 0 14px;color:${navy};font-size:14px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse">${lines}</table>
-          <div style="margin-top:16px;padding:12px 14px;border-left:3px solid ${navy};background-color:#f3f5f7;color:#26313d;font-size:11px;line-height:1.55"><strong style="color:${navy}">PRIVATE NCO OPERATION</strong><br>This is a private, non-commercial NCO flight and remains subject to pilot decision and operational confirmation.</div>
+          <div style="margin-top:16px;padding:12px 14px;border-left:3px solid ${navy};background-color:#f3f5f7;color:${navy};font-size:11px;line-height:1.55"><strong style="color:${navy}">PRIVATE NCO OPERATION</strong><br>This is a private, non-commercial NCO flight and remains subject to pilot decision and operational confirmation.</div>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;width:100%;border-top:1px solid #d5d8dc;border-collapse:collapse">
-            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid ${navy};color:${navy};font-size:12px;text-transform:uppercase"><strong>Request received</strong><br><span style="color:#555b63">Your flight details have been received.</span></td></tr>
-            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:#15171a;font-size:12px;text-transform:uppercase"><strong>Pilot and operations review</strong><br><span style="color:#555b63">Route, weather, aircraft, and loading are checked.</span></td></tr>
-            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:#15171a;font-size:12px;text-transform:uppercase"><strong>Payment instructions after approval</strong><br><span style="color:#555b63">A Reimbursement Statement is issued once confirmed.</span></td></tr>
-            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:#15171a;font-size:12px;text-transform:uppercase"><strong>Final flight confirmation</strong><br><span style="color:#555b63">Passenger passes and final details are sent by email.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid ${navy};color:${navy};font-size:12px;text-transform:uppercase"><strong>Request received</strong><br><span style="color:${navy}">Your flight details have been received.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:${navy};font-size:12px;text-transform:uppercase"><strong>Pilot and operations review</strong><br><span style="color:${navy}">Route, weather, aircraft, and loading are checked.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:${navy};font-size:12px;text-transform:uppercase"><strong>Payment instructions after approval</strong><br><span style="color:${navy}">A Reimbursement Statement is issued once confirmed.</span></td></tr>
+            <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:${navy};font-size:12px;text-transform:uppercase"><strong>Final flight confirmation</strong><br><span style="color:${navy}">Passenger passes and final details are sent by email.</span></td></tr>
           </table>
-          <div style="margin-top:16px;padding:11px 13px;border:1px solid ${navy};color:#15171a;font-size:12px;line-height:1.55"><strong style="color:${navy}">PAYMENT TERMS</strong><br>Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</div>
+          <div style="margin-top:16px;padding:11px 13px;border:1px solid ${navy};color:${navy};font-size:12px;line-height:1.55"><strong style="color:${navy}">PAYMENT TERMS</strong><br>Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</div>
           <div style="margin-top:16px;padding:12px 14px;border:1px solid #b42318;background-color:#fff5f5;color:#8f1712;font-size:11px;line-height:1.55"><strong>CONFIDENTIAL PASSENGER INFORMATION</strong><br>This email and any linked flight information may contain sensitive passenger data. It is intended only for the named recipient and must not be shared, copied, or misused.</div>
         </td></tr>
       </table>
@@ -447,11 +446,11 @@ async function notifyBookerOfApproval(request) {
     ['Total price', emailPriceSummary(request)]
   ];
   const passHtml = passItems.length
-    ? passItems.map(item => `<p style="margin:10px 0;color:#f2f2f2"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="color:#66ff99;font-weight:700;word-break:break-all">OPEN FLIGHT INFORMATION PASS</a></p>`).join('')
-    : '<p style="margin:8px 0;line-height:1.55;color:#cfcfcf">Passenger passes will be issued by operations shortly.</p>';
+    ? passItems.map(item => `<p style="margin:10px 0 6px;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong></p><table role="presentation" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#031c45" style="padding:11px 14px;background-color:#031c45"><a href="${escapeEmailHtml(item.url)}" style="display:block;color:#b42318;font-weight:700;text-decoration:none;letter-spacing:.04em">FLIGHT INFORMATION PASS / OPEN HERE</a></td></tr></table>`).join('')
+    : '<p style="margin:8px 0;line-height:1.55;color:#031c45">Passenger passes will be issued by operations shortly.</p>';
   const documentHtml = [
-    agreementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(agreementUrl)}" style="color:#66ff99;font-weight:700">OPEN PRIVATE FLIGHT AGREEMENT</a></p>` : '<p style="margin:8px 0;color:#cfcfcf">Private Flight Agreement: to be provided by operations.</p>',
-    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#66ff99;font-weight:700">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#cfcfcf">Reimbursement Statement: to be provided by operations.</p>'
+    agreementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(agreementUrl)}" style="color:#031c45;font-weight:700">OPEN PRIVATE FLIGHT AGREEMENT</a></p>` : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>',
+    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#031c45;font-weight:700">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
   ].join('');
   return sendBookingEmail({
     to: recipient,
