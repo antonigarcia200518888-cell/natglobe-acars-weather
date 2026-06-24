@@ -58,8 +58,12 @@
     .public-statement .workspace { display: block; padding: 22px; }
     .public-statement .editor { display: none; }
     .public-statement .paper-wrap { overflow: visible; }
+    .public-payment { width: 210mm; margin: 14px auto 28px; padding: 15px 18px; border: 2px solid var(--navy); background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, .1); color: var(--navy); }
+    .public-payment strong { display: block; margin-bottom: 6px; color: #b42318; font-size: 13px; text-transform: uppercase; }
+    .public-payment p { margin: 0 0 12px; font-size: 12px; line-height: 1.55; }
+    .public-payment a { display: inline-block; padding: 11px 14px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 700; text-decoration: none; text-transform: uppercase; }
     @media (max-width: 1100px) { .workspace { grid-template-columns: 1fr; } .editor { position: static; } .statement { transform-origin: top left; } }
-    @media (max-width: 700px) { .workspace { padding: 8px; } .statement { transform: scale(.52); margin-bottom: calc(-297mm * .48); } .paper-wrap { overflow: hidden; } }
+    @media (max-width: 700px) { .workspace { padding: 8px; } .statement { transform: scale(.52); margin-bottom: calc(-297mm * .48); } .paper-wrap { overflow: hidden; } .public-payment { width: 100%; margin: 10px auto 18px; } }
     @page { size: A4; margin: 0; }
     @media print { * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } body { background: #fff; } .workspace { display: block; padding: 0; } .editor { display: none; } .paper-wrap { padding: 0; overflow: visible; } .statement { width: 210mm; min-height: 297mm; margin: 0; box-shadow: none; transform: none !important; } }
   </style>
@@ -111,6 +115,11 @@
         <section class="totals"><div><strong>CHARGES:</strong><strong id="chargeCountPreview">0</strong></div><div><strong>PER PASSENGER:</strong><span id="perPassengerPreview">EUR 0.00</span></div><div><strong>TOTAL FLIGHT COST:</strong><strong id="totalPreview">EUR 0.00</strong></div><div><strong>DUE AMOUNT:</strong><strong id="dueAmountPreview">EUR 0.00</strong></div></section>
         <div class="page">PAGE 1/1</div>
       </article>
+      <section id="publicPayment" class="public-payment" hidden>
+        <strong>Payment required</strong>
+        <p>Use the secure payment link below after reviewing the reimbursement statement. Include the payment reference shown above.</p>
+        <a id="publicPaymentLink" href="#" target="_blank" rel="noopener">Continue to payment</a>
+      </section>
     </div>
   </main>
   <script>
@@ -206,6 +215,10 @@
       request = isPublicStatement ? data.request : (data.requests || []).find(item => item.id === requestId);
       if (!request) throw new Error('Booking request not found');
       buildEditor();
+      if (isPublicStatement && request.paymentUrl) {
+        el('publicPaymentLink').href = request.paymentUrl;
+        el('publicPayment').hidden = false;
+      }
     }
 
     document.addEventListener('input', event => { if (event.target.matches('input')) sync(); });

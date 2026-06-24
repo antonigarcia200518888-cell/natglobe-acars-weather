@@ -404,6 +404,15 @@ function reimbursementStatementPublicUrl(request) {
   return `${PUBLIC_SITE_URL}/private-flight-reimbursement-statement/${encodeURIComponent(request.id)}/${request.reimbursementStatementToken}`;
 }
 
+function bookingPaymentUrl(request) {
+  const template = String(process.env.BOOKING_PAYMENT_URL || '').trim();
+  if (!template.startsWith('https://')) return '';
+  const paymentReference = request?.reimbursementStatement?.paymentReference || request?.id || '';
+  return template
+    .replaceAll('{reference}', encodeURIComponent(request?.id || ''))
+    .replaceAll('{payment_reference}', encodeURIComponent(paymentReference));
+}
+
 async function notifyBookerOfBooking(request) {
   const recipient = String(request.email || '').trim();
   const details = [
@@ -468,8 +477,13 @@ async function notifyBookerOfApproval(request) {
   const documentHtml = [
     agreementItems.length
       ? agreementItems.map(item => `<p style="margin:10px 0;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#007aff;font-weight:700;text-decoration:underline">OPEN PRIVATE FLIGHT AGREEMENT</a> <span style="color:#b42318;font-weight:700">(E-SIGNATURE REQUIRED)</span></p>`).join('')
-      : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>',
-    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#007aff;font-weight:700;text-decoration:underline">OPEN REIMBURSEMENT STATEMENT</a> <span style="color:#b42318;font-weight:700">(PAYMENT REQUIRED)</span></p>` : '<p style="margin:8px 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
+      : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>'
+  ].join('');
+  const paymentTermsHtml = [
+    '<p style="margin:8px 0;line-height:1.6;color:#031c45">Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</p>',
+    reimbursementUrl
+      ? `<p style="margin:12px 0 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#007aff;font-weight:700;text-decoration:underline">OPEN REIMBURSEMENT STATEMENT</a> <span style="color:#b42318;font-weight:700">(PAYMENT REQUIRED)</span></p>`
+      : '<p style="margin:12px 0 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
   ].join('');
   return sendBookingEmail({
     to: recipient,
@@ -497,10 +511,10 @@ async function notifyBookerOfApproval(request) {
       '',
       'PASSENGER DOCUMENTATION',
       ...(agreementItems.length ? agreementItems.map(item => `Private Flight Agreement / ${item.label} (E-SIGNATURE REQUIRED): ${item.url}`) : ['Private Flight Agreement: to be provided by operations.']),
-      reimbursementUrl ? `Reimbursement Statement (PAYMENT REQUIRED): ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.',
       '',
       'PAYMENT TERMS',
       'A Reimbursement Statement will be issued for this confirmed flight. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.',
+      reimbursementUrl ? `Open Reimbursement Statement (PAYMENT REQUIRED): ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.',
       '',
       'BAGGAGE AND ITEMS ON BOARD',
       'Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.',
@@ -521,7 +535,7 @@ async function notifyBookerOfApproval(request) {
         { title: 'AIRPORT LOCATION', lines: emailAirportLocation(request) },
         { title: 'PASSENGER FLIGHT INFORMATION PASSES', html: passHtml },
         { title: 'PASSENGER DOCUMENTATION', html: documentHtml },
-        { title: 'PAYMENT TERMS', lines: ['A Reimbursement Statement will be issued for this confirmed flight. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.'] },
+        { title: 'PAYMENT TERMS', html: paymentTermsHtml },
         { title: 'BAGGAGE AND ITEMS ON BOARD', lines: ['Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.'] },
         { title: 'BOARDING REMINDER', lines: ['Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.'] }
       ],
@@ -2942,7 +2956,8 @@ function publicReimbursementStatementView(request) {
       email: passenger.email,
       phone: passenger.phone
     })),
-    reimbursementStatement: request.reimbursementStatement
+    reimbursementStatement: request.reimbursementStatement,
+    paymentUrl: bookingPaymentUrl(request)
   };
 }
 
