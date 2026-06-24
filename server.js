@@ -399,6 +399,11 @@ function privateFlightAgreementItems(request) {
     }));
 }
 
+function reimbursementStatementPublicUrl(request) {
+  if (!request?.reimbursementStatement || !request?.reimbursementStatementToken) return '';
+  return `${PUBLIC_SITE_URL}/private-flight-reimbursement-statement/${encodeURIComponent(request.id)}/${request.reimbursementStatementToken}`;
+}
+
 async function notifyBookerOfBooking(request) {
   const recipient = String(request.email || '').trim();
   const details = [
@@ -448,7 +453,7 @@ async function notifyBookerOfApproval(request) {
   const passLinks = passengerPassLinks(request);
   const passItems = passengerPassItems(request);
   const agreementItems = privateFlightAgreementItems(request);
-  const reimbursementUrl = String(process.env.BOOKING_REIMBURSEMENT_URL || '').trim();
+  const reimbursementUrl = reimbursementStatementPublicUrl(request);
   const details = [
     ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`],
     ['Date', emailDate(request.requestDate)],
@@ -464,7 +469,7 @@ async function notifyBookerOfApproval(request) {
     agreementItems.length
       ? agreementItems.map(item => `<p style="margin:10px 0;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#007aff;font-weight:700;text-decoration:underline">OPEN PRIVATE FLIGHT AGREEMENT</a></p>`).join('')
       : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>',
-    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#031c45;font-weight:700">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
+    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#007aff;font-weight:700;text-decoration:underline">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
   ].join('');
   return sendBookingEmail({
     to: recipient,
@@ -848,6 +853,10 @@ function createAgreementToken() {
   return randomUUID().replace(/-/g, '');
 }
 
+function createReimbursementStatementToken() {
+  return randomUUID().replace(/-/g, '');
+}
+
 function getRequestPassengers(request) {
   return request.passengers?.length ? request.passengers : [{ number: 1, name: request.name }];
 }
@@ -861,6 +870,12 @@ function ensureAgreementTokens(request) {
     }
   });
   return changed;
+}
+
+function ensureReimbursementStatementToken(request) {
+  if (request.reimbursementStatementToken) return false;
+  request.reimbursementStatementToken = createReimbursementStatementToken();
+  return true;
 }
 
 function isBoardingPassReady(request) {
@@ -2846,6 +2861,23 @@ app.get('/private-flight-agreement/:reference/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'private-flight-agreement.html'));
 });
 
+function findPublicReimbursementStatement(reference, token) {
+  const request = bookingRequests.find(item => (
+    item.id === String(reference || '').trim().toUpperCase()
+    && item.reimbursementStatementToken === String(token || '').trim()
+  ));
+  if (!request || !isBoardingPassReady(request) || !request.reimbursementStatement) return null;
+  return request;
+}
+
+app.get('/private-flight-reimbursement-statement/:reference/:token', async (req, res) => {
+  await bookingStoreReady;
+  const request = findPublicReimbursementStatement(req.params.reference, req.params.token);
+  if (!request) return res.status(404).send('Reimbursement Statement not available.');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.redirect(`/api/private-flight-reimbursement-statement/${encodeURIComponent(request.id)}/${encodeURIComponent(request.reimbursementStatementToken)}/pdf`);
+});
+
 app.get('/pass-check/:token', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'pass-verification.html'));
@@ -2891,6 +2923,17 @@ app.get('/api/private-flight-agreements/:token', async (req, res) => {
       }
     }
   });
+});
+
+app.get('/api/private-flight-reimbursement-statement/:reference/:token/pdf', async (req, res) => {
+  await bookingStoreReady;
+  const request = findPublicReimbursementStatement(req.params.reference, req.params.token);
+  if (!request) return res.status(404).json({ error: 'REIMBURSEMENT STATEMENT NOT AVAILABLE' });
+  const pdf = await createReimbursementStatementPdf(request);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${request.id}-REIMBURSEMENT-STATEMENT.pdf"`);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.send(pdf);
 });
 
 app.post('/api/private-flight-agreements/:token/sign', async (req, res) => {
@@ -3173,6 +3216,10 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
   const pilotDecision = String(req.body?.pilotDecision || '').trim().toUpperCase();
   const wasApproved = request.pilotDecision === 'APPROVED' && request.status === 'CONFIRMED';
 
+  if (pilotDecision === 'APPROVED' && !request.reimbursementStatement) {
+    return res.status(400).json({ error: 'SAVE THE REIMBURSEMENT STATEMENT BEFORE CONFIRMING THIS FLIGHT' });
+  }
+
   if (paymentStatus) {
     const allowedPayments = new Set(['UNPAID', 'DEPOSIT PAID', 'PAID', 'REFUNDED']);
     if (!allowedPayments.has(paymentStatus)) return res.status(400).json({ error: 'INVALID PAYMENT STATUS' });
@@ -3187,6 +3234,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     if (pilotDecision === 'APPROVED') {
       request.status = 'CONFIRMED';
       ensureAgreementTokens(request);
+      ensureReimbursementStatementToken(request);
     }
     if (pilotDecision === 'NEEDS INFO') request.status = 'NEEDS INFO';
     if (pilotDecision === 'DECLINED') request.status = 'DECLINED';
@@ -3210,6 +3258,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     const statement = normalizeReimbursementStatement(req.body.reimbursementStatement);
     if (statement) {
       request.reimbursementStatement = statement;
+      ensureReimbursementStatementToken(request);
       await addBookingTimelineEvent(request.id, 'REIMBURSEMENT STATEMENT SAVED', 'Statement draft updated in Pilot Ops.');
     }
   }
