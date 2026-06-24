@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Flight Agreement</title>
+  <style>
+    @font-face { font-family: CSN; src: url('/fonts/computer-says-no.woff2') format('woff2'); }
+    :root { --navy: #031c45; --blue: #007aff; --red: #b42318; --line: #cfd5de; --paper: #fff; --ink: #031c45; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #edf0f4; color: var(--ink); font-family: "Courier New", Courier, monospace; }
+    main { width: min(840px, 100%); margin: 0 auto; padding: 24px 14px 46px; }
+    .document { background: var(--paper); border: 2px solid var(--navy); box-shadow: 0 10px 30px rgba(3, 28, 69, .12); }
+    .head { padding: 20px; border-bottom: 2px solid var(--navy); }
+    .logo { width: 154px; max-width: 100%; height: auto; display: block; margin-bottom: 16px; }
+    .kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 8px 0 0; color: var(--navy); font: 34px/1 CSN, "Courier New", monospace; text-transform: uppercase; }
+    .reference { margin-top: 12px; color: var(--navy); font: 18px/1 CSN, "Courier New", monospace; }
+    .status { display: inline-block; margin-top: 12px; padding: 7px 9px; border: 1px solid var(--navy); color: var(--navy); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .status.signed { border-color: #287348; background: #eaf7ef; color: #1e613b; }
+    .body { padding: 20px; }
+    .intro { margin: 0 0 20px; line-height: 1.6; font-size: 13px; }
+    .section { margin-top: 22px; }
+    h2 { margin: 0 0 10px; padding: 9px 11px; background: var(--navy); color: #fff; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+    .details { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .details th, .details td { padding: 10px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .details th { width: 38%; color: var(--navy); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
+    .details td { color: var(--navy); font-weight: 700; }
+    .terms { padding: 0 1px; font-size: 13px; line-height: 1.65; }
+    .terms p { margin: 0 0 14px; }
+    .terms strong { color: var(--navy); }
+    .acknowledgement { margin-top: 24px; padding: 16px; border: 1px solid var(--navy); background: #f7f9fc; }
+    .acknowledgement p { margin: 0 0 14px; font-size: 12px; line-height: 1.55; }
+    label { display: block; margin: 12px 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+    input[type="text"] { width: 100%; min-height: 46px; padding: 10px; border: 1px solid var(--navy); border-radius: 0; color: var(--navy); font: 16px "Courier New", Courier, monospace; background: #fff; }
+    .check { display: flex; gap: 9px; align-items: flex-start; margin: 16px 0; font-size: 12px; line-height: 1.45; text-transform: none; letter-spacing: 0; }
+    .check input { width: 18px; height: 18px; margin: 0; accent-color: var(--navy); flex: 0 0 auto; }
+    button { width: 100%; min-height: 48px; border: 0; background: var(--navy); color: #fff; cursor: pointer; font: 700 14px "Courier New", Courier, monospace; letter-spacing: .05em; text-transform: uppercase; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .notice { min-height: 20px; margin-top: 12px; font-size: 12px; line-height: 1.5; color: var(--navy); }
+    .notice.error { color: var(--red); }
+    .signed-panel { display: none; margin-top: 16px; padding: 14px; border: 1px solid #287348; background: #eaf7ef; color: #1e613b; font-size: 13px; line-height: 1.55; }
+    .signed-panel.show { display: block; }
+    .foot { padding: 16px 20px; border-top: 1px solid var(--line); color: var(--navy); font-size: 11px; line-height: 1.55; }
+    .loading { padding: 34px 20px; text-align: center; color: var(--navy); }
+    @media (max-width: 560px) { main { padding: 0 0 24px; } .document { border-width: 0 0 2px; } .head, .body { padding: 16px; } h1 { font-size: 28px; } .details th { width: 44%; } }
+  </style>
+</head>
+<body>
+  <main>
+    <article class="document">
+      <header class="head">
+        <img class="logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation" />
+        <div class="kicker">Private Flight</div>
+        <h1>Flight Agreement</h1>
+        <div id="reference" class="reference">REFERENCE LOADING</div>
+        <div id="status" class="status">Loading agreement</div>
+      </header>
+      <div id="loading" class="loading">Loading your private flight agreement...</div>
+      <div id="agreement" class="body" hidden>
+        <p class="intro">This agreement is prefilled from your private flight booking. Please review it carefully and complete the electronic acknowledgement at the end.</p>
+
+        <section class="section">
+          <h2>Passenger Details</h2>
+          <table class="details"><tbody id="passengerDetails"></tbody></table>
+        </section>
+
+        <section class="section">
+          <h2>Flight Details</h2>
+          <table class="details"><tbody id="flightDetails"></tbody></table>
+        </section>
+
+        <section class="section terms">
+          <h2>Agreement Terms</h2>
+          <p><strong>Private operation.</strong> This is a private, non-commercial NCO flight. The flight remains subject to the Pilot-in-Command's final decision, weather, aircraft serviceability, passenger fitness, baggage loading, weight and balance, applicable rules, and operational limits.</p>
+          <p><strong>Pilot authority.</strong> The Pilot-in-Command has sole authority over the aircraft and may delay, change, cancel, or decline the flight for safety or operational reasons. All passengers must follow lawful pilot instructions.</p>
+          <p><strong>Safety and fitness.</strong> You must disclose any health, medication, alcohol, substance, or other condition that could affect safe flight before boarding. You must not board if unwell or impaired. There is no supplemental oxygen on board.</p>
+          <p><strong>Conduct and baggage.</strong> Disruptive conduct, dangerous goods, undeclared lithium batteries, weapons, explosives, flammable materials, or any item that may affect flight safety are not permitted. Baggage remains subject to pilot approval and aircraft loading limits.</p>
+          <p><strong>Payment and changes.</strong> A Reimbursement Statement may be issued after operational confirmation. Payment, cancellation, and refund arrangements remain subject to the information provided by operations for this booking.</p>
+        </section>
+
+        <section class="acknowledgement" id="signatureSection">
+          <h2>Electronic Acknowledgement</h2>
+          <p>By typing your full name and selecting the acknowledgement below, you confirm that you have read and understood this agreement and accept the private flight terms for this booking. Your typed signature, agreement version, and signing time are recorded with the booking.</p>
+          <label for="signatureName">Type your full name exactly as shown above</label>
+          <input id="signatureName" type="text" autocomplete="name" />
+          <label class="check"><input id="acceptAgreement" type="checkbox" /> <span>I have read, understood, and electronically accept this Private Flight Agreement.</span></label>
+          <button id="signAgreement" type="button">Sign Private Flight Agreement</button>
+          <div id="notice" class="notice" role="status"></div>
+        </section>
+        <div id="signedPanel" class="signed-panel"></div>
+      </div>
+      <footer class="foot">Confidential passenger document. Do not share this agreement link. For questions, contact <a href="mailto:info.ngaprivateaviation@gmail.com">info.ngaprivateaviation@gmail.com</a>.</footer>
+    </article>
+  </main>
+  <script>
+    const token = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() || '');
+    const el = id => document.getElementById(id);
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const row = (label, value) => `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(value || 'Not provided')}</td></tr>`;
+    const formatSigned = value => value ? new Date(value).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+    let agreement = null;
+
+    function showSigned(signedAt) {
+      el('status').textContent = 'Agreement signed';
+      el('status').classList.add('signed');
+      el('signatureSection').hidden = true;
+      el('signedPanel').classList.add('show');
+      el('signedPanel').innerHTML = `<strong>Agreement received.</strong><br>Your electronic acknowledgement was recorded on ${escapeHtml(formatSigned(signedAt))}.`;
+    }
+
+    function render(data) {
+      agreement = data;
+      el('reference').textContent = `REFERENCE ${data.reference}`;
+      el('status').textContent = data.status === 'SIGNED' ? 'Agreement signed' : 'Signature required';
+      if (data.status === 'SIGNED') el('status').classList.add('signed');
+      el('passengerDetails').innerHTML = [
+        row('Passenger', `${data.passenger.title || ''} ${data.passenger.name}`.trim()),
+        row('Date of birth', data.passenger.dob),
+        row('Passport country', data.passenger.passportCountry),
+        row('Passport / ID', data.passenger.passport)
+      ].join('');
+      el('flightDetails').innerHTML = [
+        row('Route', data.flight.route),
+        row('Date', data.flight.date),
+        row('Boarding time', data.flight.boardingTime),
+        row('Scheduled departure', data.flight.departureTime),
+        row('Estimated flight time', data.flight.flightTime),
+        row('Aircraft', data.flight.aircraft),
+        row('Declared baggage', data.flight.baggage)
+      ].join('');
+      el('loading').hidden = true;
+      el('agreement').hidden = false;
+      if (data.status === 'SIGNED') showSigned(data.signedAt);
+    }
+
+    async function loadAgreement() {
+      const res = await fetch(`/api/private-flight-agreements/${encodeURIComponent(token)}`, { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'AGREEMENT NOT AVAILABLE');
+      render(data.agreement);
+    }
+
+    el('signAgreement').addEventListener('click', async () => {
+      const button = el('signAgreement');
+      const notice = el('notice');
+      notice.className = 'notice';
+      notice.textContent = '';
+      button.disabled = true;
+      try {
+        const res = await fetch(`/api/private-flight-agreements/${encodeURIComponent(token)}/sign`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signatureName: el('signatureName').value, accepted: el('acceptAgreement').checked })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'SIGNATURE COULD NOT BE RECORDED');
+        showSigned(data.signedAt);
+      } catch (error) {
+        notice.className = 'notice error';
+        notice.textContent = error.message || 'SIGNATURE COULD NOT BE RECORDED';
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    loadAgreement().catch(error => {
+      el('loading').textContent = error.message || 'Agreement not available.';
+    });
+  </script>
+</body>
+</html>

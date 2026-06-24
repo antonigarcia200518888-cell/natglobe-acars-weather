@@ -651,6 +651,11 @@ END OF MESSAGE</pre>
       if (String(req.extras || '').match(/WINE|CHAMPAGNE|BEER|LONG DRINK/i)) alerts.push({ tone: 'warn', label: 'ALCOHOL REQUEST' });
       if (String(req.extras || '').match(/TRANSFER/i)) alerts.push({ tone: 'warn', label: 'TRANSFER REQUEST' });
       if (req.contractAccepted) alerts.push({ tone: 'good', label: 'SAFETY ACCEPTED' });
+      const passengers = req.passengers?.length ? req.passengers : [];
+      if (passengers.length) {
+        const signed = passengers.filter(passenger => passenger.agreementSignedAt).length;
+        alerts.push({ tone: signed === passengers.length ? 'good' : 'warn', label: `AGREEMENTS ${signed}/${passengers.length}` });
+      }
       opsAlerts.innerHTML = alerts.map(alert => `<div class="ops-alert ${alert.tone}">${escapeHtml(alert.label)}</div>`).join('');
     }
 
@@ -672,7 +677,8 @@ END OF MESSAGE</pre>
           DOB ${escapeHtml(passenger.dob || 'NIL')}<br>
           PPT ${escapeHtml(passenger.passportCountry || 'NIL')} / ID ${escapeHtml(passenger.nationalId || 'NIL')}<br>
           TEL ${escapeHtml(passenger.phone || 'NIL')}<br>
-          ${escapeHtml(passenger.email || 'NIL')}
+          ${escapeHtml(passenger.email || 'NIL')}<br>
+          AGREEMENT ${passenger.agreementSignedAt ? `SIGNED ${escapeHtml(new Date(passenger.agreementSignedAt).toLocaleString('en-GB', { hour12: false }))}` : 'AWAITING SIGNATURE'}
         </div>
       `).join('');
     }

@@ -388,6 +388,69 @@ function passengerPassItems(request) {
     }));
 }
 
+function privateFlightAgreementItems(request) {
+  return getRequestPassengers(request)
+    .filter(passenger => passenger.agreementToken)
+    .map(passenger => ({
+      label: passenger.name || `Passenger ${passenger.number || 1}`,
+      email: passenger.email || '',
+      url: `${PUBLIC_SITE_URL}/private-flight-agreement/${encodeURIComponent(request.id)}/${passenger.agreementToken}`,
+      signedAt: passenger.agreementSignedAt || ''
+    }));
+}
+
+function privateFlightAgreementText(request, passenger) {
+  const route = `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`;
+  return [
+    'PRIVATE FLIGHT AGREEMENT',
+    `Reference: ${request.id}`,
+    `Passenger: ${passenger.name || 'Passenger'}`,
+    `Route: ${route}`,
+    `Date: ${emailDate(request.requestDate)}`,
+    `Scheduled departure: ${formatBoardingPassTime(request.requestTime)} Local Time`,
+    '',
+    'This is a private, non-commercial NCO flight. It remains subject to pilot decision, weather, aircraft availability, loading, and operational limits.',
+    '',
+    `Open and sign your agreement: ${PUBLIC_SITE_URL}/private-flight-agreement/${encodeURIComponent(request.id)}/${passenger.agreementToken}`,
+    '',
+    'Best regards,',
+    'NGA Private Aviation Team',
+    'info.ngaprivateaviation@gmail.com'
+  ].join('\n');
+}
+
+async function notifyPassengersOfAgreement(request) {
+  const agreements = privateFlightAgreementItems(request);
+  await Promise.all(agreements.map(async agreement => {
+    if (!agreement.email || agreement.signedAt) return;
+    const passenger = getRequestPassengers(request).find(item => item.agreementToken && agreement.url.endsWith(item.agreementToken));
+    if (!passenger) return;
+    const route = `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`;
+    await sendBookingEmail({
+      to: agreement.email,
+      subject: `Private flight agreement required / ${request.id}`,
+      text: privateFlightAgreementText(request, passenger),
+      html: privateFlightEmailHtml({
+        status: 'AGREEMENT REQUIRED',
+        reference: request.id,
+        greeting: passenger.name || 'Passenger',
+        intro: 'Please review and electronically acknowledge your private flight agreement before the flight. This personal agreement link is for you only.',
+        details: [
+          ['Passenger', passenger.name || 'Passenger'],
+          ['Route', route],
+          ['Date', emailDate(request.requestDate)],
+          ['Scheduled departure', `${formatBoardingPassTime(request.requestTime)} Local Time`]
+        ],
+        sections: [{
+          title: 'PRIVATE FLIGHT AGREEMENT',
+          html: `<p style="margin:8px 0;color:#031c45">Review the prefilled agreement and add your typed electronic signature.</p><p style="margin:12px 0"><a href="${escapeEmailHtml(agreement.url)}" style="color:#007aff;font-weight:700;text-decoration:underline">OPEN AND SIGN YOUR PRIVATE FLIGHT AGREEMENT</a></p>`
+        }],
+        closing: ['Best regards,', 'NGA Private Aviation Team', 'info.ngaprivateaviation@gmail.com']
+      })
+    });
+  }));
+}
+
 async function notifyBookerOfBooking(request) {
   const recipient = String(request.email || '').trim();
   const details = [
@@ -436,7 +499,6 @@ async function notifyBookerOfApproval(request) {
   const recipient = String(request.email || '').trim();
   const passLinks = passengerPassLinks(request);
   const passItems = passengerPassItems(request);
-  const agreementUrl = String(process.env.BOOKING_AGREEMENT_URL || '').trim();
   const reimbursementUrl = String(process.env.BOOKING_REIMBURSEMENT_URL || '').trim();
   const details = [
     ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`],
@@ -450,7 +512,6 @@ async function notifyBookerOfApproval(request) {
     ? passItems.map(item => `<p style="margin:10px 0 6px;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#007aff;font-weight:700;text-decoration:underline;letter-spacing:.02em">FLIGHT INFORMATION PASS / OPEN HERE</a></p>`).join('')
     : '<p style="margin:8px 0;line-height:1.55;color:#031c45">Passenger passes will be issued by operations shortly.</p>';
   const documentHtml = [
-    agreementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(agreementUrl)}" style="color:#031c45;font-weight:700">OPEN PRIVATE FLIGHT AGREEMENT</a></p>` : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>',
     reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#031c45;font-weight:700">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
   ].join('');
   return sendBookingEmail({
@@ -477,8 +538,10 @@ async function notifyBookerOfApproval(request) {
       'PASSENGER FLIGHT INFORMATION PASSES',
       ...(passLinks.length ? passLinks : ['Passenger passes will be issued by operations shortly.']),
       '',
+      'PRIVATE FLIGHT AGREEMENT',
+      'Each passenger receives a separate agreement email and must sign their own prefilled electronic acknowledgement.',
+      '',
       'PASSENGER DOCUMENTATION',
-      agreementUrl ? `Private Flight Agreement: ${agreementUrl}` : 'Private Flight Agreement: to be provided by operations.',
       reimbursementUrl ? `Reimbursement Statement: ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.',
       '',
       'PAYMENT TERMS',
@@ -502,6 +565,7 @@ async function notifyBookerOfApproval(request) {
       sections: [
         { title: 'AIRPORT LOCATION', lines: emailAirportLocation(request) },
         { title: 'PASSENGER FLIGHT INFORMATION PASSES', html: passHtml },
+        { title: 'PRIVATE FLIGHT AGREEMENT', lines: ['Each passenger receives a separate agreement email and must sign their own prefilled electronic acknowledgement.'] },
         { title: 'PASSENGER DOCUMENTATION', html: documentHtml },
         { title: 'PAYMENT TERMS', lines: ['A Reimbursement Statement will be issued for this confirmed flight. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.'] },
         { title: 'BAGGAGE AND ITEMS ON BOARD', lines: ['Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.'] },
@@ -536,6 +600,8 @@ async function deliverApprovalNotification(request) {
       await persistBookingRequest(request);
       await addBookingTimelineEvent(request.id, 'FLIGHT CONFIRMATION EMAIL', 'Passenger flight confirmation and pass links sent.');
     }
+    await notifyPassengersOfAgreement(request);
+    await addBookingTimelineEvent(request.id, 'PASSENGER AGREEMENT EMAILS', 'Individual private flight agreement links sent.');
   } catch (err) {
     console.error('CONFIRMATION EMAIL:', err.message);
   }
@@ -803,8 +869,23 @@ function createBoardingPassToken() {
   return randomUUID().replace(/-/g, '');
 }
 
+function createAgreementToken() {
+  return randomUUID().replace(/-/g, '');
+}
+
 function getRequestPassengers(request) {
   return request.passengers?.length ? request.passengers : [{ number: 1, name: request.name }];
+}
+
+function ensureAgreementTokens(request) {
+  let changed = false;
+  getRequestPassengers(request).forEach(passenger => {
+    if (!passenger.agreementToken) {
+      passenger.agreementToken = createAgreementToken();
+      changed = true;
+    }
+  });
+  return changed;
 }
 
 function isBoardingPassReady(request) {
@@ -2780,9 +2861,78 @@ app.get('/private-flight-information-pass/:reference/:token', (req, res) => {
   sendBoardingPassPage(req, res);
 });
 
+app.get('/private-flight-agreement/:reference/:token', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'private-flight-agreement.html'));
+});
+
 app.get('/pass-check/:token', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'pass-verification.html'));
+});
+
+function agreementSignatureMatches(passenger, signatureName) {
+  const normalize = value => normalizeBookingText(value, 80).replace(/\s+/g, ' ').trim().toUpperCase();
+  return Boolean(signatureName) && normalize(passenger.name) === normalize(signatureName);
+}
+
+function findAgreementByToken(token) {
+  const request = bookingRequests.find(item => getRequestPassengers(item).some(passenger => passenger.agreementToken === token));
+  if (!request || !isBoardingPassReady(request)) return { request: null, passenger: null };
+  const passenger = getRequestPassengers(request).find(item => item.agreementToken === token) || null;
+  return { request, passenger };
+}
+
+app.get('/api/private-flight-agreements/:token', async (req, res) => {
+  await bookingStoreReady;
+  const { request, passenger } = findAgreementByToken(String(req.params.token || '').trim());
+  if (!request || !passenger) return res.status(404).json({ error: 'AGREEMENT NOT AVAILABLE' });
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    agreement: {
+      reference: request.id,
+      status: passenger.agreementSignedAt ? 'SIGNED' : 'AWAITING SIGNATURE',
+      signedAt: passenger.agreementSignedAt || '',
+      passenger: {
+        title: passenger.title || '',
+        name: passenger.name || 'Passenger',
+        dob: passenger.dob || '',
+        passportCountry: passenger.passportCountry || '',
+        passport: maskedPassport(passenger)
+      },
+      flight: {
+        route: `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`,
+        date: emailDate(request.requestDate),
+        boardingTime: `${boardingPassBoardingTime(request.requestTime)} Local Time`,
+        departureTime: `${formatBoardingPassTime(request.requestTime)} Local Time`,
+        flightTime: emailFlightTime(request),
+        aircraft: request.aircraft || 'OH-PMK / Piper PA-28R-200 Arrow II',
+        baggage: boardingPassBaggage(request)
+      }
+    }
+  });
+});
+
+app.post('/api/private-flight-agreements/:token/sign', async (req, res) => {
+  await bookingStoreReady;
+  const { request, passenger } = findAgreementByToken(String(req.params.token || '').trim());
+  if (!request || !passenger) return res.status(404).json({ error: 'AGREEMENT NOT AVAILABLE' });
+  if (passenger.agreementSignedAt) return res.json({ ok: true, signedAt: passenger.agreementSignedAt, alreadySigned: true });
+
+  const signatureName = normalizeBookingText(req.body?.signatureName, 80);
+  const accepted = req.body?.accepted === true || req.body?.accepted === 'true';
+  if (!accepted) return res.status(400).json({ error: 'AGREEMENT ACCEPTANCE REQUIRED' });
+  if (!agreementSignatureMatches(passenger, signatureName)) {
+    return res.status(400).json({ error: 'TYPE YOUR FULL NAME EXACTLY AS SHOWN IN THE AGREEMENT' });
+  }
+
+  passenger.agreementAccepted = true;
+  passenger.agreementSignatureName = signatureName;
+  passenger.agreementSignedAt = new Date().toISOString();
+  passenger.agreementVersion = 'PRIVATE-FLIGHT-AGREEMENT-2026-06-24';
+  await persistBookingRequest(request);
+  await addBookingTimelineEvent(request.id, 'PASSENGER AGREEMENT SIGNED', `${passenger.name || `PAX ${passenger.number || 1}`} / PAX ${passenger.number || 1}`);
+  res.json({ ok: true, signedAt: passenger.agreementSignedAt });
 });
 
 app.post('/api/pilot-login', (req, res) => {
@@ -2905,7 +3055,10 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     const allowedDecisions = new Set(['PENDING', 'APPROVED', 'NEEDS INFO', 'DECLINED']);
     if (!allowedDecisions.has(pilotDecision)) return res.status(400).json({ error: 'INVALID PILOT DECISION' });
     request.pilotDecision = pilotDecision;
-    if (pilotDecision === 'APPROVED') request.status = 'CONFIRMED';
+    if (pilotDecision === 'APPROVED') {
+      request.status = 'CONFIRMED';
+      ensureAgreementTokens(request);
+    }
     if (pilotDecision === 'NEEDS INFO') request.status = 'NEEDS INFO';
     if (pilotDecision === 'DECLINED') request.status = 'DECLINED';
     if (pilotDecision === 'PENDING') request.status = 'REQUESTED';
@@ -3106,7 +3259,8 @@ app.post('/api/booking-requests', async (req, res) => {
     weightKg: normalizeBookingText(passenger?.weightKg, 8),
     passportCountry: normalizeBookingText(passenger?.passportCountry, 40),
     nationalId: normalizeBookingText(passenger?.nationalId, 60),
-    boardingPassToken: createBoardingPassToken()
+    boardingPassToken: createBoardingPassToken(),
+    agreementToken: createAgreementToken()
   })) : [{
     number: 1,
     title: normalizeBookingText(req.body?.title, 8).toUpperCase(),
@@ -3117,11 +3271,12 @@ app.post('/api/booking-requests', async (req, res) => {
     weightKg: normalizeBookingText(req.body?.weightKg, 8),
     passportCountry: normalizeBookingText(req.body?.passportCountry, 40),
     nationalId: normalizeBookingText(req.body?.nationalId, 60),
-    boardingPassToken: createBoardingPassToken()
+    boardingPassToken: createBoardingPassToken(),
+    agreementToken: createAgreementToken()
   }];
 
   while (passengers.length < seats) {
-    passengers.push({ number: passengers.length + 1, title: '', name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '', boardingPassToken: createBoardingPassToken() });
+    passengers.push({ number: passengers.length + 1, title: '', name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '', boardingPassToken: createBoardingPassToken(), agreementToken: createAgreementToken() });
   }
 
   const leadPassenger = passengers[0] || {};
