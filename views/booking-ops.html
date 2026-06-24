@@ -569,6 +569,7 @@ END OF MESSAGE</pre>
           </div>
           <div id="walletPassStatus" class="ops-mini-status">Pilot approval required before issuing a passenger flight pass.</div>
           <button id="openPdfBtn" class="btn ghost" type="button">OPEN PDF</button>
+          <button id="openStatementBtn" class="btn ghost" type="button">REIMBURSEMENT STATEMENT</button>
           <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
           <button id="deleteBtn" class="btn ghost danger" type="button">DELETE REQUEST</button>
           <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
@@ -586,6 +587,7 @@ END OF MESSAGE</pre>
     const opsAlerts = el('opsAlerts');
     const manifestList = el('manifestList');
     const openPdfBtn = el('openPdfBtn');
+    const openStatementBtn = el('openStatementBtn');
     const refreshBtn = el('refreshBtn');
     const deleteBtn = el('deleteBtn');
     const logoutBtn = el('logoutBtn');
@@ -837,6 +839,10 @@ END OF MESSAGE</pre>
       }
       const pdfWindow = window.open(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/pdf`, '_blank', 'noopener');
       if (!pdfWindow) mode.textContent = 'MODE: POP-UP BLOCKED / ALLOW POP-UPS TO OPEN PDF';
+    });
+    openStatementBtn.addEventListener('click', () => {
+      if (!selected?.id) return;
+      window.open(`/booking-ops/requests/${encodeURIComponent(selected.id)}/reimbursement-statement`, '_blank', 'noopener');
     });
 
     paymentStatus.addEventListener('change', () => updateSelected({ paymentStatus: paymentStatus.value }));

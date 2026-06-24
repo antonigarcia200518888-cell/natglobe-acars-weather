@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reimbursement Statement</title>
+  <style>
+    :root { --navy: #031c45; --pale: #e7f6ff; --ink: #111; --muted: #666; --line: #cfd5de; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e9edf2; color: var(--ink); font-family: "Courier New", Courier, monospace; }
+    .workspace { width: min(1560px, 100%); margin: 0 auto; padding: 22px; display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 22px; align-items: start; }
+    .editor { position: sticky; top: 16px; padding: 16px; border: 1px solid #aeb8c7; background: #fff; box-shadow: 0 8px 20px rgba(3, 28, 69, .08); }
+    .editor h1 { margin: 0 0 7px; color: var(--navy); font: 700 20px Arial, sans-serif; text-transform: uppercase; }
+    .editor p { margin: 0 0 15px; color: #354052; font: 12px/1.5 "Courier New", monospace; }
+    .editor h2 { margin: 18px 0 8px; padding-top: 12px; border-top: 1px solid #d6dde7; color: var(--navy); font-size: 12px; text-transform: uppercase; }
+    label { display: block; margin: 9px 0 4px; color: var(--navy); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    input, select { width: 100%; min-height: 34px; padding: 7px; border: 1px solid #9aa8bb; border-radius: 0; color: var(--navy); font: 12px "Courier New", monospace; background: #fff; }
+    .charge-edit { margin-top: 10px; padding: 9px; border: 1px solid #d6dde7; background: #f8fafc; }
+    .charge-edit strong { color: var(--navy); font-size: 11px; }
+    .charge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .charge-grid label:first-child { grid-column: 1 / -1; }
+    .btn { width: 100%; min-height: 42px; margin-top: 10px; border: 0; background: var(--navy); color: #fff; cursor: pointer; font: 700 12px "Courier New", monospace; letter-spacing: .04em; text-transform: uppercase; }
+    .btn.secondary { border: 1px solid var(--navy); background: #fff; color: var(--navy); }
+    .save-status { min-height: 17px; margin-top: 9px; color: var(--navy); font-size: 11px; }
+    .paper-wrap { overflow: auto; padding: 2px; }
+    .statement { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 17mm 16mm 13mm; background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, .15); position: relative; color: #111; }
+    .statement-head { display: grid; grid-template-columns: 1fr 210px; gap: 20px; align-items: start; }
+    .statement-title { margin: 0; font: 700 28px/1 Arial, sans-serif; letter-spacing: .02em; }
+    .statement-subline { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 19px; font-size: 14px; font-weight: 700; }
+    .statement-logo { width: 180px; max-width: 100%; justify-self: end; }
+    .people { display: grid; grid-template-columns: 1fr 1fr; gap: 42px; margin-top: 28px; padding-bottom: 21px; border-bottom: 1.5px solid var(--navy); }
+    .person-title { margin-bottom: 18px; font-size: 14px; font-weight: 700; text-transform: uppercase; }
+    .person-name { margin-bottom: 6px; font-size: 14px; font-weight: 700; text-transform: uppercase; }
+    .person-line { min-height: 18px; color: #555; font-size: 12px; line-height: 1.5; }
+    .legal { margin: 26px 20px; color: #555; font-size: 12px; line-height: 1.6; text-align: center; }
+    .legal strong { color: #111; }
+    .section-bar { margin: 22px 0 18px; padding: 10px 20px; border-radius: 24px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 700; }
+    .charge-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .charge-table th, .charge-table td { padding: 12px 10px; border: 1px solid #fff; background: var(--pale); }
+    .charge-table th { color: #111; font-weight: 700; text-align: left; }
+    .charge-table th:not(:first-child), .charge-table td:not(:first-child) { text-align: right; }
+    .charge-table th:nth-child(1) { width: 46%; }
+    .charge-table th:nth-child(2) { width: 15%; }
+    .charge-table th:nth-child(3) { width: 19%; }
+    .charge-table th:nth-child(4) { width: 20%; }
+    .payment-area { display: grid; grid-template-columns: 1fr 1.05fr; gap: 28px; margin-top: 28px; align-items: end; }
+    .date-lines { padding: 8px 4px; font-size: 12px; line-height: 1.6; }
+    .date-lines strong { display: inline-block; min-width: 145px; }
+    .payment-note { margin-top: 26px; font-size: 11px; line-height: 1.55; }
+    .bank-bar { margin: 0 0 16px; padding: 10px 20px; border-radius: 24px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 700; }
+    .bank-box { padding: 14px; border-radius: 4px; background: #ececec; color: #444; font-size: 13px; line-height: 1.55; }
+    .rule { margin: 24px 0 18px; border-top: 1.5px solid var(--navy); }
+    .totals { width: 49%; margin-left: auto; font-size: 14px; line-height: 1.8; }
+    .totals div { display: flex; justify-content: space-between; gap: 16px; }
+    .totals strong { font-weight: 700; }
+    .page { position: absolute; right: 16mm; bottom: 9mm; color: #555; font-size: 10px; }
+    .hidden { display: none; }
+    @media (max-width: 1100px) { .workspace { grid-template-columns: 1fr; } .editor { position: static; } .statement { transform-origin: top left; } }
+    @media (max-width: 700px) { .workspace { padding: 8px; } .statement { transform: scale(.52); margin-bottom: calc(-297mm * .48); } .paper-wrap { overflow: hidden; } }
+    @page { size: A4; margin: 0; }
+    @media print { body { background: #fff; } .workspace { display: block; padding: 0; } .editor { display: none; } .paper-wrap { padding: 0; overflow: visible; } .statement { width: 210mm; min-height: 297mm; margin: 0; box-shadow: none; transform: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="workspace">
+    <aside class="editor">
+      <h1>Statement Editor</h1>
+      <p>Adjust the reimbursement statement, save its draft to Pilot Ops, then print it as a one-page PDF.</p>
+      <label for="passengerSelect">Passenger</label><select id="passengerSelect"></select>
+      <h2>Statement Dates</h2>
+      <label for="statementDate">Statement date</label><input id="statementDate" />
+      <label for="dueDate">Due date</label><input id="dueDate" />
+      <label for="deliveryDate">Delivery date</label><input id="deliveryDate" />
+      <h2>Flight Crew</h2>
+      <label for="crewName">Crew name</label><input id="crewName" />
+      <label for="crewEmail">Crew email</label><input id="crewEmail" />
+      <label for="crewPhone">Crew phone</label><input id="crewPhone" />
+      <h2>Charge Lines</h2><div id="chargeEditor"></div>
+      <h2>Bank Details</h2>
+      <label for="bankName">Bank</label><input id="bankName" placeholder="Enter bank name" />
+      <label for="accountName">Account name</label><input id="accountName" placeholder="Enter account name" />
+      <label for="iban">IBAN</label><input id="iban" placeholder="Enter IBAN" />
+      <label for="bic">BIC</label><input id="bic" placeholder="Enter BIC" />
+      <label for="paymentReference">Payment reference</label><input id="paymentReference" />
+      <button id="saveDraft" class="btn" type="button">Save Statement Draft</button>
+      <button id="printStatement" class="btn secondary" type="button">Print / Save PDF</button>
+      <div id="saveStatus" class="save-status"></div>
+    </aside>
+
+    <div class="paper-wrap">
+      <article class="statement">
+        <header class="statement-head">
+          <div><h1 class="statement-title">PRIVATE FLIGHT</h1><div class="statement-subline"><span>REIMBURSEMENT STATEMENT</span><span id="routeCode">---</span></div></div>
+          <img class="statement-logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation" />
+        </header>
+        <section class="people">
+          <div><div class="person-title">Flight Crew</div><div id="crewNamePreview" class="person-name">---</div><div id="crewEmailPreview" class="person-line">---</div><div id="crewPhonePreview" class="person-line">---</div><div id="crewDatePreview" class="person-line">---</div></div>
+          <div><div class="person-title">Passenger</div><div id="passengerNamePreview" class="person-name">---</div><div id="passengerEmailPreview" class="person-line">---</div><div id="passengerPhonePreview" class="person-line">---</div><div id="passengerDatePreview" class="person-line">---</div></div>
+        </section>
+        <p class="legal">Reimbursement of proportional flight costs under <strong>EASA NCO.GEN.103.</strong><br>"This is not a commercial transport service - Private Flight operated under non-commercial NCO provisions."</p>
+        <div class="section-bar">DESCRIPTION OF CHARGES</div>
+        <table class="charge-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit Price (EUR)</th><th>Amount (EUR)</th></tr></thead><tbody id="chargePreview"></tbody></table>
+        <section class="payment-area">
+          <div><div class="date-lines"><div><strong>BILL DATE</strong><span id="statementDatePreview">---</span></div><div><strong>DUE DATE (48H)</strong><span id="dueDatePreview">---</span></div><div><strong>DELIVERY DATE</strong><span id="deliveryDatePreview">---</span></div></div><p class="payment-note">Payment must be made within <strong>48 hours</strong> of the departure date, by bank transfer.</p></div>
+          <div><div class="bank-bar">BANK DETAILS</div><div class="bank-box"><div>Bank: <span id="bankNamePreview">---</span></div><div>Account Name: <span id="accountNamePreview">---</span></div><div>IBAN: <span id="ibanPreview">---</span></div><div>BIC: <span id="bicPreview">---</span></div><div>Payment Reference: <span id="paymentReferencePreview">---</span></div></div></div>
+        </section>
+        <div class="rule"></div>
+        <section class="totals"><div><strong>CHARGES:</strong><strong id="chargeCountPreview">0</strong></div><div><strong>PER PASSENGER:</strong><span id="perPassengerPreview">EUR 0.00</span></div><div><strong>TOTAL FLIGHT COST:</strong><strong id="totalPreview">EUR 0.00</strong></div><div><strong>DUE AMOUNT:</strong><strong id="dueAmountPreview">EUR 0.00</strong></div></section>
+        <div class="page">PAGE 1/1</div>
+      </article>
+    </div>
+  </main>
+  <script>
+    const requestId = decodeURIComponent(location.pathname.split('/').filter(Boolean)[2] || '');
+    const el = id => document.getElementById(id);
+    const text = value => String(value ?? '').trim();
+    const esc = value => text(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const euros = value => `EUR ${Number(value || 0).toFixed(2)}`;
+    const number = value => Number(String(value || '').replace(',', '.').replace(/[^0-9.-]/g, '')) || 0;
+    const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+    let request = null;
+    let statement = null;
+
+    function defaultCharges() {
+      const hours = Math.max(1, Math.round(Number(request?.estimatedFlightMinutes || 60) / 60));
+      return [
+        { description: 'Fuel Charge (AVGAS) 100LL', quantity: `${hours * 10} US Gal`, unitPrice: '0.00', amount: '0.00' },
+        { description: 'Aircraft operating costs', quantity: `${hours} (H)`, unitPrice: '400.00', amount: String(hours * 400) },
+        { description: `Airport Fees (${request?.dep || 'DEP'}) DEP/ARR`, quantity: '1', unitPrice: '0.00', amount: '0.00' },
+        { description: request?.extras ? `Passenger (${request.extras})` : 'Passenger extras', quantity: '1', unitPrice: '0.00', amount: '0.00' }
+      ];
+    }
+
+    function passenger() {
+      return (request.passengers || [])[Number(el('passengerSelect').value || 0)] || request.passengers?.[0] || {};
+    }
+
+    function crewLabel() {
+      const commander = request.crew?.commander && request.crew.commander !== 'UNASSIGNED' ? request.crew.commander : '';
+      const secondary = request.crew?.secondary && request.crew.secondary !== 'NONE' ? request.crew.secondary : '';
+      return [commander, secondary].filter(Boolean).join(' / ') || 'FLIGHT CREW';
+    }
+
+    function buildEditor() {
+      const passengers = request.passengers?.length ? request.passengers : [{ name: request.name, email: request.email, phone: request.phone }];
+      el('passengerSelect').innerHTML = passengers.map((item, index) => `<option value="${index}">PAX ${index + 1} / ${esc(item.name || 'Passenger')}</option>`).join('');
+      statement = request.reimbursementStatement || {
+        statementDate: today, dueDate: today, deliveryDate: today, crewName: crewLabel(), crewEmail: '', crewPhone: '', passengerNumber: '0', passengerName: '', passengerEmail: '', passengerPhone: '', bankName: '', accountName: '', iban: '', bic: '', paymentReference: request.id, charges: defaultCharges()
+      };
+      el('passengerSelect').value = statement.passengerNumber || '0';
+      ['statementDate','dueDate','deliveryDate','crewName','crewEmail','crewPhone','bankName','accountName','iban','bic','paymentReference'].forEach(id => { el(id).value = statement[id] || ''; });
+      renderChargeEditor();
+      sync();
+    }
+
+    function renderChargeEditor() {
+      el('chargeEditor').innerHTML = (statement.charges || []).map((charge, index) => `<div class="charge-edit"><strong>Charge ${index + 1}</strong><div class="charge-grid"><label>Description<input data-charge="${index}" data-field="description" value="${esc(charge.description)}" /></label><label>Quantity<input data-charge="${index}" data-field="quantity" value="${esc(charge.quantity)}" /></label><label>Unit price<input data-charge="${index}" data-field="unitPrice" value="${esc(charge.unitPrice)}" /></label><label>Amount<input data-charge="${index}" data-field="amount" value="${esc(charge.amount)}" /></label></div></div>`).join('');
+    }
+
+    function readStatement() {
+      ['statementDate','dueDate','deliveryDate','crewName','crewEmail','crewPhone','bankName','accountName','iban','bic','paymentReference'].forEach(id => { statement[id] = el(id).value; });
+      statement.passengerNumber = el('passengerSelect').value;
+      document.querySelectorAll('[data-charge]').forEach(input => { statement.charges[Number(input.dataset.charge)][input.dataset.field] = input.value; });
+      const pax = passenger();
+      statement.passengerName = pax.name || '';
+      statement.passengerEmail = pax.email || '';
+      statement.passengerPhone = pax.phone || '';
+    }
+
+    function sync() {
+      readStatement();
+      const pax = passenger();
+      el('routeCode').textContent = String(request.id || '---').replace(/-\d+$/, '');
+      el('crewNamePreview').textContent = statement.crewName || 'FLIGHT CREW';
+      el('crewEmailPreview').textContent = statement.crewEmail || 'Crew contact provided by operations';
+      el('crewPhonePreview').textContent = statement.crewPhone || '';
+      el('crewDatePreview').textContent = `Date: ${statement.statementDate || '---'}`;
+      el('passengerNamePreview').textContent = pax.name || 'Passenger';
+      el('passengerEmailPreview').textContent = pax.email || '';
+      el('passengerPhonePreview').textContent = pax.phone || '';
+      el('passengerDatePreview').textContent = `Date: ${statement.statementDate || '---'}`;
+      el('chargePreview').innerHTML = statement.charges.map(charge => `<tr><td>${esc(charge.description)}</td><td>${esc(charge.quantity)}</td><td>${esc(euros(number(charge.unitPrice)))}</td><td>${esc(euros(number(charge.amount)))}</td></tr>`).join('');
+      ['statementDate','dueDate','deliveryDate','bankName','accountName','iban','bic','paymentReference'].forEach(id => { el(`${id}Preview`).textContent = statement[id] || '---'; });
+      const total = statement.charges.reduce((sum, charge) => sum + number(charge.amount), 0);
+      const paxCount = Math.max(1, Number(request.seats || request.passengers?.length || 1));
+      el('chargeCountPreview').textContent = statement.charges.length;
+      el('perPassengerPreview').textContent = euros(total / paxCount);
+      el('totalPreview').textContent = euros(total);
+      el('dueAmountPreview').textContent = euros(total / paxCount);
+    }
+
+    async function load() {
+      const res = await fetch('/api/booking-ops/requests', { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Unable to load statement');
+      request = (data.requests || []).find(item => item.id === requestId);
+      if (!request) throw new Error('Booking request not found');
+      buildEditor();
+    }
+
+    document.addEventListener('input', event => { if (event.target.matches('input')) sync(); });
+    el('passengerSelect').addEventListener('change', sync);
+    el('saveDraft').addEventListener('click', async () => {
+      sync();
+      el('saveStatus').textContent = 'Saving statement draft...';
+      try {
+        const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(request.id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reimbursementStatement: statement }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Could not save draft');
+        request = data.request;
+        statement = request.reimbursementStatement || statement;
+        el('saveStatus').textContent = 'Statement draft saved to Pilot Ops.';
+      } catch (error) { el('saveStatus').textContent = error.message || 'Could not save draft.'; }
+    });
+    el('printStatement').addEventListener('click', () => { sync(); window.print(); });
+    load().catch(error => { document.querySelector('.paper-wrap').innerHTML = `<div style="padding:24px;background:#fff;color:#b42318">${esc(error.message || 'Unable to load statement.')}</div>`; });
+  </script>
+</body>
+</html>

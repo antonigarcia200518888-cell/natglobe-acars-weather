@@ -770,6 +770,34 @@ function normalizeBookingText(input, max = 80) {
     .slice(0, max);
 }
 
+function normalizeReimbursementStatement(input) {
+  if (!input || typeof input !== 'object') return null;
+  const charges = Array.isArray(input.charges) ? input.charges.slice(0, 6).map(charge => ({
+    description: normalizeBookingText(charge?.description, 80),
+    quantity: normalizeBookingText(charge?.quantity, 30),
+    unitPrice: normalizeBookingText(charge?.unitPrice, 20),
+    amount: normalizeBookingText(charge?.amount, 20)
+  })) : [];
+  return {
+    statementDate: normalizeBookingText(input.statementDate, 30),
+    dueDate: normalizeBookingText(input.dueDate, 30),
+    deliveryDate: normalizeBookingText(input.deliveryDate, 30),
+    crewName: normalizeBookingText(input.crewName, 60),
+    crewEmail: normalizeBookingText(input.crewEmail, 120),
+    crewPhone: normalizeBookingText(input.crewPhone, 40),
+    passengerNumber: normalizeBookingText(input.passengerNumber, 8),
+    passengerName: normalizeBookingText(input.passengerName, 60),
+    passengerEmail: normalizeBookingText(input.passengerEmail, 120),
+    passengerPhone: normalizeBookingText(input.passengerPhone, 40),
+    bankName: normalizeBookingText(input.bankName, 60),
+    accountName: normalizeBookingText(input.accountName, 80),
+    iban: normalizeBookingText(input.iban, 60),
+    bic: normalizeBookingText(input.bic, 30),
+    paymentReference: normalizeBookingText(input.paymentReference, 80),
+    charges
+  };
+}
+
 function normalizeBookingEmail(input) {
   return String(input || '')
     .trim()
@@ -2791,6 +2819,11 @@ app.get('/booking-ops', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', fileName));
 });
 
+app.get('/booking-ops/requests/:id/reimbursement-statement', requirePilotAccess, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'reimbursement-statement.html'));
+});
+
 function sendBoardingPassPage(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
@@ -3023,6 +3056,13 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     }
     request.crew = { commander, secondary };
     await addBookingTimelineEvent(request.id, 'CREW ASSIGNMENT', `CMD ${commander} / SIC ${secondary}`);
+  }
+  if (req.body?.reimbursementStatement && typeof req.body.reimbursementStatement === 'object') {
+    const statement = normalizeReimbursementStatement(req.body.reimbursementStatement);
+    if (statement) {
+      request.reimbursementStatement = statement;
+      await addBookingTimelineEvent(request.id, 'REIMBURSEMENT STATEMENT SAVED', 'Statement draft updated in Pilot Ops.');
+    }
   }
   await persistBookingRequest(request);
 
