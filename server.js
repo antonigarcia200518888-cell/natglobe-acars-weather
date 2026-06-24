@@ -48,6 +48,7 @@ const SUGGESTED_ALTN_LIMIT = 12;
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
 const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/runways.csv';
 const OPERATING_COST_EUR_PER_HOUR = 300;
+const PUBLIC_AIRCRAFT_TYPE = 'PA-28R';
 const FIXED_BOOKING_ROUTE_PRICES = {
   'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'ESTIMATED HYVINKAA-HANKO COST SHARE' },
   'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'ESTIMATED HANKO-HYVINKAA COST SHARE' },
@@ -64,7 +65,7 @@ const costShareFlights = [
     dep: 'EFHV',
     arr: 'EFHV',
     route: 'EFHV - PORVOO - LOVIISA - SIPOO - EFHV',
-    aircraft: 'OH-PMK / Piper PA-28R-200 Arrow II',
+    aircraft: PUBLIC_AIRCRAFT_TYPE,
     duration: '01H15',
     seatsTotal: 3,
     seatsAvailable: 2,
@@ -81,7 +82,7 @@ const costShareFlights = [
     dep: 'EFHK',
     arr: 'EETN',
     route: 'EFHK - GULF OF FINLAND - EETN',
-    aircraft: 'OH-PMK / Piper PA-28R-200 Arrow II',
+    aircraft: PUBLIC_AIRCRAFT_TYPE,
     duration: '00H55 EACH WAY',
     seatsTotal: 3,
     seatsAvailable: 3,
@@ -98,7 +99,7 @@ const costShareFlights = [
     dep: 'EFHV',
     arr: 'EFJO',
     route: 'EFHV - LAHTI - JYVASKYLA - EFJO',
-    aircraft: 'OH-PMK / Piper PA-28R-200 Arrow II',
+    aircraft: PUBLIC_AIRCRAFT_TYPE,
     duration: '01H40',
     seatsTotal: 3,
     seatsAvailable: 1,
@@ -468,7 +469,7 @@ async function notifyBookerOfApproval(request) {
     ['Date', emailDate(request.requestDate)],
     ['Boarding time', `${boardingPassBoardingTime(request.requestTime)} Local Time`],
     ['Scheduled departure', `${formatBoardingPassTime(request.requestTime)} Local Time`],
-    ['Aircraft', request.aircraft || 'OH-PMK / Piper PA-28R-200 Arrow II'],
+    ['Aircraft', PUBLIC_AIRCRAFT_TYPE],
     ['Total price', emailPriceSummary(request)]
   ];
   const passHtml = passItems.length
@@ -1090,7 +1091,7 @@ async function createWalletPass(request, passenger) {
       ],
       auxiliaryFields: [
         { key: 'boarding', label: 'BOARDING', value: boardingPassBoardingTime(request.requestTime) },
-        { key: 'aircraft', label: 'AIRCRAFT', value: request.aircraft || 'PA-28R-200' }
+        { key: 'aircraft', label: 'AIRCRAFT', value: PUBLIC_AIRCRAFT_TYPE }
       ],
       backFields: [
         { key: 'reference', label: 'BOOKING REFERENCE', value: request.id },
@@ -2933,7 +2934,7 @@ app.get('/api/private-flight-agreements/:token', async (req, res) => {
         boardingTime: `${boardingPassBoardingTime(request.requestTime)} Local Time`,
         departureTime: `${formatBoardingPassTime(request.requestTime)} Local Time`,
         flightTime: emailFlightTime(request),
-        aircraft: request.aircraft || 'OH-PMK / Piper PA-28R-200 Arrow II',
+        aircraft: PUBLIC_AIRCRAFT_TYPE,
         baggage: boardingPassBaggage(request)
       }
     }
