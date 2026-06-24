@@ -2992,6 +2992,155 @@ app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
   });
 });
 
+function reimbursementPdfText(value, limit = 70) {
+  const text = String(value || '---').replace(/\s+/g, ' ').trim() || '---';
+  return text.length > limit ? `${text.slice(0, Math.max(0, limit - 3))}...` : text;
+}
+
+function reimbursementPdfNumber(value) {
+  const number = Number(String(value || 0).replace(',', '.').replace(/[^0-9.-]/g, ''));
+  return Number.isFinite(number) ? number : 0;
+}
+
+function reimbursementPdfMoney(value) {
+  return `EUR ${reimbursementPdfNumber(value).toFixed(2)}`;
+}
+
+function reimbursementStatementDefaults(request) {
+  const flightHours = Math.max(1, Math.round(Number(request.estimatedFlightMinutes || 60) / 60));
+  return {
+    statementDate: '',
+    dueDate: '',
+    deliveryDate: '',
+    crewName: request.crew?.commander && request.crew.commander !== 'UNASSIGNED' ? request.crew.commander : 'FLIGHT CREW',
+    crewEmail: '',
+    crewPhone: '',
+    passengerNumber: '0',
+    bankName: '',
+    accountName: '',
+    iban: '',
+    bic: '',
+    paymentReference: request.id,
+    charges: [
+      { description: 'Fuel Charge (AVGAS) 100LL', quantity: `${flightHours * 10} US Gal`, unitPrice: '0.00', amount: '0.00' },
+      { description: 'Aircraft operating costs', quantity: `${flightHours} (H)`, unitPrice: '400.00', amount: String(flightHours * 400) },
+      { description: `Airport Fees (${request.dep || 'DEP'}) DEP/ARR`, quantity: '1', unitPrice: '0.00', amount: '0.00' },
+      { description: request.extras ? `Passenger (${request.extras})` : 'Passenger extras', quantity: '1', unitPrice: '0.00', amount: '0.00' }
+    ]
+  };
+}
+
+async function createReimbursementStatementPdf(request) {
+  const statement = { ...reimbursementStatementDefaults(request), ...(request.reimbursementStatement || {}) };
+  const passengers = getRequestPassengers(request);
+  const passengerIndex = Math.max(0, Math.min(passengers.length - 1, Number(statement.passengerNumber) || 0));
+  const passenger = passengers[passengerIndex] || passengers[0] || {};
+  const charges = (statement.charges?.length ? statement.charges : reimbursementStatementDefaults(request).charges).slice(0, 4);
+  const total = charges.reduce((sum, charge) => sum + reimbursementPdfNumber(charge.amount), 0);
+  const navy = rgb(3 / 255, 28 / 255, 69 / 255);
+  const paleBlue = rgb(231 / 255, 246 / 255, 1);
+  const ink = rgb(17 / 255, 17 / 255, 17 / 255);
+  const muted = rgb(82 / 255, 82 / 255, 82 / 255);
+  const white = rgb(1, 1, 1);
+  const pdfDoc = await PDFDocument.create();
+  const courier = await pdfDoc.embedFont(StandardFonts.Courier);
+  const courierBold = await pdfDoc.embedFont(StandardFonts.CourierBold);
+  const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const page = pdfDoc.addPage([595.28, 841.89]);
+  const draw = (value, x, y, size, font = courier, color = ink, limit = 75) => page.drawText(reimbursementPdfText(value, limit), { x, y, size, font, color });
+
+  page.drawRectangle({ x: 0, y: 0, width: 595.28, height: 841.89, color: white });
+  draw('PRIVATE FLIGHT', 48, 792, 25, titleFont, ink, 30);
+  draw('REIMBURSEMENT STATEMENT', 48, 756, 12, courierBold, ink, 32);
+  draw(`${request.dep || '---'}-${request.arr || '---'}`, 275, 756, 12, courierBold, ink, 20);
+
+  try {
+    const logo = await pdfDoc.embedPng(fs.readFileSync(path.join(__dirname, 'public', 'nga-private-aviation-logo.png')));
+    const scaled = logo.scaleToFit(115, 95);
+    page.drawImage(logo, { x: 432, y: 729, width: scaled.width, height: scaled.height });
+  } catch (error) {
+    draw('NGA PRIVATE AVIATION', 402, 766, 9, courierBold, navy, 25);
+  }
+
+  draw('FLIGHT CREW', 48, 720, 12, courierBold);
+  draw('PASSENGER', 355, 720, 12, courierBold);
+  draw(statement.crewName || 'FLIGHT CREW', 48, 692, 12, courierBold, ink, 35);
+  draw(statement.crewEmail || '---', 48, 675, 10, courier, muted, 38);
+  draw(statement.crewPhone || '---', 48, 660, 10, courier, muted, 38);
+  draw(`Date: ${statement.statementDate || '---'}`, 48, 645, 10, courier, muted, 38);
+  draw(passenger.name || statement.passengerName || 'PASSENGER', 355, 692, 12, courierBold, ink, 32);
+  draw(passenger.email || statement.passengerEmail || '---', 355, 675, 10, courier, muted, 38);
+  draw(passenger.phone || statement.passengerPhone || '---', 355, 660, 10, courier, muted, 38);
+  draw(`Date: ${statement.statementDate || '---'}`, 355, 645, 10, courier, muted, 38);
+  page.drawLine({ start: { x: 48, y: 626 }, end: { x: 547, y: 626 }, thickness: 1.2, color: navy });
+
+  draw('Reimbursement of proportional flight costs under EASA NCO.GEN.103.', 115, 596, 10, courier, muted, 70);
+  draw('This is not a commercial transport service - Private Flight operated under', 75, 578, 10, courier, muted, 76);
+  draw('non-commercial NCO provisions.', 210, 560, 10, courier, muted, 38);
+
+  page.drawRectangle({ x: 48, y: 514, width: 499, height: 31, color: navy });
+  draw('DESCRIPTION OF CHARGES', 64, 524, 13, courierBold, white, 35);
+  const columns = [48, 282, 352, 447, 547];
+  const tableTop = 488;
+  const rowHeight = 30;
+  const headers = ['Description', 'Quantity', 'Unit Price (EUR)', 'Amount (EUR)'];
+  headers.forEach((header, index) => draw(header, columns[index] + 6, tableTop - 15, 8.5, courierBold, ink, index === 0 ? 32 : 20));
+  for (let row = 0; row < charges.length; row += 1) {
+    const y = tableTop - 30 - (row * rowHeight);
+    page.drawRectangle({ x: 48, y, width: 499, height: rowHeight, color: paleBlue });
+    columns.slice(1, -1).forEach(x => page.drawLine({ start: { x, y }, end: { x, y: y + rowHeight }, thickness: 0.8, color: white }));
+    page.drawLine({ start: { x: 48, y }, end: { x: 547, y }, thickness: 0.8, color: white });
+    if (row < charges.length) {
+      const charge = charges[row];
+      draw(charge.description, 54, y + 11, 8.5, courier, muted, 42);
+      draw(charge.quantity, 289, y + 11, 8.5, courier, muted, 11);
+      draw(reimbursementPdfMoney(charge.unitPrice), 359, y + 11, 8.5, courier, muted, 14);
+      draw(reimbursementPdfMoney(charge.amount), 454, y + 11, 8.5, courier, muted, 14);
+    }
+  }
+
+  const lowerY = 240;
+  draw('BILL DATE', 50, lowerY + 42, 10, courier);
+  draw(`: ${statement.statementDate || '---'}`, 147, lowerY + 42, 10, courier, muted, 28);
+  draw('DUE DATE (48H)', 50, lowerY + 27, 10, courier);
+  draw(`: ${statement.dueDate || '---'}`, 147, lowerY + 27, 10, courier, muted, 28);
+  draw('DELIVERY DATE', 50, lowerY + 12, 10, courier);
+  draw(`: ${statement.deliveryDate || '---'}`, 147, lowerY + 12, 10, courier, muted, 28);
+  draw('Payment must be made within 48 hours of', 50, lowerY - 30, 9, courier, muted, 43);
+  draw('the departure date, by bank transfer.', 50, lowerY - 43, 9, courier, muted, 43);
+
+  page.drawRectangle({ x: 314, y: lowerY + 66, width: 233, height: 30, color: navy });
+  draw('BANK DETAILS', 343, lowerY + 76, 13, courierBold, white, 25);
+  page.drawRectangle({ x: 314, y: lowerY - 53, width: 233, height: 103, color: rgb(.92, .92, .92) });
+  draw(`Bank: ${statement.bankName || '---'}`, 326, lowerY + 30, 10, courier, muted, 31);
+  draw(`Account Name: ${statement.accountName || '---'}`, 326, lowerY + 14, 10, courier, muted, 31);
+  draw(`IBAN: ${statement.iban || '---'}`, 326, lowerY - 2, 10, courier, muted, 31);
+  draw(`BIC: ${statement.bic || '---'}`, 326, lowerY - 18, 10, courier, muted, 31);
+  draw(`Payment Reference: ${statement.paymentReference || request.id}`, 326, lowerY - 34, 9, courier, muted, 34);
+  page.drawLine({ start: { x: 48, y: 165 }, end: { x: 547, y: 165 }, thickness: 1.2, color: navy });
+  draw('CHARGES:', 335, 140, 12, courierBold, ink, 16);
+  draw(String(charges.length), 420, 140, 12, courierBold, ink, 4);
+  draw('PER PASSENGER:', 335, 117, 12, courierBold, ink, 20);
+  draw(reimbursementPdfMoney(total / Math.max(1, Number(request.seats || passengers.length || 1))), 440, 117, 10, courier, muted, 16);
+  draw('TOTAL FLIGHT COST:', 335, 94, 12, courierBold, ink, 25);
+  draw(reimbursementPdfMoney(total), 467, 94, 10, courierBold, ink, 14);
+  draw('DUE AMOUNT:', 335, 71, 12, courierBold, ink, 19);
+  draw(reimbursementPdfMoney(total / Math.max(1, Number(request.seats || passengers.length || 1))), 440, 71, 10, courierBold, ink, 16);
+  draw('PAGE 1/1', 490, 34, 9, courier, muted, 12);
+  return Buffer.from(await pdfDoc.save());
+}
+
+app.get('/api/booking-ops/requests/:id/reimbursement-statement/pdf', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  const pdf = await createReimbursementStatementPdf(request);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${request.id}-REIMBURSEMENT-STATEMENT.pdf"`);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.send(pdf);
+});
+
 app.get('/api/booking-ops/requests/:id/pdf', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());

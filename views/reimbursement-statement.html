@@ -65,7 +65,7 @@
   <main class="workspace">
     <aside class="editor">
       <h1>Statement Editor</h1>
-      <p>Adjust the reimbursement statement, save its draft to Pilot Ops, then print it as a one-page PDF.</p>
+      <p>Adjust the reimbursement statement, save its draft to Pilot Ops, then open the finished one-page PDF.</p>
       <label for="passengerSelect">Passenger</label><select id="passengerSelect"></select>
       <h2>Statement Dates</h2>
       <label for="statementDate">Statement date</label><input id="statementDate" />
@@ -83,7 +83,7 @@
       <label for="bic">BIC</label><input id="bic" placeholder="Enter BIC" />
       <label for="paymentReference">Payment reference</label><input id="paymentReference" />
       <button id="saveDraft" class="btn" type="button">Save Statement Draft</button>
-      <button id="printStatement" class="btn secondary" type="button">Print / Save PDF</button>
+      <button id="openPdfStatement" class="btn secondary" type="button">Open PDF</button>
       <div id="saveStatus" class="save-status"></div>
     </aside>
 
@@ -200,7 +200,7 @@
 
     document.addEventListener('input', event => { if (event.target.matches('input')) sync(); });
     el('passengerSelect').addEventListener('change', sync);
-    el('saveDraft').addEventListener('click', async () => {
+    async function saveStatementDraft() {
       sync();
       el('saveStatus').textContent = 'Saving statement draft...';
       try {
@@ -210,9 +210,24 @@
         request = data.request;
         statement = request.reimbursementStatement || statement;
         el('saveStatus').textContent = 'Statement draft saved to Pilot Ops.';
-      } catch (error) { el('saveStatus').textContent = error.message || 'Could not save draft.'; }
+        return true;
+      } catch (error) {
+        el('saveStatus').textContent = error.message || 'Could not save draft.';
+        return false;
+      }
+    }
+
+    el('saveDraft').addEventListener('click', () => {
+      void saveStatementDraft();
     });
-    el('printStatement').addEventListener('click', () => { sync(); window.print(); });
+    el('openPdfStatement').addEventListener('click', async () => {
+      const button = el('openPdfStatement');
+      button.disabled = true;
+      const saved = await saveStatementDraft();
+      button.disabled = false;
+      if (!saved) return;
+      window.open(`/api/booking-ops/requests/${encodeURIComponent(request.id)}/reimbursement-statement/pdf`, '_blank', 'noopener');
+    });
     load().catch(error => { document.querySelector('.paper-wrap').innerHTML = `<div style="padding:24px;background:#fff;color:#b42318">${esc(error.message || 'Unable to load statement.')}</div>`; });
   </script>
 </body>
