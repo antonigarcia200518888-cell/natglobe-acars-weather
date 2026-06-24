@@ -812,6 +812,7 @@ function normalizeReimbursementStatement(input) {
     accountName: normalizeBookingText(input.accountName, 80),
     iban: normalizeBookingText(input.iban, 60),
     bic: normalizeBookingText(input.bic, 30),
+    siirtoPhone: normalizeBookingText(input.siirtoPhone, 40),
     paymentReference: normalizeBookingText(input.paymentReference, 80),
     charges
   };
@@ -2957,6 +2958,7 @@ function publicReimbursementStatementView(request) {
       phone: passenger.phone
     })),
     reimbursementStatement: request.reimbursementStatement,
+    siirtoPhone: request.reimbursementStatement?.siirtoPhone || String(process.env.BOOKING_SIIRTO_PHONE || '').trim(),
     paymentUrl: bookingPaymentUrl(request)
   };
 }
@@ -3107,6 +3109,7 @@ function reimbursementStatementDefaults(request) {
     accountName: '',
     iban: '',
     bic: '',
+    siirtoPhone: '',
     paymentReference: request.id,
     charges: [
       { description: 'Fuel Charge (AVGAS) 100LL', quantity: `${flightHours * 10} US Gal`, unitPrice: '0.00', amount: '0.00' },

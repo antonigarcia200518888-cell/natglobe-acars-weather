@@ -61,7 +61,8 @@
     .public-payment { width: 210mm; margin: 14px auto 28px; padding: 15px 18px; border: 2px solid var(--navy); background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, .1); color: var(--navy); }
     .public-payment strong { display: block; margin-bottom: 6px; color: #b42318; font-size: 13px; text-transform: uppercase; }
     .public-payment p { margin: 0 0 12px; font-size: 12px; line-height: 1.55; }
-    .public-payment a { display: inline-block; padding: 11px 14px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 700; text-decoration: none; text-transform: uppercase; }
+    .public-payment a, .public-payment button { display: inline-block; padding: 11px 14px; border: 0; background: var(--navy); color: #fff; cursor: pointer; font: 700 12px "Courier New", monospace; text-decoration: none; text-transform: uppercase; }
+    .public-payment [hidden] { display: none !important; }
     @media (max-width: 1100px) { .workspace { grid-template-columns: 1fr; } .editor { position: static; } .statement { transform-origin: top left; } }
     @media (max-width: 700px) { .workspace { padding: 8px; } .statement { transform: scale(.52); margin-bottom: calc(-297mm * .48); } .paper-wrap { overflow: hidden; } .public-payment { width: 100%; margin: 10px auto 18px; } }
     @page { size: A4; margin: 0; }
@@ -88,6 +89,7 @@
       <label for="accountName">Account name</label><input id="accountName" placeholder="Enter account name" />
       <label for="iban">IBAN</label><input id="iban" placeholder="Enter IBAN" />
       <label for="bic">BIC</label><input id="bic" placeholder="Enter BIC" />
+      <label for="siirtoPhone">Siirto recipient phone</label><input id="siirtoPhone" placeholder="+358 40 123 4567" />
       <label for="paymentReference">Payment reference</label><input id="paymentReference" />
       <button id="saveDraft" class="btn" type="button">Save Statement Draft</button>
       <button id="openPdfStatement" class="btn secondary" type="button">Open PDF</button>
@@ -116,9 +118,10 @@
         <div class="page">PAGE 1/1</div>
       </article>
       <section id="publicPayment" class="public-payment" hidden>
-        <strong>Payment required</strong>
-        <p>Use the secure payment link below after reviewing the reimbursement statement. Include the payment reference shown above.</p>
-        <a id="publicPaymentLink" href="#" target="_blank" rel="noopener">Continue to payment</a>
+        <strong id="publicPaymentTitle">Payment required</strong>
+        <p id="publicPaymentText">Use the secure payment link below after reviewing the reimbursement statement. Include the payment reference shown above.</p>
+        <button id="publicSiirtoCopy" type="button" hidden>Copy Siirto number</button>
+        <a id="publicPaymentLink" href="#" target="_blank" rel="noopener" hidden>Continue to payment</a>
       </section>
     </div>
   </main>
@@ -161,10 +164,10 @@
       const passengers = request.passengers?.length ? request.passengers : [{ name: request.name, email: request.email, phone: request.phone }];
       el('passengerSelect').innerHTML = passengers.map((item, index) => `<option value="${index}">PAX ${index + 1} / ${esc(item.name || 'Passenger')}</option>`).join('');
       statement = request.reimbursementStatement || {
-        statementDate: today, dueDate: today, deliveryDate: today, crewName: crewLabel(), crewEmail: '', crewPhone: '', passengerNumber: '0', passengerName: '', passengerEmail: '', passengerPhone: '', bankName: '', accountName: '', iban: '', bic: '', paymentReference: request.id, charges: defaultCharges()
+        statementDate: today, dueDate: today, deliveryDate: today, crewName: crewLabel(), crewEmail: '', crewPhone: '', passengerNumber: '0', passengerName: '', passengerEmail: '', passengerPhone: '', bankName: '', accountName: '', iban: '', bic: '', siirtoPhone: '', paymentReference: request.id, charges: defaultCharges()
       };
       el('passengerSelect').value = statement.passengerNumber || '0';
-      ['statementDate','dueDate','deliveryDate','crewName','crewEmail','crewPhone','bankName','accountName','iban','bic','paymentReference'].forEach(id => { el(id).value = statement[id] || ''; });
+      ['statementDate','dueDate','deliveryDate','crewName','crewEmail','crewPhone','bankName','accountName','iban','bic','siirtoPhone','paymentReference'].forEach(id => { el(id).value = statement[id] || ''; });
       renderChargeEditor();
       sync();
     }
@@ -174,7 +177,7 @@
     }
 
     function readStatement() {
-      ['statementDate','dueDate','deliveryDate','crewName','crewEmail','crewPhone','bankName','accountName','iban','bic','paymentReference'].forEach(id => { statement[id] = el(id).value; });
+      ['statementDate','dueDate','deliveryDate','crewName','crewEmail','crewPhone','bankName','accountName','iban','bic','siirtoPhone','paymentReference'].forEach(id => { statement[id] = el(id).value; });
       statement.passengerNumber = el('passengerSelect').value;
       document.querySelectorAll('[data-charge]').forEach(input => { statement.charges[Number(input.dataset.charge)][input.dataset.field] = input.value; });
       const pax = passenger();
@@ -215,8 +218,16 @@
       request = isPublicStatement ? data.request : (data.requests || []).find(item => item.id === requestId);
       if (!request) throw new Error('Booking request not found');
       buildEditor();
-      if (isPublicStatement && request.paymentUrl) {
+      if (isPublicStatement && request.siirtoPhone) {
+        const total = statement.charges.reduce((sum, charge) => sum + number(charge.amount), 0);
+        const paxCount = Math.max(1, Number(request.seats || request.passengers?.length || 1));
+        el('publicPaymentTitle').textContent = 'PAYMENT BY SIIRTO';
+        el('publicPaymentText').textContent = `Open Siirto in your banking app and send ${euros(total / paxCount)} to ${request.siirtoPhone}. Use payment reference ${statement.paymentReference || request.id}.`;
+        el('publicSiirtoCopy').hidden = false;
+        el('publicPayment').hidden = false;
+      } else if (isPublicStatement && request.paymentUrl) {
         el('publicPaymentLink').href = request.paymentUrl;
+        el('publicPaymentLink').hidden = false;
         el('publicPayment').hidden = false;
       }
     }
@@ -250,6 +261,16 @@
       button.disabled = false;
       if (!saved) return;
       window.print();
+    });
+    el('publicSiirtoCopy').addEventListener('click', async () => {
+      const number = request?.siirtoPhone || '';
+      if (!number) return;
+      try {
+        await navigator.clipboard.writeText(number);
+        el('publicSiirtoCopy').textContent = 'SIIRTO NUMBER COPIED';
+      } catch {
+        el('publicSiirtoCopy').textContent = number;
+      }
     });
     load().catch(error => { document.querySelector('.paper-wrap').innerHTML = `<div style="padding:24px;background:#fff;color:#b42318">${esc(error.message || 'Unable to load statement.')}</div>`; });
   </script>
