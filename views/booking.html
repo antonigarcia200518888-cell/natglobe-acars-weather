@@ -474,7 +474,29 @@
     }
 
     .search-grid { grid-template-columns: 1.05fr 54px 1.05fr 0.78fr 0.72fr 0.68fr 0.55fr; }
-    .route-field { min-width: 0; }
+    .route-field { min-width: 0; position: relative; }
+    .route-field::after {
+      content: "\25BE";
+      position: absolute;
+      right: 13px;
+      bottom: 15px;
+      color: var(--muted);
+      font-size: 18px;
+      pointer-events: none;
+    }
+    .route-field select { appearance: none; padding-right: 38px; }
+    .regatta-route-note {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-left: 2px solid var(--accent);
+      background: #050505;
+      color: #cfcfcf;
+      font-size: 12px;
+      line-height: 1.45;
+      text-transform: uppercase;
+    }
+    .regatta-route-note strong { color: #fff; }
+    .regatta-route-note[hidden] { display: none; }
     .return-trip-row {
       display: none;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr);
@@ -1881,6 +1903,9 @@
             </select>
           </div>
         </div>
+        <div id="regattaRouteNote" class="regatta-route-note" hidden>
+          <strong>Hanko Regatta operating note.</strong> Flights to Hanko are normally operated from Hyvinkää (HYV). Helsinki-Vantaa (HEL) remains available by request, but airport handling and landing fees make that option materially higher priced.
+        </div>
       </section>
 
       <section class="card aircraft-feature" aria-label="Piper Arrow PA-28R-200">
@@ -2166,13 +2191,14 @@
     const reviewDialog = el('reviewDialog');
     const reviewDialogBody = el('reviewDialogBody');
     const draftStatus = el('draftStatus');
+    const regattaRouteNote = el('regattaRouteNote');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const FIXED_ROUTE_PRICES = {
       'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'Estimated Hyvinkää-Hanko cost share', estimated: true },
       'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'Estimated Hanko-Hyvinkää cost share', estimated: true },
-      'EFHK-EFHN': { oneWay: 1500, roundtrip: 3000, label: 'Fixed Helsinki-Hanko' },
-      'EFHN-EFHK': { oneWay: 1500, roundtrip: 3000, label: 'Fixed Hanko-Helsinki' }
+      'EFHK-EFHN': { oneWay: 399, roundtrip: 799.5, label: 'Estimated Helsinki-Vantaa-Hanko', estimated: true },
+      'EFHN-EFHK': { oneWay: 399, roundtrip: 799.5, label: 'Estimated Hanko-Helsinki-Vantaa', estimated: true }
     };
 
     let airports = [];
@@ -2263,7 +2289,8 @@
     }
 
     function airportLabel(airport) {
-      return `(${airport.short || airport.icao}) ${airport.city}, ${airport.country}`;
+      const place = airport.icao === 'EFHK' ? 'Helsinki-Vantaa' : (airport.city || airport.name);
+      return `(${airport.short || airport.icao}) ${place}, ${airport.country}`;
     }
 
     function selectedAirport(id) {
@@ -2562,7 +2589,8 @@
       const cost = routeCost(dep, arr);
       if (typeof cost === 'string') return cost;
       const seats = Number(el('seats').value || 1);
-      return `${cost.estimated ? 'Approx. ' : ''}€${cost.total} EUR (${seats} PAX)`;
+      const total = Number.isInteger(cost.total) ? String(cost.total) : cost.total.toFixed(2);
+      return `${cost.estimated ? 'Approx. ' : ''}€${total} EUR (${seats} PAX)`;
     }
 
     function baggageSummary() {
@@ -2679,6 +2707,7 @@
       syncAlcoholPreferences();
       const dep = selectedAirport('dep');
       const arr = selectedAirport('arr');
+      regattaRouteNote.hidden = !(dep?.icao === 'EFHN' || arr?.icao === 'EFHN');
       updateDatePriceLabels(dep, arr);
       el('depCode').textContent = dep?.city || '----';
       el('arrCode').textContent = arr?.city || '----';
