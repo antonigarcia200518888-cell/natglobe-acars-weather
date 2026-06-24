@@ -416,6 +416,9 @@
     .review-stage { margin: 12px 0 8px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
     .review-stage:first-of-type { margin-top: 0; }
     .review-stage span { color: #777; margin-right: 7px; }
+    .statement-status { display: inline-block; margin-left: 8px; border: 1px solid currentColor; padding: 2px 5px; font-size: 10px; }
+    .statement-status.ready { color: var(--live); }
+    .statement-status.required { color: var(--danger); }
     .review-actions { display: grid; gap: 10px; }
     .review-actions .btn { margin-bottom: 0; }
 
@@ -580,7 +583,7 @@ NO REQUEST SELECTED
 END OF MESSAGE</pre>
           <div class="review-actions">
             <div class="review-stage"><span>01</span>Flight information reviewed above</div>
-            <div class="review-stage"><span>02</span>Reimbursement statement</div>
+            <div class="review-stage"><span>02</span>Reimbursement statement <strong id="statementStatus" class="statement-status required">REQUIRED BEFORE APPROVAL</strong></div>
             <button id="openStatementBtn" class="btn ghost" type="button">OPEN REIMBURSEMENT STATEMENT</button>
             <div class="review-stage"><span>03</span>Pilot decision and payment</div>
             <div class="ops-controls">
@@ -625,6 +628,7 @@ END OF MESSAGE</pre>
     const logoutBtn = el('logoutBtn');
     const paymentStatus = el('paymentStatus');
     const approveBtn = el('approveBtn');
+    const statementStatus = el('statementStatus');
     const needsInfoBtn = el('needsInfoBtn');
     const declineBtn = el('declineBtn');
     const timelineList = el('timelineList');
@@ -783,11 +787,14 @@ END OF MESSAGE</pre>
       el('status').textContent = req.status || '.....';
       const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
       const paid = req.paymentStatus === 'PAID';
+      const statementSaved = Boolean(req.reimbursementStatement);
       el('decision').textContent = approved ? 'APPROVED' : 'NOT APPROVED';
       el('payment').textContent = paid ? 'PAID' : (req.paymentStatus || 'UNPAID');
       el('decision').className = approved ? 'state-good' : 'state-danger';
       el('payment').className = paid ? 'state-good' : 'state-danger';
       paymentStatus.value = req.paymentStatus || 'UNPAID';
+      statementStatus.textContent = statementSaved ? 'SAVED / READY TO APPROVE' : 'REQUIRED BEFORE APPROVAL';
+      statementStatus.className = `statement-status ${statementSaved ? 'ready' : 'required'}`;
       bookingMessage.textContent = req.bookingMessage || 'NO BOOKING MESSAGE';
       setText('briefOutbound', `${req.depName || req.dep || 'DEP'} to ${req.arrName || req.arr || 'ARR'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}`);
       setText('briefReturn', requestReturnText(req));
@@ -857,6 +864,18 @@ END OF MESSAGE</pre>
       mode.textContent = 'MODE: BOOKING OPS LIVE';
     }
 
+    async function refreshSelectedRequest() {
+      if (!selected?.id) return null;
+      const selectedId = selected.id;
+      const res = await fetch('/api/booking-ops/requests', { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return selected;
+      requests = data.requests || [];
+      const latest = requests.find(request => request.id === selectedId) || null;
+      if (latest) selectRequest(latest);
+      return latest;
+    }
+
     requestList.addEventListener('click', (event) => {
       const row = event.target.closest('[data-id]');
       if (!row) return;
@@ -893,7 +912,25 @@ END OF MESSAGE</pre>
     });
 
     paymentStatus.addEventListener('change', () => updateSelected({ paymentStatus: paymentStatus.value }));
-    approveBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'APPROVED' }));
+    approveBtn.addEventListener('click', async () => {
+      if (!selected) {
+        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
+        return;
+      }
+      mode.textContent = 'MODE: CHECKING APPROVAL REQUIREMENTS';
+      const latest = await refreshSelectedRequest();
+      if (!latest?.reimbursementStatement) {
+        mode.textContent = 'MODE: SAVE REIMBURSEMENT STATEMENT BEFORE APPROVAL';
+        const statementWindow = window.open(`/booking-ops/requests/${encodeURIComponent(selected.id)}/reimbursement-statement`, '_blank', 'noopener');
+        if (!statementWindow) mode.textContent = 'MODE: STATEMENT REQUIRED / ALLOW POP-UPS TO OPEN EDITOR';
+        return;
+      }
+      if (!window.confirm(`Approve ${latest.id}? This confirms the flight and sends each passenger their own agreement and flight information email.`)) {
+        mode.textContent = 'MODE: APPROVAL CANCELLED';
+        return;
+      }
+      await updateSelected({ pilotDecision: 'APPROVED' });
+    });
     needsInfoBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'NEEDS INFO' }));
     declineBtn.addEventListener('click', () => updateSelected({ pilotDecision: 'DECLINED' }));
     addTimelineNoteBtn.addEventListener('click', async () => {
