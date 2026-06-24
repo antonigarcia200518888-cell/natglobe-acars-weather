@@ -304,8 +304,9 @@ function emailPriceSummary(request) {
   const perPassenger = request.costPerSeatEur;
   const total = request.estimatedTotalEur;
   if (typeof perPassenger === 'number' && typeof total === 'number') {
+    const seats = Math.max(1, Number(request.seats || 1));
     const prefix = String(request.priceNote || '').includes('ESTIMATED') ? 'Approx. ' : '';
-    return `${prefix}EUR ${total} total / EUR ${perPassenger} per passenger`;
+    return `${prefix}€${total} (${seats} PAX)`;
   }
   return String(total || perPassenger || 'Price determined by request');
 }
