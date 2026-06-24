@@ -463,7 +463,7 @@ async function notifyBookerOfApproval(request) {
     ['Total price', emailPriceSummary(request)]
   ];
   const passHtml = passItems.length
-    ? passItems.map(item => `<p style="margin:10px 0 6px;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#007aff;font-weight:700;text-decoration:underline;letter-spacing:.02em">FLIGHT INFORMATION PASS / OPEN HERE</a></p>`).join('')
+    ? passItems.map(item => `<p style="margin:10px 0 6px;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#b42318;font-weight:700;text-decoration:underline;letter-spacing:.02em">FLIGHT INFORMATION PASS / OPEN HERE</a></p>`).join('')
     : '<p style="margin:8px 0;line-height:1.55;color:#031c45">Passenger passes will be issued by operations shortly.</p>';
   const documentHtml = [
     agreementItems.length

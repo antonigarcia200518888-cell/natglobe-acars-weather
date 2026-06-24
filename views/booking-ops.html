@@ -159,6 +159,11 @@
       white-space: nowrap;
     }
 
+    .request-state-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .request-state { border: 1px solid currentColor; padding: 2px 5px; font-size: 11px; font-weight: 700; }
+    .state-good { color: var(--live); }
+    .state-danger { color: var(--danger); }
+
     .meta-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -185,6 +190,9 @@
       color: #fff;
       overflow-wrap: anywhere;
     }
+
+    .meta strong.state-good { color: var(--live); }
+    .meta strong.state-danger { color: var(--danger); }
 
     .ops-brief {
       display: grid;
@@ -393,6 +401,12 @@
       margin-bottom: 10px;
     }
 
+    .review-stage { margin: 12px 0 8px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .review-stage:first-of-type { margin-top: 0; }
+    .review-stage span { color: #777; margin-right: 7px; }
+    .review-actions { display: grid; gap: 10px; }
+    .review-actions .btn { margin-bottom: 0; }
+
     .ops-controls select {
       width: 100%;
       min-height: 52px;
@@ -552,7 +566,12 @@
 NO REQUEST SELECTED
 
 END OF MESSAGE</pre>
-          <div class="ops-controls">
+          <div class="review-actions">
+            <div class="review-stage"><span>01</span>Flight information reviewed above</div>
+            <div class="review-stage"><span>02</span>Reimbursement statement</div>
+            <button id="openStatementBtn" class="btn ghost" type="button">OPEN REIMBURSEMENT STATEMENT</button>
+            <div class="review-stage"><span>03</span>Pilot decision and payment</div>
+            <div class="ops-controls">
             <select id="paymentStatus">
               <option value="UNPAID">Payment: unpaid</option>
               <option value="DEPOSIT PAID">Payment: deposit paid</option>
@@ -562,14 +581,15 @@ END OF MESSAGE</pre>
             <button id="approveBtn" class="btn" type="button">APPROVE</button>
             <button id="needsInfoBtn" class="btn ghost" type="button">NEEDS INFO</button>
             <button id="declineBtn" class="btn ghost" type="button">DECLINE</button>
+            </div>
+            <div class="review-stage"><span>04</span>Operations PDF</div>
+            <button id="openPdfBtn" class="btn ghost" type="button">OPEN PDF</button>
           </div>
           <div class="wallet-actions">
             <select id="walletPassenger" aria-label="Passenger boarding pass"></select>
             <button id="webPassBtn" class="btn" type="button">ISSUE PASSENGER FLIGHT PASS</button>
           </div>
           <div id="walletPassStatus" class="ops-mini-status">Pilot approval required before issuing a passenger flight pass.</div>
-          <button id="openPdfBtn" class="btn ghost" type="button">OPEN PDF</button>
-          <button id="openStatementBtn" class="btn ghost" type="button">REIMBURSEMENT STATEMENT</button>
           <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
           <button id="deleteBtn" class="btn ghost danger" type="button">DELETE REQUEST</button>
           <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
@@ -646,8 +666,8 @@ END OF MESSAGE</pre>
     function renderAlerts(req) {
       const alerts = [];
       alerts.push({ tone: req.status === 'CONFIRMED' ? 'good' : 'warn', label: `STATUS ${req.status || 'REQUESTED'}` });
-      alerts.push({ tone: req.pilotDecision === 'APPROVED' ? 'good' : req.pilotDecision === 'DECLINED' ? 'danger' : 'warn', label: `PILOT ${req.pilotDecision || 'PENDING'}` });
-      alerts.push({ tone: req.paymentStatus === 'PAID' ? 'good' : 'warn', label: `PAYMENT ${req.paymentStatus || 'UNPAID'}` });
+      alerts.push({ tone: req.pilotDecision === 'APPROVED' ? 'good' : 'danger', label: req.pilotDecision === 'APPROVED' ? 'PILOT APPROVED' : 'PILOT NOT APPROVED' });
+      alerts.push({ tone: req.paymentStatus === 'PAID' ? 'good' : 'danger', label: req.paymentStatus === 'PAID' ? 'PAYMENT PAID' : `PAYMENT ${req.paymentStatus || 'UNPAID'}` });
       if (req.tripType === 'ROUNDTRIP') alerts.push({ tone: 'warn', label: 'RETURN LEG REQUESTED' });
       if (req.carryOnBags === 'YES') alerts.push({ tone: 'warn', label: `BAG ${req.baggageWeightKg || '?'}KG` });
       if (String(req.extras || '').match(/WINE|CHAMPAGNE|BEER|LONG DRINK/i)) alerts.push({ tone: 'warn', label: 'ALCOHOL REQUEST' });
@@ -719,14 +739,18 @@ END OF MESSAGE</pre>
         const matchesQuery = !query || `${req.id} ${req.route} ${req.name}`.toUpperCase().includes(query);
         return matchesQuery && (filterStatus.value === 'ALL' || req.status === filterStatus.value) && (!filterDate.value || req.requestDate === filterDate.value);
       });
-      requestList.innerHTML = visible.map(req => `
+      requestList.innerHTML = visible.map(req => {
+        const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
+        const paid = req.paymentStatus === 'PAID';
+        return `
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
           <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
           ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
           ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
-          ${escapeHtml(req.pilotDecision || 'PENDING')} / ${escapeHtml(req.paymentStatus || 'UNPAID')}
+          <div class="request-state-row"><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span></div>
         </div>
-      `).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
+      `;
+      }).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
     }
 
     function renderCalendar() {
@@ -744,8 +768,12 @@ END OF MESSAGE</pre>
       el('route').textContent = req.route || '.....';
       el('pax').textContent = `${req.name || '.....'} / ${req.seats || '?'} PAX`;
       el('status').textContent = req.status || '.....';
-      el('decision').textContent = req.pilotDecision || 'PENDING';
-      el('payment').textContent = req.paymentStatus || 'UNPAID';
+      const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
+      const paid = req.paymentStatus === 'PAID';
+      el('decision').textContent = approved ? 'APPROVED' : 'NOT APPROVED';
+      el('payment').textContent = paid ? 'PAID' : (req.paymentStatus || 'UNPAID');
+      el('decision').className = approved ? 'state-good' : 'state-danger';
+      el('payment').className = paid ? 'state-good' : 'state-danger';
       paymentStatus.value = req.paymentStatus || 'UNPAID';
       bookingMessage.textContent = req.bookingMessage || 'NO BOOKING MESSAGE';
       setText('briefOutbound', `${req.depName || req.dep || 'DEP'} to ${req.arrName || req.arr || 'ARR'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}`);
