@@ -310,19 +310,20 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
   const navy = '#06285d';
   const silver = '#8b9199';
   const paper = '#ffffff';
+  const operationNotice = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:collapse"><tr><td bgcolor="#f3f5f7" style="padding:12px 14px;border-left:3px solid ${navy};color:#26313d;font-size:11px;line-height:1.55"><strong style="color:${navy}">PRIVATE EQUAL-SHARE NCO OPERATION</strong><br>This is a private, non-commercial NCO flight. Direct flight costs are shared by all occupants, including the pilot, and the flight remains subject to pilot decision and operational confirmation.</td></tr></table>`;
   const confidentiality = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:collapse"><tr><td bgcolor="#fff5f5" style="padding:12px 14px;border:1px solid #b42318;color:#8f1712;font-size:11px;line-height:1.55"><strong>CONFIDENTIAL PASSENGER INFORMATION</strong><br>This email and any linked flight information may contain sensitive passenger data. It is intended only for the named recipient and must not be shared, copied, or misused.</td></tr></table>`;
   const detailRows = details.map(([label, value]) => `
     <tr><td bgcolor="${paper}" style="padding:10px 0;border-bottom:1px solid #d5d8dc;width:42%;font-weight:700;color:${navy}">${escapeEmailHtml(label)}</td><td bgcolor="${paper}" style="padding:10px 0;border-bottom:1px solid #d5d8dc;color:#15171a">${escapeEmailHtml(value)}</td></tr>`).join('');
   const sectionHtml = sections.map(section => `
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;border-collapse:collapse"><tr><td bgcolor="${navy}" style="padding:9px 13px;border:1px solid ${navy};color:#ffffff;font-size:13px;font-weight:700;letter-spacing:.08em">${escapeEmailHtml(section.title)}</td></tr><tr><td bgcolor="${paper}" style="padding:10px 0;color:#15171a">${section.html || (section.lines || []).map(line => `<p style="margin:8px 0;line-height:1.6;color:#15171a">${escapeEmailHtml(line)}</p>`).join('')}</td></tr></table>`).join('');
-  return `<!doctype html><html><body bgcolor="#ffffff" style="margin:0;padding:0;background-color:#ffffff;font-family:'Courier New',Courier,monospace;color:#15171a">
+  return `<!doctype html><html><head><style>@font-face{font-family:'Computer Says No';src:url('${PUBLIC_SITE_URL}/fonts/computer-says-no.woff2') format('woff2');font-weight:700;font-style:normal}</style></head><body bgcolor="#ffffff" style="margin:0;padding:0;background-color:#ffffff;font-family:'Courier New',Courier,monospace;color:#15171a">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse"><tr><td align="center" bgcolor="#ffffff" style="padding:24px 12px;background-color:#ffffff">
       <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:680px;background-color:#ffffff;border:2px solid ${navy};border-collapse:collapse">
         <tr><td bgcolor="#ffffff" style="padding:20px 28px;background-color:#ffffff;border-bottom:2px solid ${navy}">
           <img src="${PUBLIC_SITE_URL}/nga-private-aviation-logo.png" alt="NGA Private Aviation" width="154" style="display:block;width:154px;max-width:100%;height:auto;border:0;margin:0 0 15px" />
           <div style="font-size:12px;letter-spacing:.12em;color:${silver}">NGA PRIVATE AVIATION</div>
-          <div style="margin-top:8px;font-size:23px;font-weight:700;letter-spacing:.03em;color:${navy}">${escapeEmailHtml(status)}</div>
-          <div style="margin-top:13px;font-size:13px;color:#3f454c">REFERENCE: <strong style="color:${navy}">${escapeEmailHtml(reference)}</strong></div>
+          <div style="margin-top:8px;font-family:'Computer Says No','Courier New',Courier,monospace;font-size:29px;font-weight:700;line-height:1;color:${navy}">${escapeEmailHtml(status)}</div>
+          <div style="margin-top:13px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:19px;font-weight:700;line-height:1.1">REFERENCE ${escapeEmailHtml(reference)}</div>
         </td></tr>
         <tr><td bgcolor="#ffffff" style="padding:28px;background-color:#ffffff">
           <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:#15171a">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
@@ -330,6 +331,7 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse;font-size:14px">${detailRows}</table>
           ${sectionHtml}
           ${closing.map(line => `<p style="margin:6px 0;line-height:1.5;color:#15171a">${escapeEmailHtml(line)}</p>`).join('')}
+          ${operationNotice}
           ${confidentiality}
         </td></tr>
       </table>
@@ -352,6 +354,7 @@ function requestReceivedEmailHtml({ reference, greeting, details }) {
           <div style="margin:16px 0;padding:12px;border:1px solid ${navy};color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:24px;font-weight:700;line-height:1">REFERENCE ${escapeEmailHtml(reference)}</div>
           <p style="margin:0 0 14px;color:#15171a;font-size:14px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse">${lines}</table>
+          <div style="margin-top:16px;padding:12px 14px;border-left:3px solid ${navy};background-color:#f3f5f7;color:#26313d;font-size:11px;line-height:1.55"><strong style="color:${navy}">PRIVATE EQUAL-SHARE NCO OPERATION</strong><br>This is a private, non-commercial NCO flight. Direct flight costs are shared by all occupants, including the pilot, and the flight remains subject to pilot decision and operational confirmation.</div>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;width:100%;border-top:1px solid #d5d8dc;border-collapse:collapse">
             <tr><td style="padding:10px 0 10px 12px;border-left:2px solid ${navy};color:${navy};font-size:12px;text-transform:uppercase"><strong>Request received</strong><br><span style="color:#555b63">Your flight details have been received.</span></td></tr>
             <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:#15171a;font-size:12px;text-transform:uppercase"><strong>Pilot and operations review</strong><br><span style="color:#555b63">Route, weather, aircraft, and loading are checked.</span></td></tr>
