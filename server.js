@@ -313,7 +313,6 @@ function emailPriceSummary(request) {
 
 function privateFlightEmailHtml({ status, reference, greeting, intro, details, sections = [], closing = [] }) {
   const navy = '#031c45';
-  const silver = '#aeb5c0';
   const paper = '#ffffff';
   const operationNotice = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:collapse"><tr><td bgcolor="#f3f5f7" style="padding:12px 14px;border-left:3px solid ${navy};color:${navy};font-size:11px;line-height:1.55"><strong style="color:${navy}">PRIVATE NCO OPERATION</strong><br>This is a private, non-commercial NCO flight and remains subject to pilot decision and operational confirmation.</td></tr></table>`;
   const confidentiality = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:collapse"><tr><td bgcolor="#fff5f5" style="padding:12px 14px;border:1px solid #b42318;color:#8f1712;font-size:11px;line-height:1.55"><strong>CONFIDENTIAL PASSENGER INFORMATION</strong><br>This email and any linked flight information may contain sensitive passenger data. It is intended only for the named recipient and must not be shared, copied, or misused.</td></tr></table>`;
@@ -326,7 +325,7 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
       <table role="presentation" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:680px;background-color:#ffffff;border:2px solid ${navy};border-collapse:collapse">
         <tr><td bgcolor="#ffffff" style="padding:20px 28px;background-color:#ffffff;border-bottom:2px solid ${navy}">
           <img src="${PUBLIC_SITE_URL}/nga-private-aviation-logo.png" alt="NGA Private Aviation" width="154" style="display:block;width:154px;max-width:100%;height:auto;border:0;margin:0 0 15px" />
-          <div style="font-size:12px;letter-spacing:.12em;color:${silver}">NGA PRIVATE AVIATION</div>
+          <div style="font-size:12px;letter-spacing:.12em;color:${navy}">NGA PRIVATE AVIATION</div>
           <div style="margin-top:8px;font-family:'Computer Says No','Courier New',Courier,monospace;font-size:23px;font-weight:700;line-height:1;color:${navy}">${escapeEmailHtml(status)}</div>
           <div style="margin-top:13px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:16px;font-weight:700;line-height:1.1">REFERENCE ${escapeEmailHtml(reference)}</div>
         </td></tr>
