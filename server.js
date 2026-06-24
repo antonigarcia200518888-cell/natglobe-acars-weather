@@ -365,6 +365,7 @@ function requestReceivedEmailHtml({ reference, greeting, details }) {
             <tr><td style="padding:10px 0 10px 12px;border-left:2px solid #c5c9ce;color:${navy};font-size:12px;text-transform:uppercase"><strong>Final flight confirmation</strong><br><span style="color:${navy}">Passenger passes and final details are sent by email.</span></td></tr>
           </table>
           <div style="margin-top:16px;padding:11px 13px;border:1px solid ${navy};color:${navy};font-size:12px;line-height:1.55"><strong style="color:${navy}">PAYMENT TERMS</strong><br>Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</div>
+          <p style="margin:18px 0 0;color:${navy};font-size:12px;line-height:1.55">Best regards,<br><strong>NGA Private Aviation Team</strong><br><a href="mailto:info.ngaprivateaviation@gmail.com" style="color:#007aff;text-decoration:underline">info.ngaprivateaviation@gmail.com</a></p>
           <div style="margin-top:16px;padding:12px 14px;border:1px solid #b42318;background-color:#fff5f5;color:#8f1712;font-size:11px;line-height:1.55"><strong>CONFIDENTIAL PASSENGER INFORMATION</strong><br>This email and any linked flight information may contain sensitive passenger data. It is intended only for the named recipient and must not be shared, copied, or misused.</div>
         </td></tr>
       </table>
@@ -419,8 +420,9 @@ async function notifyBookerOfBooking(request) {
       'This is a request only and is not a flight confirmation. A pilot will review the route, weather, aircraft availability, loading, and operational requirements before confirming the flight.',
       'Once the flight is confirmed, a Reimbursement Statement will be issued. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.',
       '',
-      'Kind regards,',
-      'NGA Private Aviation'
+      'Best regards,',
+      'NGA Private Aviation Team',
+      'info.ngaprivateaviation@gmail.com'
     ].join('\n'),
     html: requestReceivedEmailHtml({
       reference: request.id,
@@ -487,12 +489,9 @@ async function notifyBookerOfApproval(request) {
       '',
       'Please notify us as soon as possible if your plans or baggage change, or if you expect to arrive late.',
       '',
-      'Kind regards,',
-      'Antoni Garcia',
-      'Pilot in Command',
-      'NGA Private Aviation',
-      '+358 41 314 5148',
-      'antonigarcia200518@icloud.com'
+      'Best regards,',
+      'NGA Private Aviation Team',
+      'info.ngaprivateaviation@gmail.com'
     ].join('\n'),
     html: privateFlightEmailHtml({
       status: 'FLIGHT CONFIRMED',
@@ -508,7 +507,7 @@ async function notifyBookerOfApproval(request) {
         { title: 'BAGGAGE AND ITEMS ON BOARD', lines: ['Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.'] },
         { title: 'BOARDING REMINDER', lines: ['Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.'] }
       ],
-      closing: ['Kind regards,', 'Antoni Garcia', 'Pilot in Command', 'NGA Private Aviation', '+358 41 314 5148', 'antonigarcia200518@icloud.com']
+      closing: ['Best regards,', 'NGA Private Aviation Team', 'info.ngaprivateaviation@gmail.com']
     })
   });
 }
