@@ -271,6 +271,38 @@ function emailPassengerNames(request) {
   return `${names.slice(0, -1).join(', ')}, and ${names.at(-1)}`;
 }
 
+function emailPassengerName(passenger) {
+  const title = String(passenger?.title || '').trim().toUpperCase();
+  const prefix = title === 'MR' ? 'Mr.' : title === 'MS' ? 'Ms.' : title === 'DR' ? 'Dr.' : '';
+  const name = String(passenger?.name || '').trim();
+  return `${prefix ? `${prefix} ` : ''}${name || 'Private Flight Guest'}`.trim();
+}
+
+function passengerEmailGroups(request) {
+  const groups = new Map();
+  getRequestPassengers(request).forEach(passenger => {
+    const email = String(passenger.email || '').trim();
+    if (!email || !email.includes('@')) return;
+    const key = email.toLowerCase();
+    if (!groups.has(key)) groups.set(key, { email, passengers: [] });
+    groups.get(key).passengers.push(passenger);
+  });
+
+  const bookingEmail = String(request.email || '').trim();
+  if (!groups.size && bookingEmail.includes('@')) {
+    groups.set(bookingEmail.toLowerCase(), { email: bookingEmail, passengers: [] });
+  }
+  return [...groups.values()];
+}
+
+function groupGreeting(group) {
+  const names = group.passengers.map(emailPassengerName);
+  if (!names.length) return 'Private Flight Guest';
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(', ')}, and ${names.at(-1)}`;
+}
+
 function emailDate(value) {
   const date = new Date(`${value || ''}T12:00:00`);
   return Number.isNaN(date.getTime())
@@ -384,7 +416,9 @@ function passengerPassItems(request) {
   return getRequestPassengers(request)
     .filter(passenger => passenger.boardingPassToken)
     .map(passenger => ({
+      number: passenger.number,
       label: passenger.name || `Passenger ${passenger.number || 1}`,
+      email: passenger.email || '',
       url: `${PUBLIC_SITE_URL}/private-flight-information-pass/${encodeURIComponent(request.id)}/${passenger.boardingPassToken}`
     }));
 }
@@ -393,6 +427,7 @@ function privateFlightAgreementItems(request) {
   return getRequestPassengers(request)
     .filter(passenger => passenger.agreementToken)
     .map(passenger => ({
+      number: passenger.number,
       label: passenger.name || `Passenger ${passenger.number || 1}`,
       email: passenger.email || '',
       url: `${PUBLIC_SITE_URL}/private-flight-agreement/${encodeURIComponent(request.id)}/${passenger.agreementToken}`,
@@ -415,7 +450,6 @@ function bookingPaymentUrl(request) {
 }
 
 async function notifyBookerOfBooking(request) {
-  const recipient = String(request.email || '').trim();
   const details = [
     ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`],
     ['Date', emailDate(request.requestDate)],
@@ -425,11 +459,12 @@ async function notifyBookerOfBooking(request) {
     ['Baggage', boardingPassBaggage(request)],
     ['Price estimate', emailPriceSummary(request)]
   ];
-  return sendBookingEmail({
-    to: recipient,
+  const groups = passengerEmailGroups(request);
+  await Promise.all(groups.map(group => sendBookingEmail({
+    to: group.email,
     subject: `Private flight request received / ${request.id}`,
     text: [
-      `Dear ${emailPassengerNames(request)},`,
+      `Dear ${groupGreeting(group)},`,
       '',
       'Thank you for your private flight request. Our operations team has received it and will contact you within 24 hours of the requested flight.',
       '',
@@ -452,18 +487,22 @@ async function notifyBookerOfBooking(request) {
     ].join('\n'),
     html: requestReceivedEmailHtml({
       reference: request.id,
-      greeting: emailPassengerNames(request),
+      greeting: groupGreeting(group),
       details
     })
-  });
+  })));
+  return groups.length;
 }
 
 async function notifyBookerOfApproval(request) {
-  const recipient = String(request.email || '').trim();
-  const passLinks = passengerPassLinks(request);
-  const passItems = passengerPassItems(request);
-  const agreementItems = privateFlightAgreementItems(request);
+  const groups = passengerEmailGroups(request);
+  const allPassItems = passengerPassItems(request);
+  const allAgreementItems = privateFlightAgreementItems(request);
   const reimbursementUrl = reimbursementStatementPublicUrl(request);
+  const requestedPaymentContact = String(request.email || '').trim().toLowerCase();
+  const paymentContactEmail = groups.some(group => group.email.toLowerCase() === requestedPaymentContact)
+    ? requestedPaymentContact
+    : String(groups[0]?.email || '').trim().toLowerCase();
   const details = [
     ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`],
     ['Date', emailDate(request.requestDate)],
@@ -472,77 +511,89 @@ async function notifyBookerOfApproval(request) {
     ['Aircraft', PUBLIC_AIRCRAFT_TYPE],
     ['Total price', emailPriceSummary(request)]
   ];
-  const passHtml = passItems.length
-    ? passItems.map(item => `<p style="margin:10px 0 6px;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#b42318;font-weight:700;text-decoration:underline;letter-spacing:.02em">FLIGHT INFORMATION PASS / OPEN HERE</a></p>`).join('')
-    : '<p style="margin:8px 0;line-height:1.55;color:#031c45">Passenger passes will be issued by operations shortly.</p>';
-  const documentHtml = [
-    agreementItems.length
+  await Promise.all(groups.map(group => {
+    const passengerNumbers = new Set(group.passengers.map(passenger => passenger.number));
+    const passItems = allPassItems.filter(item => passengerNumbers.has(item.number));
+    const agreementItems = allAgreementItems.filter(item => passengerNumbers.has(item.number));
+    const passLinks = passItems.map(item => `${item.label}: ${item.url}`);
+    const isPaymentContact = group.email.toLowerCase() === paymentContactEmail;
+    const passHtml = passItems.length
+      ? passItems.map(item => `<p style="margin:10px 0 6px;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#b42318;font-weight:700;text-decoration:underline;letter-spacing:.02em">FLIGHT INFORMATION PASS / OPEN HERE</a></p>`).join('')
+      : '<p style="margin:8px 0;line-height:1.55;color:#031c45">Passenger passes will be issued by operations shortly.</p>';
+    const documentHtml = agreementItems.length
       ? agreementItems.map(item => `<p style="margin:10px 0;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#007aff;font-weight:700;text-decoration:underline">OPEN PRIVATE FLIGHT AGREEMENT</a> <span style="color:#b42318;font-weight:700">(E-SIGNATURE REQUIRED)</span></p>`).join('')
-      : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>'
-  ].join('');
-  const paymentTermsHtml = [
-    '<p style="margin:8px 0;line-height:1.6;color:#031c45">Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</p>',
-    reimbursementUrl
-      ? `<p style="margin:12px 0 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#007aff;font-weight:700;text-decoration:underline">OPEN REIMBURSEMENT STATEMENT</a> <span style="color:#b42318;font-weight:700">(PAYMENT REQUIRED)</span></p>`
-      : '<p style="margin:12px 0 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
-  ].join('');
-  return sendBookingEmail({
-    to: recipient,
-    subject: `Flight confirmed / ${request.id}`,
-    text: [
-      `Dear ${emailPassengerNames(request)},`,
-      '',
-      'We are pleased to confirm that your private flight request has been approved, subject to normal day-of-flight weather and operational checks.',
-      '',
-      'DEPARTURE DETAILS',
-      `Route: ${details[0][1]}`,
-      `Date: ${emailDate(request.requestDate)}`,
-      `Boarding time: ${boardingPassBoardingTime(request.requestTime)} Local Time`,
-      `Scheduled departure: ${formatBoardingPassTime(request.requestTime)} Local Time`,
-      `Aircraft: ${details[4][1]}`,
-      `Total price: ${emailPriceSummary(request)}`,
-      '',
-      'AIRPORT LOCATION',
-      ...emailAirportLocation(request),
-      '',
-      'Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.',
-      '',
-      'PASSENGER FLIGHT INFORMATION PASSES',
-      ...(passLinks.length ? passLinks : ['Passenger passes will be issued by operations shortly.']),
-      '',
-      'PASSENGER DOCUMENTATION',
-      ...(agreementItems.length ? agreementItems.map(item => `Private Flight Agreement / ${item.label} (E-SIGNATURE REQUIRED): ${item.url}`) : ['Private Flight Agreement: to be provided by operations.']),
-      '',
-      'PAYMENT TERMS',
-      'A Reimbursement Statement will be issued for this confirmed flight. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.',
-      reimbursementUrl ? `Open Reimbursement Statement (PAYMENT REQUIRED): ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.',
-      '',
-      'BAGGAGE AND ITEMS ON BOARD',
-      'Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.',
-      '',
-      'Please notify us as soon as possible if your plans or baggage change, or if you expect to arrive late.',
-      '',
-      'Best regards,',
-      'NGA Private Aviation Team',
-      'info.ngaprivateaviation@gmail.com'
-    ].join('\n'),
-    html: privateFlightEmailHtml({
-      status: 'FLIGHT CONFIRMED',
-      reference: request.id,
-      greeting: emailPassengerNames(request),
-      intro: 'We are pleased to confirm that your private flight request has been approved, subject to normal day-of-flight weather and operational checks.',
-      details,
-      sections: [
-        { title: 'AIRPORT LOCATION', lines: emailAirportLocation(request) },
-        { title: 'PASSENGER FLIGHT INFORMATION PASSES', html: passHtml },
-        { title: 'PASSENGER DOCUMENTATION', html: documentHtml },
-        { title: 'PAYMENT TERMS', html: paymentTermsHtml },
-        { title: 'BAGGAGE AND ITEMS ON BOARD', lines: ['Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.'] },
-        { title: 'BOARDING REMINDER', lines: ['Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.'] }
-      ],
-      closing: ['Best regards,', 'NGA Private Aviation Team', 'info.ngaprivateaviation@gmail.com']
-    })
-  });
+      : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>';
+    const paymentTermsHtml = isPaymentContact
+      ? [
+        '<p style="margin:8px 0;line-height:1.6;color:#031c45">Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.</p>',
+        reimbursementUrl
+          ? `<p style="margin:12px 0 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#007aff;font-weight:700;text-decoration:underline">OPEN REIMBURSEMENT STATEMENT</a> <span style="color:#b42318;font-weight:700">(PAYMENT REQUIRED)</span></p>`
+          : '<p style="margin:12px 0 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
+      ].join('')
+      : '<p style="margin:8px 0;line-height:1.6;color:#031c45">Payment arrangements for this booking are coordinated with the lead booking contact. Please complete your own Private Flight Agreement before the flight.</p>';
+    return sendBookingEmail({
+      to: group.email,
+      subject: `Flight confirmed / ${request.id}`,
+      text: [
+        `Dear ${groupGreeting(group)},`,
+        '',
+        'We are pleased to confirm that your private flight request has been approved, subject to normal day-of-flight weather and operational checks.',
+        '',
+        'DEPARTURE DETAILS',
+        `Route: ${details[0][1]}`,
+        `Date: ${emailDate(request.requestDate)}`,
+        `Boarding time: ${boardingPassBoardingTime(request.requestTime)} Local Time`,
+        `Scheduled departure: ${formatBoardingPassTime(request.requestTime)} Local Time`,
+        `Aircraft: ${details[4][1]}`,
+        `Total price: ${emailPriceSummary(request)}`,
+        '',
+        'AIRPORT LOCATION',
+        ...emailAirportLocation(request),
+        '',
+        'Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.',
+        '',
+        'YOUR FLIGHT INFORMATION PASS',
+        ...(passLinks.length ? passLinks : ['Passenger passes will be issued by operations shortly.']),
+        '',
+        'YOUR PASSENGER DOCUMENTATION',
+        ...(agreementItems.length ? agreementItems.map(item => `Private Flight Agreement / ${item.label} (E-SIGNATURE REQUIRED): ${item.url}`) : ['Private Flight Agreement: to be provided by operations.']),
+        '',
+        'PAYMENT TERMS',
+        ...(isPaymentContact
+          ? [
+            'A Reimbursement Statement will be issued for this confirmed flight. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.',
+            reimbursementUrl ? `Open Reimbursement Statement (PAYMENT REQUIRED): ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.'
+          ]
+          : ['Payment arrangements for this booking are coordinated with the lead booking contact. Please complete your own Private Flight Agreement before the flight.']),
+        '',
+        'BAGGAGE AND ITEMS ON BOARD',
+        'Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.',
+        '',
+        'Please notify us as soon as possible if your plans or baggage change, or if you expect to arrive late.',
+        '',
+        'Best regards,',
+        'NGA Private Aviation Team',
+        'info.ngaprivateaviation@gmail.com'
+      ].join('\n'),
+      html: privateFlightEmailHtml({
+        status: 'FLIGHT CONFIRMED',
+        reference: request.id,
+        greeting: groupGreeting(group),
+        intro: 'We are pleased to confirm that your private flight request has been approved, subject to normal day-of-flight weather and operational checks.',
+        details,
+        sections: [
+          { title: 'AIRPORT LOCATION', lines: emailAirportLocation(request) },
+          { title: 'YOUR FLIGHT INFORMATION PASS', html: passHtml },
+          { title: 'YOUR PASSENGER DOCUMENTATION', html: documentHtml },
+          { title: 'PAYMENT TERMS', html: paymentTermsHtml },
+          { title: 'BAGGAGE AND ITEMS ON BOARD', lines: ['Personal bags, electronics, medication, and normal personal items may be carried subject to pilot approval. Do not bring weapons, explosives, flammable liquids or gases, dangerous goods, or undeclared lithium batteries.'] },
+          { title: 'BOARDING REMINDER', lines: ['Please arrive no later than the boarding time and bring a valid form of identification. Keep your mobile phone available for any operational update, and have baggage ready for loading on arrival.'] }
+        ],
+        closing: ['Best regards,', 'NGA Private Aviation Team', 'info.ngaprivateaviation@gmail.com']
+      })
+    });
+  }));
+  return groups.length;
 }
 
 async function deliverBookingNotifications(request) {
@@ -554,8 +605,9 @@ async function deliverBookingNotifications(request) {
     console.error('BOOKING EMAIL:', err.message);
   }
   try {
-    if (await notifyBookerOfBooking(request)) {
-      await addBookingTimelineEvent(request.id, 'PASSENGER EMAIL NOTIFICATION', 'Booking receipt sent to the booking contact.');
+    const recipientCount = await notifyBookerOfBooking(request);
+    if (recipientCount) {
+      await addBookingTimelineEvent(request.id, 'PASSENGER EMAIL NOTIFICATION', `Booking receipt sent to ${recipientCount} passenger email${recipientCount === 1 ? '' : 's'}.`);
     }
   } catch (err) {
     console.error('BOOKER EMAIL:', err.message);
@@ -564,10 +616,11 @@ async function deliverBookingNotifications(request) {
 
 async function deliverApprovalNotification(request) {
   try {
-    if (await notifyBookerOfApproval(request)) {
+    const recipientCount = await notifyBookerOfApproval(request);
+    if (recipientCount) {
       request.confirmationEmailSentAt = new Date().toISOString();
       await persistBookingRequest(request);
-      await addBookingTimelineEvent(request.id, 'FLIGHT CONFIRMATION EMAIL', 'Passenger flight confirmation and pass links sent.');
+      await addBookingTimelineEvent(request.id, 'FLIGHT CONFIRMATION EMAIL', `Passenger flight confirmation and individual agreement links sent to ${recipientCount} passenger email${recipientCount === 1 ? '' : 's'}.`);
     }
   } catch (err) {
     console.error('CONFIRMATION EMAIL:', err.message);
