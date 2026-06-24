@@ -3702,7 +3702,9 @@ app.post('/api/booking-requests', async (req, res) => {
   const extras = Array.isArray(req.body?.extras)
     ? req.body.extras.map(item => normalizeBookingText(item, 40)).filter(Boolean).join(' / ')
     : normalizeBookingText(req.body?.extras, 160);
-  const extrasNotes = normalizeBookingText(req.body?.extrasNotes, 140);
+  const extrasNotesInput = normalizeBookingText(req.body?.extrasNotes, 140);
+  const alcoholPreferences = normalizeBookingText(req.body?.alcoholPreferences, 260);
+  const extrasNotes = [extrasNotesInput, alcoholPreferences].filter(Boolean).join(' / ');
   const isHankoRoute = depAirport.icao === 'EFHN' || arrAirport.icao === 'EFHN';
   const regattaProfile = isHankoRoute ? normalizeBookingText(req.body?.regattaProfile, 40) : '';
   const regattaArrival = isHankoRoute ? normalizeBookingText(req.body?.regattaArrival, 40) : '';
@@ -3714,7 +3716,6 @@ app.post('/api/booking-requests', async (req, res) => {
   const flightPurpose = normalizeBookingText(req.body?.flightPurpose, 40);
   const scheduleFlexibility = normalizeBookingText(req.body?.scheduleFlexibility, 60);
   const contractAccepted = req.body?.contractAccepted === true || req.body?.contractAccepted === 'true';
-  const signatureProcessed = req.body?.signatureProcessed === true || req.body?.signatureProcessed === 'true';
 
   if (!name || !email || !email.includes('@')) {
     return res.status(400).json({ error: 'LEAD PASSENGER NAME AND VALID EMAIL REQUIRED' });
@@ -3750,10 +3751,6 @@ app.post('/api/booking-requests', async (req, res) => {
   if (!contractAccepted) {
     return res.status(400).json({ error: 'CONTRACT AGREEMENT MUST BE ACCEPTED' });
   }
-  if (!signatureProcessed) {
-    return res.status(400).json({ error: 'SAFETY DECLARATION SIGNATURE REQUIRED' });
-  }
-
   const priceEstimate = estimateBookingPrice(depAirport, arrAirport, seats, tripType);
 
   const request = {

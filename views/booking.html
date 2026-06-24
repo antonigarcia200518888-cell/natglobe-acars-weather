@@ -1287,8 +1287,11 @@
     }
 
     .check input { width: auto; min-height: auto; margin-top: 2px; }
-    .signature-field { margin-top: 10px; border: 1px solid #666; padding: 10px; background: #050505; }
-    .signature-field small { display: block; margin-top: 7px; color: #999; font-size: 10px; line-height: 1.35; text-transform: uppercase; }
+    .alcohol-preferences { display: grid; gap: 8px; margin-top: 12px; }
+    .alcohol-preference { border: 1px solid #555; padding: 10px; background: #050505; }
+    .alcohol-preference[hidden] { display: none; }
+    .alcohol-preference strong { display: block; margin-bottom: 8px; color: #fff; font-size: 12px; text-transform: uppercase; }
+    .alcohol-preference-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
     .field-missing { position: relative; }
     .field-missing::after { content: "*"; position: absolute; top: -9px; right: 5px; z-index: 2; color: var(--danger); font: 700 22px/1 Arial, sans-serif; text-shadow: 0 0 8px rgba(255,107,107,0.55); }
     .field-missing input, .field-missing select { border-color: var(--danger) !important; }
@@ -1476,6 +1479,7 @@
       .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .baggage-request-grid .extras-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .baggage-request-grid .included-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .alcohol-preference-grid { grid-template-columns: 1fr; }
       .request-panel-header {
         align-items: flex-start;
         flex-direction: column;
@@ -1910,12 +1914,7 @@
               I will tell the pilot or operations team about anything that could affect safe flight, including illness, breathing or circulation conditions, seizures, anxiety or panic, surgery, pregnancy, injury, medication effects, alcohol, sedatives, cannabis, or feeling unwell. I understand there is no supplemental oxygen on board, I must follow pilot instructions, and the pilot may delay, change, or decline the flight for safety, weather, aircraft, legal, or weight-and-balance reasons.
             </div>
             <div class="consent">
-              <label class="check"><input id="safetyAgreement" type="checkbox" required /> I have read and accept the passenger safety declaration and will declare anything relevant before the flight.</label>
-              <div class="signature-field">
-                <label for="safetySignature">Typed signature</label>
-                <input id="safetySignature" type="text" autocomplete="name" placeholder="Type your full legal name" required />
-                <small>Your signature is used to process this declaration and is not saved as signature text. The booking records only the acceptance and signing time.</small>
-              </div>
+              <label class="check"><input id="safetyAgreement" type="checkbox" required /> I have read and accept the passenger safety declaration and will declare anything relevant before the flight. Each passenger receives their own Flight Agreement to sign after approval.</label>
             </div>
           </div>
 
@@ -1993,6 +1992,32 @@
               <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
               <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
               <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
+            </div>
+            <div id="alcoholPreferences" class="alcohol-preferences" aria-label="Alcohol service preferences">
+              <div id="winePreferences" class="alcohol-preference" hidden>
+                <strong>Wine service preferences</strong>
+                <div class="alcohol-preference-grid">
+                  <div><label for="wineStyle">Wine style</label><select id="wineStyle"><option value="RED">Red</option><option value="WHITE">White</option><option value="SPARKLING">Sparkling wine</option></select></div>
+                  <div><label for="wineBrand">Preferred brand or producer</label><input id="wineBrand" type="text" placeholder="Example: Campo Viejo" /></div>
+                  <div><label for="wineBottles">Bottle request</label><select id="wineBottles"><option value="1 BOTTLE">1 bottle</option><option value="2 BOTTLES">2 bottles</option><option value="OPERATIONS TO ADVISE">Operations to advise</option></select></div>
+                </div>
+              </div>
+              <div id="champagnePreferences" class="alcohol-preference" hidden>
+                <strong>Champagne service preferences</strong>
+                <div class="alcohol-preference-grid">
+                  <div><label for="champagneStyle">Bottle type</label><select id="champagneStyle"><option value="BRUT">Brut</option><option value="ROSÉ">Rosé</option><option value="BLANC DE BLANCS">Blanc de Blancs</option></select></div>
+                  <div><label for="champagneBrand">Preferred brand</label><input id="champagneBrand" type="text" placeholder="Example: Moët & Chandon" /></div>
+                  <div><label for="champagneBottles">Bottle request</label><select id="champagneBottles"><option value="1 BOTTLE">1 bottle</option><option value="2 BOTTLES">2 bottles</option><option value="OPERATIONS TO ADVISE">Operations to advise</option></select></div>
+                </div>
+              </div>
+              <div id="beerPreferences" class="alcohol-preference" hidden>
+                <strong>Beer / long drink preferences</strong>
+                <div class="alcohol-preference-grid">
+                  <div><label for="beerStyle">Drink type</label><select id="beerStyle"><option value="LAGER">Lager</option><option value="CIDER">Cider</option><option value="LONG DRINK">Long drink</option></select></div>
+                  <div><label for="beerBrand">Preferred brand</label><input id="beerBrand" type="text" placeholder="Example: Hartwall Original" /></div>
+                  <div><label for="beerQuantity">Quantity request</label><select id="beerQuantity"><option value="2 SERVINGS">2 servings</option><option value="4 SERVINGS">4 servings</option><option value="OPERATIONS TO ADVISE">Operations to advise</option></select></div>
+                </div>
+              </div>
             </div>
             <div style="margin-top:12px;">
               <label for="extrasNotes">Request details</label>
@@ -2560,7 +2585,25 @@
       };
       const values = checkedValues('extras');
       const items = values.length ? values.map(value => labels[value] || value) : ['None selected'];
+      const alcoholDetails = alcoholRequestDetails();
+      if (alcoholDetails) items.push(alcoholDetails);
       el('summaryRequests').innerHTML = items.map(item => `<span class="request-pill">${escapeHtml(item)}</span>`).join('');
+    }
+
+    function alcoholRequestDetails() {
+      const extras = checkedValues('extras');
+      const details = [];
+      if (extras.includes('WINE')) details.push(`Wine: ${el('wineStyle').value} / ${el('wineBrand').value.trim() || 'Brand open'} / ${el('wineBottles').value}`);
+      if (extras.includes('CHAMPAGNE')) details.push(`Champagne: ${el('champagneStyle').value} / ${el('champagneBrand').value.trim() || 'Brand open'} / ${el('champagneBottles').value}`);
+      if (extras.includes('BEER')) details.push(`Beer / long drink: ${el('beerStyle').value} / ${el('beerBrand').value.trim() || 'Brand open'} / ${el('beerQuantity').value}`);
+      return details.join(' | ');
+    }
+
+    function syncAlcoholPreferences() {
+      const extras = checkedValues('extras');
+      el('winePreferences').hidden = !extras.includes('WINE');
+      el('champagnePreferences').hidden = !extras.includes('CHAMPAGNE');
+      el('beerPreferences').hidden = !extras.includes('BEER');
     }
 
     function setMobileMarker(step, complete) {
@@ -2634,6 +2677,7 @@
     }
 
     function refreshSummary() {
+      syncAlcoholPreferences();
       const dep = selectedAirport('dep');
       const arr = selectedAirport('arr');
       updateDatePriceLabels(dep, arr);
@@ -2728,7 +2772,11 @@
         tripType: el('tripType').value, returnDate: el('returnDate').value, returnTime: el('returnTime').value, returnPlan: el('returnPlan').value,
         seats: el('seats').value, passengers, bagCount: el('bagCount').value, bagType: el('bagType').value,
         baggageWeightKg: el('baggageWeightKg').value, powerBanks: el('powerBanks').value, seatPreference: el('seatPreference').value,
-        extras: checkedValues('extras'), extrasNotes: el('extrasNotes').value, savedAt: new Date().toISOString()
+        extras: checkedValues('extras'), extrasNotes: el('extrasNotes').value,
+        wineStyle: el('wineStyle').value, wineBrand: el('wineBrand').value, wineBottles: el('wineBottles').value,
+        champagneStyle: el('champagneStyle').value, champagneBrand: el('champagneBrand').value, champagneBottles: el('champagneBottles').value,
+        beerStyle: el('beerStyle').value, beerBrand: el('beerBrand').value, beerQuantity: el('beerQuantity').value,
+        savedAt: new Date().toISOString()
       };
       localStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
       draftStatus.textContent = 'Booking progress saved locally on this device.';
@@ -2745,7 +2793,7 @@
       try { draft = JSON.parse(localStorage.getItem(BOOKING_DRAFT_KEY) || 'null'); } catch { draft = null; }
       if (!draft) return;
       restoringDraft = true;
-      ['dep', 'arr', 'requestDate', 'requestTime', 'tripType', 'returnDate', 'returnTime', 'returnPlan', 'seats', 'bagCount', 'bagType', 'baggageWeightKg', 'powerBanks', 'seatPreference', 'extrasNotes'].forEach(id => {
+      ['dep', 'arr', 'requestDate', 'requestTime', 'tripType', 'returnDate', 'returnTime', 'returnPlan', 'seats', 'bagCount', 'bagType', 'baggageWeightKg', 'powerBanks', 'seatPreference', 'extrasNotes', 'wineStyle', 'wineBrand', 'wineBottles', 'champagneStyle', 'champagneBrand', 'champagneBottles', 'beerStyle', 'beerBrand', 'beerQuantity'].forEach(id => {
         if (draft[id] != null && el(id)) el(id).value = draft[id];
       });
       updateReturnTripFields();
@@ -2784,7 +2832,7 @@
         reviewItem('Booking contact', lead.email || ''),
         reviewItem('Luggage', baggageSummary()),
         reviewItem('Seat preference', el('seatPreference').value || checkedValue('seatPreference', 'No preference')),
-        reviewItem('Cabin requests', extras.length ? extras.join(' / ') : 'None selected'),
+        reviewItem('Cabin requests', extras.length ? [extras.join(' / '), alcoholRequestDetails()].filter(Boolean).join(' / ') : 'None selected'),
         reviewItem('Total flight cost', routePrice(dep, arr))
       ].join('');
       reviewDialog.hidden = false;
@@ -2973,7 +3021,7 @@
             emergencyPhone: '',
             medicalStatus: el('safetyAgreement').checked ? 'SAFETY DECLARATION ACCEPTED' : 'NOT ACCEPTED',
             substancesStatus: el('safetyAgreement').checked ? 'PASSENGER AGREES TO DECLARE BEFORE FLIGHT' : 'NOT ACCEPTED',
-            signatureProcessed: Boolean(el('safetySignature').value.trim() && el('safetyAgreement').checked),
+            signatureProcessed: el('safetyAgreement').checked,
             carryOnBags: el('carryOnBags').value,
             baggageWeightKg: el('carryOnBags').value === 'YES' ? el('baggageWeightKg').value : 'N/A',
             bagType: `${el('bagCount').value} BAG(S) / ${el('bagType').value}`,
@@ -2981,6 +3029,7 @@
             seatPreference: el('seatPreference').value || checkedValue('seatPreference', 'NO PREFERENCE'),
             extras: checkedValues('extras'),
             extrasNotes: el('extrasNotes').value,
+            alcoholPreferences: alcoholRequestDetails(),
             flightPurpose: 'PRIVATE FLIGHT REQUEST',
             scheduleFlexibility: 'PILOT MAY SUGGEST BEST OPERATIONAL TIME',
             contractAccepted: true,
