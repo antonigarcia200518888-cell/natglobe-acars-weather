@@ -55,10 +55,13 @@
     .totals strong { font-weight: 700; }
     .page { position: absolute; right: 16mm; bottom: 9mm; color: #555; font-size: 10px; }
     .hidden { display: none; }
+    .public-statement .workspace { display: block; padding: 22px; }
+    .public-statement .editor { display: none; }
+    .public-statement .paper-wrap { overflow: visible; }
     @media (max-width: 1100px) { .workspace { grid-template-columns: 1fr; } .editor { position: static; } .statement { transform-origin: top left; } }
     @media (max-width: 700px) { .workspace { padding: 8px; } .statement { transform: scale(.52); margin-bottom: calc(-297mm * .48); } .paper-wrap { overflow: hidden; } }
     @page { size: A4; margin: 0; }
-    @media print { body { background: #fff; } .workspace { display: block; padding: 0; } .editor { display: none; } .paper-wrap { padding: 0; overflow: visible; } .statement { width: 210mm; min-height: 297mm; margin: 0; box-shadow: none; transform: none !important; } }
+    @media print { * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } body { background: #fff; } .workspace { display: block; padding: 0; } .editor { display: none; } .paper-wrap { padding: 0; overflow: visible; } .statement { width: 210mm; min-height: 297mm; margin: 0; box-shadow: none; transform: none !important; } }
   </style>
 </head>
 <body>
@@ -111,7 +114,10 @@
     </div>
   </main>
   <script>
-    const requestId = decodeURIComponent(location.pathname.split('/').filter(Boolean)[2] || '');
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    const isPublicStatement = pathParts[0] === 'private-flight-reimbursement-statement';
+    const requestId = decodeURIComponent(isPublicStatement ? pathParts[1] : (pathParts[2] || ''));
+    const statementToken = isPublicStatement ? decodeURIComponent(pathParts[2] || '') : '';
     const el = id => document.getElementById(id);
     const text = value => String(value ?? '').trim();
     const esc = value => text(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -120,6 +126,7 @@
     const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
     let request = null;
     let statement = null;
+    if (isPublicStatement) document.body.classList.add('public-statement');
 
     function defaultCharges() {
       const hours = Math.max(1, Math.round(Number(request?.estimatedFlightMinutes || 60) / 60));
@@ -190,10 +197,13 @@
     }
 
     async function load() {
-      const res = await fetch('/api/booking-ops/requests', { cache: 'no-store' });
+      const endpoint = isPublicStatement
+        ? `/api/private-flight-reimbursement-statement/${encodeURIComponent(requestId)}/${encodeURIComponent(statementToken)}`
+        : '/api/booking-ops/requests';
+      const res = await fetch(endpoint, { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Unable to load statement');
-      request = (data.requests || []).find(item => item.id === requestId);
+      request = isPublicStatement ? data.request : (data.requests || []).find(item => item.id === requestId);
       if (!request) throw new Error('Booking request not found');
       buildEditor();
     }
@@ -226,7 +236,7 @@
       const saved = await saveStatementDraft();
       button.disabled = false;
       if (!saved) return;
-      window.open(`/api/booking-ops/requests/${encodeURIComponent(request.id)}/reimbursement-statement/pdf`, '_blank', 'noopener');
+      window.print();
     });
     load().catch(error => { document.querySelector('.paper-wrap').innerHTML = `<div style="padding:24px;background:#fff;color:#b42318">${esc(error.message || 'Unable to load statement.')}</div>`; });
   </script>

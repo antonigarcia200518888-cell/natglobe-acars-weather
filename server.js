@@ -467,9 +467,9 @@ async function notifyBookerOfApproval(request) {
     : '<p style="margin:8px 0;line-height:1.55;color:#031c45">Passenger passes will be issued by operations shortly.</p>';
   const documentHtml = [
     agreementItems.length
-      ? agreementItems.map(item => `<p style="margin:10px 0;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#007aff;font-weight:700;text-decoration:underline">OPEN PRIVATE FLIGHT AGREEMENT</a></p>`).join('')
+      ? agreementItems.map(item => `<p style="margin:10px 0;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#007aff;font-weight:700;text-decoration:underline">OPEN PRIVATE FLIGHT AGREEMENT</a> <span style="color:#b42318;font-weight:700">(E-SIGNATURE REQUIRED)</span></p>`).join('')
       : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>',
-    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#007aff;font-weight:700;text-decoration:underline">OPEN REIMBURSEMENT STATEMENT</a></p>` : '<p style="margin:8px 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
+    reimbursementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(reimbursementUrl)}" style="color:#007aff;font-weight:700;text-decoration:underline">OPEN REIMBURSEMENT STATEMENT</a> <span style="color:#b42318;font-weight:700">(PAYMENT REQUIRED)</span></p>` : '<p style="margin:8px 0;color:#031c45">Reimbursement Statement: to be provided by operations.</p>'
   ].join('');
   return sendBookingEmail({
     to: recipient,
@@ -496,8 +496,8 @@ async function notifyBookerOfApproval(request) {
       ...(passLinks.length ? passLinks : ['Passenger passes will be issued by operations shortly.']),
       '',
       'PASSENGER DOCUMENTATION',
-      ...(agreementItems.length ? agreementItems.map(item => `Private Flight Agreement / ${item.label}: ${item.url}`) : ['Private Flight Agreement: to be provided by operations.']),
-      reimbursementUrl ? `Reimbursement Statement: ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.',
+      ...(agreementItems.length ? agreementItems.map(item => `Private Flight Agreement / ${item.label} (E-SIGNATURE REQUIRED): ${item.url}`) : ['Private Flight Agreement: to be provided by operations.']),
+      reimbursementUrl ? `Reimbursement Statement (PAYMENT REQUIRED): ${reimbursementUrl}` : 'Reimbursement Statement: to be provided by operations.',
       '',
       'PAYMENT TERMS',
       'A Reimbursement Statement will be issued for this confirmed flight. Payment is due no later than 48 hours before scheduled departure unless operations agrees otherwise. If payment is not received by then, the booking may be cancelled.',
@@ -2875,7 +2875,7 @@ app.get('/private-flight-reimbursement-statement/:reference/:token', async (req,
   const request = findPublicReimbursementStatement(req.params.reference, req.params.token);
   if (!request) return res.status(404).send('Reimbursement Statement not available.');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.redirect(`/api/private-flight-reimbursement-statement/${encodeURIComponent(request.id)}/${encodeURIComponent(request.reimbursementStatementToken)}/pdf`);
+  res.sendFile(path.join(__dirname, 'views', 'reimbursement-statement.html'));
 });
 
 app.get('/pass-check/:token', (req, res) => {
@@ -2923,6 +2923,35 @@ app.get('/api/private-flight-agreements/:token', async (req, res) => {
       }
     }
   });
+});
+
+function publicReimbursementStatementView(request) {
+  return {
+    id: request.id,
+    dep: request.dep,
+    arr: request.arr,
+    depName: request.depName,
+    arrName: request.arrName,
+    seats: request.seats,
+    extras: request.extras,
+    estimatedFlightMinutes: request.estimatedFlightMinutes,
+    crew: request.crew,
+    passengers: getRequestPassengers(request).map(passenger => ({
+      number: passenger.number,
+      name: passenger.name,
+      email: passenger.email,
+      phone: passenger.phone
+    })),
+    reimbursementStatement: request.reimbursementStatement
+  };
+}
+
+app.get('/api/private-flight-reimbursement-statement/:reference/:token', async (req, res) => {
+  await bookingStoreReady;
+  const request = findPublicReimbursementStatement(req.params.reference, req.params.token);
+  if (!request) return res.status(404).json({ error: 'REIMBURSEMENT STATEMENT NOT AVAILABLE' });
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({ request: publicReimbursementStatementView(request) });
 });
 
 app.get('/api/private-flight-reimbursement-statement/:reference/:token/pdf', async (req, res) => {
