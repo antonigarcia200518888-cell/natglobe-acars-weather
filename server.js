@@ -446,7 +446,7 @@ async function notifyBookerOfApproval(request) {
     ['Total price', emailPriceSummary(request)]
   ];
   const passHtml = passItems.length
-    ? passItems.map(item => `<p style="margin:10px 0 6px;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong></p><table role="presentation" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#031c45" style="padding:11px 14px;background-color:#031c45"><a href="${escapeEmailHtml(item.url)}" style="display:block;color:#b42318;font-weight:700;text-decoration:none;letter-spacing:.04em">FLIGHT INFORMATION PASS / OPEN HERE</a></td></tr></table>`).join('')
+    ? passItems.map(item => `<p style="margin:10px 0 6px;color:#031c45"><strong>${escapeEmailHtml(item.label)}</strong><br><a href="${escapeEmailHtml(item.url)}" style="display:inline-block;margin-top:5px;color:#007aff;font-weight:700;text-decoration:underline;letter-spacing:.02em">FLIGHT INFORMATION PASS / OPEN HERE</a></p>`).join('')
     : '<p style="margin:8px 0;line-height:1.55;color:#031c45">Passenger passes will be issued by operations shortly.</p>';
   const documentHtml = [
     agreementUrl ? `<p style="margin:10px 0"><a href="${escapeEmailHtml(agreementUrl)}" style="color:#031c45;font-weight:700">OPEN PRIVATE FLIGHT AGREEMENT</a></p>` : '<p style="margin:8px 0;color:#031c45">Private Flight Agreement: to be provided by operations.</p>',
