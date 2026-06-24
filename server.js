@@ -3221,6 +3221,105 @@ async function createReimbursementStatementPdf(request) {
   return Buffer.from(await pdfDoc.save());
 }
 
+async function createSignedAgreementPdf(request, passenger) {
+  const pdfDoc = await PDFDocument.create();
+  const courier = await pdfDoc.embedFont(StandardFonts.Courier);
+  const courierBold = await pdfDoc.embedFont(StandardFonts.CourierBold);
+  const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const page = pdfDoc.addPage([595.28, 841.89]);
+  const navy = rgb(3 / 255, 28 / 255, 69 / 255);
+  const green = rgb(30 / 255, 97 / 255, 59 / 255);
+  const paleGreen = rgb(234 / 255, 247 / 255, 239 / 255);
+  const ink = rgb(17 / 255, 17 / 255, 17 / 255);
+  const muted = rgb(82 / 255, 82 / 255, 82 / 255);
+  const pageWidth = 595.28;
+  const left = 48;
+  const right = 547;
+  let y = 790;
+  const draw = (value, x, yPos, size, font = courier, color = ink, limit = 90) => page.drawText(reimbursementPdfText(value, limit), { x, y: yPos, size, font, color });
+  const drawWrapped = (value, size = 8.7, indent = 0, color = muted) => {
+    const words = String(value || '').split(/\s+/).filter(Boolean);
+    const maxWidth = right - left - indent;
+    let line = '';
+    for (const word of words) {
+      const next = line ? `${line} ${word}` : word;
+      if (courier.widthOfTextAtSize(next, size) > maxWidth && line) {
+        draw(line, left + indent, y, size, courier, color, 160);
+        y -= size + 4;
+        line = word;
+      } else {
+        line = next;
+      }
+    }
+    if (line) {
+      draw(line, left + indent, y, size, courier, color, 160);
+      y -= size + 4;
+    }
+  };
+  const detail = (label, value) => {
+    draw(label.toUpperCase(), left, y, 8.3, courierBold, navy, 26);
+    draw(value || 'Not provided', 202, y, 8.7, courier, ink, 62);
+    y -= 18;
+  };
+
+  page.drawRectangle({ x: 0, y: 0, width: pageWidth, height: 841.89, color: rgb(1, 1, 1) });
+  try {
+    const logo = await pdfDoc.embedPng(fs.readFileSync(path.join(__dirname, 'public', 'nga-private-aviation-logo.png')));
+    const scaled = logo.scaleToFit(120, 84);
+    page.drawImage(logo, { x: 421, y: 742, width: scaled.width, height: scaled.height });
+  } catch {
+    draw('NGA PRIVATE AVIATION', 398, 775, 9, courierBold, navy, 28);
+  }
+  draw('PRIVATE FLIGHT', left, y, 11, courierBold, navy, 24);
+  y -= 30;
+  draw('FLIGHT AGREEMENT', left, y, 26, titleFont, navy, 32);
+  y -= 25;
+  draw(`REFERENCE ${request.id}`, left, y, 13, courierBold, navy, 34);
+  y -= 28;
+  page.drawRectangle({ x: left, y: y - 4, width: 202, height: 25, color: paleGreen, borderColor: green, borderWidth: 1 });
+  draw('ELECTRONICALLY SIGNED', left + 10, y + 5, 10, courierBold, green, 28);
+  y -= 30;
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 1.2, color: navy });
+  y -= 24;
+
+  draw('PASSENGER DETAILS', left, y, 11, courierBold, navy, 32);
+  y -= 20;
+  detail('Passenger', `${passenger.title || ''} ${passenger.name || 'Passenger'}`.trim());
+  detail('Date of birth', passenger.dob || 'Not provided');
+  detail('Passport country', passenger.passportCountry || 'Not provided');
+  detail('Passport / ID', maskedPassport(passenger));
+  y -= 4;
+  draw('FLIGHT DETAILS', left, y, 11, courierBold, navy, 32);
+  y -= 20;
+  detail('Route', `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`);
+  detail('Date', emailDate(request.requestDate));
+  detail('Boarding', `${boardingPassBoardingTime(request.requestTime)} Local Time`);
+  detail('Departure', `${formatBoardingPassTime(request.requestTime)} Local Time`);
+  detail('Aircraft', PUBLIC_AIRCRAFT_TYPE);
+  y -= 4;
+  draw('AGREEMENT TERMS', left, y, 11, courierBold, navy, 32);
+  y -= 19;
+  const terms = [
+    'Private operation. This is a private, non-commercial NCO flight. The flight remains subject to the Pilot-in-Command\'s final decision, weather, aircraft serviceability, passenger fitness, baggage loading, weight and balance, applicable rules, and operational limits.',
+    'Pilot authority. The Pilot-in-Command has sole authority over the aircraft and may delay, change, cancel, or decline the flight for safety or operational reasons. All passengers must follow lawful pilot instructions.',
+    'Safety and fitness. You must disclose any health, medication, alcohol, substance, or other condition that could affect safe flight before boarding. You must not board if unwell or impaired. There is no supplemental oxygen on board.',
+    'Conduct and baggage. Disruptive conduct, dangerous goods, undeclared lithium batteries, weapons, explosives, flammable materials, or any item that may affect flight safety are not permitted. Baggage remains subject to pilot approval and aircraft loading limits.',
+    'Payment and changes. A Reimbursement Statement may be issued after operational confirmation. Payment, cancellation, and refund arrangements remain subject to the information provided by operations for this booking.'
+  ];
+  for (const term of terms) {
+    drawWrapped(term, 8.1, 8, muted);
+    y -= 4;
+  }
+  y -= 2;
+  page.drawRectangle({ x: left, y: y - 54, width: right - left, height: 58, color: paleGreen, borderColor: green, borderWidth: 1 });
+  draw('ELECTRONIC ACKNOWLEDGEMENT', left + 10, y - 10, 9.5, courierBold, green, 38);
+  draw(`SIGNED BY: ${passenger.agreementSignatureName || passenger.name || 'Passenger'}`, left + 10, y - 26, 8.7, courierBold, ink, 72);
+  draw(`SIGNED AT: ${passenger.agreementSignedAt ? new Date(passenger.agreementSignedAt).toISOString().replace('T', ' ').replace('.000Z', ' UTC') : 'Not recorded'}`, left + 10, y - 40, 8.3, courier, ink, 75);
+  draw(`AGREEMENT VERSION: ${passenger.agreementVersion || 'PRIVATE-FLIGHT-AGREEMENT-2026-06-24'}`, left + 10, y - 51, 7.5, courier, muted, 86);
+  draw('PAGE 1/1', 490, 34, 9, courier, muted, 12);
+  return Buffer.from(await pdfDoc.save());
+}
+
 app.get('/api/booking-ops/requests/:id/reimbursement-statement/pdf', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
@@ -3228,6 +3327,20 @@ app.get('/api/booking-ops/requests/:id/reimbursement-statement/pdf', requirePilo
   const pdf = await createReimbursementStatementPdf(request);
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `inline; filename="${request.id}-REIMBURSEMENT-STATEMENT.pdf"`);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.send(pdf);
+});
+
+app.get('/api/booking-ops/requests/:id/agreement/:passengerNumber/pdf', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  const passengerNumber = Number(req.params.passengerNumber);
+  const passenger = getRequestPassengers(request).find(item => Number(item.number || 1) === passengerNumber);
+  if (!passenger?.agreementSignedAt) return res.status(404).json({ error: 'SIGNED AGREEMENT NOT AVAILABLE' });
+  const pdf = await createSignedAgreementPdf(request, passenger);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${request.id}-PAX${passenger.number || 1}-SIGNED-AGREEMENT.pdf"`);
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.send(pdf);
 });

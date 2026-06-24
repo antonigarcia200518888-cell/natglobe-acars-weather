@@ -268,6 +268,18 @@
       margin-bottom: 4px;
     }
 
+    .agreement-pdf-btn {
+      width: 100%;
+      min-height: 32px;
+      margin-top: 8px;
+      border: 1px solid var(--live);
+      background: #000;
+      color: var(--live);
+      cursor: pointer;
+      font: 700 10px "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
     .ops-alerts {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -701,6 +713,7 @@ END OF MESSAGE</pre>
           TEL ${escapeHtml(passenger.phone || 'NIL')}<br>
           ${escapeHtml(passenger.email || 'NIL')}<br>
           AGREEMENT ${passenger.agreementSignedAt ? `SIGNED ${escapeHtml(new Date(passenger.agreementSignedAt).toLocaleString('en-GB', { hour12: false }))}` : 'AWAITING SIGNATURE'}
+          ${passenger.agreementSignedAt ? `<button class="agreement-pdf-btn" type="button" data-agreement-pdf="${escapeHtml(passenger.number || 1)}">OPEN SIGNED AGREEMENT PDF</button>` : ''}
         </div>
       `).join('');
     }
@@ -849,6 +862,12 @@ END OF MESSAGE</pre>
       if (!row) return;
       const req = requests.find(item => item.id === row.getAttribute('data-id'));
       if (req) selectRequest(req);
+    });
+    manifestList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-agreement-pdf]');
+      if (!button || !selected?.id) return;
+      const pdfWindow = window.open(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/agreement/${encodeURIComponent(button.dataset.agreementPdf)}/pdf`, '_blank', 'noopener');
+      if (!pdfWindow) mode.textContent = 'MODE: POP-UP BLOCKED / ALLOW POP-UPS TO OPEN AGREEMENT PDF';
     });
     opsCalendar.addEventListener('click', (event) => {
       const row = event.target.closest('[data-calendar-id]');
