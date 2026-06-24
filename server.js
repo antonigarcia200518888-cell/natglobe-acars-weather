@@ -326,8 +326,8 @@ function privateFlightEmailHtml({ status, reference, greeting, intro, details, s
         <tr><td bgcolor="#ffffff" style="padding:20px 28px;background-color:#ffffff;border-bottom:2px solid ${navy}">
           <img src="${PUBLIC_SITE_URL}/nga-private-aviation-logo.png" alt="NGA Private Aviation" width="154" style="display:block;width:154px;max-width:100%;height:auto;border:0;margin:0 0 15px" />
           <div style="font-size:12px;letter-spacing:.12em;color:${navy}">NGA PRIVATE AVIATION</div>
-          <div style="margin-top:8px;font-family:'Computer Says No','Courier New',Courier,monospace;font-size:23px;font-weight:700;line-height:1;color:${navy}">${escapeEmailHtml(status)}</div>
-          <div style="margin-top:13px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:16px;font-weight:700;line-height:1.1">REFERENCE ${escapeEmailHtml(reference)}</div>
+          <div style="margin-top:8px;font-family:'Computer Says No','Courier New',Courier,monospace;font-size:26px;font-weight:700;line-height:1;color:${navy}">${escapeEmailHtml(status)}</div>
+          <div style="margin-top:13px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:18px;font-weight:700;line-height:1.1">REFERENCE ${escapeEmailHtml(reference)}</div>
         </td></tr>
         <tr><td bgcolor="#ffffff" style="padding:28px;background-color:#ffffff">
           <p style="margin:0 0 18px;font-size:16px;line-height:1.5;color:${navy}">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
@@ -352,9 +352,9 @@ function requestReceivedEmailHtml({ reference, greeting, details }) {
         <tr><td bgcolor="#ffffff" style="padding:20px;background-color:#ffffff">
           <img src="${PUBLIC_SITE_URL}/nga-private-aviation-logo.png" alt="NGA Private Aviation" width="154" style="display:block;width:154px;max-width:100%;height:auto;border:0;margin:0 0 15px" />
           <div style="color:${navy};font-size:11px;letter-spacing:.08em;text-transform:uppercase">Private Flight</div>
-          <div style="margin:10px 0 14px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:24px;font-weight:700;line-height:1;text-transform:uppercase">REQUEST RECEIVED</div>
+          <div style="margin:10px 0 14px;color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:26px;font-weight:700;line-height:1;text-transform:uppercase">REQUEST RECEIVED</div>
           <p style="margin:0;color:${navy};font-size:12px;line-height:1.55;text-transform:uppercase">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p>
-          <div style="margin:16px 0;padding:10px 12px;border:1px solid ${navy};color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:17px;font-weight:700;line-height:1">REFERENCE ${escapeEmailHtml(reference)}</div>
+          <div style="margin:16px 0;padding:10px 12px;border:1px solid ${navy};color:${navy};font-family:'Computer Says No','Courier New',Courier,monospace;font-size:19px;font-weight:700;line-height:1">REFERENCE ${escapeEmailHtml(reference)}</div>
           <p style="margin:0 0 14px;color:${navy};font-size:14px;line-height:1.5">Dear <strong>${escapeEmailHtml(greeting)},</strong></p>
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border-collapse:collapse">${lines}</table>
           <div style="margin-top:16px;padding:12px 14px;border-left:3px solid ${navy};background-color:#f3f5f7;color:${navy};font-size:11px;line-height:1.55"><strong style="color:${navy}">PRIVATE NCO OPERATION</strong><br>This is a private, non-commercial NCO flight and remains subject to pilot decision and operational confirmation.</div>
