@@ -563,7 +563,7 @@ async function notifyBookerOfBooking(request) {
     text: [
       `Dear ${groupGreeting(group)},`,
       '',
-      'Thank you for your private flight request. Our operations team has received it and will contact you within 24 hours of the requested flight.',
+      'Thank you for your private flight request. Our operations team has received it and will contact you as soon as possible after pilot and operational review.',
       '',
       'REQUESTED FLIGHT DETAILS',
       `Booking reference: ${request.id}`,
