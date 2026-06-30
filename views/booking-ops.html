@@ -380,6 +380,29 @@
     .proposal-status.accepted { border-color: var(--live); color: var(--live); }
     .proposal-status.denied { border-color: var(--danger); color: var(--danger); }
 
+    .contact-compose {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(150px, .45fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .contact-compose input {
+      width: 100%;
+      border: 1px solid #777;
+      background: #000;
+      color: #fff;
+      padding: 9px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .contact-compose .btn {
+      margin: 0;
+      min-height: 42px;
+      font-size: 13px;
+    }
+
     .ops-mini-status {
       color: #8d8d8d;
       font-size: 11px;
@@ -519,7 +542,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .contact-compose { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
@@ -589,6 +612,11 @@
               <div class="brief-line"><span>Email</span><strong id="briefEmail">.....</strong></div>
               <div class="brief-line"><span>Phone</span><strong id="briefPhone">.....</strong></div>
               <div class="brief-line"><span>Safety</span><strong id="briefSafety">.....</strong></div>
+              <div class="brief-line"><span>Extra email contacts</span><strong id="briefExtraEmails">NONE</strong></div>
+              <div class="contact-compose">
+                <input id="additionalEmailContacts" type="text" placeholder="extra@email.com, operations@email.com" />
+                <button id="saveEmailContactsBtn" class="btn ghost" type="button">SAVE EMAIL CONTACTS</button>
+              </div>
             </div>
             <div class="brief-card full">
               <div class="brief-title">Passenger manifest</div>
@@ -701,6 +729,8 @@ END OF MESSAGE</pre>
     const proposalStatus = el('proposalStatus');
     const proposalSummary = el('proposalSummary');
     const sendProposalBtn = el('sendProposalBtn');
+    const additionalEmailContacts = el('additionalEmailContacts');
+    const saveEmailContactsBtn = el('saveEmailContactsBtn');
 
     let requests = [];
     let selected = null;
@@ -777,6 +807,7 @@ END OF MESSAGE</pre>
       if (req.timeProposal?.responseStatus === 'ACCEPTED') alerts.push({ tone: 'good', label: `TIME ACCEPTED ${proposalLabel(req.timeProposal)}` });
       if (req.timeProposal?.responseStatus === 'DENIED') alerts.push({ tone: 'danger', label: 'TIME PROPOSAL DENIED' });
       if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(req.timeProposal.responseStatus)) alerts.push({ tone: 'warn', label: `TIME PROPOSAL PENDING ${proposalLabel(req.timeProposal)}` });
+      if (req.additionalEmailContacts?.length) alerts.push({ tone: 'good', label: `EXTRA EMAILS ${req.additionalEmailContacts.length}` });
       if (req.contractAccepted) alerts.push({ tone: 'good', label: 'SAFETY ACCEPTED' });
       const passengers = req.passengers?.length ? req.passengers : [];
       if (passengers.length) {
@@ -895,6 +926,9 @@ END OF MESSAGE</pre>
       setText('briefEmail', req.email);
       setText('briefPhone', req.phone);
       setText('briefSafety', req.contractAccepted ? 'Declaration accepted' : 'Not accepted');
+      const extraEmails = Array.isArray(req.additionalEmailContacts) ? req.additionalEmailContacts.join(', ') : '';
+      setText('briefExtraEmails', extraEmails, 'NONE');
+      additionalEmailContacts.value = extraEmails;
       setText('briefBaggage', req.carryOnBags || 'NIL');
       setText('briefBagWeight', req.carryOnBags === 'YES' ? `${req.baggageWeightKg || '0'} KG / ${req.bagType || 'NIL'}` : 'N/A');
       setText('briefPowerBanks', req.powerBanks || 'NIL');
@@ -989,6 +1023,7 @@ END OF MESSAGE</pre>
     [filterQuery, filterStatus, filterDate].forEach(input => input.addEventListener('input', renderList));
     filterStatus.addEventListener('change', renderList);
     saveCrewBtn.addEventListener('click', () => updateSelected({ crew: { commander: commander.value, secondary: secondary.value } }));
+    saveEmailContactsBtn.addEventListener('click', () => updateSelected({ additionalEmailContacts: additionalEmailContacts.value }));
     sendProposalBtn.addEventListener('click', async () => {
       if (!selected) {
         mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';

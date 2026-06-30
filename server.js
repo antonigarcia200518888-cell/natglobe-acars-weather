@@ -295,7 +295,35 @@ function passengerEmailGroups(request) {
   return [...groups.values()];
 }
 
+function normalizeAdditionalEmailContacts(input) {
+  const raw = Array.isArray(input) ? input.join(',') : String(input || '');
+  const emails = raw
+    .split(/[,\s;]+/)
+    .map(item => item.trim())
+    .filter(Boolean);
+  const unique = [];
+  const seen = new Set();
+  for (const email of emails) {
+    const lower = email.toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || seen.has(lower)) continue;
+    seen.add(lower);
+    unique.push(email);
+  }
+  return unique.slice(0, 8);
+}
+
+function bookingEmailGroups(request) {
+  const groups = new Map();
+  passengerEmailGroups(request).forEach(group => groups.set(group.email.toLowerCase(), group));
+  normalizeAdditionalEmailContacts(request.additionalEmailContacts).forEach(email => {
+    const key = email.toLowerCase();
+    if (!groups.has(key)) groups.set(key, { email, passengers: [], additionalContact: true });
+  });
+  return [...groups.values()];
+}
+
 function groupGreeting(group) {
+  if (group.additionalContact && !group.passengers?.length) return 'Private Flight Contact';
   const names = group.passengers.map(emailPassengerName);
   if (!names.length) return 'Private Flight Guest';
   if (names.length === 1) return names[0];
@@ -481,7 +509,7 @@ async function notifyBookerOfTimeProposal(request) {
     </p>
     <p style="margin:10px 0;line-height:1.55;color:#031c45">After opening either link, you may add a message for the flight team before submitting your response.</p>`;
 
-  const groups = passengerEmailGroups(request);
+  const groups = bookingEmailGroups(request);
   await Promise.all(groups.map(group => sendBookingEmail({
     to: group.email,
     subject: `Departure time proposal / ${request.id}`,
@@ -528,7 +556,7 @@ async function notifyBookerOfBooking(request) {
     ['Baggage', boardingPassBaggage(request)],
     ['Price estimate', emailPriceSummary(request)]
   ];
-  const groups = passengerEmailGroups(request);
+  const groups = bookingEmailGroups(request);
   await Promise.all(groups.map(group => sendBookingEmail({
     to: group.email,
     subject: `Private flight request received / ${request.id}`,
@@ -564,7 +592,7 @@ async function notifyBookerOfBooking(request) {
 }
 
 async function notifyBookerOfApproval(request) {
-  const groups = passengerEmailGroups(request);
+  const groups = bookingEmailGroups(request);
   const allPassItems = passengerPassItems(request);
   const allAgreementItems = privateFlightAgreementItems(request);
   const reimbursementUrl = reimbursementStatementPublicUrl(request);
@@ -3639,6 +3667,14 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     }
     request.crew = { commander, secondary };
     await addBookingTimelineEvent(request.id, 'CREW ASSIGNMENT', `CMD ${commander} / SIC ${secondary}`);
+  }
+  if (Object.prototype.hasOwnProperty.call(req.body || {}, 'additionalEmailContacts')) {
+    request.additionalEmailContacts = normalizeAdditionalEmailContacts(req.body.additionalEmailContacts);
+    await addBookingTimelineEvent(
+      request.id,
+      'EMAIL CONTACTS UPDATED',
+      request.additionalEmailContacts.length ? request.additionalEmailContacts.join(', ') : 'Additional contacts cleared.'
+    );
   }
   if (req.body?.reimbursementStatement && typeof req.body.reimbursementStatement === 'object') {
     const statement = normalizeReimbursementStatement(req.body.reimbursementStatement);
