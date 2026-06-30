@@ -449,6 +449,75 @@ function bookingPaymentUrl(request) {
     .replaceAll('{payment_reference}', encodeURIComponent(paymentReference));
 }
 
+function proposedTimeLabel(proposal) {
+  if (!proposal?.date || !proposal?.time) return 'To be confirmed';
+  return `${emailDate(proposal.date)} at ${formatBoardingPassTime(proposal.time)} Local Time`;
+}
+
+function timeProposalResponseUrl(request, action) {
+  if (!request?.timeProposal?.token) return '';
+  return `${PUBLIC_SITE_URL}/private-flight-time-proposal/${encodeURIComponent(request.id)}/${request.timeProposal.token}/${action}`;
+}
+
+async function notifyBookerOfTimeProposal(request) {
+  const proposal = request.timeProposal;
+  if (!proposal?.token) return 0;
+  const acceptUrl = timeProposalResponseUrl(request, 'accept');
+  const denyUrl = timeProposalResponseUrl(request, 'deny');
+  const currentTime = `${emailDate(request.requestDate)} at ${formatBoardingPassTime(request.requestTime)} Local Time`;
+  const proposedTime = proposedTimeLabel(proposal);
+  const details = [
+    ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`],
+    ['Current requested departure', currentTime],
+    ['Proposed new departure', proposedTime],
+    ['Reason', proposal.note || 'Operational timing adjustment'],
+    ['Reference', request.id]
+  ];
+  const responseHtml = `
+    <p style="margin:10px 0 14px;line-height:1.6;color:#031c45">Please review the proposed departure time below. You can accept it or decline it and add a short message for operations.</p>
+    <p style="margin:16px 0">
+      <a href="${escapeEmailHtml(acceptUrl)}" style="display:inline-block;background:#0f7b42;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:3px;margin:0 8px 8px 0">ACCEPT NEW TIME</a>
+      <a href="${escapeEmailHtml(denyUrl)}" style="display:inline-block;background:#b42318;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:3px;margin:0 0 8px">DECLINE NEW TIME</a>
+    </p>
+    <p style="margin:10px 0;line-height:1.55;color:#031c45">After opening either link, you may add a message for the flight team before submitting your response.</p>`;
+
+  const groups = passengerEmailGroups(request);
+  await Promise.all(groups.map(group => sendBookingEmail({
+    to: group.email,
+    subject: `Departure time proposal / ${request.id}`,
+    text: [
+      `Dear ${groupGreeting(group)},`,
+      '',
+      'Operations would like to propose a new departure time for your private flight request.',
+      '',
+      `Reference: ${request.id}`,
+      `Route: ${details[0][1]}`,
+      `Current requested departure: ${currentTime}`,
+      `Proposed new departure: ${proposedTime}`,
+      `Reason: ${proposal.note || 'Operational timing adjustment'}`,
+      '',
+      `Accept new time: ${acceptUrl}`,
+      `Decline new time: ${denyUrl}`,
+      '',
+      'You can add a short message for operations after opening either link.',
+      '',
+      'Best regards,',
+      'NGA Private Aviation Team',
+      'info.ngaprivateaviation@gmail.com'
+    ].join('\n'),
+    html: privateFlightEmailHtml({
+      status: 'NEW TIME PROPOSED',
+      reference: request.id,
+      greeting: groupGreeting(group),
+      intro: 'Operations would like to propose a new departure time for your private flight request.',
+      details,
+      sections: [{ title: 'PASSENGER RESPONSE REQUIRED', html: responseHtml }],
+      closing: ['Best regards,', 'NGA Private Aviation Team', 'info.ngaprivateaviation@gmail.com']
+    })
+  })));
+  return groups.length;
+}
+
 async function notifyBookerOfBooking(request) {
   const details = [
     ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} - ${boardingPassAirportLabel(request.arr, request.arrName)}`],
@@ -923,6 +992,10 @@ function createAgreementToken() {
 }
 
 function createReimbursementStatementToken() {
+  return randomUUID().replace(/-/g, '');
+}
+
+function createTimeProposalToken() {
   return randomUUID().replace(/-/g, '');
 }
 
@@ -2947,6 +3020,68 @@ app.get('/private-flight-reimbursement-statement/:reference/:token', async (req,
   res.sendFile(path.join(__dirname, 'views', 'reimbursement-statement.html'));
 });
 
+app.get('/private-flight-time-proposal/:reference/:token/:action?', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'time-proposal-response.html'));
+});
+
+function findTimeProposalRequest(reference, token) {
+  const request = bookingRequests.find(item => (
+    item.id === String(reference || '').trim().toUpperCase()
+    && item.timeProposal?.token === String(token || '').trim()
+  ));
+  if (!request?.timeProposal) return null;
+  return request;
+}
+
+app.get('/api/private-flight-time-proposals/:reference/:token', async (req, res) => {
+  await bookingStoreReady;
+  const request = findTimeProposalRequest(req.params.reference, req.params.token);
+  if (!request) return res.status(404).json({ error: 'TIME PROPOSAL NOT AVAILABLE' });
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    proposal: {
+      reference: request.id,
+      route: `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`,
+      currentDate: request.timeProposal.originalDate || request.requestDate || '',
+      currentTime: request.timeProposal.originalTime || request.requestTime || '',
+      proposedDate: request.timeProposal.date || '',
+      proposedTime: request.timeProposal.time || '',
+      proposedLabel: proposedTimeLabel(request.timeProposal),
+      note: request.timeProposal.note || '',
+      responseStatus: request.timeProposal.responseStatus || 'PENDING',
+      responseMessage: request.timeProposal.responseMessage || '',
+      respondedAt: request.timeProposal.respondedAt || ''
+    }
+  });
+});
+
+app.post('/api/private-flight-time-proposals/:reference/:token/respond', async (req, res) => {
+  await bookingStoreReady;
+  const request = findTimeProposalRequest(req.params.reference, req.params.token);
+  if (!request) return res.status(404).json({ error: 'TIME PROPOSAL NOT AVAILABLE' });
+  const decision = String(req.body?.decision || '').trim().toUpperCase();
+  if (!['ACCEPTED', 'DENIED'].includes(decision)) return res.status(400).json({ error: 'SELECT ACCEPT OR DENY' });
+  const message = normalizeBookingText(req.body?.message, 500);
+  request.timeProposal.responseStatus = decision;
+  request.timeProposal.responseMessage = message;
+  request.timeProposal.respondedAt = new Date().toISOString();
+  if (decision === 'ACCEPTED') {
+    request.requestDate = request.timeProposal.date;
+    request.requestTime = request.timeProposal.time;
+    await addBookingTimelineEvent(request.id, 'TIME PROPOSAL ACCEPTED', message || proposedTimeLabel(request.timeProposal));
+  } else {
+    await addBookingTimelineEvent(request.id, 'TIME PROPOSAL DENIED', message || 'Passenger declined the proposed departure time.');
+  }
+  await persistBookingRequest(request);
+  res.json({
+    ok: true,
+    reference: request.id,
+    status: request.timeProposal.responseStatus,
+    proposedLabel: proposedTimeLabel(request.timeProposal)
+  });
+});
+
 app.get('/pass-check/:token', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'pass-verification.html'));
@@ -3419,6 +3554,43 @@ app.get('/api/booking-ops/requests/:id/pdf', requirePilotAccess, async (req, res
   res.setHeader('Content-Disposition', `inline; filename="${request.id}-OPERATIONS-REQUEST.pdf"`);
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.send(pdf);
+});
+
+app.post('/api/booking-ops/requests/:id/time-proposal', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  const date = normalizeBookingText(req.body?.date, 20);
+  const time = normalizeBookingText(req.body?.time, 16);
+  const note = normalizeBookingText(req.body?.note, 300);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'VALID PROPOSED DATE REQUIRED' });
+  if (!/^\d{1,2}:\d{2}$/.test(time)) return res.status(400).json({ error: 'VALID PROPOSED TIME REQUIRED' });
+  request.timeProposal = {
+    token: createTimeProposalToken(),
+    date,
+    time,
+    note,
+    originalDate: request.requestDate || '',
+    originalTime: request.requestTime || '',
+    responseStatus: 'PENDING',
+    responseMessage: '',
+    proposedAt: new Date().toISOString(),
+    respondedAt: ''
+  };
+  await persistBookingRequest(request);
+  await addBookingTimelineEvent(request.id, 'NEW DEPARTURE TIME PROPOSED', `${proposedTimeLabel(request.timeProposal)}${note ? ` / ${note}` : ''}`);
+  res.json({
+    request: {
+      ...request,
+      bookingMessage: formatBookingMessage(request)
+    }
+  });
+  void notifyBookerOfTimeProposal(request)
+    .then(count => {
+      if (count) return addBookingTimelineEvent(request.id, 'TIME PROPOSAL EMAIL', `Departure time proposal sent to ${count} passenger email${count === 1 ? '' : 's'}.`);
+      return null;
+    })
+    .catch(err => console.error('TIME PROPOSAL EMAIL:', err.message));
 });
 
 app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {

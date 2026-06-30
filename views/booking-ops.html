@@ -163,6 +163,7 @@
     .request-state { border: 1px solid currentColor; padding: 2px 5px; font-size: 11px; font-weight: 700; }
     .state-good { color: var(--live); }
     .state-danger { color: var(--danger); }
+    .state-warn { color: var(--warn); }
 
     .meta-grid {
       display: grid;
@@ -340,6 +341,45 @@
       font-size: 13px;
     }
 
+    .proposal-compose {
+      display: grid;
+      grid-template-columns: minmax(140px, 0.7fr) minmax(110px, 0.5fr) minmax(220px, 1fr);
+      gap: 8px;
+      margin: 12px 0 8px;
+    }
+
+    .proposal-compose input,
+    .proposal-compose textarea {
+      width: 100%;
+      border: 1px solid #777;
+      background: #000;
+      color: #fff;
+      padding: 9px;
+      font-family: inherit;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .proposal-compose textarea {
+      min-height: 42px;
+      resize: vertical;
+      text-transform: none;
+    }
+
+    .proposal-status {
+      border: 1px solid #777;
+      padding: 10px;
+      color: #cfcfcf;
+      font-size: 12px;
+      line-height: 1.45;
+      text-transform: uppercase;
+      background: #000;
+    }
+
+    .proposal-status.pending { border-color: var(--warn); color: var(--warn); }
+    .proposal-status.accepted { border-color: var(--live); color: var(--live); }
+    .proposal-status.denied { border-color: var(--danger); color: var(--danger); }
+
     .ops-mini-status {
       color: #8d8d8d;
       font-size: 11px;
@@ -479,7 +519,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
@@ -531,6 +571,17 @@
               <div class="brief-line"><span>Return</span><strong id="briefReturn">.....</strong></div>
               <div class="brief-line"><span>Aircraft</span><strong id="briefAircraft">.....</strong></div>
               <div class="brief-line"><span>Created</span><strong id="briefCreated">.....</strong></div>
+            </div>
+            <div class="brief-card wide">
+              <div class="brief-title">Propose new departure time</div>
+              <div class="brief-line"><span>Current proposal</span><strong id="proposalSummary">NO ACTIVE PROPOSAL</strong></div>
+              <div id="proposalStatus" class="proposal-status">Send a proposed new departure time to the booker for acceptance.</div>
+              <div class="proposal-compose">
+                <input id="proposalDate" type="date" aria-label="Proposed departure date" />
+                <input id="proposalTime" type="time" aria-label="Proposed departure time" />
+                <textarea id="proposalNote" placeholder="Reason or message shown to the booker."></textarea>
+              </div>
+              <button id="sendProposalBtn" class="btn ghost" type="button">SEND TIME PROPOSAL</button>
             </div>
             <div class="brief-card wide">
               <div class="brief-title">Lead passenger and contact</div>
@@ -644,6 +695,12 @@ END OF MESSAGE</pre>
     const secondary = el('secondary');
     const saveCrewBtn = el('saveCrewBtn');
     const opsCalendar = el('opsCalendar');
+    const proposalDate = el('proposalDate');
+    const proposalTime = el('proposalTime');
+    const proposalNote = el('proposalNote');
+    const proposalStatus = el('proposalStatus');
+    const proposalSummary = el('proposalSummary');
+    const sendProposalBtn = el('sendProposalBtn');
 
     let requests = [];
     let selected = null;
@@ -679,6 +736,35 @@ END OF MESSAGE</pre>
       return `${req.returnDate || 'DATE TBD'} ${req.returnTime || 'TIME TBD'} / ${req.returnPlan || req.returnFlexibility || 'PASSENGERS TO BE CONFIRMED'}`;
     }
 
+    function proposalLabel(proposal) {
+      if (!proposal?.date || !proposal?.time) return 'NO ACTIVE PROPOSAL';
+      return `${proposal.date} ${proposal.time}`;
+    }
+
+    function proposalTone(proposal) {
+      const status = String(proposal?.responseStatus || '').toUpperCase();
+      if (status === 'ACCEPTED') return 'accepted';
+      if (status === 'DENIED') return 'denied';
+      if (proposal?.date && proposal?.time) return 'pending';
+      return '';
+    }
+
+    function renderProposal(req) {
+      const proposal = req.timeProposal || null;
+      proposalDate.value = proposal?.date || req.requestDate || '';
+      proposalTime.value = proposal?.time || req.requestTime || '';
+      proposalNote.value = proposal?.note || '';
+      proposalSummary.textContent = proposalLabel(proposal);
+      const response = String(proposal?.responseStatus || '').toUpperCase();
+      const message = proposal?.responseMessage ? ` / MSG: ${proposal.responseMessage}` : '';
+      const proposedAt = proposal?.proposedAt ? ` / SENT ${new Date(proposal.proposedAt).toLocaleString('en-GB', { hour12: false })}` : '';
+      const respondedAt = proposal?.respondedAt ? ` / RESPONSE ${new Date(proposal.respondedAt).toLocaleString('en-GB', { hour12: false })}` : '';
+      proposalStatus.className = `proposal-status ${proposalTone(proposal)}`;
+      proposalStatus.textContent = proposal
+        ? `PROPOSED ${proposalLabel(proposal)} / ${response || 'PENDING'}${proposedAt}${respondedAt}${message}`
+        : 'Send a proposed new departure time to the booker for acceptance.';
+    }
+
     function renderAlerts(req) {
       const alerts = [];
       alerts.push({ tone: req.status === 'CONFIRMED' ? 'good' : 'warn', label: `STATUS ${req.status || 'REQUESTED'}` });
@@ -688,6 +774,9 @@ END OF MESSAGE</pre>
       if (req.carryOnBags === 'YES') alerts.push({ tone: 'warn', label: `BAG ${req.baggageWeightKg || '?'}KG` });
       if (String(req.extras || '').match(/WINE|CHAMPAGNE|BEER|LONG DRINK/i)) alerts.push({ tone: 'warn', label: 'ALCOHOL REQUEST' });
       if (String(req.extras || '').match(/TRANSFER/i)) alerts.push({ tone: 'warn', label: 'TRANSFER REQUEST' });
+      if (req.timeProposal?.responseStatus === 'ACCEPTED') alerts.push({ tone: 'good', label: `TIME ACCEPTED ${proposalLabel(req.timeProposal)}` });
+      if (req.timeProposal?.responseStatus === 'DENIED') alerts.push({ tone: 'danger', label: 'TIME PROPOSAL DENIED' });
+      if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(req.timeProposal.responseStatus)) alerts.push({ tone: 'warn', label: `TIME PROPOSAL PENDING ${proposalLabel(req.timeProposal)}` });
       if (req.contractAccepted) alerts.push({ tone: 'good', label: 'SAFETY ACCEPTED' });
       const passengers = req.passengers?.length ? req.passengers : [];
       if (passengers.length) {
@@ -759,12 +848,14 @@ END OF MESSAGE</pre>
       requestList.innerHTML = visible.map(req => {
         const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
         const paid = req.paymentStatus === 'PAID';
+        const proposal = String(req.timeProposal?.responseStatus || '').toUpperCase();
+        const proposalClass = proposal === 'ACCEPTED' ? 'state-good' : proposal === 'DENIED' ? 'state-danger' : 'state-warn';
         return `
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
           <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
           ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
           ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
-          <div class="request-state-row"><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span></div>
+          <div class="request-state-row"><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span>${req.timeProposal ? `<span class="request-state ${proposalClass}">TIME ${escapeHtml(proposal || 'PENDING')}</span>` : ''}</div>
         </div>
       `;
       }).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
@@ -815,6 +906,7 @@ END OF MESSAGE</pre>
       setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
       commander.value = req.crew?.commander || 'UNASSIGNED';
       secondary.value = req.crew?.secondary || 'NONE';
+      renderProposal(req);
       renderAlerts(req);
       renderManifest(req);
       updateWalletControls(req);
@@ -897,6 +989,39 @@ END OF MESSAGE</pre>
     [filterQuery, filterStatus, filterDate].forEach(input => input.addEventListener('input', renderList));
     filterStatus.addEventListener('change', renderList);
     saveCrewBtn.addEventListener('click', () => updateSelected({ crew: { commander: commander.value, secondary: secondary.value } }));
+    sendProposalBtn.addEventListener('click', async () => {
+      if (!selected) {
+        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
+        return;
+      }
+      if (!proposalDate.value || !proposalTime.value) {
+        mode.textContent = 'MODE: PROPOSED DATE AND TIME REQUIRED';
+        return;
+      }
+      if (!window.confirm(`Send a new departure time proposal for ${selected.id}? This emails the booker with accept and deny buttons.`)) {
+        mode.textContent = 'MODE: TIME PROPOSAL CANCELLED';
+        return;
+      }
+      mode.textContent = 'MODE: SENDING TIME PROPOSAL';
+      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/time-proposal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: proposalDate.value,
+          time: proposalTime.value,
+          note: proposalNote.value.trim()
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        mode.textContent = `MODE: ${data.error || 'TIME PROPOSAL FAILED'}`;
+        return;
+      }
+      replaceRequest(data.request);
+      renderCalendar();
+      loadTimeline(selected.id).catch(() => {});
+      mode.textContent = 'MODE: TIME PROPOSAL SENT';
+    });
 
     openPdfBtn.addEventListener('click', () => {
       if (!selected) {
