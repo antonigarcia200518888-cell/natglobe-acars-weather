@@ -2525,16 +2525,14 @@
     }
 
     function requestDateIsAvailable(value) {
-      const time = el('requestTime').value || '10:00';
-      const departure = new Date(`${value}T${time}:00`);
       const pilotRule = pilotAvailability.get(value);
-      return pilotRule?.isOpen !== false && Number.isFinite(departure.getTime()) && departure.getTime() >= Date.now() + (24 * 60 * 60 * 1000);
+      return pilotRule?.isOpen !== false;
     }
 
     function requestDateUnavailableReason(value) {
       const pilotRule = pilotAvailability.get(value);
       if (pilotRule?.isOpen === false) return pilotRule.note || 'UNAVAILABLE';
-      return '24H NOTICE';
+      return 'PILOT REVIEW';
     }
 
     function updateDatePriceLabels(dep, arr) {
