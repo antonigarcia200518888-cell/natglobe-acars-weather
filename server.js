@@ -953,7 +953,7 @@ function normalizeBookingText(input, max = 80) {
 
 function normalizeReimbursementStatement(input) {
   if (!input || typeof input !== 'object') return null;
-  const charges = Array.isArray(input.charges) ? input.charges.slice(0, 6).map(charge => ({
+  const charges = Array.isArray(input.charges) ? input.charges.slice(0, 8).map(charge => ({
     description: normalizeBookingText(charge?.description, 80),
     quantity: normalizeBookingText(charge?.quantity, 30),
     unitPrice: normalizeBookingText(charge?.unitPrice, 20),
@@ -3362,7 +3362,7 @@ async function createReimbursementStatementPdf(request) {
   const payerName = statement.payerName || passenger.name || statement.passengerName || 'PASSENGER';
   const payerEmail = statement.payerEmail || passenger.email || statement.passengerEmail || '---';
   const payerPhone = statement.payerPhone || passenger.phone || statement.passengerPhone || '---';
-  const charges = (statement.charges?.length ? statement.charges : reimbursementStatementDefaults(request).charges).slice(0, 4);
+  const charges = (statement.charges?.length ? statement.charges : reimbursementStatementDefaults(request).charges).slice(0, 8);
   const total = charges.reduce((sum, charge) => sum + reimbursementPdfNumber(charge.amount), 0);
   const navy = rgb(3 / 255, 28 / 255, 69 / 255);
   const paleBlue = rgb(231 / 255, 246 / 255, 1);
@@ -3409,7 +3409,8 @@ async function createReimbursementStatementPdf(request) {
   draw('DESCRIPTION OF CHARGES', 64, 524, 13, courierBold, white, 35);
   const columns = [48, 282, 352, 447, 547];
   const tableTop = 488;
-  const rowHeight = 30;
+  const rowHeight = charges.length > 6 ? 20 : charges.length > 4 ? 24 : 30;
+  const rowTextOffset = Math.max(7, Math.round((rowHeight - 9) / 2));
   const headers = ['Description', 'Quantity', 'Unit Price (EUR)', 'Amount (EUR)'];
   headers.forEach((header, index) => draw(header, columns[index] + 6, tableTop - 15, 8.5, courierBold, ink, index === 0 ? 32 : 20));
   for (let row = 0; row < charges.length; row += 1) {
@@ -3419,10 +3420,10 @@ async function createReimbursementStatementPdf(request) {
     page.drawLine({ start: { x: 48, y }, end: { x: 547, y }, thickness: 0.8, color: white });
     if (row < charges.length) {
       const charge = charges[row];
-      draw(charge.description, 54, y + 11, 8.5, courier, muted, 42);
-      draw(charge.quantity, 289, y + 11, 8.5, courier, muted, 11);
-      draw(reimbursementPdfMoney(charge.unitPrice), 359, y + 11, 8.5, courier, muted, 14);
-      draw(reimbursementPdfMoney(charge.amount), 454, y + 11, 8.5, courier, muted, 14);
+      draw(charge.description, 54, y + rowTextOffset, 8.5, courier, muted, 42);
+      draw(charge.quantity, 289, y + rowTextOffset, 8.5, courier, muted, 11);
+      draw(reimbursementPdfMoney(charge.unitPrice), 359, y + rowTextOffset, 8.5, courier, muted, 14);
+      draw(reimbursementPdfMoney(charge.amount), 454, y + rowTextOffset, 8.5, courier, muted, 14);
     }
   }
 

@@ -16,11 +16,14 @@
     label { display: block; margin: 9px 0 4px; color: var(--navy); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
     input, select { width: 100%; min-height: 34px; padding: 7px; border: 1px solid #9aa8bb; border-radius: 0; color: var(--navy); font: 12px "Courier New", monospace; background: #fff; }
     .charge-edit { margin-top: 10px; padding: 9px; border: 1px solid #d6dde7; background: #f8fafc; }
+    .charge-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
     .charge-edit strong { color: var(--navy); font-size: 11px; }
     .charge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .charge-grid label:first-child { grid-column: 1 / -1; }
     .btn { width: 100%; min-height: 42px; margin-top: 10px; border: 0; background: var(--navy); color: #fff; cursor: pointer; font: 700 12px "Courier New", monospace; letter-spacing: .04em; text-transform: uppercase; }
     .btn.secondary { border: 1px solid var(--navy); background: #fff; color: var(--navy); }
+    .mini-btn { min-height: 28px; border: 1px solid var(--navy); background: #fff; color: var(--navy); cursor: pointer; font: 700 11px "Courier New", monospace; text-transform: uppercase; }
+    .mini-btn.danger { border-color: #b42318; color: #b42318; }
     .save-status { min-height: 17px; margin-top: 9px; color: var(--navy); font-size: 11px; }
     .paper-wrap { overflow: auto; padding: 2px; }
     .statement { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 17mm 16mm 13mm; background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, .15); position: relative; color: #111; }
@@ -88,6 +91,7 @@
       <label for="crewEmail">Crew email</label><input id="crewEmail" />
       <label for="crewPhone">Crew phone</label><input id="crewPhone" />
       <h2>Charge Lines</h2><div id="chargeEditor"></div>
+      <button id="addChargeRow" class="btn secondary" type="button">+ Add Charge Row</button>
       <h2>Bank Details</h2>
       <label for="bankName">Bank</label><input id="bankName" placeholder="Enter bank name" />
       <label for="accountName">Account name</label><input id="accountName" placeholder="Enter account name" />
@@ -177,13 +181,19 @@
     }
 
     function renderChargeEditor() {
-      el('chargeEditor').innerHTML = (statement.charges || []).map((charge, index) => `<div class="charge-edit"><strong>Charge ${index + 1}</strong><div class="charge-grid"><label>Description<input data-charge="${index}" data-field="description" value="${esc(charge.description)}" /></label><label>Quantity<input data-charge="${index}" data-field="quantity" value="${esc(charge.quantity)}" /></label><label>Unit price<input data-charge="${index}" data-field="unitPrice" value="${esc(charge.unitPrice)}" /></label><label>Amount<input data-charge="${index}" data-field="amount" value="${esc(charge.amount)}" /></label></div></div>`).join('');
+      if (!Array.isArray(statement.charges) || !statement.charges.length) statement.charges = [{ description: '', quantity: '', unitPrice: '0.00', amount: '0.00' }];
+      el('chargeEditor').innerHTML = statement.charges.map((charge, index) => `<div class="charge-edit"><div class="charge-head"><strong>Charge ${index + 1}</strong><button class="mini-btn danger" type="button" data-remove-charge="${index}" ${statement.charges.length <= 1 ? 'disabled' : ''}>Remove</button></div><div class="charge-grid"><label>Description<input data-charge="${index}" data-field="description" value="${esc(charge.description)}" /></label><label>Quantity<input data-charge="${index}" data-field="quantity" value="${esc(charge.quantity)}" /></label><label>Unit price<input data-charge="${index}" data-field="unitPrice" value="${esc(charge.unitPrice)}" /></label><label>Amount<input data-charge="${index}" data-field="amount" value="${esc(charge.amount)}" /></label></div></div>`).join('');
     }
 
     function readStatement() {
       ['statementDate','dueDate','deliveryDate','crewName','crewEmail','crewPhone','payerName','payerEmail','payerPhone','bankName','accountName','iban','bic','siirtoPhone','paymentReference'].forEach(id => { statement[id] = el(id).value; });
       statement.passengerNumber = el('passengerSelect').value;
-      document.querySelectorAll('[data-charge]').forEach(input => { statement.charges[Number(input.dataset.charge)][input.dataset.field] = input.value; });
+      if (!Array.isArray(statement.charges)) statement.charges = [];
+      document.querySelectorAll('[data-charge]').forEach(input => {
+        const index = Number(input.dataset.charge);
+        statement.charges[index] = statement.charges[index] || { description: '', quantity: '', unitPrice: '0.00', amount: '0.00' };
+        statement.charges[index][input.dataset.field] = input.value;
+      });
       const pax = passenger();
       statement.passengerName = pax.name || '';
       statement.passengerEmail = pax.email || '';
@@ -240,6 +250,26 @@
 
     document.addEventListener('input', event => { if (event.target.matches('input')) sync(); });
     el('passengerSelect').addEventListener('change', sync);
+    el('addChargeRow').addEventListener('click', () => {
+      readStatement();
+      if (!Array.isArray(statement.charges)) statement.charges = [];
+      if (statement.charges.length >= 8) {
+        el('saveStatus').textContent = 'Maximum 8 charge rows to keep the statement on one page.';
+        return;
+      }
+      statement.charges.push({ description: '', quantity: '1', unitPrice: '0.00', amount: '0.00' });
+      renderChargeEditor();
+      sync();
+    });
+    el('chargeEditor').addEventListener('click', event => {
+      const button = event.target.closest('[data-remove-charge]');
+      if (!button) return;
+      readStatement();
+      if (statement.charges.length <= 1) return;
+      statement.charges.splice(Number(button.dataset.removeCharge), 1);
+      renderChargeEditor();
+      sync();
+    });
     async function saveStatementDraft() {
       sync();
       el('saveStatus').textContent = 'Saving statement draft...';
