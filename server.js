@@ -319,10 +319,21 @@ function bookingEmailGroups(request) {
     const key = email.toLowerCase();
     if (!groups.has(key)) groups.set(key, { email, passengers: [], additionalContact: true });
   });
+  const payerEmail = String(request.reimbursementStatement?.payerEmail || '').trim();
+  if (payerEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payerEmail)) {
+    const key = payerEmail.toLowerCase();
+    if (!groups.has(key)) groups.set(key, {
+      email: payerEmail,
+      passengers: [],
+      additionalContact: true,
+      payerContact: true
+    });
+  }
   return [...groups.values()];
 }
 
 function groupGreeting(group) {
+  if (group.payerContact && !group.passengers?.length) return 'Private Flight Payer';
   if (group.additionalContact && !group.passengers?.length) return 'Private Flight Contact';
   const names = group.passengers.map(emailPassengerName);
   if (!names.length) return 'Private Flight Guest';
@@ -596,7 +607,7 @@ async function notifyBookerOfApproval(request) {
   const allPassItems = passengerPassItems(request);
   const allAgreementItems = privateFlightAgreementItems(request);
   const reimbursementUrl = reimbursementStatementPublicUrl(request);
-  const requestedPaymentContact = String(request.email || '').trim().toLowerCase();
+  const requestedPaymentContact = String(request.reimbursementStatement?.payerEmail || request.email || '').trim().toLowerCase();
   const paymentContactEmail = groups.some(group => group.email.toLowerCase() === requestedPaymentContact)
     ? requestedPaymentContact
     : String(groups[0]?.email || '').trim().toLowerCase();
@@ -959,6 +970,9 @@ function normalizeReimbursementStatement(input) {
     passengerName: normalizeBookingText(input.passengerName, 60),
     passengerEmail: normalizeBookingText(input.passengerEmail, 120),
     passengerPhone: normalizeBookingText(input.passengerPhone, 40),
+    payerName: normalizeBookingText(input.payerName, 80),
+    payerEmail: normalizeBookingText(input.payerEmail, 120),
+    payerPhone: normalizeBookingText(input.payerPhone, 40),
     bankName: normalizeBookingText(input.bankName, 60),
     accountName: normalizeBookingText(input.accountName, 80),
     iban: normalizeBookingText(input.iban, 60),
@@ -3322,6 +3336,9 @@ function reimbursementStatementDefaults(request) {
     crewEmail: '',
     crewPhone: '',
     passengerNumber: '0',
+    payerName: '',
+    payerEmail: '',
+    payerPhone: '',
     bankName: '',
     accountName: '',
     iban: '',
@@ -3342,6 +3359,9 @@ async function createReimbursementStatementPdf(request) {
   const passengers = getRequestPassengers(request);
   const passengerIndex = Math.max(0, Math.min(passengers.length - 1, Number(statement.passengerNumber) || 0));
   const passenger = passengers[passengerIndex] || passengers[0] || {};
+  const payerName = statement.payerName || passenger.name || statement.passengerName || 'PASSENGER';
+  const payerEmail = statement.payerEmail || passenger.email || statement.passengerEmail || '---';
+  const payerPhone = statement.payerPhone || passenger.phone || statement.passengerPhone || '---';
   const charges = (statement.charges?.length ? statement.charges : reimbursementStatementDefaults(request).charges).slice(0, 4);
   const total = charges.reduce((sum, charge) => sum + reimbursementPdfNumber(charge.amount), 0);
   const navy = rgb(3 / 255, 28 / 255, 69 / 255);
@@ -3370,14 +3390,14 @@ async function createReimbursementStatementPdf(request) {
   }
 
   draw('FLIGHT CREW', 48, 720, 12, courierBold);
-  draw('PASSENGER', 355, 720, 12, courierBold);
+  draw(statement.payerName || statement.payerEmail ? 'COST COVERED BY' : 'PASSENGER', 355, 720, 12, courierBold);
   draw(statement.crewName || 'FLIGHT CREW', 48, 692, 12, courierBold, ink, 35);
   draw(statement.crewEmail || '---', 48, 675, 10, courier, muted, 38);
   draw(statement.crewPhone || '---', 48, 660, 10, courier, muted, 38);
   draw(`Date: ${statement.statementDate || '---'}`, 48, 645, 10, courier, muted, 38);
-  draw(passenger.name || statement.passengerName || 'PASSENGER', 355, 692, 12, courierBold, ink, 32);
-  draw(passenger.email || statement.passengerEmail || '---', 355, 675, 10, courier, muted, 38);
-  draw(passenger.phone || statement.passengerPhone || '---', 355, 660, 10, courier, muted, 38);
+  draw(payerName, 355, 692, 12, courierBold, ink, 32);
+  draw(payerEmail, 355, 675, 10, courier, muted, 38);
+  draw(payerPhone, 355, 660, 10, courier, muted, 38);
   draw(`Date: ${statement.statementDate || '---'}`, 355, 645, 10, courier, muted, 38);
   page.drawLine({ start: { x: 48, y: 626 }, end: { x: 547, y: 626 }, thickness: 1.2, color: navy });
 
@@ -3407,12 +3427,10 @@ async function createReimbursementStatementPdf(request) {
   }
 
   const lowerY = 240;
-  draw('BILL DATE', 50, lowerY + 42, 10, courier);
-  draw(`: ${statement.statementDate || '---'}`, 147, lowerY + 42, 10, courier, muted, 28);
-  draw('DUE DATE (48H)', 50, lowerY + 27, 10, courier);
-  draw(`: ${statement.dueDate || '---'}`, 147, lowerY + 27, 10, courier, muted, 28);
-  draw('DELIVERY DATE', 50, lowerY + 12, 10, courier);
-  draw(`: ${statement.deliveryDate || '---'}`, 147, lowerY + 12, 10, courier, muted, 28);
+  draw('DUE DATE (48H)', 50, lowerY + 42, 10, courier);
+  draw(`: ${statement.dueDate || '---'}`, 147, lowerY + 42, 10, courier, muted, 28);
+  draw('DELIVERY DATE', 50, lowerY + 27, 10, courier);
+  draw(`: ${statement.deliveryDate || '---'}`, 147, lowerY + 27, 10, courier, muted, 28);
   draw('Payment must be made within 48 hours of', 50, lowerY - 30, 9, courier, muted, 43);
   draw('the departure date, by bank transfer.', 50, lowerY - 43, 9, courier, muted, 43);
 
