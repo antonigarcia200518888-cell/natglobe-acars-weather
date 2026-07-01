@@ -3451,7 +3451,7 @@ async function createReimbursementStatementPdf(request) {
   draw('TOTAL FLIGHT COST:', 335, 94, 12, courierBold, ink, 25);
   draw(reimbursementPdfMoney(total), 467, 94, 10, courierBold, ink, 14);
   draw('DUE AMOUNT:', 335, 71, 12, courierBold, ink, 19);
-  draw(reimbursementPdfMoney(total / Math.max(1, Number(request.seats || passengers.length || 1))), 440, 71, 10, courierBold, ink, 16);
+  draw(reimbursementPdfMoney(total), 440, 71, 10, courierBold, ink, 16);
   draw('PAGE 1/1', 490, 34, 9, courier, muted, 12);
   return Buffer.from(await pdfDoc.save());
 }
