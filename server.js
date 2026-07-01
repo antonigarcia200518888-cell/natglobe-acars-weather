@@ -3364,6 +3364,7 @@ async function createReimbursementStatementPdf(request) {
   const payerPhone = statement.payerPhone || passenger.phone || statement.passengerPhone || '---';
   const charges = (statement.charges?.length ? statement.charges : reimbursementStatementDefaults(request).charges).slice(0, 8);
   const total = charges.reduce((sum, charge) => sum + reimbursementPdfNumber(charge.amount), 0);
+  const dueAmount = total / 2;
   const navy = rgb(3 / 255, 28 / 255, 69 / 255);
   const paleBlue = rgb(231 / 255, 246 / 255, 1);
   const ink = rgb(17 / 255, 17 / 255, 17 / 255);
@@ -3447,11 +3448,11 @@ async function createReimbursementStatementPdf(request) {
   draw('CHARGES:', 335, 140, 12, courierBold, ink, 16);
   draw(String(charges.length), 420, 140, 12, courierBold, ink, 4);
   draw('PER PASSENGER:', 335, 117, 12, courierBold, ink, 20);
-  draw(reimbursementPdfMoney(total / Math.max(1, Number(request.seats || passengers.length || 1))), 440, 117, 10, courier, muted, 16);
+  draw(reimbursementPdfMoney(dueAmount / Math.max(1, Number(request.seats || passengers.length || 1))), 440, 117, 10, courier, muted, 16);
   draw('TOTAL FLIGHT COST:', 335, 94, 12, courierBold, ink, 25);
   draw(reimbursementPdfMoney(total), 467, 94, 10, courierBold, ink, 14);
   draw('DUE AMOUNT:', 335, 71, 12, courierBold, ink, 19);
-  draw(reimbursementPdfMoney(total), 440, 71, 10, courierBold, ink, 16);
+  draw(reimbursementPdfMoney(dueAmount), 440, 71, 10, courierBold, ink, 16);
   draw('PAGE 1/1', 490, 34, 9, courier, muted, 12);
   return Buffer.from(await pdfDoc.save());
 }

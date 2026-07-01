@@ -218,10 +218,11 @@
       ['dueDate','deliveryDate','bankName','accountName','iban','bic','paymentReference'].forEach(id => { el(`${id}Preview`).textContent = statement[id] || '---'; });
       const total = statement.charges.reduce((sum, charge) => sum + number(charge.amount), 0);
       const paxCount = Math.max(1, Number(request.seats || request.passengers?.length || 1));
+      const dueAmount = total / 2;
       el('chargeCountPreview').textContent = statement.charges.length;
-      el('perPassengerPreview').textContent = euros(total / paxCount);
+      el('perPassengerPreview').textContent = euros(dueAmount / paxCount);
       el('totalPreview').textContent = euros(total);
-      el('dueAmountPreview').textContent = euros(total);
+      el('dueAmountPreview').textContent = euros(dueAmount);
     }
 
     async function load() {
@@ -236,9 +237,9 @@
       buildEditor();
       if (isPublicStatement && request.siirtoPhone) {
         const total = statement.charges.reduce((sum, charge) => sum + number(charge.amount), 0);
-        const paxCount = Math.max(1, Number(request.seats || request.passengers?.length || 1));
+        const dueAmount = total / 2;
         el('publicPaymentTitle').textContent = 'PAYMENT BY SIIRTO';
-        el('publicPaymentText').textContent = `Open Siirto in your banking app and send ${euros(total)} to ${request.siirtoPhone}. Use payment reference ${statement.paymentReference || request.id}.`;
+        el('publicPaymentText').textContent = `Open Siirto in your banking app and send ${euros(dueAmount)} to ${request.siirtoPhone}. Use payment reference ${statement.paymentReference || request.id}.`;
         el('publicSiirtoCopy').hidden = false;
         el('publicPayment').hidden = false;
       } else if (isPublicStatement && request.paymentUrl) {
