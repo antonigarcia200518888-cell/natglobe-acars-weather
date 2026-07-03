@@ -11,17 +11,31 @@
     crossorigin=""
   />
   <style>
+    @font-face {
+      font-family: "Computer Says No";
+      src: url("/fonts/computer-says-no.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root {
-      --bg: #000000;
-      --fg: #f2f2f2;
-      --muted: #cfcfcf;
-      --line: #ffffff;
-      --button-bg: #d0d0d0;
-      --button-fg: #000000;
-      --live: #66ff99;
+      --bg: #f4f6fa;
+      --fg: #041b3d;
+      --muted: #5f6f86;
+      --line: #071d49;
+      --button-bg: #071d49;
+      --button-fg: #ffffff;
+      --live: #2fbf58;
       --warn: #ffcc66;
-      --danger: #ff6b6b;
-      --accent: #d7d7d7;
+      --danger: #c92626;
+      --accent: #c8ced8;
+      --navy: #071d49;
+      --navy-2: #0b2e63;
+      --paper: #ffffff;
+      --paper-soft: #f7f9fc;
+      --silver: #d7dce5;
+      --ink-soft: #41516a;
     }
 
     * { box-sizing: border-box; }
@@ -1832,10 +1846,371 @@
         grid-template-columns: minmax(0, 1fr) minmax(138px, 0.82fr);
         left: 6px;
         right: 6px;
-        bottom: calc(6px + env(safe-area-inset-bottom));
+      bottom: calc(6px + env(safe-area-inset-bottom));
       }
       .mobile-booking-bar .btn {
         font-size: 13px;
+      }
+    }
+
+    /* NGA email-inspired passenger theme. Pilot ops keeps its original ACARS look. */
+    body {
+      background:
+        radial-gradient(circle at 15% -10%, rgba(7,29,73,0.10), transparent 35%),
+        linear-gradient(180deg, #ffffff 0%, #eef2f8 100%);
+      color: var(--fg);
+    }
+
+    .frame {
+      border: 1px solid rgba(7,29,73,0.22);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,249,252,0.98)),
+        var(--paper);
+      box-shadow: 0 24px 60px rgba(7,29,73,0.12);
+    }
+
+    .brand-logo {
+      background: #fff;
+      border-color: rgba(7,29,73,0.18);
+      box-shadow: 0 10px 24px rgba(7,29,73,0.10);
+    }
+
+    .title,
+    .mode,
+    .route-map-title,
+    .booking-kicker,
+    .section-title,
+    .route-line,
+    .summary-list strong,
+    .request-panel-title,
+    .review-dialog-head h2,
+    .mobile-booking-bar strong {
+      font-family: "Computer Says No", "Courier New", Courier, monospace;
+      letter-spacing: 0.04em;
+    }
+
+    .title {
+      color: var(--navy);
+      font-weight: 400;
+    }
+
+    .subtitle,
+    .clock,
+    .route-map-meta,
+    .booking-note,
+    .airport-name,
+    .summary-list li,
+    .fine-print,
+    .draft-status,
+    .request-panel-copy,
+    .booking-support,
+    .private-flight-notice,
+    .passenger-summary,
+    .seat-option span,
+    .extra-option span,
+    .review-dialog-head p {
+      color: var(--ink-soft);
+    }
+
+    .mode {
+      border-color: rgba(7,29,73,0.18);
+      background: linear-gradient(90deg, #071d49 0%, #0b2e63 100%);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(7,29,73,0.12);
+    }
+
+    .connection-badge {
+      background: #fff;
+      border-width: 1px;
+      box-shadow: 0 8px 20px rgba(7,29,73,0.08);
+    }
+
+    .search-card,
+    .card,
+    .route-map-card,
+    .submit-footer,
+    .status-tracker {
+      background: var(--paper);
+      border: 1px solid rgba(7,29,73,0.20);
+      box-shadow: 0 12px 28px rgba(7,29,73,0.07);
+    }
+
+    .route-map-head,
+    .booking-panel-head,
+    .review-dialog-head,
+    .request-panel-header {
+      border-bottom-color: rgba(7,29,73,0.16);
+    }
+
+    .route-map-title,
+    .booking-kicker,
+    .section-title,
+    .experience-strip strong,
+    .passenger-title,
+    .request-panel-title,
+    .declaration strong,
+    .aircraft-feature-copy strong,
+    .included-card strong,
+    .extra-option strong,
+    .seat-option strong,
+    .review-dialog-head h2,
+    .review-item strong,
+    .status-ref {
+      color: var(--navy);
+    }
+
+    .route-map-shell {
+      border-color: rgba(7,29,73,0.28);
+      background: #07111f;
+      box-shadow: inset 0 0 34px rgba(0,0,0,0.32);
+    }
+
+    .route-map-shell .leaflet-tile-pane {
+      filter: grayscale(0.95) contrast(1.05) brightness(0.78) saturate(0.65);
+    }
+
+    .route-map-compass,
+    .locate-me-btn,
+    .route-range,
+    .route-map-label {
+      background: rgba(7,29,73,0.88);
+      border-color: rgba(255,255,255,0.55);
+      color: #fff;
+    }
+
+    .map-watermark {
+      color: rgba(255,255,255,0.68);
+    }
+
+    .experience-strip,
+    .return-trip-row,
+    .regatta-route-note,
+    .route-box,
+    .quote-label,
+    .passenger-card,
+    .baggage-addon,
+    .seat-map,
+    .seat-map-shell,
+    .request-panel,
+    .included-card,
+    .extra-option,
+    .seat-option,
+    .declaration,
+    .check,
+    .alcohol-preference,
+    .status-step,
+    .request-pill,
+    .review-item,
+    .aircraft-feature-copy,
+    .amenity {
+      background: var(--paper-soft);
+      border-color: rgba(7,29,73,0.18);
+      color: var(--fg);
+    }
+
+    .aircraft-feature-copy {
+      background:
+        linear-gradient(180deg, rgba(7,29,73,0.04), transparent 56%),
+        var(--paper-soft);
+    }
+
+    .aircraft-feature-copy p,
+    .experience-strip span,
+    .declaration,
+    .check,
+    .extra-option,
+    .seat-option,
+    .amenity {
+      color: var(--ink-soft);
+    }
+
+    .aircraft-photo {
+      border-color: rgba(7,29,73,0.18);
+      background:
+        radial-gradient(circle at 50% 78%, rgba(7,29,73,0.08), transparent 30%),
+        linear-gradient(180deg, #fff 0%, #eef2f8 100%);
+    }
+
+    label,
+    .question-label,
+    .review-item span,
+    .extras-section-title,
+    .request-status,
+    .confirm-badge {
+      color: var(--muted);
+    }
+
+    input,
+    select,
+    textarea {
+      background: #fff;
+      color: var(--navy);
+      border: 1px solid rgba(7,29,73,0.30);
+      box-shadow: inset 0 1px 0 rgba(7,29,73,0.04);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(7,29,73,0.10);
+    }
+
+    .btn,
+    .experience-btn {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #fff;
+      box-shadow: 0 12px 22px rgba(7,29,73,0.18);
+    }
+
+    .btn:hover,
+    .swap-btn:hover,
+    .swap-btn:focus,
+    .experience-btn:hover,
+    .experience-btn:focus-visible {
+      background: var(--navy-2);
+      color: #fff;
+      box-shadow: 0 0 0 3px rgba(7,29,73,0.12);
+    }
+
+    .btn.secondary,
+    .swap-btn,
+    .review-cancel {
+      background: #fff;
+      border-color: rgba(7,29,73,0.28);
+      color: var(--navy);
+    }
+
+    .status {
+      background: var(--paper-soft);
+      border: 1px solid rgba(7,29,73,0.20);
+      color: var(--navy);
+    }
+
+    .status.ok,
+    .draft-status.saved,
+    .booking-progress span.is-complete,
+    .summary-list .total-cost strong,
+    .included-card span,
+    .bag-limit,
+    .passenger-toggle em,
+    .request-panel-status {
+      color: var(--live);
+    }
+
+    .booking-progress span {
+      color: #8995a7;
+    }
+
+    .booking-progress i {
+      background: #dce2eb;
+    }
+
+    .summary-list li {
+      border-bottom-color: rgba(7,29,73,0.12);
+    }
+
+    .summary-list .total-cost {
+      border-top-color: rgba(47,191,88,0.75);
+    }
+
+    .summary-list .total-cost em {
+      color: var(--ink-soft);
+    }
+
+    .route-line {
+      color: var(--navy);
+    }
+
+    .extra-switch {
+      background: #dce2eb;
+      border-color: #b8c1cf;
+    }
+
+    .extra-switch::after {
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(7,29,73,0.30);
+    }
+
+    .extra-option:has(input:checked),
+    .seat-option:has(input:checked),
+    .passenger-card.is-collapsed {
+      border-color: var(--live);
+      background:
+        linear-gradient(180deg, rgba(47,191,88,0.10), transparent 58%),
+        #f7fff9;
+      box-shadow: inset 0 0 0 1px rgba(47,191,88,0.45), 0 10px 24px rgba(47,191,88,0.12);
+    }
+
+    .seat-option:has(input:checked)::after,
+    .extra-option:has(input:checked) .request-status {
+      background: #fff;
+      border-color: var(--live);
+      color: var(--live);
+    }
+
+    .rear-seat-marker {
+      background: rgba(255,255,255,0.70);
+      color: var(--live);
+    }
+
+    .confirmation {
+      background: #f7fff9;
+      color: var(--live);
+    }
+
+    .review-dialog {
+      background: rgba(7,29,73,0.58);
+    }
+
+    .review-dialog-card {
+      background: #fff;
+      border-color: rgba(7,29,73,0.22);
+      box-shadow: 0 24px 70px rgba(7,29,73,0.28);
+    }
+
+    .review-dialog-eyebrow {
+      color: var(--live);
+    }
+
+    .review-close {
+      color: var(--navy);
+    }
+
+    .booking-support a {
+      color: var(--navy);
+    }
+
+    .private-flight-notice {
+      background: #eef2f8;
+      border-color: rgba(7,29,73,0.16);
+      color: var(--ink-soft);
+    }
+
+    .private-flight-notice strong {
+      color: var(--navy);
+    }
+
+    .mobile-booking-bar {
+      background: rgba(255,255,255,0.96);
+      border-color: rgba(7,29,73,0.24);
+      box-shadow: 0 -12px 30px rgba(7,29,73,0.16);
+    }
+
+    .mobile-booking-bar strong {
+      color: var(--navy);
+    }
+
+    .mobile-booking-bar span {
+      color: var(--ink-soft);
+    }
+
+    @media (max-width: 900px) {
+      .search-card,
+      .card,
+      .route-map-card {
+        background: var(--paper);
       }
     }
   </style>
