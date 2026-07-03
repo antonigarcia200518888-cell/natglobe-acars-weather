@@ -485,6 +485,46 @@
       pointer-events: none;
     }
     .route-field select { appearance: none; padding-right: 38px; }
+    .experience-strip {
+      margin: 0 0 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid #555;
+      background: linear-gradient(135deg, #050505, #111);
+      color: #d8d8d8;
+    }
+    .experience-strip strong {
+      display: block;
+      color: #fff;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+    .experience-strip span {
+      display: block;
+      margin-top: 3px;
+      color: #a8a8a8;
+      font-size: 11px;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+    .experience-btn {
+      border: 1px solid var(--connected);
+      background: #081208;
+      color: #dfffe4;
+      padding: 9px 12px;
+      font: 700 12px/1 "Courier New", monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .experience-btn:hover,
+    .experience-btn:focus-visible {
+      box-shadow: 0 0 0 2px rgba(75, 201, 92, .22);
+    }
     .regatta-route-note {
       margin-top: 12px;
       padding: 10px 12px;
@@ -1510,6 +1550,13 @@
         grid-template-columns: 1fr 46px 1fr;
         gap: 10px;
       }
+      .experience-strip {
+        grid-template-columns: 1fr;
+      }
+      .experience-btn {
+        width: 100%;
+        min-height: 44px;
+      }
       .search-grid .trip-field,
       .search-grid .date-field,
       .search-grid .time-field,
@@ -1847,6 +1894,14 @@
       <section class="search-card">
         <div class="booking-panel-head">
           <div class="booking-kicker">Your itinerary</div>
+        </div>
+        <input id="flightExperience" type="hidden" value="" />
+        <div class="experience-strip">
+          <div>
+            <strong>Hanko Regatta scenic overflight</strong>
+            <span>Local Hanko departure / approx. 25-30 minutes / approx. €30 per passenger</span>
+          </div>
+          <button id="hankoScenicBtn" class="experience-btn" type="button">Select overflight</button>
         </div>
         <div class="grid search-grid">
           <div class="route-field">
@@ -2194,11 +2249,14 @@
     const regattaRouteNote = el('regattaRouteNote');
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
+    const HANKO_SCENIC_EXPERIENCE = 'HANKO_REGATTA_SCENIC';
+    const HANKO_SCENIC_DURATION_MIN = 30;
     const FIXED_ROUTE_PRICES = {
       'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'Estimated Hyvinkää-Hanko cost share', estimated: true },
       'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'Estimated Hanko-Hyvinkää cost share', estimated: true },
       'EFHK-EFHN': { oneWay: 499, roundtrip: 998, label: 'Estimated Helsinki-Vantaa-Hanko', estimated: true },
-      'EFHN-EFHK': { oneWay: 499, roundtrip: 998, label: 'Estimated Hanko-Helsinki-Vantaa', estimated: true }
+      'EFHN-EFHK': { oneWay: 499, roundtrip: 998, label: 'Estimated Hanko-Helsinki-Vantaa', estimated: true },
+      'EFHN-EFHN': { oneWay: 30, roundtrip: 30, label: 'Hanko Regatta scenic overflight', estimated: true }
     };
 
     let airports = [];
@@ -2298,6 +2356,15 @@
       return airports.find(airport => airport.icao === icao) || null;
     }
 
+    function isHankoScenicSelected() {
+      return el('flightExperience').value === HANKO_SCENIC_EXPERIENCE && el('dep').value === 'EFHN' && el('arr').value === 'EFHN';
+    }
+
+    function itineraryName(dep, arr) {
+      if (isHankoScenicSelected()) return 'Hanko Regatta scenic overflight';
+      return dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
+    }
+
     function airportLatLng(airport) {
       const lat = Number(airport?.lat);
       const lon = Number(airport?.lon);
@@ -2374,6 +2441,21 @@
       }
 
       clearRouteMap();
+      if (dep.icao === arr.icao) {
+        depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure'), interactive: false }).addTo(routeMap);
+        routeLayer = L.circle(depLatLng, {
+          radius: 13000,
+          color: '#ffffff',
+          weight: 2,
+          opacity: 0.9,
+          fillColor: '#4bc95c',
+          fillOpacity: 0.08
+        }).addTo(routeMap);
+        routeMap.setView(depLatLng, 10, { animate: false });
+        setTimeout(() => routeMap?.invalidateSize(false), 120);
+        return;
+      }
+
       depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure'), interactive: false }).addTo(routeMap);
       arrMarker = L.marker(arrLatLng, { icon: createRouteIcon('arrival'), interactive: false }).addTo(routeMap);
       routeLayer = L.polyline([depLatLng, arrLatLng], {
@@ -2449,7 +2531,7 @@
     }
 
     function updateRouteMap(dep, arr) {
-      if (!dep || !arr || dep.icao === arr.icao) {
+      if (!dep || !arr || (dep.icao === arr.icao && !isHankoScenicSelected())) {
         routeRange.textContent = 'FLIGHT TIME: --H --M';
         routeMapMeta.textContent = 'Choose departure and destination to show route.';
         routeMapLabel.textContent = 'Route preview';
@@ -2458,7 +2540,7 @@
       }
 
       routeRange.textContent = `FLIGHT TIME: ${formatFlightTime(dep, arr)}`;
-      routeMapMeta.textContent = `${dep.city} to ${arr.city} / ${formatFlightTime(dep, arr)}`;
+      routeMapMeta.textContent = `${itineraryName(dep, arr)} / ${formatFlightTime(dep, arr)}`;
       routeMapLabel.textContent = '';
       drawRouteOnMap(dep, arr);
     }
@@ -2484,7 +2566,9 @@
     }
 
     function flightMinutes(dep, arr) {
-      if (!dep || !arr || dep.icao === arr.icao) return '----';
+      if (!dep || !arr) return '----';
+      if (isHankoScenicSelected()) return HANKO_SCENIC_DURATION_MIN;
+      if (dep.icao === arr.icao) return '----';
       if (['EFHV-EFHN', 'EFHN-EFHV'].includes(`${dep.icao}-${arr.icao}`)) return 40;
       const nm = distanceNm(dep, arr);
       if (!Number.isFinite(nm)) return 'Pilot confirms';
@@ -2572,7 +2656,7 @@
 
     function routeCost(dep, arr) {
       if (!dep || !arr) return 'Pilot confirms';
-      if (dep.icao === arr.icao) return 'Choose different airports';
+      if (dep.icao === arr.icao && !isHankoScenicSelected()) return 'Choose different airports';
       const seats = Number(el('seats').value || 1);
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
       const fixed = FIXED_ROUTE_PRICES[`${dep.icao}-${arr.icao}`];
@@ -2691,7 +2775,7 @@
       refreshPassengerCardState(passengers);
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
       const returnReady = !roundtrip || Boolean(el('returnDate').value && el('returnTime').value && el('returnPlan').value);
-      const routeReady = Boolean(dep && arr && dep.icao !== arr.icao && el('requestDate').value && el('requestTime').value && returnReady);
+      const routeReady = Boolean(dep && arr && (dep.icao !== arr.icao || isHankoScenicSelected()) && el('requestDate').value && el('requestTime').value && returnReady);
       const luggageReady = luggageSectionViewed && (el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value));
       const extrasReady = extrasSectionViewed;
       setMobileMarker('route', routeReady);
@@ -2705,15 +2789,20 @@
       syncAlcoholPreferences();
       const dep = selectedAirport('dep');
       const arr = selectedAirport('arr');
+      if (el('flightExperience').value && !isHankoScenicSelected()) el('flightExperience').value = '';
+      if (isHankoScenicSelected() && el('tripType').value !== 'ONE_WAY') {
+        el('tripType').value = 'ONE_WAY';
+        updateReturnTripFields();
+      }
       regattaRouteNote.hidden = !(dep?.icao === 'EFHN' || arr?.icao === 'EFHN');
       updateDatePriceLabels(dep, arr);
       el('depCode').textContent = dep?.city || '----';
-      el('arrCode').textContent = arr?.city || '----';
-      el('routeNames').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
+      el('arrCode').textContent = isHankoScenicSelected() ? 'Scenic' : (arr?.city || '----');
+      el('routeNames').textContent = itineraryName(dep, arr);
       el('summaryDate').textContent = el('requestDate').value || '----';
       el('summaryTime').textContent = el('requestTime').value || '----';
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
-      el('summaryTripType').textContent = roundtrip ? 'Roundtrip' : 'One way';
+      el('summaryTripType').textContent = isHankoScenicSelected() ? 'Scenic overflight' : (roundtrip ? 'Roundtrip' : 'One way');
       el('summaryReturnRow').style.display = roundtrip ? '' : 'none';
       el('summaryReturn').textContent = roundtrip
         ? `${el('returnDate').value || 'Date pending'} / ${el('returnTime').value || 'Time pending'} / ${el('returnPlan').value || 'Passengers to be confirmed'}`
@@ -2724,10 +2813,10 @@
       el('summaryCost').textContent = routePrice(dep, arr);
       requestSummary();
       updateReadiness(dep, arr);
-      el('mobileTripLine').textContent = dep && arr ? `${dep.city} to ${arr.city}` : 'Select route';
+      el('mobileTripLine').textContent = itineraryName(dep, arr);
       el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'} / ${routePrice(dep, arr)}`;
       updateRouteMap(dep, arr);
-      if (dep && arr && dep.icao === arr.icao) setStatus('Choose different departure and destination airports', 'err');
+      if (dep && arr && dep.icao === arr.icao && !isHankoScenicSelected()) setStatus('Choose different departure and destination airports', 'err');
       else if (dep && arr) setStatus('Itinerary selected / Complete traveller details and declarations', 'ok');
     }
 
@@ -2795,6 +2884,7 @@
       }));
       const draft = {
         dep: el('dep').value, arr: el('arr').value, requestDate: el('requestDate').value, requestTime: el('requestTime').value,
+        flightExperience: el('flightExperience').value,
         tripType: el('tripType').value, returnDate: el('returnDate').value, returnTime: el('returnTime').value, returnPlan: el('returnPlan').value,
         seats: el('seats').value, passengers, bagCount: el('bagCount').value, bagType: el('bagType').value,
         baggageWeightKg: el('baggageWeightKg').value, powerBanks: el('powerBanks').value, seatPreference: el('seatPreference').value,
@@ -2819,7 +2909,7 @@
       try { draft = JSON.parse(localStorage.getItem(BOOKING_DRAFT_KEY) || 'null'); } catch { draft = null; }
       if (!draft) return;
       restoringDraft = true;
-      ['dep', 'arr', 'requestDate', 'requestTime', 'tripType', 'returnDate', 'returnTime', 'returnPlan', 'seats', 'bagCount', 'bagType', 'baggageWeightKg', 'powerBanks', 'seatPreference', 'extrasNotes', 'wineStyle', 'wineBrand', 'wineBottles', 'champagneStyle', 'champagneBrand', 'champagneBottles', 'beerStyle', 'beerBrand', 'beerQuantity'].forEach(id => {
+      ['dep', 'arr', 'flightExperience', 'requestDate', 'requestTime', 'tripType', 'returnDate', 'returnTime', 'returnPlan', 'seats', 'bagCount', 'bagType', 'baggageWeightKg', 'powerBanks', 'seatPreference', 'extrasNotes', 'wineStyle', 'wineBrand', 'wineBottles', 'champagneStyle', 'champagneBrand', 'champagneBottles', 'beerStyle', 'beerBrand', 'beerQuantity'].forEach(id => {
         if (draft[id] != null && el(id)) el(id).value = draft[id];
       });
       updateReturnTripFields();
@@ -2850,9 +2940,9 @@
       const allTravellerNames = travellers.map(traveller => `${traveller.title || ''} ${traveller.name || 'Traveller'}`.trim()).join(' / ');
       const extras = checkedValues('extras');
       reviewDialogBody.innerHTML = [
-        reviewItem('Route', dep && arr ? `${dep.city} to ${arr.city}` : ''),
+        reviewItem('Route', itineraryName(dep, arr)),
         reviewItem('Departure', `${el('requestDate').value || ''} / ${el('requestTime').value || ''}`),
-        reviewItem('Trip', el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way'),
+        reviewItem('Trip', isHankoScenicSelected() ? 'Scenic overflight' : (el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way')),
         reviewItem('Flight time', formatFlightTime(dep, arr)),
         reviewItem('Travellers', allTravellerNames || `${el('seats').value || 1} passenger`),
         reviewItem('Booking contact', lead.email || ''),
@@ -2968,6 +3058,16 @@
       refreshSummary();
     });
     locateMeBtn.addEventListener('click', locateUserOnMap);
+    el('hankoScenicBtn').addEventListener('click', () => {
+      el('flightExperience').value = HANKO_SCENIC_EXPERIENCE;
+      el('dep').value = 'EFHN';
+      el('arr').value = 'EFHN';
+      el('tripType').value = 'ONE_WAY';
+      updateReturnTripFields();
+      setStatus('Hanko Regatta scenic overflight selected', 'ok');
+      refreshSummary();
+      queueDraftSave();
+    });
     function changeBagCount(delta) {
       const next = Math.max(0, Math.min(3, Number(el('bagCount').value || 0) + delta));
       el('bagCount').value = String(next);
@@ -3035,6 +3135,7 @@
           body: JSON.stringify({
             dep: el('dep').value,
             arr: el('arr').value,
+            flightExperience: el('flightExperience').value,
             requestDate: el('requestDate').value,
             requestTime: el('requestTime').value,
             tripType: el('tripType').value,
@@ -3072,7 +3173,7 @@
         draftStatus.classList.remove('saved');
         const dep = selectedAirport('dep');
         const arr = selectedAirport('arr');
-        sessionStorage.setItem('private-flight-confirmation-v1', JSON.stringify({ reference: data.request.id, route: `${dep?.city || 'Departure'} to ${arr?.city || 'Arrival'}`, date: el('requestDate').value, time: el('requestTime').value, trip: el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way', passengers: el('seats').value, flightTime: formatFlightTime(dep, arr), price: routePrice(dep, arr), luggage: baggageSummary() }));
+        sessionStorage.setItem('private-flight-confirmation-v1', JSON.stringify({ reference: data.request.id, route: itineraryName(dep, arr), date: el('requestDate').value, time: el('requestTime').value, trip: isHankoScenicSelected() ? 'Scenic overflight' : (el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way'), passengers: el('seats').value, flightTime: formatFlightTime(dep, arr), price: routePrice(dep, arr), luggage: baggageSummary() }));
         window.location.href = '/booking-confirmation';
       } catch (err) {
         setSubmitState('error', 'Request failed');
