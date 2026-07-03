@@ -2220,6 +2220,97 @@
         background: var(--paper);
       }
     }
+
+    /* Text pass: navy on light surfaces, white only when sitting on navy panels. */
+    .frame,
+    .subtitle,
+    .clock,
+    .route-map-meta,
+    .booking-note,
+    .airport-name,
+    .summary-list li,
+    .summary-list strong,
+    .summary-list .total-cost strong,
+    .summary-list .total-cost em,
+    .fine-print,
+    .draft-status,
+    .booking-progress span,
+    .request-panel-copy,
+    .booking-support,
+    .private-flight-notice,
+    .passenger-summary,
+    .seat-option span,
+    .extra-option span,
+    .review-dialog-head p,
+    .aircraft-feature-copy p,
+    .experience-strip span,
+    .declaration,
+    .check,
+    .extra-option,
+    .seat-option,
+    .amenity,
+    .request-pill,
+    .status,
+    .status-step,
+    .review-item span,
+    .request-status,
+    .confirm-badge,
+    .bag-limit,
+    .included-card span,
+    .passenger-toggle em,
+    .request-panel-status,
+    .draft-status.saved,
+    .booking-progress span.is-complete,
+    .booking-support a {
+      color: var(--navy);
+    }
+
+    .mode,
+    .btn,
+    .experience-btn,
+    .route-map-compass,
+    .locate-me-btn,
+    .route-range,
+    .route-map-label,
+    .mobile-booking-bar .btn,
+    .bag-counter button,
+    .btn:hover,
+    .swap-btn:hover,
+    .swap-btn:focus,
+    .experience-btn:hover,
+    .experience-btn:focus-visible {
+      color: #fff;
+    }
+
+    .connection-badge.conn-good,
+    .connection-badge.conn-weak,
+    .connection-badge.conn-offline {
+      color: var(--navy);
+    }
+
+    .connection-badge.conn-good,
+    .status.ok {
+      border-color: var(--live);
+    }
+
+    .connection-badge.conn-weak {
+      border-color: var(--warn);
+    }
+
+    .connection-badge.conn-offline,
+    .status.err {
+      border-color: var(--danger);
+    }
+
+    .status.err,
+    .field-missing::after {
+      color: var(--danger);
+    }
+
+    .extra-option:has(input:checked) .request-status,
+    .seat-option:has(input:checked)::after {
+      color: var(--navy);
+    }
   </style>
 </head>
 <body>
