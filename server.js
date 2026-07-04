@@ -50,13 +50,17 @@ const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairport
 const OPERATING_COST_EUR_PER_HOUR = 300;
 const PUBLIC_AIRCRAFT_TYPE = 'PA-28R';
 const HANKO_SCENIC_EXPERIENCE = 'HANKO_REGATTA_SCENIC';
+const HELSINKI_CITY_SCENIC_EXPERIENCE = 'HELSINKI_CITY_SCENIC';
 const HANKO_SCENIC_DURATION_MIN = 30;
+const HELSINKI_CITY_SCENIC_DURATION_MIN = 45;
 const FIXED_BOOKING_ROUTE_PRICES = {
   'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'ESTIMATED HYVINKAA-HANKO COST SHARE' },
   'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'ESTIMATED HANKO-HYVINKAA COST SHARE' },
   'EFHK-EFHN': { oneWay: 499, roundtrip: 998, label: 'ESTIMATED HELSINKI-VANTAA-HANKO / AIRPORT FEES INCLUDED' },
   'EFHN-EFHK': { oneWay: 499, roundtrip: 998, label: 'ESTIMATED HANKO-HELSINKI-VANTAA / AIRPORT FEES INCLUDED' },
-  'EFHN-EFHN': { oneWay: 30, roundtrip: 30, label: 'FIXED HANKO REGATTA SCENIC OVERFLIGHT' }
+  'EFHN-EFHN': { oneWay: 30, roundtrip: 30, label: 'FIXED HANKO REGATTA SCENIC OVERFLIGHT' },
+  'EFHV-EFHV': { oneWay: 125, roundtrip: 125, label: 'ESTIMATED HELSINKI CITY SCENIC OVERFLIGHT' },
+  'EFNU-EFNU': { oneWay: 125, roundtrip: 125, label: 'ESTIMATED HELSINKI CITY SCENIC OVERFLIGHT' }
 };
 
 const costShareFlights = [
@@ -1080,6 +1084,7 @@ function estimateBoardingPassFlightMinutes(depIcao, arrIcao) {
   const arrAirport = bookingAirports.find(airport => airport.icao === arrIcao);
   if (!depAirport || !arrAirport) return null;
   if (depAirport.icao === 'EFHN' && arrAirport.icao === 'EFHN') return HANKO_SCENIC_DURATION_MIN;
+  if (['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao) return HELSINKI_CITY_SCENIC_DURATION_MIN;
   return Math.max(10, Math.round((kmToNm(haversineKm(depAirport, arrAirport)) / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
 }
 
@@ -3919,7 +3924,8 @@ app.post('/api/booking-requests', async (req, res) => {
   const tripType = req.body?.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
   const flightExperience = normalizeBookingText(req.body?.flightExperience, 40);
   const isHankoScenic = flightExperience === HANKO_SCENIC_EXPERIENCE && depAirport.icao === 'EFHN' && arrAirport.icao === 'EFHN';
-  if (depAirport.icao === arrAirport.icao && !isHankoScenic) return res.status(400).json({ error: 'CHOOSE DIFFERENT DEPARTURE AND DESTINATION' });
+  const isHelsinkiCityScenic = flightExperience === HELSINKI_CITY_SCENIC_EXPERIENCE && ['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao;
+  if (depAirport.icao === arrAirport.icao && !isHankoScenic && !isHelsinkiCityScenic) return res.status(400).json({ error: 'CHOOSE DIFFERENT DEPARTURE AND DESTINATION' });
   const returnDate = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnDate, 20) : '';
   const returnTime = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnTime, 16) : '';
   const returnPlan = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnPlan, 60) : '';
@@ -3990,7 +3996,7 @@ app.post('/api/booking-requests', async (req, res) => {
   const request = {
     id: nextBookingReference(depAirport.icao, arrAirport.icao),
     flightId: flight?.id || `NG-RQ-${Date.now().toString().slice(-5)}`,
-    flightTitle: isHankoScenic ? 'Hanko Regatta scenic overflight' : (flight?.title || `${depAirport.city} to ${arrAirport.city}`),
+    flightTitle: isHankoScenic ? 'Hanko Regatta scenic overflight' : (isHelsinkiCityScenic ? 'Helsinki city scenic overflight' : (flight?.title || `${depAirport.city} to ${arrAirport.city}`)),
     route: `${depAirport.icao}-${arrAirport.icao}`,
     dep: depAirport.icao,
     arr: arrAirport.icao,
@@ -4003,7 +4009,7 @@ app.post('/api/booking-requests', async (req, res) => {
     requestDate,
     requestTime,
     tripType,
-    flightExperience: isHankoScenic ? HANKO_SCENIC_EXPERIENCE : '',
+    flightExperience: isHankoScenic ? HANKO_SCENIC_EXPERIENCE : (isHelsinkiCityScenic ? HELSINKI_CITY_SCENIC_EXPERIENCE : ''),
     returnDate,
     returnTime,
     returnPlan,

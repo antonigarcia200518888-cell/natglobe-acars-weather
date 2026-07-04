@@ -510,6 +510,14 @@
       background: linear-gradient(135deg, #050505, #111);
       color: #d8d8d8;
     }
+    .experience-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .experience-list .experience-strip {
+      margin-bottom: 0;
+    }
     .experience-strip strong {
       display: block;
       color: #fff;
@@ -2370,12 +2378,21 @@
           <div class="booking-kicker">Your itinerary</div>
         </div>
         <input id="flightExperience" type="hidden" value="" />
-        <div class="experience-strip">
-          <div>
-            <strong>Hanko Regatta scenic overflight</strong>
-            <span>Local Hanko departure / approx. 25-30 minutes / approx. €30 per passenger</span>
+        <div class="experience-list">
+          <div class="experience-strip">
+            <div>
+              <strong>Hanko Regatta scenic overflight</strong>
+              <span>Local Hanko departure / approx. 25-30 minutes / approx. €30 per passenger</span>
+            </div>
+            <button id="hankoScenicBtn" class="experience-btn" type="button">Select overflight</button>
           </div>
-          <button id="hankoScenicBtn" class="experience-btn" type="button">Select overflight</button>
+          <div class="experience-strip">
+            <div>
+              <strong>Helsinki city scenic overflight</strong>
+              <span>Depart from Hyvinkää or Nummela / approx. 45 minutes / approx. €125 per passenger</span>
+            </div>
+            <button id="helsinkiScenicBtn" class="experience-btn" type="button">Select Helsinki flight</button>
+          </div>
         </div>
         <div class="grid search-grid">
           <div class="route-field">
@@ -2721,13 +2738,17 @@
     const PA28_CRUISE_KT = 115;
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const HANKO_SCENIC_EXPERIENCE = 'HANKO_REGATTA_SCENIC';
+    const HELSINKI_CITY_SCENIC_EXPERIENCE = 'HELSINKI_CITY_SCENIC';
     const HANKO_SCENIC_DURATION_MIN = 30;
+    const HELSINKI_CITY_SCENIC_DURATION_MIN = 45;
     const FIXED_ROUTE_PRICES = {
       'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'Estimated Hyvinkää-Hanko cost share', estimated: true },
       'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'Estimated Hanko-Hyvinkää cost share', estimated: true },
       'EFHK-EFHN': { oneWay: 499, roundtrip: 998, label: 'Estimated Helsinki-Vantaa-Hanko', estimated: true },
       'EFHN-EFHK': { oneWay: 499, roundtrip: 998, label: 'Estimated Hanko-Helsinki-Vantaa', estimated: true },
-      'EFHN-EFHN': { oneWay: 30, roundtrip: 30, label: 'Hanko Regatta scenic overflight', estimated: true }
+      'EFHN-EFHN': { oneWay: 30, roundtrip: 30, label: 'Hanko Regatta scenic overflight', estimated: true },
+      'EFHV-EFHV': { oneWay: 125, roundtrip: 125, label: 'Helsinki city scenic overflight', estimated: true },
+      'EFNU-EFNU': { oneWay: 125, roundtrip: 125, label: 'Helsinki city scenic overflight', estimated: true }
     };
 
     let airports = [];
@@ -2831,8 +2852,17 @@
       return el('flightExperience').value === HANKO_SCENIC_EXPERIENCE && el('dep').value === 'EFHN' && el('arr').value === 'EFHN';
     }
 
+    function isHelsinkiCityScenicSelected() {
+      return el('flightExperience').value === HELSINKI_CITY_SCENIC_EXPERIENCE && ['EFHV', 'EFNU'].includes(el('dep').value) && el('arr').value === el('dep').value;
+    }
+
+    function isScenicExperienceSelected() {
+      return isHankoScenicSelected() || isHelsinkiCityScenicSelected();
+    }
+
     function itineraryName(dep, arr) {
       if (isHankoScenicSelected()) return 'Hanko Regatta scenic overflight';
+      if (isHelsinkiCityScenicSelected()) return 'Helsinki city scenic overflight';
       return dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
     }
 
@@ -3002,7 +3032,7 @@
     }
 
     function updateRouteMap(dep, arr) {
-      if (!dep || !arr || (dep.icao === arr.icao && !isHankoScenicSelected())) {
+      if (!dep || !arr || (dep.icao === arr.icao && !isScenicExperienceSelected())) {
         routeRange.textContent = 'FLIGHT TIME: --H --M';
         routeMapMeta.textContent = 'Choose departure and destination to show route.';
         routeMapLabel.textContent = 'Route preview';
@@ -3039,6 +3069,7 @@
     function flightMinutes(dep, arr) {
       if (!dep || !arr) return '----';
       if (isHankoScenicSelected()) return HANKO_SCENIC_DURATION_MIN;
+      if (isHelsinkiCityScenicSelected()) return HELSINKI_CITY_SCENIC_DURATION_MIN;
       if (dep.icao === arr.icao) return '----';
       if (['EFHV-EFHN', 'EFHN-EFHV'].includes(`${dep.icao}-${arr.icao}`)) return 40;
       const nm = distanceNm(dep, arr);
@@ -3127,7 +3158,7 @@
 
     function routeCost(dep, arr) {
       if (!dep || !arr) return 'Pilot confirms';
-      if (dep.icao === arr.icao && !isHankoScenicSelected()) return 'Choose different airports';
+      if (dep.icao === arr.icao && !isScenicExperienceSelected()) return 'Choose different airports';
       const seats = Number(el('seats').value || 1);
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
       const fixed = FIXED_ROUTE_PRICES[`${dep.icao}-${arr.icao}`];
@@ -3246,7 +3277,7 @@
       refreshPassengerCardState(passengers);
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
       const returnReady = !roundtrip || Boolean(el('returnDate').value && el('returnTime').value && el('returnPlan').value);
-      const routeReady = Boolean(dep && arr && (dep.icao !== arr.icao || isHankoScenicSelected()) && el('requestDate').value && el('requestTime').value && returnReady);
+      const routeReady = Boolean(dep && arr && (dep.icao !== arr.icao || isScenicExperienceSelected()) && el('requestDate').value && el('requestTime').value && returnReady);
       const luggageReady = luggageSectionViewed && (el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value));
       const extrasReady = extrasSectionViewed;
       setMobileMarker('route', routeReady);
@@ -3258,22 +3289,26 @@
 
     function refreshSummary() {
       syncAlcoholPreferences();
-      const dep = selectedAirport('dep');
-      const arr = selectedAirport('arr');
-      if (el('flightExperience').value && !isHankoScenicSelected()) el('flightExperience').value = '';
-      if (isHankoScenicSelected() && el('tripType').value !== 'ONE_WAY') {
+      if (el('flightExperience').value === HELSINKI_CITY_SCENIC_EXPERIENCE) {
+        if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
+        el('arr').value = el('dep').value;
+      }
+      let dep = selectedAirport('dep');
+      let arr = selectedAirport('arr');
+      if (el('flightExperience').value && !isScenicExperienceSelected()) el('flightExperience').value = '';
+      if (isScenicExperienceSelected() && el('tripType').value !== 'ONE_WAY') {
         el('tripType').value = 'ONE_WAY';
         updateReturnTripFields();
       }
       regattaRouteNote.hidden = !(dep?.icao === 'EFHN' || arr?.icao === 'EFHN');
       updateDatePriceLabels(dep, arr);
       el('depCode').textContent = dep?.city || '----';
-      el('arrCode').textContent = isHankoScenicSelected() ? 'Scenic' : (arr?.city || '----');
+      el('arrCode').textContent = isScenicExperienceSelected() ? 'Scenic' : (arr?.city || '----');
       el('routeNames').textContent = itineraryName(dep, arr);
       el('summaryDate').textContent = el('requestDate').value || '----';
       el('summaryTime').textContent = el('requestTime').value || '----';
       const roundtrip = el('tripType').value === 'ROUNDTRIP';
-      el('summaryTripType').textContent = isHankoScenicSelected() ? 'Scenic overflight' : (roundtrip ? 'Roundtrip' : 'One way');
+      el('summaryTripType').textContent = isScenicExperienceSelected() ? 'Scenic overflight' : (roundtrip ? 'Roundtrip' : 'One way');
       el('summaryReturnRow').style.display = roundtrip ? '' : 'none';
       el('summaryReturn').textContent = roundtrip
         ? `${el('returnDate').value || 'Date pending'} / ${el('returnTime').value || 'Time pending'} / ${el('returnPlan').value || 'Passengers to be confirmed'}`
@@ -3287,7 +3322,7 @@
       el('mobileTripLine').textContent = itineraryName(dep, arr);
       el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'} / ${routePrice(dep, arr)}`;
       updateRouteMap(dep, arr);
-      if (dep && arr && dep.icao === arr.icao && !isHankoScenicSelected()) setStatus('Choose different departure and destination airports', 'err');
+      if (dep && arr && dep.icao === arr.icao && !isScenicExperienceSelected()) setStatus('Choose different departure and destination airports', 'err');
       else if (dep && arr) setStatus('Itinerary selected / Complete traveller details and declarations', 'ok');
     }
 
@@ -3413,7 +3448,7 @@
       reviewDialogBody.innerHTML = [
         reviewItem('Route', itineraryName(dep, arr)),
         reviewItem('Departure', `${el('requestDate').value || ''} / ${el('requestTime').value || ''}`),
-        reviewItem('Trip', isHankoScenicSelected() ? 'Scenic overflight' : (el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way')),
+        reviewItem('Trip', isScenicExperienceSelected() ? 'Scenic overflight' : (el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way')),
         reviewItem('Flight time', formatFlightTime(dep, arr)),
         reviewItem('Travellers', allTravellerNames || `${el('seats').value || 1} passenger`),
         reviewItem('Booking contact', lead.email || ''),
@@ -3509,8 +3544,26 @@
       if (wrapper) wrapper.classList.remove('field-missing');
     }
 
+    function clearScenicExperienceForManualRouteChange(target) {
+      if (!target) return;
+      if (target.id === 'arr') {
+        el('flightExperience').value = '';
+        return;
+      }
+      if (target.id === 'dep') {
+        const nextDep = target.value;
+        if (el('flightExperience').value === HANKO_SCENIC_EXPERIENCE) {
+          el('flightExperience').value = '';
+        }
+        if (el('flightExperience').value === HELSINKI_CITY_SCENIC_EXPERIENCE && !['EFHV', 'EFNU'].includes(nextDep)) {
+          el('flightExperience').value = '';
+        }
+      }
+    }
+
     form.addEventListener('change', (event) => {
       clearFieldMarker(event.target);
+      clearScenicExperienceForManualRouteChange(event.target);
       updateReturnTripFields();
       resetSubmitFeedback();
       refreshSummary();
@@ -3518,12 +3571,14 @@
     });
     form.addEventListener('input', (event) => {
       clearFieldMarker(event.target);
+      clearScenicExperienceForManualRouteChange(event.target);
       resetSubmitFeedback();
       refreshSummary();
       queueDraftSave();
     });
     el('swapRoute').addEventListener('click', () => {
       const depValue = el('dep').value;
+      el('flightExperience').value = '';
       el('dep').value = el('arr').value;
       el('arr').value = depValue;
       refreshSummary();
@@ -3536,6 +3591,16 @@
       el('tripType').value = 'ONE_WAY';
       updateReturnTripFields();
       setStatus('Hanko Regatta scenic overflight selected', 'ok');
+      refreshSummary();
+      queueDraftSave();
+    });
+    el('helsinkiScenicBtn').addEventListener('click', () => {
+      el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
+      if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
+      el('arr').value = el('dep').value;
+      el('tripType').value = 'ONE_WAY';
+      updateReturnTripFields();
+      setStatus('Helsinki city scenic overflight selected', 'ok');
       refreshSummary();
       queueDraftSave();
     });
@@ -3644,7 +3709,7 @@
         draftStatus.classList.remove('saved');
         const dep = selectedAirport('dep');
         const arr = selectedAirport('arr');
-        sessionStorage.setItem('private-flight-confirmation-v1', JSON.stringify({ reference: data.request.id, route: itineraryName(dep, arr), date: el('requestDate').value, time: el('requestTime').value, trip: isHankoScenicSelected() ? 'Scenic overflight' : (el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way'), passengers: el('seats').value, flightTime: formatFlightTime(dep, arr), price: routePrice(dep, arr), luggage: baggageSummary() }));
+        sessionStorage.setItem('private-flight-confirmation-v1', JSON.stringify({ reference: data.request.id, route: itineraryName(dep, arr), date: el('requestDate').value, time: el('requestTime').value, trip: isScenicExperienceSelected() ? 'Scenic overflight' : (el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way'), passengers: el('seats').value, flightTime: formatFlightTime(dep, arr), price: routePrice(dep, arr), luggage: baggageSummary() }));
         window.location.href = '/booking-confirmation';
       } catch (err) {
         setSubmitState('error', 'Request failed');
