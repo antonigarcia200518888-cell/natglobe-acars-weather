@@ -348,6 +348,29 @@
       margin: 12px 0 8px;
     }
 
+    .route-correction {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(150px, 1fr));
+      gap: 8px;
+      margin: 12px 0 8px;
+    }
+
+    .route-correction select {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid #777;
+      background: #000;
+      color: #fff;
+      padding: 9px;
+      font-family: inherit;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .route-correction .full-select {
+      grid-column: 1 / -1;
+    }
+
     .proposal-compose input,
     .proposal-compose textarea {
       width: 100%;
@@ -542,7 +565,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .contact-compose { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
@@ -594,6 +617,24 @@
               <div class="brief-line"><span>Return</span><strong id="briefReturn">.....</strong></div>
               <div class="brief-line"><span>Aircraft</span><strong id="briefAircraft">.....</strong></div>
               <div class="brief-line"><span>Created</span><strong id="briefCreated">.....</strong></div>
+            </div>
+            <div class="brief-card wide">
+              <div class="brief-title">Itinerary correction</div>
+              <div class="brief-line"><span>Use case</span><strong>Correct booker route mistakes before approval</strong></div>
+              <div class="route-correction">
+                <select id="correctDep" aria-label="Correct departure airport"></select>
+                <select id="correctArr" aria-label="Correct destination airport"></select>
+                <select id="correctExperience" class="full-select" aria-label="Correct flight type">
+                  <option value="">Normal point-to-point flight</option>
+                  <option value="HANKO_REGATTA_SCENIC">Hanko Regatta scenic / HNK-HNK</option>
+                  <option value="HELSINKI_CITY_SCENIC">Helsinki city scenic / HYV-HYV or NUM-NUM</option>
+                </select>
+                <select id="correctTripType" class="full-select" aria-label="Correct trip type">
+                  <option value="ONE_WAY">One way</option>
+                  <option value="ROUNDTRIP">Roundtrip</option>
+                </select>
+              </div>
+              <button id="saveItineraryBtn" class="btn ghost" type="button">SAVE ITINERARY CORRECTION</button>
             </div>
             <div class="brief-card wide">
               <div class="brief-title">Propose new departure time</div>
@@ -731,6 +772,29 @@ END OF MESSAGE</pre>
     const sendProposalBtn = el('sendProposalBtn');
     const additionalEmailContacts = el('additionalEmailContacts');
     const saveEmailContactsBtn = el('saveEmailContactsBtn');
+    const correctDep = el('correctDep');
+    const correctArr = el('correctArr');
+    const correctExperience = el('correctExperience');
+    const correctTripType = el('correctTripType');
+    const saveItineraryBtn = el('saveItineraryBtn');
+
+    const OPS_AIRPORTS = [
+      { icao: 'EFHK', short: 'HEL', label: '(HEL) Helsinki-Vantaa' },
+      { icao: 'EFHV', short: 'HYV', label: '(HYV) Hyvinkää' },
+      { icao: 'EFNU', short: 'NUM', label: '(NUM) Nummela' },
+      { icao: 'EFHN', short: 'HNK', label: '(HNK) Hanko' },
+      { icao: 'EFPR', short: 'PYT', label: '(PYT) Pyhtää Redstone' },
+      { icao: 'EFRY', short: 'RAY', label: '(RAY) Räyskälä' },
+      { icao: 'EFLA', short: 'LAH', label: '(LAH) Lahti-Vesivehmaa' },
+      { icao: 'EFTU', short: 'TKU', label: '(TKU) Turku' },
+      { icao: 'EFTP', short: 'TMP', label: '(TMP) Tampere-Pirkkala' },
+      { icao: 'EETN', short: 'TLL', label: '(TLL) Tallinn' },
+      { icao: 'EEKE', short: 'URE', label: '(URE) Kuressaare' },
+      { icao: 'ESSB', short: 'BMA', label: '(BMA) Stockholm Bromma' }
+    ];
+
+    correctDep.innerHTML = OPS_AIRPORTS.map(airport => `<option value="${airport.icao}">${airport.label}</option>`).join('');
+    correctArr.innerHTML = OPS_AIRPORTS.map(airport => `<option value="${airport.icao}">${airport.label}</option>`).join('');
 
     let requests = [];
     let selected = null;
@@ -793,6 +857,32 @@ END OF MESSAGE</pre>
       proposalStatus.textContent = proposal
         ? `PROPOSED ${proposalLabel(proposal)} / ${response || 'PENDING'}${proposedAt}${respondedAt}${message}`
         : 'Send a proposed new departure time to the booker for acceptance.';
+    }
+
+    function syncItineraryCorrectionControls(req) {
+      correctDep.value = OPS_AIRPORTS.some(airport => airport.icao === req.dep) ? req.dep : 'EFHV';
+      correctArr.value = OPS_AIRPORTS.some(airport => airport.icao === req.arr) ? req.arr : 'EFHN';
+      correctExperience.value = req.flightExperience || '';
+      correctTripType.value = req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
+    }
+
+    function normalizeCorrectionSelection(changedField = '') {
+      if (changedField === 'arr' && correctExperience.value && correctArr.value !== correctDep.value) {
+        correctExperience.value = '';
+      }
+      if (correctExperience.value === 'HANKO_REGATTA_SCENIC') {
+        correctDep.value = 'EFHN';
+        correctArr.value = 'EFHN';
+        correctTripType.value = 'ONE_WAY';
+      }
+      if (correctExperience.value === 'HELSINKI_CITY_SCENIC') {
+        if (!['EFHV', 'EFNU'].includes(correctDep.value)) correctDep.value = 'EFHV';
+        correctArr.value = correctDep.value;
+        correctTripType.value = 'ONE_WAY';
+      }
+      if (!correctExperience.value && correctDep.value === correctArr.value) {
+        mode.textContent = 'MODE: SAME AIRPORT REQUIRES A SCENIC FLIGHT TYPE';
+      }
     }
 
     function renderAlerts(req) {
@@ -940,6 +1030,7 @@ END OF MESSAGE</pre>
       setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
       commander.value = req.crew?.commander || 'UNASSIGNED';
       secondary.value = req.crew?.secondary || 'NONE';
+      syncItineraryCorrectionControls(req);
       renderProposal(req);
       renderAlerts(req);
       renderManifest(req);
@@ -1022,7 +1113,36 @@ END OF MESSAGE</pre>
 
     [filterQuery, filterStatus, filterDate].forEach(input => input.addEventListener('input', renderList));
     filterStatus.addEventListener('change', renderList);
+    correctExperience.addEventListener('change', () => normalizeCorrectionSelection('experience'));
+    correctDep.addEventListener('change', () => normalizeCorrectionSelection('dep'));
+    correctArr.addEventListener('change', () => normalizeCorrectionSelection('arr'));
     saveCrewBtn.addEventListener('click', () => updateSelected({ crew: { commander: commander.value, secondary: secondary.value } }));
+    saveItineraryBtn.addEventListener('click', async () => {
+      if (!selected) {
+        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
+        return;
+      }
+      normalizeCorrectionSelection('save');
+      if (!correctExperience.value && correctDep.value === correctArr.value) {
+        mode.textContent = 'MODE: SAME AIRPORT REQUIRES HANKO OR HELSINKI SCENIC TYPE';
+        return;
+      }
+      const routeText = `${correctDep.value}-${correctArr.value}${correctExperience.value ? ` / ${correctExperience.value}` : ''}`;
+      if (!window.confirm(`Save itinerary correction for ${selected.id} to ${routeText}? This keeps the same booking reference.`)) {
+        mode.textContent = 'MODE: ITINERARY CORRECTION CANCELLED';
+        return;
+      }
+      await updateSelected({
+        itinerary: {
+          dep: correctDep.value,
+          arr: correctArr.value,
+          tripType: correctTripType.value,
+          flightExperience: correctExperience.value
+        }
+      });
+      renderCalendar();
+      loadTimeline(selected.id).catch(() => {});
+    });
     saveEmailContactsBtn.addEventListener('click', () => updateSelected({ additionalEmailContacts: additionalEmailContacts.value }));
     sendProposalBtn.addEventListener('click', async () => {
       if (!selected) {

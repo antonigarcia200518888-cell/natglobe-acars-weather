@@ -1335,6 +1335,62 @@ function estimateBookingPrice(depAirport, arrAirport, seats, tripType) {
   return { perPassengerEur: 'ON REQUEST', totalEur: 'ON REQUEST', note: 'PRICE DETERMINED BY REQUEST' };
 }
 
+function normalizeBookingItineraryUpdate(body, fallbackTripType = 'ONE_WAY') {
+  const depAirport = bookingAirports.find(airport => airport.icao === normalizeIcao(body?.dep));
+  const arrAirport = bookingAirports.find(airport => airport.icao === normalizeIcao(body?.arr));
+  if (!depAirport || !arrAirport) return { error: 'VALID DEPARTURE AND DESTINATION REQUIRED' };
+
+  const tripType = body?.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : fallbackTripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
+  const flightExperience = normalizeBookingText(body?.flightExperience, 40);
+  const isHankoScenic = flightExperience === HANKO_SCENIC_EXPERIENCE && depAirport.icao === 'EFHN' && arrAirport.icao === 'EFHN';
+  const isHelsinkiCityScenic = flightExperience === HELSINKI_CITY_SCENIC_EXPERIENCE && ['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao;
+  if (depAirport.icao === arrAirport.icao && !isHankoScenic && !isHelsinkiCityScenic) return { error: 'CHOOSE DIFFERENT DEPARTURE AND DESTINATION OR SELECT A SCENIC FLIGHT' };
+
+  const normalizedExperience = isHankoScenic ? HANKO_SCENIC_EXPERIENCE : isHelsinkiCityScenic ? HELSINKI_CITY_SCENIC_EXPERIENCE : '';
+  const normalizedTripType = normalizedExperience ? 'ONE_WAY' : tripType;
+  const title = isHankoScenic
+    ? 'Hanko Regatta scenic overflight'
+    : isHelsinkiCityScenic
+      ? 'Helsinki city scenic overflight'
+      : `${depAirport.city} to ${arrAirport.city}`;
+
+  return {
+    depAirport,
+    arrAirport,
+    tripType: normalizedTripType,
+    flightExperience: normalizedExperience,
+    flightTitle: title,
+    estimatedFlightMinutes: estimateBoardingPassFlightMinutes(depAirport.icao, arrAirport.icao) || null
+  };
+}
+
+function applyBookingItineraryUpdate(request, update) {
+  const previousRoute = `${request.dep || '---'}-${request.arr || '---'}`;
+  const previousTitle = request.flightTitle || previousRoute;
+  const priceEstimate = estimateBookingPrice(update.depAirport, update.arrAirport, request.seats || 1, update.tripType);
+
+  request.flightTitle = update.flightTitle;
+  request.route = `${update.depAirport.icao}-${update.arrAirport.icao}`;
+  request.dep = update.depAirport.icao;
+  request.arr = update.arrAirport.icao;
+  request.depName = update.depAirport.name;
+  request.arrName = update.arrAirport.name;
+  request.tripType = update.tripType;
+  request.flightExperience = update.flightExperience;
+  request.costPerSeatEur = priceEstimate.perPassengerEur;
+  request.estimatedTotalEur = priceEstimate.totalEur;
+  request.priceNote = priceEstimate.note;
+  request.estimatedFlightMinutes = update.estimatedFlightMinutes;
+
+  if (update.flightExperience && request.returnDate) {
+    request.returnDate = '';
+    request.returnTime = '';
+    request.returnPlan = '';
+  }
+
+  return `${previousTitle} / ${previousRoute} -> ${request.flightTitle} / ${request.route}`;
+}
+
 function formatBookingMessage(request) {
   const passengerLines = (request.passengers?.length ? request.passengers : [{
     number: 1,
@@ -3705,6 +3761,13 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
       request.additionalEmailContacts.length ? request.additionalEmailContacts.join(', ') : 'Additional contacts cleared.'
     );
   }
+  if (req.body?.itinerary && typeof req.body.itinerary === 'object') {
+    const itineraryUpdate = normalizeBookingItineraryUpdate(req.body.itinerary, request.tripType || 'ONE_WAY');
+    if (itineraryUpdate.error) return res.status(400).json({ error: itineraryUpdate.error });
+    const itineraryNote = applyBookingItineraryUpdate(request, itineraryUpdate);
+    request.bookingCorrectedAt = new Date().toISOString();
+    await addBookingTimelineEvent(request.id, 'ITINERARY CORRECTED', itineraryNote);
+  }
   if (req.body?.reimbursementStatement && typeof req.body.reimbursementStatement === 'object') {
     const statement = normalizeReimbursementStatement(req.body.reimbursementStatement);
     if (statement) {
@@ -3922,10 +3985,8 @@ app.post('/api/booking-requests', async (req, res) => {
   const requestDate = normalizeBookingText(req.body?.requestDate, 20);
   const requestTime = normalizeBookingText(req.body?.requestTime, 16);
   const tripType = req.body?.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
-  const flightExperience = normalizeBookingText(req.body?.flightExperience, 40);
-  const isHankoScenic = flightExperience === HANKO_SCENIC_EXPERIENCE && depAirport.icao === 'EFHN' && arrAirport.icao === 'EFHN';
-  const isHelsinkiCityScenic = flightExperience === HELSINKI_CITY_SCENIC_EXPERIENCE && ['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao;
-  if (depAirport.icao === arrAirport.icao && !isHankoScenic && !isHelsinkiCityScenic) return res.status(400).json({ error: 'CHOOSE DIFFERENT DEPARTURE AND DESTINATION' });
+  const itineraryUpdate = normalizeBookingItineraryUpdate(req.body, tripType);
+  if (itineraryUpdate.error) return res.status(400).json({ error: itineraryUpdate.error });
   const returnDate = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnDate, 20) : '';
   const returnTime = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnTime, 16) : '';
   const returnPlan = tripType === 'ROUNDTRIP' ? normalizeBookingText(req.body?.returnPlan, 60) : '';
@@ -3991,12 +4052,12 @@ app.post('/api/booking-requests', async (req, res) => {
   if (!contractAccepted) {
     return res.status(400).json({ error: 'CONTRACT AGREEMENT MUST BE ACCEPTED' });
   }
-  const priceEstimate = estimateBookingPrice(depAirport, arrAirport, seats, tripType);
+  const priceEstimate = estimateBookingPrice(depAirport, arrAirport, seats, itineraryUpdate.tripType);
 
   const request = {
     id: nextBookingReference(depAirport.icao, arrAirport.icao),
     flightId: flight?.id || `NG-RQ-${Date.now().toString().slice(-5)}`,
-    flightTitle: isHankoScenic ? 'Hanko Regatta scenic overflight' : (isHelsinkiCityScenic ? 'Helsinki city scenic overflight' : (flight?.title || `${depAirport.city} to ${arrAirport.city}`)),
+    flightTitle: flight?.title || itineraryUpdate.flightTitle,
     route: `${depAirport.icao}-${arrAirport.icao}`,
     dep: depAirport.icao,
     arr: arrAirport.icao,
@@ -4008,11 +4069,12 @@ app.post('/api/booking-requests', async (req, res) => {
     priceNote: flight?.costPerSeatEur ? 'PUBLISHED SHARED-COST FLIGHT' : priceEstimate.note,
     requestDate,
     requestTime,
-    tripType,
-    flightExperience: isHankoScenic ? HANKO_SCENIC_EXPERIENCE : (isHelsinkiCityScenic ? HELSINKI_CITY_SCENIC_EXPERIENCE : ''),
-    returnDate,
-    returnTime,
-    returnPlan,
+    tripType: itineraryUpdate.tripType,
+    flightExperience: itineraryUpdate.flightExperience,
+    estimatedFlightMinutes: itineraryUpdate.estimatedFlightMinutes,
+    returnDate: itineraryUpdate.flightExperience ? '' : returnDate,
+    returnTime: itineraryUpdate.flightExperience ? '' : returnTime,
+    returnPlan: itineraryUpdate.flightExperience ? '' : returnPlan,
     seats,
     passengers,
     name,
