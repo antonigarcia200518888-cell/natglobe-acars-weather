@@ -1213,8 +1213,95 @@
     }
 
     .extra-option {
-      min-height: 100px;
+      min-height: 186px;
       justify-content: space-between;
+      overflow: hidden;
+    }
+
+    .extra-visual {
+      position: relative;
+      width: calc(100% + 20px);
+      height: 74px;
+      margin: -10px -10px 5px;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(7,29,73,0.10);
+      background:
+        radial-gradient(circle at 70% 42%, rgba(255,255,255,0.78), transparent 11%),
+        linear-gradient(135deg, #dfe8f2, #ffffff 54%, #cad4e2);
+    }
+
+    .extra-visual::before,
+    .extra-visual::after {
+      content: "";
+      position: absolute;
+      display: block;
+    }
+
+    .extra-visual.wine::before,
+    .extra-visual.champagne::before {
+      width: 15px;
+      height: 52px;
+      left: 32px;
+      bottom: 10px;
+      border-radius: 7px 7px 4px 4px;
+      background: linear-gradient(90deg, #260d1d, #7b1324 48%, #b45a64);
+      box-shadow: 24px 18px 0 -8px rgba(255,255,255,0.72), 25px 19px 0 -6px rgba(7,29,73,0.20);
+      transform: rotate(-8deg);
+    }
+
+    .extra-visual.champagne::before {
+      background: linear-gradient(90deg, #6d5426, #d7bd75 48%, #fff2bc);
+    }
+
+    .extra-visual.beer::before {
+      width: 30px;
+      height: 42px;
+      left: 34px;
+      bottom: 12px;
+      border-radius: 4px 4px 10px 10px;
+      background: linear-gradient(180deg, #fff 0 16%, #d69a25 17% 100%);
+      box-shadow: inset 0 0 0 2px rgba(7,29,73,0.16), 36px 3px 0 -8px rgba(64,118,180,0.65);
+    }
+
+    .extra-visual.soft::before {
+      width: 20px;
+      height: 48px;
+      left: 38px;
+      bottom: 11px;
+      border-radius: 10px 10px 5px 5px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.88), rgba(94,154,211,0.54));
+      box-shadow: 32px 10px 0 -3px rgba(255,255,255,0.72), 32px 10px 0 -1px rgba(7,29,73,0.12);
+    }
+
+    .extra-visual.snacks::before {
+      width: 76px;
+      height: 30px;
+      left: 30px;
+      bottom: 20px;
+      border-radius: 18px 8px 18px 8px;
+      background: linear-gradient(135deg, #f7dfac, #b88545);
+      box-shadow: 0 12px 0 -5px rgba(7,29,73,0.18);
+      transform: rotate(-5deg);
+    }
+
+    .extra-visual.transfer::before {
+      width: 82px;
+      height: 30px;
+      left: 28px;
+      bottom: 18px;
+      border-radius: 20px 28px 10px 10px;
+      background: linear-gradient(135deg, var(--navy), #315b88);
+      box-shadow: inset 0 -7px 0 rgba(255,255,255,0.18);
+    }
+
+    .extra-visual.transfer::after {
+      width: 12px;
+      height: 12px;
+      left: 42px;
+      bottom: 11px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 48px 0 0 #fff;
     }
 
     .extra-option-head {
@@ -2644,7 +2731,6 @@
 
     .luxury-desk-main,
     .luxury-desk-panel,
-    .luxury-product,
     .luxury-flow-card {
       border: 1px solid rgba(7,29,73,0.12);
       border-radius: 26px;
@@ -2675,7 +2761,6 @@
     }
 
     .luxury-desk-eyebrow,
-    .luxury-product small,
     .luxury-flow-card span,
     .luxury-desk-panel span {
       display: block;
@@ -2755,97 +2840,6 @@
       margin: 10px 0 0;
       color: var(--ink-soft);
       font: 14px/1.62 Poppins, Arial, sans-serif;
-    }
-
-    .luxury-products {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin: 0 0 18px;
-    }
-
-    .luxury-product {
-      position: relative;
-      overflow: hidden;
-      min-height: 220px;
-      padding: 18px;
-      display: grid;
-      align-content: space-between;
-      transition: transform 220ms ease, box-shadow 220ms ease;
-    }
-
-    .luxury-product::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.82), rgba(255,255,255,0.34)),
-        radial-gradient(circle at 86% 10%, rgba(198,170,104,0.24), transparent 28%);
-      pointer-events: none;
-    }
-
-    .luxury-product:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 28px 70px rgba(7,29,73,0.16);
-    }
-
-    .luxury-product > * {
-      position: relative;
-      z-index: 1;
-    }
-
-    .luxury-product small {
-      color: #718099;
-    }
-
-    .luxury-product h3 {
-      margin: 10px 0 8px;
-      color: var(--navy);
-      font-family: "Computer Says No", "Courier New", monospace;
-      font-size: clamp(22px, 3vw, 36px);
-      font-weight: 400;
-      line-height: 0.98;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .luxury-product p {
-      margin: 0;
-      color: var(--ink-soft);
-      font: 13px/1.58 Poppins, Arial, sans-serif;
-    }
-
-    .luxury-product strong {
-      align-self: end;
-      color: var(--live);
-      font-family: "Computer Says No", "Courier New", monospace;
-      font-size: 22px;
-      font-weight: 400;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .luxury-product-action {
-      justify-self: start;
-      min-height: 40px;
-      margin-top: 14px;
-      padding: 0 14px;
-      border: 1px solid rgba(7,29,73,0.16);
-      border-radius: 999px;
-      background: #fff;
-      color: var(--navy);
-      cursor: pointer;
-      font: 700 10px "Courier New", monospace;
-      letter-spacing: 0.09em;
-      text-transform: uppercase;
-      box-shadow: 0 10px 24px rgba(7,29,73,0.08);
-    }
-
-    .luxury-product-action:hover,
-    .luxury-product-action:focus-visible {
-      background: var(--navy);
-      color: #fff;
-      outline: none;
     }
 
     .luxury-flow {
@@ -2998,6 +2992,63 @@
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4), 0 18px 42px rgba(7,29,73,0.12);
     }
 
+    .luxury-booking .route-map-shell .leaflet-tile-pane {
+      filter: grayscale(0.85) contrast(0.98) brightness(1.12) saturate(0.65);
+    }
+
+    .luxury-booking .route-pin {
+      position: relative;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #fff;
+      background: var(--navy);
+      box-shadow: 0 0 0 6px rgba(7,29,73,0.16), 0 10px 22px rgba(7,29,73,0.28);
+    }
+
+    .luxury-booking .route-pin.arrival {
+      background: var(--live);
+      box-shadow: 0 0 0 6px rgba(50,183,94,0.18), 0 10px 22px rgba(7,29,73,0.24);
+    }
+
+    .luxury-booking .route-pin-label {
+      position: absolute;
+      left: 50%;
+      top: -31px;
+      transform: translateX(-50%);
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.94);
+      color: var(--navy);
+      box-shadow: 0 8px 22px rgba(7,29,73,0.16);
+      font: 700 10px/1 "Courier New", monospace;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .route-map-guide {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 700;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .route-map-guide span {
+      border: 1px solid rgba(7,29,73,0.12);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,0.88);
+      color: var(--navy);
+      box-shadow: 0 8px 24px rgba(7,29,73,0.10);
+      font: 700 10px/1 "Courier New", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      backdrop-filter: blur(14px);
+    }
+
     .luxury-booking .route-range,
     .luxury-booking .route-map-label,
     .luxury-booking .route-map-compass,
@@ -3138,6 +3189,31 @@
       font-family: Poppins, Arial, sans-serif;
       text-transform: none;
       line-height: 1.62;
+    }
+
+    .luxury-booking .extra-option strong {
+      color: var(--navy);
+      font-family: Poppins, Arial, sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+      text-transform: none;
+    }
+
+    .luxury-booking .extra-option span {
+      color: #627189;
+      font-size: 12px;
+    }
+
+    .luxury-booking .request-status {
+      border-color: rgba(7,29,73,0.13);
+      background: rgba(255,255,255,0.58);
+      color: #5f6f86;
+      border-radius: 999px;
+    }
+
+    .luxury-booking .extra-option:has(input:checked) .request-status {
+      color: var(--live);
+      border-color: var(--live);
     }
 
     .luxury-booking .amenity-grid,
@@ -3347,17 +3423,8 @@
       }
 
       .luxury-desk,
-      .luxury-products,
       .luxury-flow {
         grid-template-columns: 1fr;
-      }
-
-      .luxury-products {
-        gap: 10px;
-      }
-
-      .luxury-product {
-        min-height: 174px;
       }
 
       .luxury-booking .booking-progress {
@@ -3374,6 +3441,15 @@
         height: 330px;
         min-height: 330px;
         border-radius: 18px;
+      }
+
+      .route-map-guide {
+        right: 12px;
+      }
+
+      .route-map-guide span {
+        padding: 6px 8px;
+        font-size: 9px;
       }
 
       .luxury-booking .aircraft-feature {
@@ -3494,21 +3570,6 @@
         </div>
       </section>
 
-      <section class="luxury-products luxury-reveal" aria-label="Featured private flight options">
-        <article class="luxury-product">
-          <div><small>Hanko Regatta</small><h3>Scenic overflight</h3><p>Local Hanko departure for a short event overflight, subject to pilot and weather review.</p></div>
-          <div><strong>Approx. €30</strong><button id="luxuryHankoScenicBtn" class="luxury-product-action" type="button">Select Hanko scenic</button></div>
-        </article>
-        <article class="luxury-product">
-          <div><small>Helsinki city</small><h3>Skyline scenic</h3><p>Depart from Hyvinkää or Nummela for a private scenic route over the Helsinki area.</p></div>
-          <div><strong>Approx. €125</strong><button id="luxuryHelsinkiScenicBtn" class="luxury-product-action" type="button">Select Helsinki scenic</button></div>
-        </article>
-        <article class="luxury-product">
-          <div><small>Hanko routing</small><h3>Regatta arrival</h3><p>Hyvinkää is the recommended departure, with Helsinki-Vantaa available at a higher airport-fee profile.</p></div>
-          <div><strong>From €129</strong><button id="luxuryHankoRouteBtn" class="luxury-product-action" type="button">Select HYV-Hanko</button></div>
-        </article>
-      </section>
-
       <section class="luxury-flow luxury-reveal" aria-label="Booking process">
         <div class="luxury-flow-card"><span>01</span><strong>Request</strong><p>Select the route, date, passengers, baggage, and cabin preferences.</p></div>
         <div class="luxury-flow-card"><span>02</span><strong>Review</strong><p>Operations checks route, aircraft, passenger details, and requested extras.</p></div>
@@ -3557,6 +3618,7 @@
         <div id="routeMapShell" class="route-map-shell">
           <div id="routeMap" aria-label="Interactive route map"></div>
           <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
+          <div class="route-map-guide" aria-hidden="true"><span id="routeMapGuideRoute">Select route</span><span>Drag / pinch map</span><span>Locate me</span></div>
           <div class="map-watermark">Private route map</div>
           <div class="route-map-compass">N</div>
           <button id="locateMeBtn" class="locate-me-btn" type="button" aria-label="Locate me" title="Locate me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7.8 18-3.5-7.7L3 9.8 21 3Z"/><path d="m9.5 13.5 4-4"/></svg><span class="sr-only">Locate me</span></button>
@@ -3737,12 +3799,12 @@
 
             <div class="extras-section-title">Request for this flight</div>
             <div class="extras-grid" aria-label="Optional onboard and transfer requests">
-              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-visual wine" aria-hidden="true"></div><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-visual champagne" aria-hidden="true"></div><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-visual soft" aria-hidden="true"></div><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-visual transfer" aria-hidden="true"></div><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
             </div>
             <div id="alcoholPreferences" class="alcohol-preferences" aria-label="Alcohol service preferences">
               <div id="winePreferences" class="alcohol-preference" hidden>
@@ -3923,6 +3985,7 @@
     const routeMapLabel = el('routeMapLabel');
     const routeMapShell = el('routeMapShell');
     const routeMapFallback = el('routeMapFallback');
+    const routeMapGuideRoute = el('routeMapGuideRoute');
     const locateMeBtn = el('locateMeBtn');
     const reviewDialog = el('reviewDialog');
     const reviewDialogBody = el('reviewDialogBody');
@@ -4081,13 +4144,14 @@
       routeMapFallback.textContent = message;
     }
 
-    function createRouteIcon(type) {
+    function createRouteIcon(type, label) {
       if (!window.L) return null;
+      const safeLabel = escapeHtml(label || (type === 'arrival' ? 'ARR' : 'DEP'));
       return L.divIcon({
         className: '',
-        html: `<div class="route-pin ${type === 'arrival' ? 'arrival' : ''}"></div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11]
+        html: `<div class="route-pin ${type === 'arrival' ? 'arrival' : ''}"><span class="route-pin-label">${safeLabel}</span></div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
       });
     }
 
@@ -4136,7 +4200,7 @@
 
       clearRouteMap();
       if (dep.icao === arr.icao) {
-        depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure'), interactive: false }).addTo(routeMap);
+        depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure', dep.short), interactive: false }).addTo(routeMap);
         routeLayer = L.circle(depLatLng, {
           radius: 13000,
           color: '#071d49',
@@ -4150,8 +4214,8 @@
         return;
       }
 
-      depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure'), interactive: false }).addTo(routeMap);
-      arrMarker = L.marker(arrLatLng, { icon: createRouteIcon('arrival'), interactive: false }).addTo(routeMap);
+      depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure', dep.short), interactive: false }).addTo(routeMap);
+      arrMarker = L.marker(arrLatLng, { icon: createRouteIcon('arrival', arr.short), interactive: false }).addTo(routeMap);
       routeLayer = L.polyline([depLatLng, arrLatLng], {
         color: '#071d49',
         weight: 3,
@@ -4229,12 +4293,14 @@
         routeRange.textContent = 'FLIGHT TIME: --H --M';
         routeMapMeta.textContent = 'Choose departure and destination to show route.';
         routeMapLabel.textContent = 'Route preview';
+        routeMapGuideRoute.textContent = 'Select route';
         clearRouteMap();
         return;
       }
 
       routeRange.textContent = `FLIGHT TIME: ${formatFlightTime(dep, arr)}`;
       routeMapMeta.textContent = `${itineraryName(dep, arr)} / ${formatFlightTime(dep, arr)}`;
+      routeMapGuideRoute.textContent = `${dep.short} to ${arr.short}`;
       routeMapLabel.textContent = '';
       drawRouteOnMap(dep, arr);
     }
@@ -4442,20 +4508,7 @@
     function setupLuxuryReveal() {
       const revealTargets = [
         '.luxury-desk',
-        '.luxury-products',
-        '.luxury-flow',
-        '.route-map-card',
-        '.search-card',
-        '.aircraft-feature',
-        '.layout > section > .card',
-        '.layout > aside > .card',
-        '.summary-card',
-        '.baggage-request-grid > .card',
-        '.card:not(.aircraft-feature):not(.summary-card):not(.review-card)',
-        '.review-card',
-        '.submit-footer',
-        '.private-flight-notice',
-        '.booking-support'
+        '.luxury-flow'
       ];
       const sections = [...new Set(revealTargets.flatMap(selector => [...document.querySelectorAll(selector)]))];
       sections.forEach(section => section.classList.add('luxury-reveal'));
@@ -4837,10 +4890,6 @@
       refreshSummary();
       queueDraftSave();
     });
-    el('luxuryHankoScenicBtn').addEventListener('click', () => {
-      el('hankoScenicBtn').click();
-      el('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
     el('helsinkiScenicBtn').addEventListener('click', () => {
       el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
       if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
@@ -4850,21 +4899,6 @@
       setStatus('Helsinki city scenic overflight selected', 'ok');
       refreshSummary();
       queueDraftSave();
-    });
-    el('luxuryHelsinkiScenicBtn').addEventListener('click', () => {
-      el('helsinkiScenicBtn').click();
-      el('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-    el('luxuryHankoRouteBtn').addEventListener('click', () => {
-      el('flightExperience').value = '';
-      el('dep').value = 'EFHV';
-      el('arr').value = 'EFHN';
-      el('tripType').value = 'ONE_WAY';
-      updateReturnTripFields();
-      setStatus('Hyvinkää to Hanko route selected', 'ok');
-      refreshSummary();
-      queueDraftSave();
-      el('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     function changeBagCount(delta) {
       const next = Math.max(0, Math.min(3, Number(el('bagCount').value || 0) + delta));
