@@ -1226,82 +1226,50 @@
       overflow: hidden;
       border-bottom: 1px solid rgba(7,29,73,0.10);
       background:
-        radial-gradient(circle at 70% 42%, rgba(255,255,255,0.78), transparent 11%),
-        linear-gradient(135deg, #dfe8f2, #ffffff 54%, #cad4e2);
+        radial-gradient(circle at 78% 34%, rgba(255,255,255,0.86), transparent 14%),
+        linear-gradient(135deg, #eef3f8, #ffffff 54%, #d6e0eb);
+      display: grid;
+      place-items: center;
     }
 
-    .extra-visual::before,
-    .extra-visual::after {
+    .extra-visual::before {
       content: "";
       position: absolute;
-      display: block;
+      inset: 12px 16px;
+      border: 1px solid rgba(7,29,73,0.10);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.38);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
     }
 
-    .extra-visual.wine::before,
-    .extra-visual.champagne::before {
-      width: 15px;
-      height: 52px;
-      left: 32px;
-      bottom: 10px;
-      border-radius: 7px 7px 4px 4px;
-      background: linear-gradient(90deg, #260d1d, #7b1324 48%, #b45a64);
-      box-shadow: 24px 18px 0 -8px rgba(255,255,255,0.72), 25px 19px 0 -6px rgba(7,29,73,0.20);
-      transform: rotate(-8deg);
+    .extra-icon {
+      position: relative;
+      z-index: 1;
+      width: 46px;
+      height: 46px;
+      color: var(--navy);
+      filter: drop-shadow(0 10px 14px rgba(7,29,73,0.12));
     }
 
-    .extra-visual.champagne::before {
-      background: linear-gradient(90deg, #6d5426, #d7bd75 48%, #fff2bc);
+    .extra-visual.wine .extra-icon,
+    .extra-visual.champagne .extra-icon {
+      color: #7f1028;
     }
 
-    .extra-visual.beer::before {
-      width: 30px;
-      height: 42px;
-      left: 34px;
-      bottom: 12px;
-      border-radius: 4px 4px 10px 10px;
-      background: linear-gradient(180deg, #fff 0 16%, #d69a25 17% 100%);
-      box-shadow: inset 0 0 0 2px rgba(7,29,73,0.16), 36px 3px 0 -8px rgba(64,118,180,0.65);
+    .extra-visual.champagne .extra-icon {
+      color: #9b7a2d;
     }
 
-    .extra-visual.soft::before {
-      width: 20px;
-      height: 48px;
-      left: 38px;
-      bottom: 11px;
-      border-radius: 10px 10px 5px 5px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.88), rgba(94,154,211,0.54));
-      box-shadow: 32px 10px 0 -3px rgba(255,255,255,0.72), 32px 10px 0 -1px rgba(7,29,73,0.12);
+    .extra-visual.beer .extra-icon {
+      color: #b87518;
     }
 
-    .extra-visual.snacks::before {
-      width: 76px;
-      height: 30px;
-      left: 30px;
-      bottom: 20px;
-      border-radius: 18px 8px 18px 8px;
-      background: linear-gradient(135deg, #f7dfac, #b88545);
-      box-shadow: 0 12px 0 -5px rgba(7,29,73,0.18);
-      transform: rotate(-5deg);
+    .extra-visual.soft .extra-icon {
+      color: #2b79b8;
     }
 
-    .extra-visual.transfer::before {
-      width: 82px;
-      height: 30px;
-      left: 28px;
-      bottom: 18px;
-      border-radius: 20px 28px 10px 10px;
-      background: linear-gradient(135deg, var(--navy), #315b88);
-      box-shadow: inset 0 -7px 0 rgba(255,255,255,0.18);
-    }
-
-    .extra-visual.transfer::after {
-      width: 12px;
-      height: 12px;
-      left: 42px;
-      bottom: 11px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 48px 0 0 #fff;
+    .extra-visual.snacks .extra-icon {
+      color: #9a6a2f;
     }
 
     .extra-option-head {
@@ -3799,12 +3767,12 @@
 
             <div class="extras-section-title">Request for this flight</div>
             <div class="extras-grid" aria-label="Optional onboard and transfer requests">
-              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-visual wine" aria-hidden="true"></div><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-visual champagne" aria-hidden="true"></div><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-visual soft" aria-hidden="true"></div><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-visual transfer" aria-hidden="true"></div><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-visual wine" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7h12l-2 9a8 8 0 1 1-8 0L18 7Z"/><path d="M24 30v9"/><path d="M18 41h12"/><path d="M20 16h8"/></svg></div><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-visual champagne" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7h4"/><path d="M21 11h6v8l4 5v15a4 4 0 0 1-4 4h-6a4 4 0 0 1-4-4V24l4-5v-8Z"/><path d="M18 29h12"/><path d="M18 36h12"/><path d="M34 10h.01"/><path d="M39 16h.01"/><path d="M36 23h.01"/></svg></div><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 15h21v23a5 5 0 0 1-5 5H18a5 5 0 0 1-5-5V15Z"/><path d="M34 20h4a5 5 0 0 1 0 10h-4"/><path d="M17 15c0-5 4-8 8-8s8 3 8 8"/><path d="M19 23v12"/><path d="M27 23v12"/></svg></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-visual soft" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6h6"/><path d="M20 10h8l2 27a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5l2-27Z"/><path d="M19 25h10"/><path d="M35 12c4 3 6 7 6 12a13 13 0 0 1-5 10"/></svg></div><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 27c8-13 18-17 30-14-2 12-10 21-25 24l-5-10Z"/><path d="M16 29c7-2 14-6 20-13"/><path d="M12 35h24"/><path d="M17 41h14"/></svg></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-visual transfer" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 29h32l-4-11a5 5 0 0 0-5-3H17a5 5 0 0 0-5 3L8 29Z"/><path d="M10 29v8h5"/><path d="M38 29v8h-5"/><path d="M15 37a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M33 37a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M16 22h16"/></svg></div><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
             </div>
             <div id="alcoholPreferences" class="alcohol-preferences" aria-label="Alcohol service preferences">
               <div id="winePreferences" class="alcohol-preference" hidden>
