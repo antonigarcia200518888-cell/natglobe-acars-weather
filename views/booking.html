@@ -2320,10 +2320,847 @@
     .seat-option:has(input:checked)::after {
       color: var(--navy);
     }
+
+    /* Five-star passenger booking redesign. Keeps all booking controls and IDs intact. */
+    body.luxury-booking {
+      display: block;
+      min-height: 100%;
+      padding: 0;
+      background:
+        radial-gradient(circle at 14% 6%, rgba(198, 170, 104, 0.18), transparent 28%),
+        radial-gradient(circle at 88% 14%, rgba(7, 29, 73, 0.18), transparent 34%),
+        linear-gradient(180deg, #f9fafc 0%, #eef2f8 46%, #ffffff 100%);
+      color: var(--navy);
+    }
+
+    body.luxury-booking::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(7,29,73,0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(7,29,73,0.026) 1px, transparent 1px);
+      background-size: 84px 84px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.82), transparent 82%);
+    }
+
+    .luxury-booking .frame {
+      width: min(1240px, calc(100% - 40px));
+      margin: 24px auto 36px;
+      padding: 0;
+      border: 1px solid rgba(7,29,73,0.14);
+      border-radius: 28px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,253,0.96)),
+        #fff;
+      box-shadow: 0 34px 100px rgba(7,29,73,0.18);
+    }
+
+    .luxury-hero {
+      position: relative;
+      min-height: clamp(520px, 82vh, 760px);
+      padding: clamp(22px, 3.8vw, 46px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      color: #fff;
+      background:
+        linear-gradient(115deg, rgba(3,11,28,0.95) 0%, rgba(7,29,73,0.88) 48%, rgba(7,29,73,0.22) 100%),
+        url('/piper-hangar-customer.png') center right / cover no-repeat;
+    }
+
+    .luxury-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 74% 18%, rgba(255,255,255,0.28), transparent 16%),
+        linear-gradient(90deg, rgba(0,0,0,0.18), transparent 60%),
+        linear-gradient(180deg, transparent 70%, rgba(3,11,28,0.84));
+      pointer-events: none;
+    }
+
+    .luxury-hero::after {
+      content: '';
+      position: absolute;
+      inset: auto clamp(22px, 4vw, 48px) 26px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.52), transparent);
+    }
+
+    .luxury-hero > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .luxury-hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .luxury-hero-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .luxury-hero-logo {
+      width: clamp(82px, 9vw, 128px);
+      aspect-ratio: 1;
+      object-fit: contain;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.36);
+      background: rgba(255,255,255,0.92);
+      padding: 8px;
+      box-shadow: 0 20px 48px rgba(0,0,0,0.28);
+    }
+
+    .luxury-hero-brand span,
+    .luxury-eyebrow,
+    .luxury-stat span,
+    .luxury-scroll-hint,
+    .luxury-hero-note,
+    .luxury-step {
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .luxury-hero-brand span {
+      display: block;
+      color: rgba(255,255,255,0.82);
+      font-size: 11px;
+    }
+
+    .luxury-hero-brand strong {
+      display: block;
+      color: #fff;
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(18px, 2vw, 28px);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+    }
+
+    .luxury-hero-center {
+      align-self: center;
+      max-width: 850px;
+      padding: clamp(54px, 7vw, 92px) 0;
+    }
+
+    .luxury-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.78);
+      font-size: 11px;
+      margin-bottom: 18px;
+    }
+
+    .luxury-eyebrow::before {
+      content: '';
+      width: 48px;
+      height: 1px;
+      background: rgba(198,170,104,0.85);
+    }
+
+    .luxury-title {
+      margin: 0;
+      max-width: 780px;
+      color: #fff;
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(52px, 10vw, 128px);
+      font-weight: 400;
+      line-height: 0.88;
+      letter-spacing: 0.015em;
+      text-transform: uppercase;
+      text-wrap: balance;
+      text-shadow: 0 22px 60px rgba(0,0,0,0.42);
+      transform: translateY(calc(var(--luxury-scroll, 0) * -0.055px));
+      transition: transform 80ms linear;
+    }
+
+    .luxury-title span {
+      display: inline-block;
+      transform: translateY(24px);
+      opacity: 0;
+      animation: luxuryLetterRise 780ms cubic-bezier(.2,.9,.2,1) forwards;
+      animation-delay: calc(var(--i, 0) * 55ms);
+    }
+
+    .luxury-title span:nth-child(2) {
+      margin-left: clamp(6px, 1.2vw, 18px);
+      transform: translateY(24px) translateX(calc(var(--luxury-scroll, 0) * 0.018px));
+    }
+
+    .luxury-title span:nth-child(3) {
+      display: block;
+      transform: translateY(24px) translateX(calc(var(--luxury-scroll, 0) * -0.024px));
+    }
+
+    .luxury-copy {
+      max-width: 600px;
+      margin: 26px 0 0;
+      color: rgba(255,255,255,0.84);
+      font: 15px/1.72 Poppins, Arial, sans-serif;
+    }
+
+    .luxury-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .luxury-cta,
+    .luxury-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      border-radius: 999px;
+      padding: 0 22px;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font: 700 12px "Courier New", monospace;
+    }
+
+    .luxury-cta {
+      background: #fff;
+      color: var(--navy);
+      border: 1px solid #fff;
+      box-shadow: 0 18px 36px rgba(0,0,0,0.24);
+    }
+
+    .luxury-secondary {
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.38);
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+    }
+
+    .luxury-hero-bottom {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+    }
+
+    .luxury-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      max-width: 760px;
+    }
+
+    .luxury-stat {
+      min-height: 88px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.09);
+      backdrop-filter: blur(16px);
+      transform: translateY(calc(var(--luxury-scroll, 0) * -0.012px));
+    }
+
+    .luxury-stat strong {
+      display: block;
+      color: #fff;
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(20px, 2.4vw, 33px);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+    }
+
+    .luxury-stat span {
+      display: block;
+      margin-top: 5px;
+      color: rgba(255,255,255,0.68);
+      font-size: 10px;
+      line-height: 1.35;
+    }
+
+    .luxury-scroll-hint {
+      color: rgba(255,255,255,0.72);
+      font-size: 10px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+
+    .luxury-content {
+      padding: clamp(22px, 4vw, 48px);
+    }
+
+    .luxury-booking .title-row {
+      display: none;
+    }
+
+    .luxury-booking .clock,
+    .luxury-booking .mode,
+    .luxury-booking .booking-progress,
+    .luxury-booking .draft-status,
+    .luxury-booking .route-map-card,
+    .luxury-booking .search-card,
+    .luxury-booking .card,
+    .luxury-booking .submit-footer,
+    .luxury-booking .private-flight-notice,
+    .luxury-booking .booking-support {
+      border-radius: 24px;
+    }
+
+    .luxury-booking .clock {
+      display: inline-flex;
+      margin: 0 0 12px;
+      padding: 8px 13px;
+      border: 1px solid rgba(7,29,73,0.14);
+      background: rgba(255,255,255,0.72);
+      color: var(--ink-soft);
+      font-size: 11px;
+    }
+
+    .luxury-booking .mode {
+      min-height: 48px;
+      border: 1px solid rgba(7,29,73,0.08);
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, var(--navy), #123968 72%, #1d4c7f);
+      box-shadow: 0 18px 42px rgba(7,29,73,0.18);
+      padding: 10px 18px;
+    }
+
+    .luxury-booking .booking-progress {
+      position: sticky;
+      top: 12px;
+      z-index: 35;
+      padding: 10px;
+      border: 1px solid rgba(7,29,73,0.10);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.86);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 50px rgba(7,29,73,0.10);
+    }
+
+    .luxury-booking .booking-progress span {
+      color: #77849a;
+      font: 700 10px/1.15 "Courier New", monospace;
+      letter-spacing: 0.08em;
+    }
+
+    .luxury-booking .booking-progress i {
+      height: 5px;
+      border-radius: 999px;
+      background: #e3e8f1;
+    }
+
+    .luxury-booking .booking-progress i::after {
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--live), #9be8b3);
+    }
+
+    .luxury-booking .draft-status {
+      margin: 10px 0 18px;
+      padding-left: 4px;
+      color: #7f8a9a;
+      letter-spacing: 0.08em;
+    }
+
+    .luxury-booking .route-map-card,
+    .luxury-booking .search-card,
+    .luxury-booking .card,
+    .luxury-booking .submit-footer {
+      margin-bottom: 18px;
+      padding: clamp(16px, 2.5vw, 28px);
+      border: 1px solid rgba(7,29,73,0.12);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(249,251,254,0.94));
+      box-shadow: 0 18px 54px rgba(7,29,73,0.10);
+    }
+
+    .luxury-booking .route-map-card {
+      padding: clamp(14px, 2vw, 22px);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.98), rgba(240,244,250,0.94));
+    }
+
+    .luxury-booking .route-map-head {
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+    }
+
+    .luxury-booking .route-map-title,
+    .luxury-booking .booking-kicker,
+    .luxury-booking .section-title {
+      color: var(--navy);
+      font-size: clamp(18px, 2.2vw, 28px);
+      font-weight: 400;
+    }
+
+    .luxury-booking .route-map-meta {
+      max-width: 360px;
+      color: #6c7890;
+      font-size: 11px;
+    }
+
+    .luxury-booking .route-map-shell {
+      height: clamp(420px, 48vw, 620px);
+      border: 1px solid rgba(7,29,73,0.16);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4), 0 18px 42px rgba(7,29,73,0.12);
+    }
+
+    .luxury-booking .route-range,
+    .luxury-booking .route-map-label,
+    .luxury-booking .route-map-compass,
+    .luxury-booking .locate-me-btn {
+      border-radius: 999px;
+      background: rgba(7,29,73,0.86);
+      backdrop-filter: blur(12px);
+      border-color: rgba(255,255,255,0.36);
+    }
+
+    .luxury-booking .experience-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .luxury-booking .experience-strip,
+    .luxury-booking .return-trip-row,
+    .luxury-booking .regatta-route-note,
+    .luxury-booking .passenger-card,
+    .luxury-booking .baggage-addon,
+    .luxury-booking .seat-map,
+    .luxury-booking .request-panel,
+    .luxury-booking .included-card,
+    .luxury-booking .extra-option,
+    .luxury-booking .seat-option,
+    .luxury-booking .declaration,
+    .luxury-booking .check,
+    .luxury-booking .alcohol-preference,
+    .luxury-booking .route-box,
+    .luxury-booking .quote-label,
+    .luxury-booking .status-step,
+    .luxury-booking .review-item,
+    .luxury-booking .amenity,
+    .luxury-booking .aircraft-feature-copy {
+      border-radius: 18px;
+      border-color: rgba(7,29,73,0.11);
+      background: rgba(255,255,255,0.74);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+
+    .luxury-booking .experience-strip {
+      padding: 18px;
+      min-height: 150px;
+      background:
+        linear-gradient(135deg, rgba(7,29,73,0.08), transparent 62%),
+        rgba(255,255,255,0.78);
+    }
+
+    .luxury-booking .experience-strip strong {
+      font-family: Poppins, Arial, sans-serif;
+      font-size: 17px;
+      letter-spacing: 0.01em;
+      text-transform: none;
+    }
+
+    .luxury-booking .experience-strip span {
+      margin-top: 8px;
+      font: 13px/1.55 Poppins, Arial, sans-serif;
+      text-transform: none;
+    }
+
+    .luxury-booking .experience-btn,
+    .luxury-booking .btn {
+      min-height: 54px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--navy), #143d6f);
+      border-color: transparent;
+      box-shadow: 0 16px 34px rgba(7,29,73,0.22);
+      letter-spacing: 0.08em;
+    }
+
+    .luxury-booking .swap-btn,
+    .luxury-booking .review-cancel {
+      border-radius: 999px;
+    }
+
+    .luxury-booking input,
+    .luxury-booking select,
+    .luxury-booking textarea {
+      min-height: 54px;
+      border-radius: 15px;
+      border-color: rgba(7,29,73,0.18);
+      background: rgba(255,255,255,0.88);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    .luxury-booking label,
+    .luxury-booking .question-label,
+    .luxury-booking .extras-section-title {
+      color: #53637a;
+      font: 700 11px/1.2 "Courier New", monospace;
+      letter-spacing: 0.1em;
+    }
+
+    .luxury-booking .grid,
+    .luxury-booking .question-grid,
+    .luxury-booking .passenger-main-grid,
+    .luxury-booking .three,
+    .luxury-booking .two {
+      gap: 14px;
+    }
+
+    .luxury-booking .aircraft-feature {
+      align-items: stretch;
+      overflow: hidden;
+      padding: 0;
+      background:
+        linear-gradient(135deg, #fff, #eef3f9);
+    }
+
+    .luxury-booking .aircraft-photo {
+      border: 0;
+      border-radius: 24px 0 0 24px;
+      background:
+        radial-gradient(circle at 50% 88%, rgba(7,29,73,0.18), transparent 34%),
+        linear-gradient(180deg, #fff, #edf1f7);
+    }
+
+    .luxury-booking .aircraft-photo img {
+      filter: drop-shadow(0 28px 38px rgba(7,29,73,0.20));
+      transform: scale(1.04);
+    }
+
+    .luxury-booking .aircraft-feature-copy {
+      padding: clamp(20px, 3vw, 34px);
+      background:
+        linear-gradient(180deg, rgba(7,29,73,0.05), transparent 55%),
+        rgba(255,255,255,0.68);
+    }
+
+    .luxury-booking .aircraft-feature-copy p,
+    .luxury-booking .declaration,
+    .luxury-booking .fine-print,
+    .luxury-booking .request-panel-copy,
+    .luxury-booking .seat-option span,
+    .luxury-booking .extra-option span,
+    .luxury-booking .check {
+      font-family: Poppins, Arial, sans-serif;
+      text-transform: none;
+      line-height: 1.62;
+    }
+
+    .luxury-booking .amenity-grid,
+    .luxury-booking .included-grid,
+    .luxury-booking .extras-grid,
+    .luxury-booking .seat-options {
+      gap: 12px;
+    }
+
+    .luxury-booking .layout {
+      gap: 18px;
+      align-items: start;
+    }
+
+    .luxury-booking .summary-card {
+      background:
+        linear-gradient(135deg, rgba(7,29,73,0.96), rgba(16,54,97,0.94));
+      color: #fff;
+      border: 0;
+      box-shadow: 0 28px 70px rgba(7,29,73,0.22);
+    }
+
+    .luxury-booking .summary-card .section-title,
+    .luxury-booking .summary-card .declaration strong,
+    .luxury-booking .summary-card .declaration {
+      color: #fff;
+    }
+
+    .luxury-booking .summary-card .seat-option {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+      color: #fff;
+    }
+
+    .luxury-booking .summary-card .seat-option strong,
+    .luxury-booking .summary-card .seat-option span {
+      color: #fff;
+    }
+
+    .luxury-booking .review-card {
+      background: #fff;
+      border-color: rgba(7,29,73,0.10);
+    }
+
+    .luxury-booking .route-box {
+      padding: 18px;
+      background:
+        linear-gradient(135deg, rgba(7,29,73,0.06), transparent),
+        rgba(255,255,255,0.84);
+    }
+
+    .luxury-booking .route-line {
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 0.95;
+    }
+
+    .luxury-booking .airport-name {
+      font-family: Poppins, Arial, sans-serif;
+      text-transform: none;
+      font-size: 14px;
+    }
+
+    .luxury-booking .summary-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 22px;
+    }
+
+    .luxury-booking .summary-list .total-cost,
+    .luxury-booking .summary-list .summary-requests {
+      grid-column: 1 / -1;
+    }
+
+    .luxury-booking .summary-list li {
+      border-bottom-color: rgba(7,29,73,0.10);
+      padding: 13px 0;
+    }
+
+    .luxury-booking .summary-list strong {
+      font-size: 18px;
+    }
+
+    .luxury-booking .summary-list .total-cost strong {
+      font-size: clamp(24px, 3vw, 36px);
+    }
+
+    .luxury-booking .submit-footer {
+      background:
+        linear-gradient(135deg, rgba(7,29,73,0.96), rgba(17,56,97,0.94));
+      color: #fff;
+    }
+
+    .luxury-booking .submit-footer .status,
+    .luxury-booking .submit-footer .confirmation,
+    .luxury-booking .submit-footer .status-tracker {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    .luxury-booking .private-flight-notice,
+    .luxury-booking .booking-support {
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(7,29,73,0.10);
+    }
+
+    .luxury-reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 780ms ease, transform 780ms cubic-bezier(.2,.9,.2,1);
+    }
+
+    .luxury-reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .luxury-reveal .section-title,
+    .luxury-reveal .booking-kicker,
+    .luxury-reveal .route-map-title {
+      transform: translateY(14px);
+      transition: transform 760ms cubic-bezier(.2,.9,.2,1);
+    }
+
+    .luxury-reveal.is-visible .section-title,
+    .luxury-reveal.is-visible .booking-kicker,
+    .luxury-reveal.is-visible .route-map-title {
+      transform: translateY(0);
+    }
+
+    @keyframes luxuryLetterRise {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      body.luxury-booking {
+        padding: 0 0 calc(96px + env(safe-area-inset-bottom));
+      }
+
+      .luxury-booking .frame {
+        width: 100%;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .luxury-hero {
+        min-height: 720px;
+        padding: 18px;
+        background:
+          linear-gradient(180deg, rgba(3,11,28,0.94) 0%, rgba(7,29,73,0.86) 54%, rgba(7,29,73,0.28) 100%),
+          url('/piper-hangar-customer.png') center bottom / cover no-repeat;
+      }
+
+      .luxury-hero-top {
+        align-items: flex-start;
+      }
+
+      .luxury-hero-logo {
+        width: 78px;
+        border-radius: 18px;
+      }
+
+      .luxury-hero-brand strong {
+        font-size: 18px;
+      }
+
+      .luxury-hero-center {
+        padding: 58px 0 34px;
+      }
+
+      .luxury-title {
+        font-size: clamp(48px, 16vw, 72px);
+      }
+
+      .luxury-copy {
+        font-size: 14px;
+        line-height: 1.62;
+      }
+
+      .luxury-hero-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-hero-bottom {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .luxury-scroll-hint {
+        display: none;
+      }
+
+      .luxury-content {
+        padding: 12px 10px 20px;
+      }
+
+      .luxury-booking .booking-progress {
+        top: 8px;
+        border-radius: 18px;
+      }
+
+      .luxury-booking .experience-list,
+      .luxury-booking .summary-list {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .route-map-shell {
+        height: 330px;
+        min-height: 330px;
+        border-radius: 18px;
+      }
+
+      .luxury-booking .aircraft-feature {
+        padding: 12px;
+      }
+
+      .luxury-booking .aircraft-photo {
+        border-radius: 18px;
+      }
+
+      .luxury-booking .route-line {
+        font-size: 35px;
+      }
+
+      .luxury-booking .mobile-booking-bar {
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        border-radius: 22px;
+        background: rgba(255,255,255,0.94);
+        backdrop-filter: blur(18px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .luxury-title span,
+      .luxury-reveal,
+      .luxury-reveal .section-title,
+      .luxury-reveal .booking-kicker,
+      .luxury-reveal .route-map-title {
+        animation: none;
+        transition: none;
+        opacity: 1;
+        transform: none;
+      }
+
+      .luxury-title,
+      .luxury-stat {
+        transform: none;
+        transition: none;
+      }
+    }
   </style>
 </head>
-<body>
+<body class="luxury-booking">
   <main class="frame">
+    <section class="luxury-hero" aria-label="NGA private flight booking introduction">
+      <div class="luxury-hero-top">
+        <div class="luxury-hero-brand">
+          <img class="luxury-hero-logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation logo" />
+          <div><span>Private flight desk</span><strong>NGA Private Aviation</strong></div>
+        </div>
+        <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
+          <span class="connection-wifi" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="wifi-icon">
+              <path d="M2 8.5C7.5 4.5 16.5 4.5 22 8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M5 12C8.8 9.2 15.2 9.2 19 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M8.5 15.5C10.5 14 13.5 14 15.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="19" r="1.6" fill="currentColor"/>
+            </svg>
+          </span>
+          <span id="connectionText">OFFLINE</span>
+        </div>
+      </div>
+      <div class="luxury-hero-center">
+        <div class="luxury-eyebrow">Equal-share private flight requests</div>
+        <h1 class="luxury-title" aria-label="Private flight booking">
+          <span style="--i:0">Private</span>
+          <span style="--i:1">Flight</span>
+          <span style="--i:2">Booking</span>
+        </h1>
+        <p class="luxury-copy">Plan a scenic or regional private flight with a refined request flow, pilot review, passenger information passes, and final operational confirmation before any flight is booked.</p>
+        <div class="luxury-hero-actions">
+          <a class="luxury-cta" href="#bookingForm">Start request</a>
+          <a class="luxury-secondary" href="#routeMapShell">View route map</a>
+        </div>
+      </div>
+      <div class="luxury-hero-bottom">
+        <div class="luxury-stats">
+          <div class="luxury-stat"><strong>HYV</strong><span>Recommended Hanko departure</span></div>
+          <div class="luxury-stat"><strong>NUM</strong><span>Helsinki scenic option</span></div>
+          <div class="luxury-stat"><strong>20</strong><span>Minute boarding target</span></div>
+          <div class="luxury-stat"><strong>NCO</strong><span>Private non-commercial operation</span></div>
+        </div>
+        <div class="luxury-scroll-hint">Scroll to request</div>
+      </div>
+    </section>
+    <div class="luxury-content">
     <div class="title-row">
       <div class="brand-lockup">
         <img class="brand-logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation logo" />
@@ -2332,7 +3169,7 @@
           <div class="subtitle">Private aviation requests / Equal-share, non-commercial operation</div>
         </div>
       </div>
-      <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
+      <div class="connection-badge conn-offline" aria-live="polite">
         <span class="connection-wifi" aria-hidden="true">
           <svg viewBox="0 0 24 24" class="wifi-icon">
             <path d="M2 8.5C7.5 4.5 16.5 4.5 22 8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -2341,7 +3178,7 @@
             <circle cx="12" cy="19" r="1.6" fill="currentColor"/>
           </svg>
         </span>
-        <span id="connectionText">OFFLINE</span>
+        <span>OFFLINE</span>
       </div>
     </div>
 
@@ -2656,6 +3493,7 @@
       <footer class="booking-support">Questions about your request? Email <a href="mailto:info.ngaprivateaviation@gmail.com">info.ngaprivateaviation@gmail.com</a></footer>
 
     </form>
+    </div>
   </main>
 
   <div id="reviewDialog" class="review-dialog" role="dialog" aria-modal="true" aria-labelledby="reviewDialogTitle" hidden>
@@ -3246,6 +4084,53 @@
       watchBookingSection('extrasSection', () => { extrasSectionViewed = true; });
     }
 
+    function setupLuxuryReveal() {
+      const revealTargets = [
+        '.route-map-card',
+        '.search-card',
+        '.aircraft-feature',
+        '.layout > section > .card',
+        '.layout > aside > .card',
+        '.summary-card',
+        '.baggage-request-grid > .card',
+        '.card:not(.aircraft-feature):not(.summary-card):not(.review-card)',
+        '.review-card',
+        '.submit-footer',
+        '.private-flight-notice',
+        '.booking-support'
+      ];
+      const sections = [...new Set(revealTargets.flatMap(selector => [...document.querySelectorAll(selector)]))];
+      sections.forEach(section => section.classList.add('luxury-reveal'));
+      if (!('IntersectionObserver' in window)) {
+        sections.forEach(section => section.classList.add('is-visible'));
+        return;
+      }
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      }, { rootMargin: '0px 0px -12% 0px', threshold: 0.14 });
+      sections.forEach(section => observer.observe(section));
+    }
+
+    function setupLuxuryScrollMotion() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      let ticking = false;
+      const update = () => {
+        document.documentElement.style.setProperty('--luxury-scroll', String(Math.min(window.scrollY || 0, 900)));
+        ticking = false;
+      };
+      const requestUpdate = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(update);
+      };
+      update();
+      window.addEventListener('scroll', requestUpdate, { passive: true });
+    }
+
     function passengerHasRequiredDetails(passenger) {
       return Boolean(
         passenger?.title &&
@@ -3725,6 +4610,8 @@
     updateBaggageFields();
     restoreBookingDraft();
     setupSectionProgress();
+    setupLuxuryReveal();
+    setupLuxuryScrollMotion();
     loadBookingAvailability().catch(() => {});
     updateConnectionBadge();
     tick();
