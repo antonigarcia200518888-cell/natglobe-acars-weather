@@ -1026,6 +1026,35 @@
       letter-spacing: 0.08em;
     }
 
+    .cabin-experience-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0 0 10px;
+    }
+
+    .cabin-experience-chip {
+      border: 1px solid #555;
+      padding: 10px;
+      background: rgba(255,255,255,0.04);
+      text-transform: uppercase;
+    }
+
+    .cabin-experience-chip span {
+      display: block;
+      color: #8d8d8d;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      margin-bottom: 5px;
+    }
+
+    .cabin-experience-chip strong {
+      display: block;
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
     .seat-map-shell {
       border: 1px solid #555;
       padding: 10px;
@@ -1033,6 +1062,36 @@
       display: grid;
       place-items: center;
       overflow: hidden;
+      position: relative;
+    }
+
+    .seat-map-shell::before,
+    .seat-map-shell::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .seat-map-shell::before {
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.14), transparent 22%),
+        linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.10) 48%, transparent 58%);
+      transform: translateX(-38%);
+      animation: cabinLightSweep 5.8s ease-in-out infinite;
+      opacity: 0.7;
+    }
+
+    .seat-map-shell::after {
+      inset: auto 14% 10% 14%;
+      height: 20%;
+      background: radial-gradient(ellipse at center, rgba(102,255,153,0.22), transparent 70%);
+      filter: blur(18px);
+    }
+
+    @keyframes cabinLightSweep {
+      0%, 100% { transform: translateX(-38%); opacity: 0.35; }
+      45% { transform: translateX(38%); opacity: 0.75; }
     }
 
     .cabin-visual {
@@ -1128,6 +1187,15 @@
       pointer-events: none;
     }
 
+    .rear-seat-marker::before {
+      content: "";
+      position: absolute;
+      inset: -9px;
+      border: 1px solid rgba(102,255,153,0.46);
+      border-radius: 16px;
+      animation: cabinSeatPulse 1.8s ease-in-out infinite;
+    }
+
     .rear-seat-marker::after {
       content: "Preferred";
       position: absolute;
@@ -1149,6 +1217,33 @@
 
     .rear-seat-marker.left { top: 16.5%; }
     .rear-seat-marker.right { top: 52.5%; }
+
+    @keyframes cabinSeatPulse {
+      0%, 100% { opacity: 0.28; transform: scale(0.96); }
+      50% { opacity: 0.95; transform: scale(1.06); }
+    }
+
+    .seat-hotspot {
+      position: absolute;
+      left: 66.7%;
+      width: 16%;
+      height: 35%;
+      z-index: 7;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .seat-hotspot.left { top: 16.5%; }
+    .seat-hotspot.right { top: 52.5%; }
+
+    .seat-hotspot:focus-visible {
+      outline: 2px solid var(--live);
+      outline-offset: 3px;
+    }
 
     .seat-visual.blocked {
       color: #d7d7d7;
@@ -1177,6 +1272,18 @@
         linear-gradient(145deg, #223f68, #06183c);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 10px 22px rgba(0,0,0,0.18);
       order: -1;
+    }
+
+    .seat-option small {
+      display: inline-flex;
+      align-self: flex-start;
+      border: 1px solid #555;
+      padding: 4px 7px;
+      color: #bdbdbd;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-style: normal;
     }
 
     .request-panel {
@@ -3375,6 +3482,31 @@
       font-weight: 400;
     }
 
+    .luxury-booking .cabin-experience-strip {
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .luxury-booking .cabin-experience-chip {
+      border-radius: 18px;
+      border-color: rgba(255,255,255,0.16);
+      background:
+        radial-gradient(circle at 90% 0%, rgba(255,255,255,0.13), transparent 28%),
+        rgba(255,255,255,0.07);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .luxury-booking .cabin-experience-chip span {
+      color: rgba(255,255,255,0.52);
+    }
+
+    .luxury-booking .cabin-experience-chip strong {
+      color: #fff;
+      font-family: Poppins, Arial, sans-serif;
+      font-size: 13px;
+      text-transform: none;
+    }
+
     .luxury-booking .summary-card .section-title,
     .luxury-booking .summary-card .declaration strong,
     .luxury-booking .summary-card .declaration {
@@ -3401,6 +3533,10 @@
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 24px 58px rgba(0,0,0,0.24);
     }
 
+    .luxury-booking .summary-card .seat-map-shell::before {
+      mix-blend-mode: screen;
+    }
+
     .luxury-booking .summary-card .seat-map-image {
       filter: drop-shadow(0 20px 30px rgba(0,0,0,0.34));
     }
@@ -3424,6 +3560,14 @@
       color: #fff;
       transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    }
+
+    .luxury-booking .summary-card .seat-option small {
+      border-color: rgba(255,255,255,0.16);
+      border-radius: 999px;
+      color: rgba(255,255,255,0.66);
+      background: rgba(255,255,255,0.07);
+      font: 700 9px/1 "Courier New", monospace;
     }
 
     .luxury-booking .summary-card .seat-option strong,
@@ -3691,6 +3835,14 @@
       .luxury-booking .cabin-selected-badge {
         width: 100%;
         text-align: left;
+      }
+
+      .luxury-booking .cabin-experience-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .summary-card .seat-map-shell {
+        min-height: 210px;
       }
 
       .luxury-booking .aircraft-photo {
@@ -4003,11 +4155,18 @@
         </div>
         <div class="seat-map">
           <div class="declaration"><strong>PA-28R-200 private cabin layout</strong> Forward seats are reserved for operating crew. Passenger preferences are available in the rear cabin.</div>
+          <div class="cabin-experience-strip" aria-label="Cabin preference highlights">
+            <div class="cabin-experience-chip"><span>View</span><strong>Rear window sightseeing</strong></div>
+            <div class="cabin-experience-chip"><span>Cabin</span><strong>Private two-seat rear cabin</strong></div>
+            <div class="cabin-experience-chip"><span>Decision</span><strong>Pilot-balanced seating</strong></div>
+          </div>
           <div class="seat-map-shell" aria-label="PA-28R-200 seat map">
             <div class="cabin-visual">
               <img class="seat-map-image" src="/pa28-seat-map.png" alt="PA-28R-200 cabin seat map" />
               <button class="seat-visual blocked front-left" type="button" disabled>Pilot</button>
               <button class="seat-visual blocked front-right" type="button" disabled>Pilot</button>
+              <button class="seat-hotspot left" type="button" data-seat-hotspot="REAR LEFT WINDOW" aria-label="Select rear left window seat"></button>
+              <button class="seat-hotspot right" type="button" data-seat-hotspot="REAR RIGHT WINDOW" aria-label="Select rear right window seat"></button>
               <div id="rearLeftMarker" class="rear-seat-marker left is-selected">RL</div>
               <div id="rearRightMarker" class="rear-seat-marker right">RR</div>
             </div>
@@ -4015,9 +4174,9 @@
           <div class="cabin-seat-legend"><span><i></i>Rear cabin preference</span><span>Window-side seating</span><span>Final pilot approval</span></div>
           <input id="seatPreference" type="hidden" value="REAR LEFT WINDOW" />
           <div class="seat-options">
-            <label class="seat-option is-selected"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /><strong>Rear left window</strong><span>Classic sightseeing angle behind the pilot side.</span></label>
-            <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /><strong>Rear right window</strong><span>Window-side preference behind the crew seat.</span></label>
-            <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /><strong>Best available</strong><span>Let the pilot assign the smoothest loading option.</span></label>
+            <label class="seat-option is-selected"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /><small>RL suite</small><strong>Rear left window</strong><span>Classic sightseeing angle behind the pilot side.</span></label>
+            <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /><small>RR suite</small><strong>Rear right window</strong><span>Window-side preference behind the crew seat.</span></label>
+            <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /><small>Pilot select</small><strong>Best available</strong><span>Let the pilot assign the smoothest loading option.</span></label>
           </div>
         </div>
       </div>
@@ -5186,6 +5345,13 @@
     });
     form.querySelectorAll('input[name="seatPreference"]').forEach(input => {
       input.addEventListener('change', () => setSeatPreference(input.value));
+    });
+    form.querySelectorAll('[data-seat-hotspot]').forEach(button => {
+      button.addEventListener('click', () => {
+        setSeatPreference(button.dataset.seatHotspot);
+        refreshSummary();
+        queueDraftSave();
+      });
     });
     mobileSubmitBooking.addEventListener('click', () => {
       form.requestSubmit(submitBooking);
