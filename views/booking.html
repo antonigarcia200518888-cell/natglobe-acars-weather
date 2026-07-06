@@ -2410,6 +2410,44 @@
       min-width: 0;
     }
 
+    .luxury-hero-nav {
+      position: absolute;
+      top: clamp(22px, 3.8vw, 46px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px;
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.09);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+
+    .luxury-hero-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      color: rgba(255,255,255,0.78);
+      text-decoration: none;
+      font: 700 10px/1 "Courier New", monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: background 180ms ease, color 180ms ease;
+    }
+
+    .luxury-hero-nav a:hover,
+    .luxury-hero-nav a:focus-visible {
+      background: rgba(255,255,255,0.92);
+      color: var(--navy);
+      outline: none;
+    }
+
     .luxury-hero-logo {
       width: clamp(82px, 9vw, 128px);
       aspect-ratio: 1;
@@ -2594,6 +2632,251 @@
 
     .luxury-content {
       padding: clamp(22px, 4vw, 48px);
+    }
+
+    .luxury-desk {
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) minmax(280px, 0.94fr);
+      gap: 18px;
+      margin: 0 0 18px;
+      align-items: stretch;
+    }
+
+    .luxury-desk-main,
+    .luxury-desk-panel,
+    .luxury-product,
+    .luxury-flow-card {
+      border: 1px solid rgba(7,29,73,0.12);
+      border-radius: 26px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.94), rgba(247,250,253,0.86));
+      box-shadow: 0 20px 58px rgba(7,29,73,0.10);
+    }
+
+    .luxury-desk-main {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(22px, 3vw, 34px);
+      min-height: 330px;
+      background:
+        linear-gradient(135deg, rgba(7,29,73,0.94), rgba(16,53,94,0.85)),
+        radial-gradient(circle at 88% 12%, rgba(255,255,255,0.18), transparent 30%);
+      color: #fff;
+    }
+
+    .luxury-desk-main::after {
+      content: '';
+      position: absolute;
+      inset: auto -12% -36% 32%;
+      height: 72%;
+      background: radial-gradient(ellipse at center, rgba(198,170,104,0.26), transparent 62%);
+      transform: rotate(-8deg);
+      pointer-events: none;
+    }
+
+    .luxury-desk-eyebrow,
+    .luxury-product small,
+    .luxury-flow-card span,
+    .luxury-desk-panel span {
+      display: block;
+      color: rgba(255,255,255,0.70);
+      font: 700 11px/1.25 "Courier New", monospace;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .luxury-desk-main h2 {
+      position: relative;
+      z-index: 1;
+      max-width: 620px;
+      margin: 15px 0 0;
+      color: #fff;
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(34px, 5vw, 70px);
+      font-weight: 400;
+      line-height: 0.95;
+      letter-spacing: 0.025em;
+      text-transform: uppercase;
+    }
+
+    .luxury-desk-main p {
+      position: relative;
+      z-index: 1;
+      max-width: 570px;
+      margin: 18px 0 0;
+      color: rgba(255,255,255,0.78);
+      font: 15px/1.7 Poppins, Arial, sans-serif;
+    }
+
+    .luxury-desk-tags {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 24px;
+    }
+
+    .luxury-desk-tags span {
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 999px;
+      padding: 8px 11px;
+      color: rgba(255,255,255,0.82);
+      background: rgba(255,255,255,0.08);
+      font: 700 10px "Courier New", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      backdrop-filter: blur(12px);
+    }
+
+    .luxury-desk-panel {
+      padding: clamp(18px, 2.4vw, 28px);
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+    }
+
+    .luxury-desk-panel span {
+      color: #6a7589;
+    }
+
+    .luxury-desk-panel strong {
+      display: block;
+      color: var(--navy);
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(26px, 4vw, 50px);
+      font-weight: 400;
+      line-height: 0.95;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .luxury-desk-panel p {
+      margin: 10px 0 0;
+      color: var(--ink-soft);
+      font: 14px/1.62 Poppins, Arial, sans-serif;
+    }
+
+    .luxury-products {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 0 0 18px;
+    }
+
+    .luxury-product {
+      position: relative;
+      overflow: hidden;
+      min-height: 220px;
+      padding: 18px;
+      display: grid;
+      align-content: space-between;
+      transition: transform 220ms ease, box-shadow 220ms ease;
+    }
+
+    .luxury-product::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.82), rgba(255,255,255,0.34)),
+        radial-gradient(circle at 86% 10%, rgba(198,170,104,0.24), transparent 28%);
+      pointer-events: none;
+    }
+
+    .luxury-product:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 28px 70px rgba(7,29,73,0.16);
+    }
+
+    .luxury-product > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .luxury-product small {
+      color: #718099;
+    }
+
+    .luxury-product h3 {
+      margin: 10px 0 8px;
+      color: var(--navy);
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(22px, 3vw, 36px);
+      font-weight: 400;
+      line-height: 0.98;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .luxury-product p {
+      margin: 0;
+      color: var(--ink-soft);
+      font: 13px/1.58 Poppins, Arial, sans-serif;
+    }
+
+    .luxury-product strong {
+      align-self: end;
+      color: var(--live);
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .luxury-product-action {
+      justify-self: start;
+      min-height: 40px;
+      margin-top: 14px;
+      padding: 0 14px;
+      border: 1px solid rgba(7,29,73,0.16);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--navy);
+      cursor: pointer;
+      font: 700 10px "Courier New", monospace;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      box-shadow: 0 10px 24px rgba(7,29,73,0.08);
+    }
+
+    .luxury-product-action:hover,
+    .luxury-product-action:focus-visible {
+      background: var(--navy);
+      color: #fff;
+      outline: none;
+    }
+
+    .luxury-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 0 18px;
+    }
+
+    .luxury-flow-card {
+      padding: 16px;
+      min-height: 132px;
+    }
+
+    .luxury-flow-card span {
+      color: #7c889a;
+    }
+
+    .luxury-flow-card strong {
+      display: block;
+      margin-top: 18px;
+      color: var(--navy);
+      font: 700 13px/1.35 "Courier New", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .luxury-flow-card p {
+      margin: 7px 0 0;
+      color: var(--ink-soft);
+      font: 12px/1.55 Poppins, Arial, sans-serif;
     }
 
     .luxury-booking .title-row {
@@ -3016,6 +3299,10 @@
         align-items: flex-start;
       }
 
+      .luxury-hero-nav {
+        display: none;
+      }
+
       .luxury-hero-logo {
         width: 78px;
         border-radius: 18px;
@@ -3057,6 +3344,20 @@
 
       .luxury-content {
         padding: 12px 10px 20px;
+      }
+
+      .luxury-desk,
+      .luxury-products,
+      .luxury-flow {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-products {
+        gap: 10px;
+      }
+
+      .luxury-product {
+        min-height: 174px;
       }
 
       .luxury-booking .booking-progress {
@@ -3125,6 +3426,12 @@
           <img class="luxury-hero-logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation logo" />
           <div><span>Private flight desk</span><strong>NGA Private Aviation</strong></div>
         </div>
+        <nav class="luxury-hero-nav" aria-label="Booking page sections">
+          <a href="#routeMapShell">Route</a>
+          <a href="#bookingForm">Request</a>
+          <a href="#luggageSection">Luggage</a>
+          <a href="#extrasSection">Cabin</a>
+        </nav>
         <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
           <span class="connection-wifi" aria-hidden="true">
             <svg viewBox="0 0 24 24" class="wifi-icon">
@@ -3161,6 +3468,54 @@
       </div>
     </section>
     <div class="luxury-content">
+      <section class="luxury-desk luxury-reveal" aria-label="Private flight desk overview">
+        <div class="luxury-desk-main">
+          <div class="luxury-desk-eyebrow">NGA private flight desk</div>
+          <h2>Designed for relaxed private flying</h2>
+          <p>Choose a route or scenic experience, add passengers and cabin preferences, then let operations and the pilot review the request before final confirmation.</p>
+          <div class="luxury-desk-tags" aria-label="Service highlights">
+            <span>Pilot reviewed</span>
+            <span>Passenger passes</span>
+            <span>Private cabin</span>
+            <span>Mobile first</span>
+          </div>
+        </div>
+        <div class="luxury-desk-panel">
+          <div>
+            <span>Featured aircraft</span>
+            <strong>Piper Arrow PA-28R</strong>
+            <p>Comfortable four-seat light aircraft experience for regional private routes and scenic flights.</p>
+          </div>
+          <div class="luxury-desk-tags">
+            <span>Starlink planned</span>
+            <span>USB-C</span>
+            <span>Voss Water</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="luxury-products luxury-reveal" aria-label="Featured private flight options">
+        <article class="luxury-product">
+          <div><small>Hanko Regatta</small><h3>Scenic overflight</h3><p>Local Hanko departure for a short event overflight, subject to pilot and weather review.</p></div>
+          <div><strong>Approx. €30</strong><button id="luxuryHankoScenicBtn" class="luxury-product-action" type="button">Select Hanko scenic</button></div>
+        </article>
+        <article class="luxury-product">
+          <div><small>Helsinki city</small><h3>Skyline scenic</h3><p>Depart from Hyvinkää or Nummela for a private scenic route over the Helsinki area.</p></div>
+          <div><strong>Approx. €125</strong><button id="luxuryHelsinkiScenicBtn" class="luxury-product-action" type="button">Select Helsinki scenic</button></div>
+        </article>
+        <article class="luxury-product">
+          <div><small>Hanko routing</small><h3>Regatta arrival</h3><p>Hyvinkää is the recommended departure, with Helsinki-Vantaa available at a higher airport-fee profile.</p></div>
+          <div><strong>From €129</strong><button id="luxuryHankoRouteBtn" class="luxury-product-action" type="button">Select HYV-Hanko</button></div>
+        </article>
+      </section>
+
+      <section class="luxury-flow luxury-reveal" aria-label="Booking process">
+        <div class="luxury-flow-card"><span>01</span><strong>Request</strong><p>Select the route, date, passengers, baggage, and cabin preferences.</p></div>
+        <div class="luxury-flow-card"><span>02</span><strong>Review</strong><p>Operations checks route, aircraft, passenger details, and requested extras.</p></div>
+        <div class="luxury-flow-card"><span>03</span><strong>Pilot decision</strong><p>The pilot confirms if weather, daylight, loading, and safety are acceptable.</p></div>
+        <div class="luxury-flow-card"><span>04</span><strong>Confirm</strong><p>Passenger passes, agreements, and payment instructions are issued after approval.</p></div>
+      </section>
+
     <div class="title-row">
       <div class="brand-lockup">
         <img class="brand-logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation logo" />
@@ -4086,6 +4441,9 @@
 
     function setupLuxuryReveal() {
       const revealTargets = [
+        '.luxury-desk',
+        '.luxury-products',
+        '.luxury-flow',
         '.route-map-card',
         '.search-card',
         '.aircraft-feature',
@@ -4479,6 +4837,10 @@
       refreshSummary();
       queueDraftSave();
     });
+    el('luxuryHankoScenicBtn').addEventListener('click', () => {
+      el('hankoScenicBtn').click();
+      el('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
     el('helsinkiScenicBtn').addEventListener('click', () => {
       el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
       if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
@@ -4488,6 +4850,21 @@
       setStatus('Helsinki city scenic overflight selected', 'ok');
       refreshSummary();
       queueDraftSave();
+    });
+    el('luxuryHelsinkiScenicBtn').addEventListener('click', () => {
+      el('helsinkiScenicBtn').click();
+      el('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    el('luxuryHankoRouteBtn').addEventListener('click', () => {
+      el('flightExperience').value = '';
+      el('dep').value = 'EFHV';
+      el('arr').value = 'EFHN';
+      el('tripType').value = 'ONE_WAY';
+      updateReturnTripFields();
+      setStatus('Hyvinkää to Hanko route selected', 'ok');
+      refreshSummary();
+      queueDraftSave();
+      el('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     function changeBagCount(delta) {
       const next = Math.max(0, Math.min(3, Number(el('bagCount').value || 0) + delta));
