@@ -441,6 +441,43 @@
     .amenity-icon.wifi, .amenity-icon.water { color: #58a6ff; }
     .amenity-icon.charge { color: #ff8a3d; }
 
+    .aircraft-facts {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .aircraft-fact {
+      border: 1px solid #666;
+      padding: 10px;
+      background: #000;
+      color: #fff;
+      min-height: 72px;
+    }
+
+    .aircraft-fact span {
+      display: block;
+      color: #9d9d9d;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+    }
+
+    .aircraft-fact strong {
+      display: block;
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.22;
+    }
+
+    .aircraft-note {
+      border-top: 1px solid #555;
+      padding-top: 10px;
+      color: #a8a8a8;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
     .baggage-addon { margin-top: 12px; border: 1px solid #666; padding: 11px; background: #050505; }
     .baggage-addon-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #fff; font-size: 13px; font-weight: 700; text-transform: uppercase; }
     .bag-counter { display: inline-grid; grid-template-columns: 32px 34px 32px; align-items: center; border: 1px solid #777; }
@@ -1237,8 +1274,56 @@
       padding: 0;
     }
 
+    .seat-hotspot::before,
+    .seat-hotspot::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .seat-hotspot::before {
+      inset: -9px;
+      border: 1px solid rgba(102,255,153,0.48);
+      border-radius: 18px;
+      background: rgba(102,255,153,0.08);
+      box-shadow: 0 0 24px rgba(102,255,153,0.22);
+      transform: scale(0.94);
+    }
+
+    .seat-hotspot::after {
+      content: "Tap";
+      left: 50%;
+      top: auto;
+      bottom: -24px;
+      transform: translateX(-50%) scale(0.94);
+      border: 1px solid rgba(255,255,255,0.42);
+      border-radius: 999px;
+      padding: 5px 8px;
+      color: #fff;
+      background: rgba(7,29,73,0.88);
+      font: 700 8px/1 "Courier New", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
     .seat-hotspot.left { top: 16.5%; }
     .seat-hotspot.right { top: 52.5%; }
+
+    .seat-hotspot:hover::before,
+    .seat-hotspot:hover::after,
+    .seat-hotspot:focus-visible::before,
+    .seat-hotspot:focus-visible::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .seat-hotspot:hover::after,
+    .seat-hotspot:focus-visible::after {
+      transform: translateX(-50%) scale(1);
+    }
 
     .seat-hotspot:focus-visible {
       outline: 2px solid var(--live);
@@ -1480,6 +1565,160 @@
         drop-shadow(0 1px 0 rgba(255,255,255,0.24))
         drop-shadow(0 14px 18px rgba(0,0,0,0.28));
       margin-left: auto;
+    }
+
+    .extra-figure {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 auto;
+      width: 78px;
+      height: 78px;
+      margin-left: auto;
+      filter: drop-shadow(0 24px 22px rgba(0,0,0,0.28));
+    }
+
+    .extra-figure::before,
+    .extra-figure::after {
+      content: "";
+      position: absolute;
+      display: block;
+    }
+
+    .extra-figure.wine-figure::before {
+      left: 30px;
+      top: 14px;
+      width: 20px;
+      height: 30px;
+      border: 4px solid rgba(255,255,255,0.82);
+      border-top: 0;
+      border-radius: 4px 4px 13px 13px;
+      background:
+        linear-gradient(180deg, transparent 0 45%, rgba(255,255,255,0.20) 45%),
+        linear-gradient(180deg, rgba(110,8,30,0.92), rgba(212,73,100,0.76));
+      box-shadow: inset 7px 0 8px rgba(255,255,255,0.20);
+    }
+
+    .extra-figure.wine-figure::after {
+      left: 38px;
+      top: 44px;
+      width: 4px;
+      height: 19px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.86);
+      box-shadow: -10px 18px 0 3px rgba(255,255,255,0.78), 10px 18px 0 3px rgba(255,255,255,0.78);
+    }
+
+    .extra-figure.champagne-figure::before {
+      left: 30px;
+      top: 6px;
+      width: 20px;
+      height: 62px;
+      border-radius: 10px 10px 8px 8px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.50), transparent 30%),
+        linear-gradient(180deg, #f7e7a1, #a77b1f);
+      box-shadow: inset -5px 0 10px rgba(66,38,7,0.34), 0 0 0 3px rgba(255,255,255,0.18);
+    }
+
+    .extra-figure.champagne-figure::after {
+      left: 36px;
+      top: 0;
+      width: 8px;
+      height: 15px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.82);
+      box-shadow: 24px 10px 0 -3px rgba(255,255,255,0.74), 33px 22px 0 -4px rgba(255,255,255,0.70), -18px 14px 0 -4px rgba(255,255,255,0.62);
+    }
+
+    .extra-figure.beer-figure::before {
+      left: 18px;
+      top: 15px;
+      width: 38px;
+      height: 46px;
+      border: 4px solid rgba(255,255,255,0.72);
+      border-radius: 8px 8px 12px 12px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.26), transparent 24%),
+        linear-gradient(180deg, #f2b35a, #9b4f09);
+      box-shadow: inset -8px 0 14px rgba(88,38,3,0.26);
+    }
+
+    .extra-figure.beer-figure::after {
+      left: 54px;
+      top: 26px;
+      width: 18px;
+      height: 22px;
+      border: 4px solid rgba(255,255,255,0.70);
+      border-left: 0;
+      border-radius: 0 12px 12px 0;
+      box-shadow: -33px -20px 0 -10px rgba(255,255,255,0.86), -20px -20px 0 -10px rgba(255,255,255,0.76);
+    }
+
+    .extra-figure.soft-figure::before {
+      left: 28px;
+      top: 7px;
+      width: 24px;
+      height: 64px;
+      border-radius: 14px 14px 10px 10px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.46), transparent 28%),
+        linear-gradient(180deg, #7fc8ff, #0a5b91);
+      box-shadow: inset -6px 0 13px rgba(3,27,54,0.28), 0 0 0 3px rgba(255,255,255,0.22);
+    }
+
+    .extra-figure.soft-figure::after {
+      left: 34px;
+      top: 0;
+      width: 12px;
+      height: 10px;
+      border-radius: 4px 4px 2px 2px;
+      background: rgba(255,255,255,0.82);
+      box-shadow: 24px 30px 0 -1px rgba(255,255,255,0.22);
+    }
+
+    .extra-figure.snacks-figure::before {
+      left: 16px;
+      top: 28px;
+      width: 50px;
+      height: 30px;
+      border-radius: 50% 50% 44% 44%;
+      background:
+        radial-gradient(circle at 32% 36%, rgba(255,255,255,0.44), transparent 18%),
+        linear-gradient(145deg, #f2c57a, #8e5418);
+      transform: rotate(-16deg);
+      box-shadow: inset -8px -5px 12px rgba(89,46,10,0.28), 0 0 0 3px rgba(255,255,255,0.16);
+    }
+
+    .extra-figure.snacks-figure::after {
+      left: 20px;
+      top: 56px;
+      width: 42px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.68);
+      box-shadow: 0 5px 0 -2px rgba(255,255,255,0.38);
+    }
+
+    .extra-figure.transfer-figure::before {
+      left: 8px;
+      top: 28px;
+      width: 60px;
+      height: 30px;
+      border-radius: 16px 18px 10px 10px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.38), transparent 28%),
+        linear-gradient(145deg, #4f83bd, #071d49);
+      box-shadow: inset -8px -5px 14px rgba(0,0,0,0.24), 0 0 0 3px rgba(255,255,255,0.18);
+    }
+
+    .extra-figure.transfer-figure::after {
+      left: 17px;
+      top: 53px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 33px 0 0 #fff, 7px -18px 0 5px rgba(255,255,255,0.18);
     }
 
     .extra-visual-copy {
@@ -1941,6 +2180,7 @@
         min-height: 310px;
       }
       .aircraft-feature, .amenity-grid { grid-template-columns: 1fr; }
+      .aircraft-facts { grid-template-columns: 1fr 1fr; }
       .aircraft-feature {
         gap: 10px;
       }
@@ -2113,6 +2353,7 @@
       }
       .swap-field label { display: none; }
       .regatta-details-grid { grid-template-columns: 1fr; }
+      .aircraft-facts { grid-template-columns: 1fr; }
       .swap-btn { min-height: 44px; }
       .route-map-shell {
         height: 230px;
@@ -3432,6 +3673,37 @@
         rgba(255,255,255,0.68);
     }
 
+    .luxury-booking .aircraft-facts {
+      gap: 10px;
+    }
+
+    .luxury-booking .aircraft-fact {
+      border-radius: 16px;
+      border-color: rgba(7,29,73,0.12);
+      background:
+        linear-gradient(135deg, rgba(7,29,73,0.05), transparent 66%),
+        rgba(255,255,255,0.74);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.84);
+    }
+
+    .luxury-booking .aircraft-fact span {
+      color: #6b778a;
+    }
+
+    .luxury-booking .aircraft-fact strong {
+      color: var(--navy);
+      font-family: Poppins, Arial, sans-serif;
+      font-size: 13px;
+      text-transform: none;
+    }
+
+    .luxury-booking .aircraft-note {
+      color: #627189;
+      border-top-color: rgba(7,29,73,0.12);
+      font-family: Poppins, Arial, sans-serif;
+      text-transform: none;
+    }
+
     .luxury-booking .aircraft-feature-copy p,
     .luxury-booking .declaration,
     .luxury-booking .fine-print,
@@ -3809,10 +4081,7 @@
     }
 
     .luxury-booking .summary-card .seat-option::before {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      order: 4;
+      display: none;
     }
 
     .luxury-booking .summary-card .seat-option small {
@@ -3839,16 +4108,25 @@
       letter-spacing: 0;
     }
 
+    .luxury-booking .summary-card .seat-select-control {
+      width: max-content;
+      margin-top: auto;
+      border: 1px solid rgba(255,255,255,0.30);
+      border-radius: 999px;
+      padding: 8px 10px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
+      font: 700 9px/1 "Courier New", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-style: normal;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+    }
+
     .luxury-booking .summary-card .seat-option:has(input:checked)::after,
     .luxury-booking .summary-card .seat-option.is-selected::after {
-      content: "Cabin seat selected";
-      width: max-content;
-      padding: 7px 9px;
-      color: #071d49;
-      background: var(--live);
-      border-color: transparent;
-      font: 700 9px/1 "Courier New", monospace;
-      letter-spacing: 0.1em;
+      display: none;
     }
 
     .luxury-booking .summary-card .seat-option:has(input:checked) small,
@@ -3856,6 +4134,14 @@
       color: #062010;
       background: #fff;
       box-shadow: 0 0 24px rgba(102,255,153,0.22);
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked) .seat-select-control,
+    .luxury-booking .summary-card .seat-option.is-selected .seat-select-control {
+      color: #071d49;
+      background: var(--live);
+      border-color: transparent;
+      box-shadow: 0 12px 22px rgba(47,191,88,0.22);
     }
 
     .luxury-booking .request-panel {
@@ -3923,6 +4209,10 @@
       stroke-width: 1.8;
       transform: translate(8px, 8px);
       filter: drop-shadow(0 18px 24px rgba(0,0,0,0.24));
+    }
+
+    .luxury-booking .extra-figure {
+      transform: translate(6px, 4px) rotate(-2deg);
     }
 
     .luxury-booking .extra-option-head {
@@ -4194,6 +4484,10 @@
         line-height: 1.45;
       }
 
+      .luxury-booking .summary-card .seat-select-control {
+        padding: 8px 10px;
+      }
+
       .luxury-booking .aircraft-photo {
         border-radius: 18px;
       }
@@ -4370,22 +4664,6 @@
           <div class="booking-kicker">Your itinerary</div>
         </div>
         <input id="flightExperience" type="hidden" value="" />
-        <div class="experience-list">
-          <div class="experience-strip">
-            <div>
-              <strong>Hanko Regatta scenic overflight</strong>
-              <span>Local Hanko departure / approx. 25-30 minutes / approx. €30 per passenger</span>
-            </div>
-            <button id="hankoScenicBtn" class="experience-btn" type="button">Select overflight</button>
-          </div>
-          <div class="experience-strip">
-            <div>
-              <strong>Helsinki city scenic overflight</strong>
-              <span>Depart from Hyvinkää or Nummela / approx. 45 minutes / approx. €125 per passenger</span>
-            </div>
-            <button id="helsinkiScenicBtn" class="experience-btn" type="button">Select Helsinki flight</button>
-          </div>
-        </div>
         <div class="grid search-grid">
           <div class="route-field">
             <label for="dep">From</label>
@@ -4455,11 +4733,18 @@
             <div class="booking-kicker">Piper Arrow PA-28R-200</div>
           </div>
           <p>Comfort for a relaxed scenic flight, with personal service and considered onboard details.</p>
+          <div class="aircraft-facts" aria-label="Aircraft facts">
+            <div class="aircraft-fact"><span>Cabin</span><strong>Four-seat touring aircraft with two rear passenger seats</strong></div>
+            <div class="aircraft-fact"><span>Cruise planning</span><strong>Approx. 125-135 KTAS depending on route and conditions</strong></div>
+            <div class="aircraft-fact"><span>Operations</span><strong>Private equal-share flight reviewed by pilot before confirmation</strong></div>
+            <div class="aircraft-fact"><span>Luggage</span><strong>Compact soft baggage preferred for weight and balance</strong></div>
+          </div>
           <div class="amenity-grid">
             <div class="amenity"><svg class="amenity-icon wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 9c5.4-4.5 12.6-4.5 18 0"/><path d="M6.5 13c3.3-2.7 7.7-2.7 11 0"/><path d="M10 17c1.2-1 2.8-1 4 0"/><path d="M12 21h.01"/></svg>Starlink Wi-Fi planned onboard</div>
             <div class="amenity"><svg class="amenity-icon charge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 5 14h6l-1 8 9-13h-6z"/></svg>USB-C charging available</div>
             <div class="amenity"><svg class="amenity-icon water" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11Z"/></svg>Chilled Water included</div>
           </div>
+          <div class="aircraft-note">Aircraft assignment, weather, daylight, passenger fitness, luggage, and weight and balance are reviewed before any flight is confirmed.</div>
         </div>
       </section>
 
@@ -4523,9 +4808,9 @@
           <div class="cabin-seat-legend"><span><i></i>Rear cabin preference</span><span>Window-side seating</span><span>Final pilot approval</span></div>
           <input id="seatPreference" type="hidden" value="REAR LEFT WINDOW" />
           <div class="seat-options">
-            <label class="seat-option is-selected"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /><small>2A</small><strong>Rear left window</strong><span>Private rear cabin seat with a classic sightseeing angle.</span></label>
-            <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /><small>2B</small><strong>Rear right window</strong><span>Window-side preference with a clean view across the route.</span></label>
-            <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /><small>OPS</small><strong>Pilot assigned</strong><span>Let the pilot choose the best cabin balance for the flight.</span></label>
+            <label class="seat-option is-selected"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /><small>2A</small><strong>Rear left window</strong><span>Private rear cabin seat with a classic sightseeing angle.</span><em class="seat-select-control">Selected</em></label>
+            <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /><small>2B</small><strong>Rear right window</strong><span>Window-side preference with a clean view across the route.</span><em class="seat-select-control">Choose seat</em></label>
+            <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /><small>OPS</small><strong>Pilot assigned</strong><span>Let the pilot choose the best cabin balance for the flight.</span><em class="seat-select-control">Let pilot assign</em></label>
           </div>
         </div>
       </div>
@@ -4551,12 +4836,12 @@
 
             <div class="extras-section-title">Request for this flight</div>
             <div class="extras-grid" aria-label="Optional onboard and transfer requests">
-              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-visual wine" aria-hidden="true"><div class="extra-visual-copy"><em>Curated request</em><b>Wine</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7h12l-2 9a8 8 0 1 1-8 0L18 7Z"/><path d="M24 30v9"/><path d="M18 41h12"/><path d="M20 16h8"/></svg></div><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-visual champagne" aria-hidden="true"><div class="extra-visual-copy"><em>Chilled bottle</em><b>Champagne</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7h4"/><path d="M21 11h6v8l4 5v15a4 4 0 0 1-4 4h-6a4 4 0 0 1-4-4V24l4-5v-8Z"/><path d="M18 29h12"/><path d="M18 36h12"/><path d="M34 10h.01"/><path d="M39 16h.01"/><path d="M36 23h.01"/></svg></div><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"><div class="extra-visual-copy"><em>Cold service</em><b>Beer</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 15h21v23a5 5 0 0 1-5 5H18a5 5 0 0 1-5-5V15Z"/><path d="M34 20h4a5 5 0 0 1 0 10h-4"/><path d="M17 15c0-5 4-8 8-8s8 3 8 8"/><path d="M19 23v12"/><path d="M27 23v12"/></svg></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-visual soft" aria-hidden="true"><div class="extra-visual-copy"><em>Refreshments</em><b>Drinks</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6h6"/><path d="M20 10h8l2 27a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5l2-27Z"/><path d="M19 25h10"/><path d="M35 12c4 3 6 7 6 12a13 13 0 0 1-5 10"/></svg></div><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"><div class="extra-visual-copy"><em>Light cabin</em><b>Snacks</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 27c8-13 18-17 30-14-2 12-10 21-25 24l-5-10Z"/><path d="M16 29c7-2 14-6 20-13"/><path d="M12 35h24"/><path d="M17 41h14"/></svg></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-visual transfer" aria-hidden="true"><div class="extra-visual-copy"><em>Door to ramp</em><b>Transfer</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 29h32l-4-11a5 5 0 0 0-5-3H17a5 5 0 0 0-5 3L8 29Z"/><path d="M10 29v8h5"/><path d="M38 29v8h-5"/><path d="M15 37a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M33 37a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M16 22h16"/></svg></div><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-visual wine" aria-hidden="true"><div class="extra-visual-copy"><em>Curated request</em><b>Wine</b></div><i class="extra-figure wine-figure"></i></div><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-visual champagne" aria-hidden="true"><div class="extra-visual-copy"><em>Chilled bottle</em><b>Champagne</b></div><i class="extra-figure champagne-figure"></i></div><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"><div class="extra-visual-copy"><em>Cold service</em><b>Beer</b></div><i class="extra-figure beer-figure"></i></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-visual soft" aria-hidden="true"><div class="extra-visual-copy"><em>Refreshments</em><b>Drinks</b></div><i class="extra-figure soft-figure"></i></div><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"><div class="extra-visual-copy"><em>Light cabin</em><b>Snacks</b></div><i class="extra-figure snacks-figure"></i></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-visual transfer" aria-hidden="true"><div class="extra-visual-copy"><em>Door to ramp</em><b>Transfer</b></div><i class="extra-figure transfer-figure"></i></div><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
             </div>
             <div id="alcoholPreferences" class="alcohol-preferences" aria-label="Alcohol service preferences">
               <div id="winePreferences" class="alcohol-preference" hidden>
@@ -5527,7 +5812,11 @@
       const radio = form.querySelector(`input[name="seatPreference"][value="${value}"]`);
       if (radio) radio.checked = true;
       form.querySelectorAll('input[name="seatPreference"]').forEach(input => {
-        input.closest('.seat-option')?.classList.toggle('is-selected', input.value === value);
+        const option = input.closest('.seat-option');
+        const selected = input.value === value;
+        option?.classList.toggle('is-selected', selected);
+        const control = option?.querySelector('.seat-select-control');
+        if (control) control.textContent = selected ? 'Selected' : (input.value === 'NO PREFERENCE' ? 'Let pilot assign' : 'Choose seat');
       });
       el('rearLeftMarker').classList.toggle('is-selected', value === 'REAR LEFT WINDOW');
       el('rearRightMarker').classList.toggle('is-selected', value === 'REAR RIGHT WINDOW');
@@ -5641,7 +5930,8 @@
       refreshSummary();
     });
     locateMeBtn.addEventListener('click', locateUserOnMap);
-    el('hankoScenicBtn').addEventListener('click', () => {
+    const hankoScenicBtn = el('hankoScenicBtn');
+    if (hankoScenicBtn) hankoScenicBtn.addEventListener('click', () => {
       el('flightExperience').value = HANKO_SCENIC_EXPERIENCE;
       el('dep').value = 'EFHN';
       el('arr').value = 'EFHN';
@@ -5651,7 +5941,8 @@
       refreshSummary();
       queueDraftSave();
     });
-    el('helsinkiScenicBtn').addEventListener('click', () => {
+    const helsinkiScenicBtn = el('helsinkiScenicBtn');
+    if (helsinkiScenicBtn) helsinkiScenicBtn.addEventListener('click', () => {
       el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
       if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
       el('arr').value = el('dep').value;
