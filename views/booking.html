@@ -1427,91 +1427,131 @@
     }
 
     .extra-option {
-      min-height: 202px;
+      min-height: 238px;
       justify-content: space-between;
       overflow: hidden;
+      padding: 0;
     }
 
     .extra-visual {
       position: relative;
-      width: calc(100% + 20px);
-      height: 92px;
-      margin: -10px -10px 5px;
+      width: 100%;
+      height: 118px;
+      margin: 0 0 8px;
       overflow: hidden;
       border-bottom: 1px solid rgba(7,29,73,0.10);
       background:
-        radial-gradient(circle at 75% 20%, rgba(255,255,255,0.92), transparent 13%),
-        radial-gradient(circle at 18% 86%, rgba(7,29,73,0.10), transparent 28%),
-        linear-gradient(135deg, #eef3f8 0%, #ffffff 48%, #d5dfeb 100%);
-      display: grid;
-      place-items: center;
+        radial-gradient(circle at 75% 18%, rgba(255,255,255,0.88), transparent 14%),
+        radial-gradient(circle at 18% 92%, rgba(7,29,73,0.16), transparent 32%),
+        linear-gradient(135deg, #edf3fa 0%, #ffffff 46%, #d4deeb 100%);
+      display: flex;
+      align-items: flex-end;
+      padding: 16px;
     }
 
     .extra-visual::before {
       content: "";
       position: absolute;
-      width: 62px;
-      height: 62px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.70);
+      inset: 0;
+      border-radius: inherit;
       background:
-        radial-gradient(circle at 32% 22%, rgba(255,255,255,0.74), transparent 18%),
-        linear-gradient(145deg, var(--extra-accent, var(--navy)) 0%, var(--extra-deep, #06183c) 72%);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.44),
-        inset 0 -10px 20px rgba(0,0,0,0.20),
-        0 18px 32px rgba(7,29,73,0.20),
-        0 0 0 9px rgba(255,255,255,0.46);
+        linear-gradient(120deg, transparent 0 58%, rgba(255,255,255,0.52) 59% 61%, transparent 62%),
+        radial-gradient(circle at 74% 48%, var(--extra-glow, rgba(7,29,73,0.22)), transparent 26%),
+        linear-gradient(135deg, var(--extra-accent, #132f5a), var(--extra-deep, #071d49));
+      opacity: 0.92;
     }
 
     .extra-visual::after {
       content: "";
       position: absolute;
-      inset: 9px 14px auto;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.90), transparent);
-      opacity: 0.9;
+      inset: 10px;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 20px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
     }
 
     .extra-icon {
       position: relative;
       z-index: 1;
-      width: 42px;
-      height: 42px;
+      width: 54px;
+      height: 54px;
       color: #fff;
       filter:
         drop-shadow(0 1px 0 rgba(255,255,255,0.24))
-        drop-shadow(0 9px 12px rgba(0,0,0,0.20));
+        drop-shadow(0 14px 18px rgba(0,0,0,0.28));
+      margin-left: auto;
+    }
+
+    .extra-visual-copy {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 4px;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .extra-visual-copy b {
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(20px, 2.2vw, 30px);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      line-height: 0.9;
+      text-shadow: 0 14px 22px rgba(0,0,0,0.28);
+    }
+
+    .extra-visual-copy em {
+      color: rgba(255,255,255,0.72);
+      font: 700 9px/1 "Courier New", monospace;
+      letter-spacing: 0.16em;
+      font-style: normal;
+    }
+
+    .extra-option > .extra-option-head,
+    .extra-option > span,
+    .extra-option > .request-status {
+      margin-left: 12px;
+      margin-right: 12px;
+    }
+
+    .extra-option > .request-status {
+      margin-bottom: 12px;
     }
 
     .extra-visual.wine {
       --extra-accent: #8b1230;
       --extra-deep: #3d0819;
+      --extra-glow: rgba(184,55,87,0.46);
     }
 
     .extra-visual.champagne {
       --extra-accent: #c8a64d;
       --extra-deep: #73541b;
+      --extra-glow: rgba(255,224,142,0.48);
     }
 
     .extra-visual.beer {
       --extra-accent: #c77d19;
       --extra-deep: #7a3c0a;
+      --extra-glow: rgba(255,185,70,0.44);
     }
 
     .extra-visual.soft {
       --extra-accent: #2c86c8;
       --extra-deep: #0d4777;
+      --extra-glow: rgba(101,194,255,0.42);
     }
 
     .extra-visual.snacks {
       --extra-accent: #b5833b;
       --extra-deep: #6c4217;
+      --extra-glow: rgba(241,190,101,0.42);
     }
 
     .extra-visual.transfer {
       --extra-accent: #123968;
       --extra-deep: #06183c;
+      --extra-glow: rgba(90,146,205,0.42);
     }
 
     .extra-option-head {
@@ -3624,6 +3664,291 @@
       border-color: rgba(102,255,153,0.58);
     }
 
+    .luxury-booking .summary-card .seat-map {
+      position: relative;
+      overflow: hidden;
+      gap: 18px;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 16% 4%, rgba(255,255,255,0.22), transparent 19%),
+        radial-gradient(circle at 82% 0%, rgba(102,255,153,0.14), transparent 24%),
+        linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.045));
+    }
+
+    .luxury-booking .summary-card .seat-map::before {
+      content: "PRIVATE CABIN SEAT SELECTION";
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      color: rgba(255,255,255,0.18);
+      font: 700 10px/1 "Courier New", monospace;
+      letter-spacing: 0.22em;
+      pointer-events: none;
+    }
+
+    .luxury-booking .summary-card .seat-map .declaration {
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      color: rgba(255,255,255,0.76);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .luxury-booking .summary-card .seat-map-shell {
+      min-height: 280px;
+      padding: clamp(16px, 2.4vw, 28px);
+      border-radius: 28px;
+      background:
+        radial-gradient(ellipse at 50% 16%, rgba(255,255,255,0.24), transparent 25%),
+        radial-gradient(ellipse at 72% 72%, rgba(102,255,153,0.16), transparent 36%),
+        linear-gradient(145deg, rgba(255,255,255,0.15), rgba(6,18,44,0.36));
+    }
+
+    .luxury-booking .summary-card .seat-map-shell::after {
+      inset: 14px;
+      height: auto;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 22px;
+      background:
+        linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent),
+        radial-gradient(ellipse at 50% 92%, rgba(102,255,153,0.18), transparent 42%);
+      filter: none;
+      opacity: 0.82;
+    }
+
+    .luxury-booking .summary-card .cabin-visual {
+      max-width: 700px;
+      transform: scale(0.98);
+    }
+
+    .luxury-booking .summary-card .cabin-visual::before {
+      inset: -18% -8%;
+      background:
+        radial-gradient(ellipse at 48% 50%, rgba(255,255,255,0.18), transparent 47%),
+        radial-gradient(ellipse at 70% 55%, rgba(102,255,153,0.18), transparent 40%);
+      filter: blur(16px);
+    }
+
+    .luxury-booking .summary-card .seat-visual {
+      border-radius: 14px;
+      border-color: rgba(255,255,255,0.46);
+      background:
+        linear-gradient(180deg, rgba(7,29,73,0.84), rgba(7,29,73,0.54));
+      color: rgba(255,255,255,0.82);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 14px 28px rgba(0,0,0,0.28);
+      font-family: Poppins, Arial, sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+    }
+
+    .luxury-booking .summary-card .rear-seat-marker {
+      border-radius: 16px;
+      border-color: rgba(102,255,153,0.92);
+      background:
+        radial-gradient(circle at 32% 24%, rgba(255,255,255,0.96), transparent 16%),
+        linear-gradient(145deg, rgba(102,255,153,0.96), rgba(31,154,66,0.88));
+      color: #062010;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.42),
+        0 0 0 2px rgba(102,255,153,0.26),
+        0 20px 38px rgba(102,255,153,0.22);
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(18px, 2.2vw, 28px);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+    }
+
+    .luxury-booking .summary-card .rear-seat-marker::before {
+      border-radius: 22px;
+    }
+
+    .luxury-booking .summary-card .rear-seat-marker::after {
+      content: "Selected cabin seat";
+      border-radius: 999px;
+      background: rgba(7,29,73,0.94);
+      border-color: rgba(255,255,255,0.26);
+      color: #fff;
+      font: 700 8px/1 "Courier New", monospace;
+      letter-spacing: 0.12em;
+      padding: 5px 8px;
+    }
+
+    .luxury-booking .summary-card .seat-hotspot {
+      border-radius: 16px;
+    }
+
+    .luxury-booking .summary-card .seat-hotspot:hover {
+      background: rgba(102,255,153,0.08);
+      box-shadow: inset 0 0 0 1px rgba(102,255,153,0.38);
+    }
+
+    .luxury-booking .summary-card .cabin-seat-legend {
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .luxury-booking .summary-card .cabin-seat-legend span {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.09);
+    }
+
+    .luxury-booking .summary-card .seat-options {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .luxury-booking .summary-card .seat-option {
+      min-height: 148px;
+      padding: 18px;
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 88% 14%, rgba(255,255,255,0.14), transparent 23%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.045));
+    }
+
+    .luxury-booking .summary-card .seat-option::before {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      order: 4;
+    }
+
+    .luxury-booking .summary-card .seat-option small {
+      width: max-content;
+      min-width: 54px;
+      padding: 8px 10px;
+      color: #071d49;
+      background: rgba(255,255,255,0.92);
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: 21px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+    }
+
+    .luxury-booking .summary-card .seat-option strong {
+      margin-top: 2px;
+      font-size: 16px;
+    }
+
+    .luxury-booking .summary-card .seat-option span {
+      max-width: 22ch;
+      font-family: Poppins, Arial, sans-serif;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked)::after,
+    .luxury-booking .summary-card .seat-option.is-selected::after {
+      content: "Cabin seat selected";
+      width: max-content;
+      padding: 7px 9px;
+      color: #071d49;
+      background: var(--live);
+      border-color: transparent;
+      font: 700 9px/1 "Courier New", monospace;
+      letter-spacing: 0.1em;
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked) small,
+    .luxury-booking .summary-card .seat-option.is-selected small {
+      color: #062010;
+      background: #fff;
+      box-shadow: 0 0 24px rgba(102,255,153,0.22);
+    }
+
+    .luxury-booking .request-panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: clamp(16px, 2.4vw, 24px);
+      background:
+        radial-gradient(circle at 88% 0%, rgba(7,29,73,0.11), transparent 26%),
+        linear-gradient(180deg, rgba(255,255,255,0.94), rgba(244,248,252,0.92));
+      box-shadow: 0 22px 60px rgba(7,29,73,0.10), inset 0 1px 0 rgba(255,255,255,0.95);
+    }
+
+    .luxury-booking .request-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4px;
+      background: linear-gradient(90deg, var(--navy), rgba(7,29,73,0.35), var(--live));
+      pointer-events: none;
+    }
+
+    .luxury-booking .extra-option {
+      border-radius: 24px;
+      border-color: rgba(7,29,73,0.13);
+      background: #fff;
+      box-shadow: 0 16px 34px rgba(7,29,73,0.08), inset 0 1px 0 rgba(255,255,255,0.88);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .luxury-booking .extra-option:hover {
+      transform: translateY(-3px);
+      border-color: rgba(7,29,73,0.24);
+      box-shadow: 0 24px 48px rgba(7,29,73,0.14);
+    }
+
+    .luxury-booking .extra-visual {
+      height: 132px;
+      border-radius: 24px 24px 0 0;
+      margin-bottom: 12px;
+    }
+
+    .luxury-booking .extra-visual::before {
+      opacity: 1;
+      background:
+        linear-gradient(120deg, rgba(255,255,255,0.08) 0 42%, rgba(255,255,255,0.34) 43% 45%, transparent 46%),
+        radial-gradient(circle at 78% 30%, var(--extra-glow, rgba(255,255,255,0.22)), transparent 25%),
+        radial-gradient(circle at 22% 95%, rgba(255,255,255,0.18), transparent 26%),
+        linear-gradient(135deg, var(--extra-accent, #132f5a), var(--extra-deep, #071d49));
+    }
+
+    .luxury-booking .extra-visual::after {
+      border-radius: 18px;
+      border-color: rgba(255,255,255,0.32);
+    }
+
+    .luxury-booking .extra-visual-copy b {
+      font-size: clamp(23px, 2.4vw, 34px);
+    }
+
+    .luxury-booking .extra-icon {
+      width: 76px;
+      height: 76px;
+      opacity: 0.34;
+      stroke-width: 1.8;
+      transform: translate(8px, 8px);
+      filter: drop-shadow(0 18px 24px rgba(0,0,0,0.24));
+    }
+
+    .luxury-booking .extra-option-head {
+      align-items: flex-start;
+      padding-top: 2px;
+    }
+
+    .luxury-booking .extra-option > .extra-option-head,
+    .luxury-booking .extra-option > span,
+    .luxury-booking .extra-option > .request-status {
+      margin-left: 16px;
+      margin-right: 16px;
+    }
+
+    .luxury-booking .extra-option > .request-status {
+      margin-bottom: 16px;
+    }
+
+    .luxury-booking .extra-option:has(input:checked) {
+      border-color: rgba(47,191,88,0.72);
+      background:
+        linear-gradient(180deg, rgba(47,191,88,0.08), transparent 46%),
+        #fff;
+      box-shadow: 0 20px 44px rgba(47,191,88,0.16), inset 0 0 0 1px rgba(47,191,88,0.32);
+    }
+
     .luxury-booking .review-card {
       background: #fff;
       border-color: rgba(7,29,73,0.10);
@@ -3843,6 +4168,30 @@
 
       .luxury-booking .summary-card .seat-map-shell {
         min-height: 210px;
+      }
+
+      .luxury-booking .summary-card .seat-options {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .summary-card .seat-option {
+        min-height: auto;
+        padding: 16px;
+      }
+
+      .luxury-booking .summary-card .seat-option small {
+        min-width: 48px;
+        font-size: 18px;
+      }
+
+      .luxury-booking .summary-card .seat-option strong {
+        font-size: 17px;
+      }
+
+      .luxury-booking .summary-card .seat-option span {
+        max-width: none;
+        font-size: 13px;
+        line-height: 1.45;
       }
 
       .luxury-booking .aircraft-photo {
@@ -4151,7 +4500,7 @@
             <h2 class="section-title">Cabin preference</h2>
             <p class="cabin-preference-copy">Choose your preferred rear cabin seat. Final seating remains subject to pilot command, loading, and aircraft balance.</p>
           </div>
-          <div class="cabin-selected-badge" aria-live="polite"><span>Selected preference</span><strong id="selectedSeatLabel">Rear left</strong></div>
+          <div class="cabin-selected-badge" aria-live="polite"><span>Selected preference</span><strong id="selectedSeatLabel">Seat 2A</strong></div>
         </div>
         <div class="seat-map">
           <div class="declaration"><strong>PA-28R-200 private cabin layout</strong> Forward seats are reserved for operating crew. Passenger preferences are available in the rear cabin.</div>
@@ -4167,16 +4516,16 @@
               <button class="seat-visual blocked front-right" type="button" disabled>Pilot</button>
               <button class="seat-hotspot left" type="button" data-seat-hotspot="REAR LEFT WINDOW" aria-label="Select rear left window seat"></button>
               <button class="seat-hotspot right" type="button" data-seat-hotspot="REAR RIGHT WINDOW" aria-label="Select rear right window seat"></button>
-              <div id="rearLeftMarker" class="rear-seat-marker left is-selected">RL</div>
-              <div id="rearRightMarker" class="rear-seat-marker right">RR</div>
+              <div id="rearLeftMarker" class="rear-seat-marker left is-selected">2A</div>
+              <div id="rearRightMarker" class="rear-seat-marker right">2B</div>
             </div>
           </div>
           <div class="cabin-seat-legend"><span><i></i>Rear cabin preference</span><span>Window-side seating</span><span>Final pilot approval</span></div>
           <input id="seatPreference" type="hidden" value="REAR LEFT WINDOW" />
           <div class="seat-options">
-            <label class="seat-option is-selected"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /><small>RL suite</small><strong>Rear left window</strong><span>Classic sightseeing angle behind the pilot side.</span></label>
-            <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /><small>RR suite</small><strong>Rear right window</strong><span>Window-side preference behind the crew seat.</span></label>
-            <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /><small>Pilot select</small><strong>Best available</strong><span>Let the pilot assign the smoothest loading option.</span></label>
+            <label class="seat-option is-selected"><input type="radio" name="seatPreference" value="REAR LEFT WINDOW" checked /><small>2A</small><strong>Rear left window</strong><span>Private rear cabin seat with a classic sightseeing angle.</span></label>
+            <label class="seat-option"><input type="radio" name="seatPreference" value="REAR RIGHT WINDOW" /><small>2B</small><strong>Rear right window</strong><span>Window-side preference with a clean view across the route.</span></label>
+            <label class="seat-option"><input type="radio" name="seatPreference" value="NO PREFERENCE" /><small>OPS</small><strong>Pilot assigned</strong><span>Let the pilot choose the best cabin balance for the flight.</span></label>
           </div>
         </div>
       </div>
@@ -4202,12 +4551,12 @@
 
             <div class="extras-section-title">Request for this flight</div>
             <div class="extras-grid" aria-label="Optional onboard and transfer requests">
-              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-visual wine" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7h12l-2 9a8 8 0 1 1-8 0L18 7Z"/><path d="M24 30v9"/><path d="M18 41h12"/><path d="M20 16h8"/></svg></div><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-visual champagne" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7h4"/><path d="M21 11h6v8l4 5v15a4 4 0 0 1-4 4h-6a4 4 0 0 1-4-4V24l4-5v-8Z"/><path d="M18 29h12"/><path d="M18 36h12"/><path d="M34 10h.01"/><path d="M39 16h.01"/><path d="M36 23h.01"/></svg></div><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 15h21v23a5 5 0 0 1-5 5H18a5 5 0 0 1-5-5V15Z"/><path d="M34 20h4a5 5 0 0 1 0 10h-4"/><path d="M17 15c0-5 4-8 8-8s8 3 8 8"/><path d="M19 23v12"/><path d="M27 23v12"/></svg></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-visual soft" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6h6"/><path d="M20 10h8l2 27a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5l2-27Z"/><path d="M19 25h10"/><path d="M35 12c4 3 6 7 6 12a13 13 0 0 1-5 10"/></svg></div><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 27c8-13 18-17 30-14-2 12-10 21-25 24l-5-10Z"/><path d="M16 29c7-2 14-6 20-13"/><path d="M12 35h24"/><path d="M17 41h14"/></svg></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-visual transfer" aria-hidden="true"><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 29h32l-4-11a5 5 0 0 0-5-3H17a5 5 0 0 0-5 3L8 29Z"/><path d="M10 29v8h5"/><path d="M38 29v8h-5"/><path d="M15 37a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M33 37a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M16 22h16"/></svg></div><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-visual wine" aria-hidden="true"><div class="extra-visual-copy"><em>Curated request</em><b>Wine</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7h12l-2 9a8 8 0 1 1-8 0L18 7Z"/><path d="M24 30v9"/><path d="M18 41h12"/><path d="M20 16h8"/></svg></div><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling wine. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-visual champagne" aria-hidden="true"><div class="extra-visual-copy"><em>Chilled bottle</em><b>Champagne</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7h4"/><path d="M21 11h6v8l4 5v15a4 4 0 0 1-4 4h-6a4 4 0 0 1-4-4V24l4-5v-8Z"/><path d="M18 29h12"/><path d="M18 36h12"/><path d="M34 10h.01"/><path d="M39 16h.01"/><path d="M36 23h.01"/></svg></div><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling selection. Chilled and served on ice with two glasses.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"><div class="extra-visual-copy"><em>Cold service</em><b>Beer</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 15h21v23a5 5 0 0 1-5 5H18a5 5 0 0 1-5-5V15Z"/><path d="M34 20h4a5 5 0 0 1 0 10h-4"/><path d="M17 15c0-5 4-8 8-8s8 3 8 8"/><path d="M19 23v12"/><path d="M27 23v12"/></svg></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink selection served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-visual soft" aria-hidden="true"><div class="extra-visual-copy"><em>Refreshments</em><b>Drinks</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6h6"/><path d="M20 10h8l2 27a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5l2-27Z"/><path d="M19 25h10"/><path d="M35 12c4 3 6 7 6 12a13 13 0 0 1-5 10"/></svg></div><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still or sparkling water, cola, tonic, or juice served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"><div class="extra-visual-copy"><em>Light cabin</em><b>Snacks</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 27c8-13 18-17 30-14-2 12-10 21-25 24l-5-10Z"/><path d="M16 29c7-2 14-6 20-13"/><path d="M12 35h24"/><path d="M17 41h14"/></svg></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-visual transfer" aria-hidden="true"><div class="extra-visual-copy"><em>Door to ramp</em><b>Transfer</b></div><svg class="extra-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 29h32l-4-11a5 5 0 0 0-5-3H17a5 5 0 0 0-5 3L8 29Z"/><path d="M10 29v8h5"/><path d="M38 29v8h-5"/><path d="M15 37a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M33 37a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M16 22h16"/></svg></div><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Collection or onward ground transport request.</span><em class="request-status">Tap to request</em></label>
             </div>
             <div id="alcoholPreferences" class="alcohol-preferences" aria-label="Alcohol service preferences">
               <div id="winePreferences" class="alcohol-preference" hidden>
@@ -5183,11 +5532,11 @@
       el('rearLeftMarker').classList.toggle('is-selected', value === 'REAR LEFT WINDOW');
       el('rearRightMarker').classList.toggle('is-selected', value === 'REAR RIGHT WINDOW');
       const labels = {
-        'REAR LEFT WINDOW': 'Rear left',
-        'REAR RIGHT WINDOW': 'Rear right',
-        'NO PREFERENCE': 'Best available'
+        'REAR LEFT WINDOW': 'Seat 2A',
+        'REAR RIGHT WINDOW': 'Seat 2B',
+        'NO PREFERENCE': 'Pilot assigned'
       };
-      el('selectedSeatLabel').textContent = labels[value] || 'Best available';
+      el('selectedSeatLabel').textContent = labels[value] || 'Pilot assigned';
     }
 
     function populateAirports(list) {
