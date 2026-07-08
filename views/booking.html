@@ -5216,16 +5216,141 @@
         grid-template-columns: 1fr;
       }
 
+      .luxury-booking .included-grid {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
       .luxury-booking .included-card {
         min-height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 18px;
+      }
+
+      .luxury-booking .included-card-head {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .luxury-booking .included-card strong {
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .luxury-booking .included-card span:not(.included-icon) {
+        flex: 0 0 auto;
+        max-width: 118px;
+        text-align: right;
+        font-size: 7px;
+        line-height: 1.15;
       }
 
       .luxury-booking .review-card .summary-list {
         grid-template-columns: 1fr;
       }
 
+      .luxury-booking .extras-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .luxury-booking .extra-option {
+        min-height: 132px;
+        display: grid;
+        grid-template-columns: 118px minmax(0, 1fr);
+        grid-template-areas:
+          "visual head"
+          "visual copy"
+          "visual status";
+        align-items: stretch;
+        border-radius: 18px;
+      }
+
       .luxury-booking .extra-visual {
-        height: 88px;
+        grid-area: visual;
+        height: auto;
+        min-height: 132px;
+        margin: 0;
+        border-radius: 18px 0 0 18px;
+        border-bottom: 0;
+        border-right: 1px solid rgba(7,29,73,0.10);
+        padding: 9px;
+      }
+
+      .luxury-booking .extra-visual-copy {
+        align-self: end;
+        gap: 2px;
+      }
+
+      .luxury-booking .extra-visual-copy b {
+        font-size: 17px;
+        letter-spacing: 0.08em;
+      }
+
+      .extra-visual-copy em {
+        font-size: 6px;
+        line-height: 1.15;
+      }
+
+      .luxury-booking .extra-figure {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+      }
+
+      .luxury-booking .extra-option > .extra-option-head {
+        grid-area: head;
+        margin: 0;
+        padding: 12px 12px 0;
+        align-items: start;
+      }
+
+      .luxury-booking .extra-option > span {
+        grid-area: copy;
+        margin: 0;
+        padding: 6px 12px 0;
+        font-size: 11px;
+        line-height: 1.32;
+      }
+
+      .luxury-booking .extra-option > .request-status {
+        grid-area: status;
+        align-self: end;
+        width: fit-content;
+        margin: 8px 12px 12px;
+      }
+
+      .luxury-booking .extra-option strong {
+        font-size: 15px;
+      }
+
+      .luxury-booking .extra-switch {
+        flex: 0 0 auto;
+      }
+
+      .luxury-booking .mobile-booking-bar {
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        border-radius: 16px;
+        padding: 7px 7px 7px 10px;
+      }
+
+      .luxury-booking .mobile-booking-bar .btn {
+        min-width: 122px;
+        min-height: 42px;
+        font-size: 11px;
+      }
+
+      .luxury-booking .mobile-booking-bar span {
+        margin-top: 2px;
       }
     }
 
@@ -5313,13 +5438,6 @@
             <span>Pilot discretion</span>
           </div>
         </div>
-      </section>
-
-      <section class="luxury-flow luxury-reveal" aria-label="Booking process">
-        <div class="luxury-flow-card"><span>01</span><strong>Request</strong><p>Select the route, date, passengers, baggage, and cabin preferences.</p></div>
-        <div class="luxury-flow-card"><span>02</span><strong>Review</strong><p>Operations checks route, aircraft, passenger details, and requested extras.</p></div>
-        <div class="luxury-flow-card"><span>03</span><strong>Pilot decision</strong><p>The pilot confirms if weather, daylight, loading, and safety are acceptable.</p></div>
-        <div class="luxury-flow-card"><span>04</span><strong>Confirm</strong><p>Passenger passes, agreements, and payment instructions are issued after approval.</p></div>
       </section>
 
     <div class="title-row">
