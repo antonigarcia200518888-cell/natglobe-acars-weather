@@ -2018,6 +2018,160 @@
     .review-cancel:hover { border-color: #fff; background: #1a1a1a; }
     body:has(.review-dialog:not([hidden])) .mobile-booking-bar { display: none; }
 
+    .submit-flight-overlay[hidden] { display: none; }
+    .submit-flight-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(255,255,255,0.16), transparent 32%),
+        linear-gradient(135deg, rgba(2,10,28,0.92), rgba(7,29,73,0.94));
+      backdrop-filter: blur(18px);
+    }
+
+    .submit-flight-card {
+      position: relative;
+      width: min(560px, 100%);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 30px;
+      padding: clamp(24px, 5vw, 42px);
+      color: #fff;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06)),
+        rgba(7,29,73,0.82);
+      box-shadow: 0 34px 90px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.22);
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .submit-flight-card::before {
+      content: "";
+      position: absolute;
+      inset: -40% -20% auto;
+      height: 78%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.20), transparent 68%);
+      pointer-events: none;
+    }
+
+    .submit-flight-kicker {
+      position: relative;
+      margin: 0 0 10px;
+      color: rgba(255,255,255,0.68);
+      font-size: 11px;
+      letter-spacing: 0.24em;
+      font-weight: 800;
+    }
+
+    .submit-flight-title {
+      position: relative;
+      margin: 0;
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(32px, 9vw, 66px);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      line-height: 0.92;
+    }
+
+    .submit-flight-copy {
+      position: relative;
+      max-width: 390px;
+      margin: 14px auto 0;
+      color: rgba(255,255,255,0.78);
+      font-family: Poppins, Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.7;
+      text-transform: none;
+    }
+
+    .submit-flight-route {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto minmax(120px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin: 28px 0 18px;
+    }
+
+    .submit-airport-pill {
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 999px;
+      padding: 9px 12px;
+      color: #fff;
+      background: rgba(255,255,255,0.10);
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .submit-route-line {
+      position: relative;
+      height: 2px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.20);
+    }
+
+    .submit-route-line::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      width: 46%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent, #fff, var(--live));
+      animation: submitRouteSweep 1.25s ease-in-out infinite;
+    }
+
+    .submit-flight-steps {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .submit-flight-step {
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      padding: 10px 8px;
+      color: rgba(255,255,255,0.66);
+      background: rgba(255,255,255,0.07);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+    }
+
+    .submit-flight-step.is-active,
+    .submit-flight-step.is-complete {
+      border-color: rgba(47,191,88,0.78);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(47,191,88,0.18);
+    }
+
+    .submit-flight-step.is-complete::before {
+      content: "✓ ";
+      color: var(--live);
+    }
+
+    .submit-flight-overlay.is-complete .submit-route-line::before {
+      width: 100%;
+      animation: none;
+      background: linear-gradient(90deg, var(--live), #fff, var(--live));
+    }
+
+    .submit-flight-overlay.is-complete .submit-flight-title {
+      color: #fff;
+      text-shadow: 0 0 26px rgba(47,191,88,0.38);
+    }
+
+    @keyframes submitRouteSweep {
+      from { transform: translateX(-115%); }
+      to { transform: translateX(235%); }
+    }
+
     .status-tracker {
       display: none;
       border: 2px solid var(--line);
@@ -4672,9 +4826,11 @@
       }
 
       .luxury-title,
-      .luxury-stat {
+      .luxury-stat,
+      .submit-route-line::before {
         transform: none;
         transition: none;
+        animation: none;
       }
     }
   </style>
@@ -5104,6 +5260,24 @@
     </div>
   </div>
 
+  <div id="submitFlightOverlay" class="submit-flight-overlay" role="status" aria-live="polite" aria-label="Sending private flight request" hidden>
+    <div class="submit-flight-card">
+      <p class="submit-flight-kicker">Private flight request</p>
+      <h2 id="submitFlightTitle" class="submit-flight-title">Sending</h2>
+      <p id="submitFlightCopy" class="submit-flight-copy">Preparing your request for the flight team. Please keep this page open.</p>
+      <div class="submit-flight-route" aria-hidden="true">
+        <span id="submitFlightDep" class="submit-airport-pill">DEP</span>
+        <span class="submit-route-line"></span>
+        <span id="submitFlightArr" class="submit-airport-pill">ARR</span>
+      </div>
+      <div class="submit-flight-steps" aria-hidden="true">
+        <span id="submitStepDetails" class="submit-flight-step is-active">Details</span>
+        <span id="submitStepOps" class="submit-flight-step">Ops desk</span>
+        <span id="submitStepReceived" class="submit-flight-step">Received</span>
+      </div>
+    </div>
+  </div>
+
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -5166,6 +5340,14 @@
     const locateMeBtn = el('locateMeBtn');
     const reviewDialog = el('reviewDialog');
     const reviewDialogBody = el('reviewDialogBody');
+    const submitFlightOverlay = el('submitFlightOverlay');
+    const submitFlightTitle = el('submitFlightTitle');
+    const submitFlightCopy = el('submitFlightCopy');
+    const submitFlightDep = el('submitFlightDep');
+    const submitFlightArr = el('submitFlightArr');
+    const submitStepDetails = el('submitStepDetails');
+    const submitStepOps = el('submitStepOps');
+    const submitStepReceived = el('submitStepReceived');
     const draftStatus = el('draftStatus');
     const regattaRouteNote = el('regattaRouteNote');
     const PA28_CRUISE_KT = 115;
@@ -5225,6 +5407,43 @@
     function showConfirmation(message, type = 'success') {
       confirmation.textContent = message;
       confirmation.className = `confirmation show${type === 'error' ? ' error' : ''}`;
+    }
+
+    function submitDelay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function airportCodeForSubmit(airport) {
+      return airport?.iata || airport?.icao || '---';
+    }
+
+    function showSubmitFlightOverlay() {
+      const dep = selectedAirport('dep');
+      const arr = selectedAirport('arr');
+      submitFlightDep.textContent = airportCodeForSubmit(dep);
+      submitFlightArr.textContent = airportCodeForSubmit(arr);
+      submitFlightTitle.textContent = 'Sending';
+      submitFlightCopy.textContent = 'Preparing your request for the flight team. Please keep this page open.';
+      submitFlightOverlay.classList.remove('is-complete');
+      [submitStepDetails, submitStepOps, submitStepReceived].forEach(step => step.classList.remove('is-active', 'is-complete'));
+      submitStepDetails.classList.add('is-active');
+      submitStepOps.classList.add('is-active');
+      submitFlightOverlay.hidden = false;
+    }
+
+    function completeSubmitFlightOverlay(reference) {
+      submitFlightTitle.textContent = 'Request received';
+      submitFlightCopy.textContent = reference ? `Reference ${reference} has been created. Opening your request summary now.` : 'Your request has been received. Opening your request summary now.';
+      submitFlightOverlay.classList.add('is-complete');
+      [submitStepDetails, submitStepOps, submitStepReceived].forEach(step => {
+        step.classList.remove('is-active');
+        step.classList.add('is-complete');
+      });
+    }
+
+    function hideSubmitFlightOverlay() {
+      submitFlightOverlay.hidden = true;
+      submitFlightOverlay.classList.remove('is-complete');
     }
 
     function resetSubmitFeedback() {
@@ -6160,6 +6379,7 @@
       confirmation.className = 'confirmation';
       setSubmitState('sending', 'Sending request...');
       setStatus('Sending request for pilot and operations review...');
+      showSubmitFlightOverlay();
 
       try {
         const res = await fetch('/api/booking-requests', {
@@ -6207,8 +6427,11 @@
         const dep = selectedAirport('dep');
         const arr = selectedAirport('arr');
         sessionStorage.setItem('private-flight-confirmation-v1', JSON.stringify({ reference: data.request.id, route: itineraryName(dep, arr), date: el('requestDate').value, time: el('requestTime').value, trip: isScenicExperienceSelected() ? 'Scenic overflight' : (el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way'), passengers: el('seats').value, flightTime: formatFlightTime(dep, arr), price: routePrice(dep, arr), luggage: baggageSummary() }));
+        completeSubmitFlightOverlay(data.request.id);
+        await submitDelay(850);
         window.location.href = '/booking-confirmation';
       } catch (err) {
+        hideSubmitFlightOverlay();
         setSubmitState('error', 'Request failed');
         setStatus(err.message || 'Request failed', 'err');
         showConfirmation(err.message || 'Request failed. Please check the details and try again.', 'error');
