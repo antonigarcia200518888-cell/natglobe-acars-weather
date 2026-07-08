@@ -3395,6 +3395,44 @@
       align-items: end;
     }
 
+    .luxury-hero-ops {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .luxury-hero-telemetry {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      max-width: 760px;
+    }
+
+    .luxury-hero-telemetry .clock,
+    .luxury-hero-telemetry .mode {
+      margin: 0;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.78);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+      backdrop-filter: blur(16px);
+    }
+
+    .luxury-hero-telemetry .clock {
+      padding: 8px 11px;
+      font-size: 10px;
+    }
+
+    .luxury-hero-telemetry .mode {
+      min-height: 0;
+      margin-bottom: 0;
+      padding: 8px 12px;
+      font-size: 10px;
+      line-height: 1.15;
+    }
+
     .luxury-stats {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4402,6 +4440,77 @@
       box-shadow: 0 12px 22px rgba(47,191,88,0.22);
     }
 
+    .luxury-booking .cabin-selected-badge {
+      border-color: rgba(255,255,255,0.28);
+      background:
+        radial-gradient(circle at 24% 20%, rgba(255,255,255,0.16), transparent 18%),
+        rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 14px 32px rgba(0,0,0,0.16);
+    }
+
+    .luxury-booking .cabin-selected-badge strong {
+      color: #fff;
+    }
+
+    .luxury-booking .summary-card .seat-map-shell {
+      background:
+        radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0.20), transparent 24%),
+        radial-gradient(ellipse at 50% 82%, rgba(255,255,255,0.12), transparent 40%),
+        linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+    }
+
+    .luxury-booking .summary-card .cabin-visual::before {
+      background:
+        radial-gradient(ellipse at 48% 50%, rgba(255,255,255,0.18), transparent 47%),
+        radial-gradient(ellipse at 70% 55%, rgba(255,255,255,0.16), transparent 40%);
+    }
+
+    .luxury-booking .summary-card .seat-map::after {
+      background:
+        linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent),
+        radial-gradient(ellipse at 50% 92%, rgba(255,255,255,0.13), transparent 42%);
+    }
+
+    .luxury-booking .summary-card .seat-hotspot:hover {
+      background: rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.38);
+    }
+
+    .luxury-booking .summary-card .seat-hotspot:focus-visible {
+      outline-color: #fff;
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked),
+    .luxury-booking .summary-card .seat-option.is-selected {
+      border-color: rgba(255,255,255,0.68);
+      background:
+        radial-gradient(circle at 90% 10%, rgba(255,255,255,0.18), transparent 22%),
+        linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.36), 0 18px 38px rgba(0,0,0,0.18);
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked) small,
+    .luxury-booking .summary-card .seat-option.is-selected small {
+      color: #071d49;
+      background: #fff;
+      box-shadow: 0 0 24px rgba(255,255,255,0.16);
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked) .seat-select-control,
+    .luxury-booking .summary-card .seat-option.is-selected .seat-select-control {
+      color: #071d49;
+      background: #fff;
+      border-color: rgba(255,255,255,0.50);
+      box-shadow: 0 12px 22px rgba(0,0,0,0.16);
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked)::after,
+    .luxury-booking .summary-card .seat-option.is-selected::after {
+      color: #fff;
+      border-color: rgba(255,255,255,0.58);
+      background: rgba(255,255,255,0.10);
+    }
+
     .luxury-booking .request-panel {
       position: relative;
       overflow: hidden;
@@ -5390,17 +5499,6 @@
           <a href="#luggageSection">Luggage</a>
           <a href="#extrasSection">Cabin</a>
         </nav>
-        <div id="connectionBadge" class="connection-badge conn-offline" aria-live="polite">
-          <span class="connection-wifi" aria-hidden="true">
-            <svg viewBox="0 0 24 24" class="wifi-icon">
-              <path d="M2 8.5C7.5 4.5 16.5 4.5 22 8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              <path d="M5 12C8.8 9.2 15.2 9.2 19 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              <path d="M8.5 15.5C10.5 14 13.5 14 15.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="12" cy="19" r="1.6" fill="currentColor"/>
-            </svg>
-          </span>
-          <span id="connectionText">OFFLINE</span>
-        </div>
       </div>
       <div class="luxury-hero-center">
         <div class="luxury-eyebrow">Equal-share private flight requests</div>
@@ -5416,11 +5514,17 @@
         </div>
       </div>
       <div class="luxury-hero-bottom">
-        <div class="luxury-stats">
-          <div class="luxury-stat"><strong>FLEX</strong><span>Flexible private routing by request</span></div>
-          <div class="luxury-stat"><strong>3-5H</strong><span>Aircraft endurance for regional missions</span></div>
-          <div class="luxury-stat"><strong>20</strong><span>Minute boarding target at any airport</span></div>
-          <div class="luxury-stat"><strong>NCO</strong><span>Private non-commercial operation</span></div>
+        <div class="luxury-hero-ops">
+          <div class="luxury-hero-telemetry" aria-label="Private route network status">
+            <div id="clock" class="clock">UTC --:--:--</div>
+            <div id="mode" class="mode">MODE: PRIVATE ROUTE NETWORK ONLINE / REQUEST READY</div>
+          </div>
+          <div class="luxury-stats">
+            <div class="luxury-stat"><strong>FLEX</strong><span>Flexible private routing by request</span></div>
+            <div class="luxury-stat"><strong>3-5H</strong><span>Aircraft endurance for regional missions</span></div>
+            <div class="luxury-stat"><strong>20</strong><span>Minute boarding target at any airport</span></div>
+            <div class="luxury-stat"><strong>NCO</strong><span>Private non-commercial operation</span></div>
+          </div>
         </div>
         <div class="luxury-scroll-hint">Scroll to request</div>
       </div>
@@ -5448,21 +5552,7 @@
           <div class="subtitle">Private aviation requests / Equal-share, non-commercial operation</div>
         </div>
       </div>
-      <div class="connection-badge conn-offline" aria-live="polite">
-        <span class="connection-wifi" aria-hidden="true">
-          <svg viewBox="0 0 24 24" class="wifi-icon">
-            <path d="M2 8.5C7.5 4.5 16.5 4.5 22 8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M5 12C8.8 9.2 15.2 9.2 19 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M8.5 15.5C10.5 14 13.5 14 15.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="12" cy="19" r="1.6" fill="currentColor"/>
-          </svg>
-        </span>
-        <span>OFFLINE</span>
-      </div>
     </div>
-
-    <div id="clock" class="clock">UTC --:--:--</div>
-    <div id="mode" class="mode">SERVICE: PRIVATE AVIATION REQUEST / FLIGHT TEAM REVIEW</div>
     <div class="booking-progress" aria-label="Booking completion">
       <span data-progress-step="route"><i aria-hidden="true"></i>Itinerary</span>
       <span data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</span>
@@ -5994,6 +6084,7 @@
     }
 
     function setConnectionState(state, text) {
+      if (!connectionBadge || !connectionText) return;
       connectionBadge.classList.remove('conn-good', 'conn-weak', 'conn-offline');
       connectionBadge.classList.add(`conn-${state}`);
       connectionText.textContent = text;
