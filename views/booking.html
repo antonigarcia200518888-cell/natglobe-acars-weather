@@ -1422,6 +1422,11 @@
       text-transform: uppercase;
     }
 
+    .request-panel-copy strong {
+      color: inherit;
+      font-weight: 800;
+    }
+
     .request-panel-status {
       color: #00ff66;
       border: 1px solid #00ff66;
@@ -1587,10 +1592,18 @@
       position: relative;
       z-index: 1;
       flex: 0 0 auto;
-      width: 78px;
-      height: 78px;
+      width: 82px;
+      height: 82px;
       margin-left: auto;
-      filter: drop-shadow(0 24px 22px rgba(0,0,0,0.28));
+      border: 1px solid rgba(255,255,255,0.30);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 34% 22%, rgba(255,255,255,0.26), transparent 22%),
+        linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 22px 34px rgba(0,0,0,0.24);
+      filter: drop-shadow(0 12px 20px rgba(0,0,0,0.18));
     }
 
     .extra-figure::before,
@@ -1600,144 +1613,47 @@
       display: block;
     }
 
-    .extra-figure.wine-figure::before {
-      left: 28px;
-      top: 11px;
-      width: 24px;
-      height: 34px;
-      border: 3px solid rgba(255,255,255,0.86);
-      border-top: 2px solid rgba(255,255,255,0.74);
-      border-radius: 6px 6px 16px 16px;
+    .extra-figure::before {
+      inset: 17px;
+      z-index: 2;
+      background: rgba(255,255,255,0.94);
+      -webkit-mask: var(--extra-symbol) center / contain no-repeat;
+      mask: var(--extra-symbol) center / contain no-repeat;
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,0.22));
+    }
+
+    .extra-figure::after {
+      inset: 8px;
+      z-index: 1;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 18px;
       background:
-        linear-gradient(180deg, transparent 0 38%, rgba(255,255,255,0.16) 38% 42%, transparent 42%),
-        linear-gradient(180deg, rgba(104,9,34,0.90) 45%, rgba(198,47,79,0.82) 46%);
-      box-shadow: inset 7px 0 8px rgba(255,255,255,0.24), inset -6px -4px 10px rgba(50,0,14,0.24);
+        linear-gradient(135deg, rgba(255,255,255,0.18), transparent 46%),
+        radial-gradient(circle at 70% 78%, rgba(255,255,255,0.16), transparent 26%);
     }
 
-    .extra-figure.wine-figure::after {
-      left: 38px;
-      top: 45px;
-      width: 5px;
-      height: 20px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.86);
-      box-shadow: -12px 19px 0 3px rgba(255,255,255,0.78), 12px 19px 0 3px rgba(255,255,255,0.78);
+    .extra-figure.wine-figure {
+      --extra-symbol: url("/extras-wine.svg");
     }
 
-    .extra-figure.champagne-figure::before {
-      left: 31px;
-      top: 6px;
-      width: 18px;
-      height: 62px;
-      border-radius: 12px 12px 9px 9px;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.56), transparent 34%),
-        linear-gradient(180deg, #fff2a8 0 38%, #d2a936 38% 70%, #86611b 100%);
-      box-shadow: inset -5px 0 10px rgba(66,38,7,0.34), 0 0 0 4px rgba(255,255,255,0.14);
+    .extra-figure.champagne-figure {
+      --extra-symbol: url("/extras-champagne.svg");
     }
 
-    .extra-figure.champagne-figure::after {
-      left: 36px;
-      top: 0;
-      width: 8px;
-      height: 15px;
-      border-radius: 4px;
-      background: rgba(255,255,255,0.82);
-      box-shadow: 24px 10px 0 -3px rgba(255,255,255,0.74), 33px 22px 0 -4px rgba(255,255,255,0.70), -18px 14px 0 -4px rgba(255,255,255,0.62);
+    .extra-figure.beer-figure {
+      --extra-symbol: url("/extras-beer.svg");
     }
 
-    .extra-figure.beer-figure::before {
-      left: 15px;
-      top: 17px;
-      width: 42px;
-      height: 44px;
-      border: 3px solid rgba(255,255,255,0.78);
-      border-radius: 7px 7px 14px 14px;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.34), transparent 26%),
-        linear-gradient(180deg, rgba(255,255,255,0.78) 0 16%, transparent 16%),
-        linear-gradient(180deg, #f2b35a, #9b4f09);
-      box-shadow: inset -8px 0 14px rgba(88,38,3,0.26);
+    .extra-figure.soft-figure {
+      --extra-symbol: url("/extras-drinks.svg");
     }
 
-    .extra-figure.beer-figure::after {
-      left: 54px;
-      top: 26px;
-      width: 18px;
-      height: 22px;
-      border: 4px solid rgba(255,255,255,0.70);
-      border-left: 0;
-      border-radius: 0 12px 12px 0;
-      box-shadow: -33px -20px 0 -10px rgba(255,255,255,0.86), -20px -20px 0 -10px rgba(255,255,255,0.76);
+    .extra-figure.snacks-figure {
+      --extra-symbol: url("/extras-snacks.svg");
     }
 
-    .extra-figure.soft-figure::before {
-      left: 29px;
-      top: 7px;
-      width: 22px;
-      height: 64px;
-      border-radius: 14px 14px 10px 10px;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.52), transparent 30%),
-        linear-gradient(180deg, #bde6ff 0 22%, #4aa8e9 22% 70%, #075487 100%);
-      box-shadow: inset -6px 0 13px rgba(3,27,54,0.28), 0 0 0 3px rgba(255,255,255,0.22);
-    }
-
-    .extra-figure.soft-figure::after {
-      left: 34px;
-      top: 0;
-      width: 12px;
-      height: 10px;
-      border-radius: 4px 4px 2px 2px;
-      background: rgba(255,255,255,0.82);
-      box-shadow: 24px 30px 0 -1px rgba(255,255,255,0.22);
-    }
-
-    .extra-figure.snacks-figure::before {
-      left: 16px;
-      top: 28px;
-      width: 50px;
-      height: 30px;
-      border-radius: 50% 50% 44% 44%;
-      background:
-        radial-gradient(circle at 32% 36%, rgba(255,255,255,0.44), transparent 18%),
-        radial-gradient(circle at 68% 52%, rgba(111,67,24,0.34), transparent 9%),
-        linear-gradient(145deg, #f1cf90, #955c1d);
-      transform: rotate(-16deg);
-      box-shadow: inset -8px -5px 12px rgba(89,46,10,0.28), 0 0 0 3px rgba(255,255,255,0.16);
-    }
-
-    .extra-figure.snacks-figure::after {
-      left: 20px;
-      top: 56px;
-      width: 42px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.68);
-      box-shadow: 0 5px 0 -2px rgba(255,255,255,0.38);
-    }
-
-    .extra-figure.transfer-figure::before {
-      left: 6px;
-      top: 27px;
-      width: 64px;
-      height: 31px;
-      border-radius: 19px 21px 11px 11px;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.42), transparent 30%),
-        radial-gradient(circle at 34% 42%, rgba(255,255,255,0.30), transparent 16%),
-        linear-gradient(145deg, #4f83bd, #071d49);
-      box-shadow: inset -8px -5px 14px rgba(0,0,0,0.24), 0 0 0 3px rgba(255,255,255,0.18);
-    }
-
-    .extra-figure.transfer-figure::after {
-      left: 17px;
-      top: 53px;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 33px 0 0 #fff, 7px -18px 0 5px rgba(255,255,255,0.18);
+    .extra-figure.transfer-figure {
+      --extra-symbol: url("/extras-transfer.svg");
     }
 
     .extra-visual-copy {
@@ -2423,18 +2339,31 @@
       .summary-list li {
         gap: 8px;
       }
+      .included-grid,
+      .extras-grid {
+        grid-template-columns: 1fr;
+      }
       .included-card,
       .extra-option {
         min-height: auto;
-        padding: 10px;
+      }
+      .included-card { padding: 12px; }
+      .extra-option { padding: 0; }
+      .extra-visual {
+        height: 124px;
+      }
+      .extra-figure {
+        width: 74px;
+        height: 74px;
       }
       .included-card strong,
       .extra-option strong {
-        font-size: 12px;
+        font-size: 16px;
       }
       .included-card span,
       .extra-option span {
-        font-size: 10px;
+        font-size: 12px;
+        line-height: 1.48;
       }
       .seat-visual { font-size: 8px; }
       .seat-options {
@@ -4209,7 +4138,7 @@
     }
 
     .luxury-booking .extra-figure {
-      transform: translate(0, 2px) rotate(-2deg);
+      transform: translate(0, 0);
     }
 
     .luxury-booking .extra-option-head {
@@ -4488,6 +4417,31 @@
 
       .luxury-booking .aircraft-photo {
         border-radius: 18px;
+      }
+
+      .luxury-booking .included-grid,
+      .luxury-booking .extras-grid,
+      .baggage-request-grid .included-grid,
+      .baggage-request-grid .extras-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .extra-visual {
+        height: 132px;
+      }
+
+      .luxury-booking .extra-figure {
+        width: 76px;
+        height: 76px;
+      }
+
+      .luxury-booking .extra-option strong {
+        font-size: 17px;
+      }
+
+      .luxury-booking .extra-option span {
+        font-size: 13px;
+        line-height: 1.5;
       }
 
       .luxury-booking .route-line {
@@ -4797,7 +4751,7 @@
             <div class="request-panel-header">
               <div>
                 <div class="request-panel-title">Onboard requests</div>
-                <div class="request-panel-copy">Select anything you would like to add. Approved requests are charged separately and added to your final flight bill.</div>
+                <div class="request-panel-copy">Select anything you would like to add. <strong>Approved requests are charged separately and added to your final flight bill.</strong></div>
               </div>
             </div>
 
