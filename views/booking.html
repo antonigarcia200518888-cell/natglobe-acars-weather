@@ -4598,7 +4598,7 @@
 
     @media (max-width: 900px) {
       body.luxury-booking {
-        padding: 0 0 calc(96px + env(safe-area-inset-bottom));
+        padding: 0 0 calc(82px + env(safe-area-inset-bottom));
       }
 
       .luxury-booking .frame {
@@ -4810,6 +4810,422 @@
       .luxury-booking .mobile-booking-bar #mobileTripPrice {
         color: var(--navy);
         font-weight: 800;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body.luxury-booking {
+        background:
+          radial-gradient(circle at 20% -8%, rgba(7,29,73,0.12), transparent 32%),
+          linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+      }
+
+      .luxury-hero {
+        min-height: auto;
+        padding: 14px 14px 20px;
+        border-radius: 0 0 26px 26px;
+      }
+
+      .luxury-hero-top {
+        gap: 10px;
+      }
+
+      .luxury-hero-logo {
+        width: 58px;
+        border-radius: 14px;
+      }
+
+      .luxury-hero-brand span {
+        font-size: 9px;
+      }
+
+      .luxury-hero-brand strong {
+        font-size: 14px;
+        line-height: 1.05;
+      }
+
+      .luxury-hero-center {
+        padding: 34px 0 20px;
+      }
+
+      .luxury-eyebrow {
+        font-size: 10px;
+        letter-spacing: 0.16em;
+      }
+
+      .luxury-title {
+        font-size: clamp(42px, 13vw, 58px);
+        gap: 0;
+      }
+
+      .luxury-copy {
+        max-width: 34rem;
+        margin-top: 12px;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .luxury-hero-actions {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .luxury-cta,
+      .luxury-secondary {
+        min-height: 42px;
+        padding: 11px 12px;
+        font-size: 10px;
+        border-radius: 999px;
+      }
+
+      .luxury-stats {
+        max-width: none;
+        gap: 7px;
+      }
+
+      .luxury-stat {
+        min-height: 70px;
+        padding: 10px;
+        border-radius: 14px;
+      }
+
+      .luxury-stat strong {
+        font-size: clamp(19px, 7vw, 28px);
+      }
+
+      .luxury-stat span {
+        margin-top: 3px;
+        font-size: 9px;
+        line-height: 1.22;
+      }
+
+      .luxury-content {
+        padding: 10px 8px 16px;
+      }
+
+      .search-card,
+      .card,
+      .route-map-card,
+      .luxury-booking .request-panel {
+        border-radius: 20px;
+        padding: 12px;
+        margin-bottom: 10px;
+        box-shadow: 0 14px 36px rgba(7,29,73,0.08);
+      }
+
+      .luxury-booking .booking-progress {
+        position: sticky;
+        top: 6px;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 4px;
+        padding: 7px;
+        border-radius: 14px;
+      }
+
+      .luxury-booking .booking-progress span {
+        gap: 4px;
+        font-size: 8px;
+        letter-spacing: 0.04em;
+      }
+
+      .luxury-booking .booking-progress i {
+        height: 3px;
+        border-radius: 999px;
+      }
+
+      .luxury-booking .route-map-shell {
+        height: 260px;
+        min-height: 260px;
+        border-radius: 16px;
+      }
+
+      .search-grid {
+        gap: 8px;
+      }
+
+      input,
+      select,
+      textarea,
+      .btn {
+        min-height: 44px;
+        font-size: 15px;
+      }
+
+      .aircraft-feature {
+        gap: 12px;
+      }
+
+      .luxury-booking .aircraft-photo,
+      .aircraft-photo img {
+        min-height: 118px;
+        max-height: 155px;
+      }
+
+      .aircraft-facts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .aircraft-fact {
+        padding: 9px;
+        min-height: 72px;
+      }
+
+      .amenity-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .amenity {
+        min-height: 38px;
+        justify-content: center;
+        padding: 7px;
+        font-size: 9px;
+        text-align: center;
+      }
+
+      .starlink-mark {
+        width: 54px;
+        height: 21px;
+      }
+
+      .passenger-card,
+      .declaration,
+      .preflight-item {
+        border-radius: 16px;
+      }
+
+      .passenger-card {
+        padding: 12px;
+      }
+
+      .luxury-booking .summary-card .seat-map {
+        padding: 12px;
+        border-radius: 18px;
+      }
+
+      .luxury-booking .summary-card .seat-map-shell {
+        min-height: 165px;
+        border-radius: 15px;
+      }
+
+      .luxury-booking .summary-card .seat-options {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .luxury-booking .summary-card .seat-option {
+        display: grid;
+        min-height: 118px;
+        padding: 10px;
+        border-radius: 16px;
+      }
+
+      .luxury-booking .summary-card .seat-option small {
+        min-width: 0;
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+      }
+
+      .luxury-booking .summary-card .seat-option strong {
+        font-size: 12px;
+        line-height: 1.15;
+      }
+
+      .luxury-booking .summary-card .seat-option span {
+        font-size: 10px;
+        line-height: 1.25;
+      }
+
+      .luxury-booking .summary-card .seat-select-control {
+        margin-top: 4px;
+        padding: 7px 8px;
+        font-size: 8px;
+      }
+
+      .luxury-booking .included-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .luxury-booking .included-card {
+        min-height: 84px;
+        padding: 10px;
+        border-radius: 16px;
+      }
+
+      .luxury-booking .included-card-head {
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .luxury-booking .included-icon {
+        width: 24px;
+        height: 24px;
+      }
+
+      .luxury-booking .included-icon.starlink-included-icon {
+        width: 42px;
+        height: 24px;
+      }
+
+      .included-icon .starlink-card-icon {
+        width: 34px;
+        height: 17px;
+      }
+
+      .luxury-booking .included-card strong {
+        font-size: 10px;
+        line-height: 1.15;
+      }
+
+      .luxury-booking .included-card span:not(.included-icon) {
+        font-size: 8px;
+        line-height: 1.25;
+      }
+
+      .luxury-booking .extras-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .luxury-booking .extra-option {
+        min-height: 232px;
+        border-radius: 18px;
+      }
+
+      .luxury-booking .extra-visual {
+        height: 92px;
+        border-radius: 18px 18px 0 0;
+        margin-bottom: 8px;
+        padding: 10px;
+      }
+
+      .luxury-booking .extra-visual::after {
+        inset: 7px;
+        border-radius: 14px;
+      }
+
+      .luxury-booking .extra-visual-copy b {
+        font-size: 20px;
+      }
+
+      .extra-visual-copy em {
+        font-size: 7px;
+      }
+
+      .luxury-booking .extra-figure {
+        width: 54px;
+        height: 54px;
+        border-radius: 17px;
+      }
+
+      .luxury-booking .extra-option > .extra-option-head,
+      .luxury-booking .extra-option > span,
+      .luxury-booking .extra-option > .request-status {
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+
+      .luxury-booking .extra-option strong {
+        font-size: 13px;
+        line-height: 1.15;
+      }
+
+      .luxury-booking .extra-option span {
+        font-size: 10px;
+        line-height: 1.35;
+      }
+
+      .luxury-booking .extra-switch {
+        width: 38px;
+        height: 22px;
+      }
+
+      .luxury-booking .extra-switch::after {
+        width: 18px;
+        height: 18px;
+      }
+
+      .luxury-booking .extra-option:has(input:checked) .extra-switch::after {
+        transform: translateX(16px);
+      }
+
+      .luxury-booking .extra-option > .request-status {
+        margin-bottom: 10px;
+        padding: 5px 8px;
+        font-size: 8px;
+      }
+
+      .preflight-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .preflight-item {
+        min-height: 86px;
+        padding: 10px;
+      }
+
+      .luxury-booking .review-card .summary-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px 12px;
+      }
+
+      .summary-list li {
+        min-height: auto;
+        padding: 7px 0;
+      }
+
+      .luxury-booking .submit-footer {
+        padding-bottom: 78px;
+      }
+
+      .luxury-booking .mobile-booking-bar {
+        left: 10px;
+        right: 10px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 8px 8px 8px 12px;
+        border-radius: 18px;
+      }
+
+      .luxury-booking .mobile-booking-bar .btn {
+        min-height: 44px;
+        min-width: 132px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-size: 12px;
+      }
+
+      .luxury-booking .mobile-booking-bar strong {
+        font-size: 11px;
+      }
+
+      .luxury-booking .mobile-booking-bar span {
+        font-size: 10px;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .luxury-booking .summary-card .seat-options {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .included-card {
+        min-height: auto;
+      }
+
+      .luxury-booking .review-card .summary-list {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .extra-visual {
+        height: 88px;
       }
     }
 
@@ -5114,9 +5530,9 @@
 
             <div class="extras-section-title">Included on board</div>
             <div class="included-grid" aria-label="Included onboard items">
-              <div class="included-card"><div class="included-card-head"><span class="included-icon water" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11Z"/></svg></span><strong>Included: Voss Water</strong></div><span>Chilled onboard</span></div>
-              <div class="included-card"><div class="included-card-head"><span class="included-icon charge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 5 14h6l-1 8 9-13h-6z"/></svg></span><strong>Included: USB-C Charging</strong></div><span>Available onboard</span></div>
-              <div class="included-card"><div class="included-card-head"><span class="included-icon wifi starlink-included-icon" aria-hidden="true"><img class="starlink-card-icon" src="/starlink-symbol.png" alt="" /></span><strong>Included: Starlink Wi-Fi</strong></div><span>Subject to service coverage</span></div>
+              <div class="included-card"><div class="included-card-head"><span class="included-icon water" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11Z"/></svg></span><strong>Voss Water</strong></div><span>Chilled onboard</span></div>
+              <div class="included-card"><div class="included-card-head"><span class="included-icon charge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 5 14h6l-1 8 9-13h-6z"/></svg></span><strong>USB-C Charging</strong></div><span>Available onboard</span></div>
+              <div class="included-card"><div class="included-card-head"><span class="included-icon wifi starlink-included-icon" aria-hidden="true"><img class="starlink-card-icon" src="/starlink-symbol.png" alt="" /></span><strong>Starlink Wi-Fi</strong></div><span>Subject to service coverage</span></div>
             </div>
 
             <div class="extras-section-title">Request for this flight</div>
