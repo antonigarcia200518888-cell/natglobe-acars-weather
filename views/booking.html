@@ -1660,6 +1660,18 @@
       filter: drop-shadow(0 10px 12px rgba(0,0,0,0.22));
     }
 
+    .extra-figure.beer-figure::before {
+      inset: 12px 11px 10px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,245,218,0.92));
+    }
+
+    .extra-figure.snacks-figure::before {
+      inset: 11px 9px 8px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.98), rgba(222,230,240,0.94));
+    }
+
     .extra-figure::after {
       inset: 8px;
       z-index: 1;
@@ -4918,9 +4930,9 @@
             <div class="extras-grid" aria-label="Optional onboard and transfer requests">
               <label class="extra-option"><input type="checkbox" name="extras" value="WINE" /><div class="extra-visual wine" aria-hidden="true"><div class="extra-visual-copy"><em>Curated request</em><b>Wine</b></div><i class="extra-figure wine-figure"></i></div><div class="extra-option-head"><strong>Wine service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Red, white, or sparkling selection prepared chilled.</span><em class="request-status">Tap to request</em></label>
               <label class="extra-option"><input type="checkbox" name="extras" value="CHAMPAGNE" /><div class="extra-visual champagne" aria-hidden="true"><div class="extra-visual-copy"><em>Chilled bottle</em><b>Champagne</b></div><i class="extra-figure champagne-figure"></i></div><div class="extra-option-head"><strong>Champagne service</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Brut, rosé, or sparkling bottle request.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"><div class="extra-visual-copy"><em>Cold service</em><b>Beer</b></div><i class="extra-figure beer-figure"></i></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink served chilled.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="BEER" /><div class="extra-visual beer" aria-hidden="true"><div class="extra-visual-copy"><em>Cold service</em><b>Beer</b></div><i class="extra-figure beer-figure"></i></div><div class="extra-option-head"><strong>Beer / long drink</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Lager, cider, or long drink served chilled with glassware.</span><em class="request-status">Tap to request</em></label>
               <label class="extra-option"><input type="checkbox" name="extras" value="SOFT DRINKS / WATER" /><div class="extra-visual soft" aria-hidden="true"><div class="extra-visual-copy"><em>Refreshments</em><b>Drinks</b></div><i class="extra-figure soft-figure"></i></div><div class="extra-option-head"><strong>Soft drinks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Still, sparkling, cola, tonic, or juice.</span><em class="request-status">Tap to request</em></label>
-              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"><div class="extra-visual-copy"><em>Light cabin</em><b>Snacks</b></div><i class="extra-figure snacks-figure"></i></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks.</span><em class="request-status">Tap to request</em></label>
+              <label class="extra-option"><input type="checkbox" name="extras" value="SNACKS" /><div class="extra-visual snacks" aria-hidden="true"><div class="extra-visual-copy"><em>Room service</em><b>Snacks</b></div><i class="extra-figure snacks-figure"></i></div><div class="extra-option-head"><strong>Light snacks</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Sweet or savoury sealed cabin snacks prepared tray-style.</span><em class="request-status">Tap to request</em></label>
               <label class="extra-option"><input type="checkbox" name="extras" value="AIRPORT TRANSFERS" /><div class="extra-visual transfer" aria-hidden="true"><div class="extra-visual-copy"><em>Door to ramp</em><b>Transfer</b></div><i class="extra-figure transfer-figure"></i></div><div class="extra-option-head"><strong>Airport transfer</strong><i class="extra-switch" aria-hidden="true"></i></div><span>Ground transport coordination request.</span><em class="request-status">Tap to request</em></label>
             </div>
             <div id="alcoholPreferences" class="alcohol-preferences" aria-label="Alcohol service preferences">
