@@ -102,64 +102,11 @@
       margin-top: 4px;
     }
 
-    .connection-badge {
-      min-height: 32px;
-      border: 2px solid currentColor;
-      padding: 6px 10px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: clamp(12px, 1.1vw, 16px);
-      font-weight: 700;
-      text-transform: uppercase;
-      white-space: nowrap;
-      line-height: 1;
-      background: #000;
-      margin-top: 2px;
-    }
-
-    .connection-wifi {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .wifi-icon {
-      width: 18px;
-      height: 18px;
-      display: block;
-    }
-
-    .connection-badge.conn-good { color: var(--live); }
-    .connection-badge.conn-weak { color: var(--warn); }
-    .connection-badge.conn-offline { color: var(--danger); }
-
-    .clock {
-      font-size: clamp(14px, 1.4vw, 18px);
-      color: #bdbdbd;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
-
     .intro {
       color: #bdbdbd;
       font-size: clamp(12px, 1.3vw, 17px);
       line-height: 1.35;
       margin-bottom: 10px;
-    }
-
-    .mode {
-      border: 1px solid rgba(102,255,153,0.55);
-      min-height: 42px;
-      display: flex;
-      align-items: center;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      background: linear-gradient(180deg, #050505 0%, #0b0b0b 100%);
-      color: var(--live);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      font-size: 14px;
     }
 
     .search-card, .card {
@@ -2456,26 +2403,9 @@
         font-size: 11px;
         line-height: 1.25;
       }
-      .connection-badge {
-        white-space: nowrap;
-        min-height: 28px;
-        padding: 5px 7px;
-        font-size: 11px;
-      }
-      .clock {
-        font-size: 12px;
-        margin-bottom: 6px;
-      }
       .intro {
         font-size: 12px;
         margin-bottom: 8px;
-      }
-      .mode {
-        min-height: 34px;
-        padding: 7px 9px;
-        margin-bottom: 8px;
-        font-size: 11px;
-        line-height: 1.25;
       }
       input, select, textarea, .btn {
         font-size: 16px;
@@ -2536,13 +2466,6 @@
       }
       .subtitle {
         font-size: 10px;
-      }
-      .connection-badge {
-        padding: 4px 6px;
-      }
-      .wifi-icon {
-        width: 15px;
-        height: 15px;
       }
       .intro {
         font-size: 12px;
@@ -2686,7 +2609,6 @@
     }
 
     .title,
-    .mode,
     .route-map-title,
     .booking-kicker,
     .section-title,
@@ -2705,7 +2627,6 @@
     }
 
     .subtitle,
-    .clock,
     .route-map-meta,
     .booking-note,
     .airport-name,
@@ -2720,19 +2641,6 @@
     .extra-option span,
     .review-dialog-head p {
       color: var(--ink-soft);
-    }
-
-    .mode {
-      border-color: rgba(7,29,73,0.18);
-      background: linear-gradient(90deg, #071d49 0%, #0b2e63 100%);
-      color: #fff;
-      box-shadow: 0 12px 24px rgba(7,29,73,0.12);
-    }
-
-    .connection-badge {
-      background: #fff;
-      border-width: 1px;
-      box-shadow: 0 8px 20px rgba(7,29,73,0.08);
     }
 
     .search-card,
@@ -3037,7 +2945,6 @@
     /* Text pass: navy on light surfaces, white only when sitting on navy panels. */
     .frame,
     .subtitle,
-    .clock,
     .route-map-meta,
     .booking-note,
     .airport-name,
@@ -3079,7 +2986,6 @@
       color: var(--navy);
     }
 
-    .mode,
     .btn,
     .experience-btn,
     .route-map-compass,
@@ -3096,22 +3002,10 @@
       color: #fff;
     }
 
-    .connection-badge.conn-good,
-    .connection-badge.conn-weak,
-    .connection-badge.conn-offline {
-      color: var(--navy);
-    }
-
-    .connection-badge.conn-good,
     .status.ok {
       border-color: var(--live);
     }
 
-    .connection-badge.conn-weak {
-      border-color: var(--warn);
-    }
-
-    .connection-badge.conn-offline,
     .status.err {
       border-color: var(--danger);
     }
@@ -3395,44 +3289,6 @@
       align-items: end;
     }
 
-    .luxury-hero-ops {
-      display: grid;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .luxury-hero-telemetry {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      max-width: 760px;
-    }
-
-    .luxury-hero-telemetry .clock,
-    .luxury-hero-telemetry .mode {
-      margin: 0;
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.78);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
-      backdrop-filter: blur(16px);
-    }
-
-    .luxury-hero-telemetry .clock {
-      padding: 8px 11px;
-      font-size: 10px;
-    }
-
-    .luxury-hero-telemetry .mode {
-      min-height: 0;
-      margin-bottom: 0;
-      padding: 8px 12px;
-      font-size: 10px;
-      line-height: 1.15;
-    }
-
     .luxury-stats {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3634,8 +3490,6 @@
       display: none;
     }
 
-    .luxury-booking .clock,
-    .luxury-booking .mode,
     .luxury-booking .booking-progress,
     .luxury-booking .draft-status,
     .luxury-booking .route-map-card,
@@ -3645,26 +3499,6 @@
     .luxury-booking .private-flight-notice,
     .luxury-booking .booking-support {
       border-radius: 24px;
-    }
-
-    .luxury-booking .clock {
-      display: inline-flex;
-      margin: 0 0 12px;
-      padding: 8px 13px;
-      border: 1px solid rgba(7,29,73,0.14);
-      background: rgba(255,255,255,0.72);
-      color: var(--ink-soft);
-      font-size: 11px;
-    }
-
-    .luxury-booking .mode {
-      min-height: 48px;
-      border: 1px solid rgba(7,29,73,0.08);
-      border-radius: 999px;
-      background:
-        linear-gradient(90deg, var(--navy), #123968 72%, #1d4c7f);
-      box-shadow: 0 18px 42px rgba(7,29,73,0.18);
-      padding: 10px 18px;
     }
 
     .luxury-booking .booking-progress {
@@ -5514,17 +5348,11 @@
         </div>
       </div>
       <div class="luxury-hero-bottom">
-        <div class="luxury-hero-ops">
-          <div class="luxury-hero-telemetry" aria-label="Private route network status">
-            <div id="clock" class="clock">UTC --:--:--</div>
-            <div id="mode" class="mode">MODE: PRIVATE ROUTE NETWORK ONLINE / REQUEST READY</div>
-          </div>
-          <div class="luxury-stats">
-            <div class="luxury-stat"><strong>FLEX</strong><span>Flexible private routing by request</span></div>
-            <div class="luxury-stat"><strong>3-5H</strong><span>Aircraft endurance for regional missions</span></div>
-            <div class="luxury-stat"><strong>20</strong><span>Minute boarding target at any airport</span></div>
-            <div class="luxury-stat"><strong>NCO</strong><span>Private non-commercial operation</span></div>
-          </div>
+        <div class="luxury-stats">
+          <div class="luxury-stat"><strong>FLEX</strong><span>Flexible private routing by request</span></div>
+          <div class="luxury-stat"><strong>3-5H</strong><span>Aircraft endurance for regional missions</span></div>
+          <div class="luxury-stat"><strong>20</strong><span>Minute boarding target at any airport</span></div>
+          <div class="luxury-stat"><strong>NCO</strong><span>Private non-commercial operation</span></div>
         </div>
         <div class="luxury-scroll-hint">Scroll to request</div>
       </div>
@@ -5943,10 +5771,6 @@
     ];
 
     const el = (id) => document.getElementById(id);
-    const clock = el('clock');
-    const mode = el('mode');
-    const connectionBadge = el('connectionBadge');
-    const connectionText = el('connectionText');
     const statusBox = el('statusBox');
     const confirmation = el('confirmation');
     const bookingStatusTracker = el('bookingStatusTracker');
@@ -6008,10 +5832,6 @@
 
     function pad(value) {
       return String(value).padStart(2, '0');
-    }
-
-    function tick() {
-      clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;
     }
 
     function setStatus(text, type = '', force = false) {
@@ -6081,28 +5901,6 @@
         bookingStatusTracker.classList.remove('show');
         submitTouched = false;
       }
-    }
-
-    function setConnectionState(state, text) {
-      if (!connectionBadge || !connectionText) return;
-      connectionBadge.classList.remove('conn-good', 'conn-weak', 'conn-offline');
-      connectionBadge.classList.add(`conn-${state}`);
-      connectionText.textContent = text;
-    }
-
-    function updateConnectionBadge() {
-      if (!navigator.onLine) {
-        setConnectionState('offline', 'OFFLINE');
-        return;
-      }
-
-      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) {
-        setConnectionState('weak', 'WEAK');
-        return;
-      }
-
-      setConnectionState('good', 'CONNECTED');
     }
 
     function escapeHtml(value) {
@@ -6852,7 +6650,6 @@
     }
 
     async function loadAirports() {
-      mode.textContent = 'MODE: PREPARING PRIVATE ROUTE NETWORK';
       const res = await fetch('/api/booking-airports', { cache: 'no-store' });
       if (res.status === 401) {
         window.location.href = '/booking';
@@ -6860,7 +6657,6 @@
       }
       const data = await res.json();
       populateAirports(data.airports || []);
-      mode.textContent = 'MODE: PRIVATE ROUTE NETWORK ONLINE / REQUEST READY';
     }
 
     async function loadBookingAvailability() {
@@ -7073,14 +6869,7 @@
     setupLuxuryReveal();
     setupLuxuryScrollMotion();
     loadBookingAvailability().catch(() => {});
-    updateConnectionBadge();
-    tick();
-    setInterval(tick, 1000);
-    window.addEventListener('online', updateConnectionBadge);
-    window.addEventListener('offline', updateConnectionBadge);
-    if (navigator.connection) navigator.connection.addEventListener('change', updateConnectionBadge);
     loadAirports().catch(() => {
-      mode.textContent = 'MODE: PRIVATE ROUTE REQUEST READY';
       setStatus('Route selector ready / Complete passenger manifest', 'ok');
     });
   </script>
