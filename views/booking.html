@@ -5929,6 +5929,1296 @@
       }
     }
   </style>
+  <style>
+    /* Passenger experience 4.0: one calm, editorial system over the legacy UI. */
+    body.luxury-booking {
+      display: block;
+      padding: 0;
+      background: #eef1f5;
+      color: #071d49;
+      font-family: Poppins, Arial, sans-serif;
+    }
+
+    body.luxury-booking *,
+    body.luxury-booking *::before,
+    body.luxury-booking *::after {
+      letter-spacing: 0;
+    }
+
+    .luxury-booking .frame {
+      width: min(1380px, 100%);
+      margin: 0 auto;
+      padding: 0;
+      border: 0;
+      background: #f7f8fa;
+      box-shadow: 0 0 80px rgba(7, 29, 73, 0.10);
+    }
+
+    .luxury-booking .luxury-hero {
+      min-height: 780px;
+      padding: 28px clamp(28px, 5vw, 72px) 34px;
+      overflow: hidden;
+      border-radius: 0 0 8px 8px;
+      background:
+        linear-gradient(90deg, rgba(2, 12, 35, 0.97) 0%, rgba(4, 24, 58, 0.91) 43%, rgba(4, 24, 58, 0.36) 72%, rgba(4, 24, 58, 0.12) 100%),
+        url('/piper-hangar-customer.png') 68% 53% / cover no-repeat;
+    }
+
+    .luxury-booking .luxury-hero::after {
+      content: '';
+      position: absolute;
+      inset: auto 0 0;
+      height: 160px;
+      background: linear-gradient(180deg, transparent, rgba(3, 17, 43, 0.55));
+      pointer-events: none;
+    }
+
+    .luxury-booking .luxury-hero-top,
+    .luxury-booking .luxury-hero-center,
+    .luxury-booking .luxury-hero-bottom {
+      position: relative;
+      z-index: 2;
+    }
+
+    .luxury-booking .luxury-hero-logo {
+      width: 72px;
+      border: 1px solid rgba(255,255,255,0.26);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 14px 38px rgba(0,0,0,0.24);
+    }
+
+    .luxury-booking .luxury-hero-brand span,
+    .luxury-booking .luxury-eyebrow,
+    .luxury-booking .flight-desk-label,
+    .luxury-booking .section-overline,
+    .luxury-booking .section-sequence,
+    .luxury-booking .booking-lookup-kicker {
+      font: 700 10px/1.2 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .luxury-hero-brand strong {
+      font: 400 22px/1 "Computer Says No", "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .luxury-hero-nav {
+      padding: 6px;
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 999px;
+      background: rgba(3,17,43,0.36);
+      backdrop-filter: blur(18px);
+    }
+
+    .luxury-booking .luxury-hero-nav a {
+      padding: 9px 14px;
+      border-radius: 999px;
+      font: 700 11px/1 "Courier New", monospace;
+    }
+
+    .luxury-booking .luxury-hero-nav a:hover,
+    .luxury-booking .luxury-hero-nav a:focus-visible {
+      background: #fff;
+      color: #071d49;
+    }
+
+    .luxury-booking .luxury-hero-center {
+      max-width: 1040px;
+      padding: 96px 0 50px;
+    }
+
+    .luxury-booking .luxury-title {
+      display: block;
+      max-width: 700px;
+      margin: 16px 0 0;
+      font-size: 76px;
+      line-height: 0.82;
+    }
+
+    .luxury-booking .luxury-title span {
+      display: block;
+    }
+
+    .luxury-booking .luxury-copy {
+      max-width: 620px;
+      margin-top: 24px;
+      color: rgba(255,255,255,0.78);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .luxury-booking .luxury-flight-desk {
+      grid-template-columns: minmax(0, 1fr) 280px;
+      max-width: 900px;
+      margin-top: 34px;
+      gap: 12px;
+    }
+
+    .luxury-booking .luxury-flight-card,
+    .luxury-booking .luxury-flight-side {
+      border-radius: 8px;
+      border-color: rgba(255,255,255,0.26);
+      background: rgba(3,17,43,0.54);
+      box-shadow: 0 22px 70px rgba(0,0,0,0.24);
+      backdrop-filter: blur(20px);
+    }
+
+    .luxury-booking .luxury-flight-card {
+      padding: 22px;
+    }
+
+    .luxury-booking .flight-desk-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.70);
+    }
+
+    .luxury-booking .flight-desk-label i,
+    .luxury-booking .flight-desk-availability i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2fbf58;
+      box-shadow: 0 0 0 5px rgba(47,191,88,0.14);
+    }
+
+    .luxury-booking .flight-desk-route {
+      margin-top: 14px;
+      font-size: 42px;
+      line-height: 0.95;
+    }
+
+    .luxury-booking .flight-desk-grid {
+      gap: 0;
+      margin-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .luxury-booking .flight-desk-mini {
+      min-height: 64px;
+      padding: 14px 12px 0 0;
+      border: 0;
+      border-right: 1px solid rgba(255,255,255,0.16);
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .luxury-booking .flight-desk-mini:not(:first-child) {
+      padding-left: 12px;
+    }
+
+    .luxury-booking .flight-desk-mini:last-child {
+      border-right: 0;
+    }
+
+    .luxury-booking .luxury-flight-side {
+      padding: 20px;
+    }
+
+    .luxury-booking .flight-desk-availability {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: rgba(255,255,255,0.72);
+      font: 700 10px/1.2 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .luxury-flight-side strong {
+      margin-top: 20px;
+      font-size: 30px;
+      line-height: 0.95;
+    }
+
+    .luxury-booking .flight-desk-service {
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .luxury-booking .flight-desk-service b {
+      display: block;
+      margin-top: 5px;
+      color: #fff;
+      font: 700 13px/1.2 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .luxury-hero-actions {
+      margin-top: 20px;
+    }
+
+    .luxury-booking .luxury-cta,
+    .luxury-booking .luxury-secondary {
+      min-height: 48px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+
+    .luxury-booking .luxury-stats {
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      background: rgba(3,17,43,0.44);
+      backdrop-filter: blur(18px);
+    }
+
+    .luxury-booking .luxury-stat {
+      min-height: 78px;
+      padding: 14px 16px;
+      border: 0;
+      border-right: 1px solid rgba(255,255,255,0.14);
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .luxury-booking .luxury-stat:last-child {
+      border-right: 0;
+    }
+
+    .luxury-booking .luxury-stat strong {
+      font-size: 28px;
+    }
+
+    .luxury-booking .luxury-content {
+      padding: 34px clamp(20px, 4vw, 54px) 48px;
+    }
+
+    .luxury-booking .booking-progress {
+      --completion: 0%;
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 22px;
+      align-items: center;
+      padding: 10px 14px;
+      border: 1px solid rgba(7,29,73,0.12);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.94);
+      box-shadow: 0 14px 42px rgba(7,29,73,0.09);
+      backdrop-filter: blur(18px);
+    }
+
+    .luxury-booking .primary-progress {
+      position: sticky;
+      top: 10px;
+      z-index: 35;
+      margin-bottom: 18px;
+    }
+
+    .luxury-booking .progress-readiness {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 2px 10px;
+      padding-right: 18px;
+      border-right: 1px solid rgba(7,29,73,0.12);
+    }
+
+    .luxury-booking .progress-readiness span {
+      color: #65748a;
+      font: 700 10px/1.2 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .progress-readiness strong {
+      color: #071d49;
+      font: 400 24px/1 "Computer Says No", "Courier New", monospace;
+    }
+
+    .luxury-booking .progress-readiness small {
+      grid-column: 1 / -1;
+      color: #8590a0;
+      font: 10px/1.3 Poppins, Arial, sans-serif;
+    }
+
+    .luxury-booking .progress-steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .luxury-booking .progress-steps a {
+      position: relative;
+      display: grid;
+      gap: 7px;
+      padding: 7px 8px;
+      border-radius: 6px;
+      color: #7a879a;
+      font: 700 10px/1.2 "Courier New", monospace;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 180ms ease, background 180ms ease;
+    }
+
+    .luxury-booking .progress-steps a i {
+      position: relative;
+      width: 100%;
+      height: 4px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e0e5ec;
+    }
+
+    .luxury-booking .progress-steps a i::after {
+      content: '';
+      position: absolute;
+      inset: 0 100% 0 0;
+      border-radius: inherit;
+      background: #2fbf58;
+      transition: right 240ms ease;
+    }
+
+    .luxury-booking .progress-steps a.is-complete {
+      color: #071d49;
+    }
+
+    .luxury-booking .progress-steps a.is-complete i::after {
+      right: 0;
+    }
+
+    .luxury-booking .progress-steps a.is-current {
+      background: #eef2f7;
+      color: #071d49;
+    }
+
+    .luxury-booking .booking-workspace {
+      display: grid;
+      grid-template-columns: minmax(360px, 0.72fr) minmax(0, 1.28fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .luxury-booking .booking-workspace > * {
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
+
+    .luxury-booking .booking-workspace > .search-card {
+      grid-column: 1;
+      grid-row: 1;
+      margin: 0;
+    }
+
+    .luxury-booking .booking-workspace > .route-map-card {
+      grid-column: 2;
+      grid-row: 1;
+      margin: 0;
+    }
+
+    .luxury-booking .search-card,
+    .luxury-booking .card,
+    .luxury-booking .route-map-card,
+    .luxury-booking .submit-footer,
+    .luxury-booking .private-flight-notice,
+    .luxury-booking .booking-support {
+      border-radius: 8px;
+      border: 1px solid rgba(7,29,73,0.12);
+      background: #fff;
+      box-shadow: 0 14px 38px rgba(7,29,73,0.07);
+    }
+
+    .luxury-booking .search-card,
+    .luxury-booking .card,
+    .luxury-booking .route-map-card,
+    .luxury-booking .submit-footer {
+      padding: 22px;
+    }
+
+    .luxury-booking .booking-panel-head,
+    .luxury-booking .section-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .luxury-booking .section-overline {
+      display: block;
+      margin-bottom: 6px;
+      color: #8490a2;
+    }
+
+    .luxury-booking .section-overline.light {
+      color: rgba(255,255,255,0.54);
+    }
+
+    .luxury-booking .section-sequence {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid rgba(7,29,73,0.14);
+      border-radius: 50%;
+      color: #071d49;
+      background: #f4f6f9;
+    }
+
+    .luxury-booking .booking-kicker,
+    .luxury-booking .section-title,
+    .luxury-booking .route-map-title {
+      margin: 0;
+      color: #071d49;
+      font: 400 30px/0.95 "Computer Says No", "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .search-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 12px 8px;
+    }
+
+    .luxury-booking .search-grid .route-field:has(#dep) { grid-column: 1 / 4; }
+    .luxury-booking .search-grid .swap-field { grid-column: 4; }
+    .luxury-booking .search-grid .route-field:has(#arr) { grid-column: 5 / 8; }
+    .luxury-booking .search-grid .trip-field { grid-column: 1 / 4; }
+    .luxury-booking .search-grid .date-field { grid-column: 4 / 8; }
+    .luxury-booking .search-grid .time-field { grid-column: 1 / 5; }
+    .luxury-booking .search-grid .seat-field { grid-column: 5 / 8; }
+
+    .luxury-booking input,
+    .luxury-booking select,
+    .luxury-booking textarea {
+      min-height: 52px;
+      border-radius: 6px;
+      border: 1px solid #cfd6e1;
+      background: #fbfcfd;
+      color: #071d49;
+      font-family: "Courier New", monospace;
+      box-shadow: none;
+    }
+
+    .luxury-booking input:hover,
+    .luxury-booking select:hover,
+    .luxury-booking textarea:hover {
+      border-color: #98a6ba;
+    }
+
+    .luxury-booking input:focus,
+    .luxury-booking select:focus,
+    .luxury-booking textarea:focus {
+      border-color: #071d49;
+      outline: 3px solid rgba(7,29,73,0.09);
+    }
+
+    .luxury-booking .swap-btn {
+      min-height: 52px;
+      border-radius: 6px;
+      background: #071d49;
+      color: #fff;
+    }
+
+    .luxury-booking .itinerary-assurance {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(7,29,73,0.10);
+    }
+
+    .luxury-booking .itinerary-assurance span {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 24px;
+      color: #596a82;
+      font: 10px/1.25 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .itinerary-assurance i {
+      color: #071d49;
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    .luxury-booking .route-map-head {
+      min-height: 34px;
+      margin-bottom: 12px;
+      border-bottom: 0;
+      padding: 0;
+    }
+
+    .luxury-booking .route-experience {
+      grid-template-columns: minmax(190px, 1.4fr) repeat(2, minmax(110px, 0.8fr));
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid rgba(7,29,73,0.12);
+      border-radius: 6px;
+    }
+
+    .luxury-booking .route-experience-main,
+    .luxury-booking .route-experience-item {
+      min-height: 82px;
+      border: 0;
+      border-right: 1px solid rgba(7,29,73,0.10);
+      border-radius: 0;
+      background: #f7f9fb;
+      box-shadow: none;
+    }
+
+    .luxury-booking .route-experience-item:nth-of-type(4),
+    .luxury-booking .route-experience-item:nth-of-type(5) {
+      display: none;
+    }
+
+    .luxury-booking .smart-route-intel {
+      display: block;
+      margin: 12px 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .luxury-booking .smart-route-primary {
+      padding: 12px 14px;
+      border: 1px solid rgba(7,29,73,0.10);
+      border-left: 3px solid #071d49;
+      border-radius: 4px;
+      background: #f4f6f9;
+      box-shadow: none;
+    }
+
+    .luxury-booking .smart-route-primary strong {
+      margin-top: 5px;
+      font-size: 18px;
+    }
+
+    .luxury-booking .smart-route-primary p {
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .luxury-booking .smart-route-metrics {
+      display: none;
+    }
+
+    .luxury-booking .route-map-shell {
+      height: 336px;
+      min-height: 336px;
+      border-radius: 6px;
+      box-shadow: none;
+    }
+
+    .luxury-booking .route-map-guide span,
+    .luxury-booking .route-range,
+    .luxury-booking .route-map-label,
+    .luxury-booking .route-map-compass,
+    .luxury-booking .locate-me-btn {
+      border-radius: 6px;
+    }
+
+    .luxury-booking .aircraft-feature {
+      grid-template-columns: minmax(360px, 1fr) minmax(0, 1fr);
+      margin-top: 18px;
+      padding: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .luxury-booking .aircraft-photo {
+      min-height: 300px;
+      border-radius: 0;
+      background: #f2f4f7;
+    }
+
+    .luxury-booking .aircraft-feature-copy {
+      padding: 30px;
+      border: 0;
+      border-left: 1px solid rgba(7,29,73,0.10);
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+    }
+
+    .luxury-booking .aircraft-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 18px;
+    }
+
+    .luxury-booking .aircraft-fact {
+      min-height: 72px;
+      padding: 12px 0;
+      border: 0;
+      border-top: 1px solid rgba(7,29,73,0.11);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .luxury-booking .amenity {
+      justify-content: center;
+      border-radius: 6px;
+      background: #f3f5f8;
+      box-shadow: none;
+    }
+
+    .luxury-booking .layout {
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+      gap: 18px;
+      margin-top: 0;
+    }
+
+    .luxury-booking .layout aside {
+      position: sticky;
+      top: 96px;
+    }
+
+    .luxury-booking .passenger-section-card,
+    .luxury-booking #luggageSection {
+      margin-bottom: 0;
+    }
+
+    .luxury-booking .passenger-card,
+    .luxury-booking .baggage-addon,
+    .luxury-booking .declaration,
+    .luxury-booking .check,
+    .luxury-booking .request-panel,
+    .luxury-booking .preflight-item {
+      border-radius: 6px;
+      box-shadow: none;
+    }
+
+    .luxury-booking .data-use-note {
+      margin: 14px 0 0;
+      padding-top: 12px;
+      border-top: 1px solid rgba(7,29,73,0.10);
+      color: #728096;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .luxury-booking .summary-card {
+      margin-top: 0;
+      border: 0;
+      border-radius: 8px;
+      background: #071d49;
+      box-shadow: 0 22px 56px rgba(7,29,73,0.20);
+    }
+
+    .luxury-booking .cabin-selected-badge {
+      border-color: rgba(255,255,255,0.24);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.08);
+      box-shadow: none;
+    }
+
+    .luxury-booking .cabin-selected-badge strong {
+      color: #fff;
+    }
+
+    .luxury-booking .summary-card .seat-map,
+    .luxury-booking .summary-card .seat-map-shell,
+    .luxury-booking .summary-card .seat-option {
+      border-radius: 6px;
+    }
+
+    .luxury-booking .summary-card .seat-map-shell {
+      background: rgba(255,255,255,0.07);
+      box-shadow: none;
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked),
+    .luxury-booking .summary-card .seat-option.is-selected {
+      border-color: #fff;
+      background: #fff;
+      color: #071d49;
+      box-shadow: none;
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked) strong,
+    .luxury-booking .summary-card .seat-option:has(input:checked) span,
+    .luxury-booking .summary-card .seat-option.is-selected strong,
+    .luxury-booking .summary-card .seat-option.is-selected span,
+    .luxury-booking .summary-card .seat-option.is-selected small {
+      color: #071d49;
+    }
+
+    .luxury-booking .rear-seat-marker.is-selected {
+      border-color: #fff;
+      background: #fff;
+      color: #071d49;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+    }
+
+    .luxury-booking .baggage-request-grid {
+      margin-top: 0;
+    }
+
+    .luxury-booking .included-card,
+    .luxury-booking .extra-option {
+      border-radius: 6px;
+      box-shadow: none;
+    }
+
+    .luxury-booking .extra-visual {
+      border-radius: 6px 6px 0 0;
+    }
+
+    .luxury-booking .extra-option:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 34px rgba(7,29,73,0.10);
+    }
+
+    .luxury-booking .readiness-card {
+      display: grid;
+      grid-template-columns: minmax(230px, 0.55fr) minmax(0, 1.45fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .luxury-booking .readiness-card .section-heading {
+      grid-column: 1;
+      margin: 0;
+    }
+
+    .luxury-booking .readiness-card .declaration,
+    .luxury-booking .readiness-card .consent {
+      grid-column: 2;
+    }
+
+    .luxury-booking .readiness-card .consent {
+      margin-top: -10px;
+    }
+
+    .luxury-booking .final-progress {
+      position: static;
+      margin-top: 0;
+    }
+
+    .luxury-booking .review-card {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+      gap: 0 28px;
+      padding: 28px;
+      background: #fff;
+    }
+
+    .luxury-booking .review-card .section-heading,
+    .luxury-booking .review-card .quote-label,
+    .luxury-booking .review-card .route-summary {
+      grid-column: 1;
+    }
+
+    .luxury-booking .review-card .summary-list {
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      margin: 0;
+    }
+
+    .luxury-booking .review-card .route-box {
+      padding: 18px 0 0;
+      border: 0;
+      border-top: 1px solid rgba(7,29,73,0.12);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .luxury-booking .review-card .quote-label {
+      display: inline-flex;
+      width: fit-content;
+      min-height: 0;
+      margin: 0 0 16px;
+      padding: 7px 10px;
+      border: 0;
+      border-radius: 999px;
+      background: #071d49;
+      color: #fff;
+      box-shadow: none;
+      font: 700 9px/1 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .review-card .route-line {
+      font-size: 38px;
+    }
+
+    .luxury-booking .summary-list li {
+      min-height: 56px;
+      padding: 12px 0;
+    }
+
+    .luxury-booking .summary-list .total-cost {
+      margin-top: 8px;
+      padding: 18px;
+      border: 1px solid rgba(7,29,73,0.12);
+      border-radius: 6px;
+      background: #f3f5f8;
+    }
+
+    .luxury-booking .preflight-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid rgba(7,29,73,0.11);
+      border-radius: 6px;
+    }
+
+    .luxury-booking .preflight-item {
+      min-height: 108px;
+      border: 0;
+      border-right: 1px solid rgba(7,29,73,0.10);
+      border-radius: 0;
+      background: #f7f9fb;
+    }
+
+    .luxury-booking .preflight-item:last-child {
+      border-right: 0;
+    }
+
+    .luxury-booking .booking-lookup-card {
+      display: block;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .luxury-booking .booking-lookup-card > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 22px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .luxury-booking .booking-lookup-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .luxury-booking .booking-lookup-card > summary strong {
+      display: block;
+      margin-top: 4px;
+      color: #071d49;
+      font: 400 24px/1 "Computer Says No", "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .booking-lookup-card > summary i {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid rgba(7,29,73,0.16);
+      border-radius: 50%;
+      color: #071d49;
+      font-style: normal;
+      transition: transform 180ms ease;
+    }
+
+    .luxury-booking .booking-lookup-card[open] > summary i {
+      transform: rotate(45deg);
+    }
+
+    .luxury-booking .booking-lookup-content {
+      padding: 0 22px 22px;
+      border-top: 1px solid rgba(7,29,73,0.10);
+    }
+
+    .luxury-booking .booking-lookup-content > p {
+      margin: 16px 0;
+    }
+
+    .luxury-booking .review-dialog {
+      background: rgba(3,17,43,0.82);
+      backdrop-filter: blur(12px);
+    }
+
+    .luxury-booking .review-dialog-card {
+      width: min(820px, 100%);
+      border: 0;
+      border-radius: 8px;
+      padding: 28px;
+      background: #fff;
+      box-shadow: 0 34px 90px rgba(0,0,0,0.32);
+    }
+
+    .luxury-booking .review-dialog-head {
+      border-bottom-color: rgba(7,29,73,0.12);
+    }
+
+    .luxury-booking .review-dialog-head h2,
+    .luxury-booking .review-item strong {
+      color: #071d49;
+    }
+
+    .luxury-booking .review-dialog-head p,
+    .luxury-booking .review-item span {
+      color: #68778d;
+    }
+
+    .luxury-booking .review-close {
+      color: #071d49;
+    }
+
+    .luxury-booking .review-item {
+      min-height: 64px;
+      border-radius: 6px;
+      background: #f5f7fa;
+    }
+
+    .luxury-booking .review-cancel {
+      min-height: 54px;
+      border-color: #071d49;
+      border-radius: 999px;
+      background: #fff;
+      color: #071d49;
+    }
+
+    .luxury-booking .submit-footer {
+      padding: 24px;
+      background: #071d49;
+    }
+
+    .luxury-booking .btn {
+      border-radius: 999px;
+    }
+
+    .luxury-booking .private-flight-notice,
+    .luxury-booking .booking-support {
+      box-shadow: none;
+    }
+
+    @media (max-width: 980px) {
+      .luxury-booking .luxury-hero {
+        min-height: auto;
+        padding: 18px 18px 24px;
+        background:
+          linear-gradient(180deg, rgba(2,12,35,0.96) 0%, rgba(4,24,58,0.78) 62%, rgba(4,24,58,0.42) 100%),
+          url('/piper-hangar-customer.png') 58% bottom / cover no-repeat;
+      }
+
+      .luxury-booking .luxury-hero-center {
+        padding: 56px 0 26px;
+      }
+
+      .luxury-booking .luxury-title {
+        font-size: 58px;
+      }
+
+      .luxury-booking .luxury-flight-desk,
+      .luxury-booking .booking-workspace,
+      .luxury-booking .layout,
+      .luxury-booking .readiness-card,
+      .luxury-booking .review-card {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .booking-workspace > .search-card {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .luxury-booking .booking-workspace > .route-map-card {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .luxury-booking .layout aside {
+        position: static;
+      }
+
+      .luxury-booking .readiness-card .section-heading,
+      .luxury-booking .readiness-card .declaration,
+      .luxury-booking .readiness-card .consent,
+      .luxury-booking .review-card .section-heading,
+      .luxury-booking .review-card .quote-label,
+      .luxury-booking .review-card .route-summary,
+      .luxury-booking .review-card .summary-list {
+        grid-column: 1;
+        grid-row: auto;
+      }
+
+      .luxury-booking .readiness-card .consent {
+        margin-top: 0;
+      }
+
+      .luxury-booking .aircraft-feature {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .aircraft-feature-copy {
+        border-left: 0;
+        border-top: 1px solid rgba(7,29,73,0.10);
+      }
+    }
+
+    @media (max-width: 700px) {
+      body.luxury-booking {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom));
+      }
+
+      .luxury-booking .luxury-hero {
+        border-radius: 0 0 8px 8px;
+      }
+
+      .luxury-booking .luxury-hero-logo {
+        width: 54px;
+      }
+
+      .luxury-booking .luxury-hero-brand strong {
+        font-size: 16px;
+      }
+
+      .luxury-booking .luxury-hero-center {
+        padding-top: 40px;
+      }
+
+      .luxury-booking .luxury-title {
+        font-size: 46px;
+        line-height: 0.84;
+      }
+
+      .luxury-booking .luxury-copy {
+        max-width: 34rem;
+        margin-top: 18px;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .luxury-booking .luxury-flight-side {
+        display: none;
+      }
+
+      .luxury-booking .luxury-flight-card {
+        padding: 16px;
+      }
+
+      .luxury-booking .flight-desk-route {
+        font-size: 32px;
+      }
+
+      .luxury-booking .flight-desk-meta {
+        font-size: 11px;
+      }
+
+      .luxury-booking .flight-desk-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .luxury-booking .flight-desk-mini {
+        min-height: 58px;
+        padding-top: 10px;
+      }
+
+      .luxury-booking .flight-desk-mini span {
+        font-size: 8px;
+      }
+
+      .luxury-booking .flight-desk-mini strong {
+        font-size: 10px;
+      }
+
+      .luxury-booking .luxury-hero-actions {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .luxury-booking .luxury-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .luxury-booking .luxury-stat {
+        min-height: 62px;
+        padding: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+      }
+
+      .luxury-booking .luxury-stat strong {
+        font-size: 22px;
+      }
+
+      .luxury-booking .luxury-stat span {
+        font-size: 8px;
+      }
+
+      .luxury-booking .luxury-content {
+        padding: 12px 8px 22px;
+      }
+
+      .luxury-booking .booking-progress {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 8px;
+      }
+
+      .luxury-booking .primary-progress {
+        top: 6px;
+      }
+
+      .luxury-booking .progress-readiness {
+        grid-template-columns: 1fr auto;
+        padding: 0 4px 7px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(7,29,73,0.10);
+      }
+
+      .luxury-booking .progress-readiness small {
+        display: none;
+      }
+
+      .luxury-booking .progress-steps {
+        gap: 2px;
+      }
+
+      .luxury-booking .progress-steps a {
+        gap: 5px;
+        padding: 4px 3px;
+        font-size: 7px;
+        text-align: center;
+      }
+
+      .luxury-booking .booking-workspace {
+        gap: 10px;
+      }
+
+      .luxury-booking .search-card,
+      .luxury-booking .card,
+      .luxury-booking .route-map-card,
+      .luxury-booking .submit-footer {
+        padding: 14px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
+
+      .luxury-booking .booking-kicker,
+      .luxury-booking .section-title,
+      .luxury-booking .route-map-title {
+        font-size: 24px;
+      }
+
+      .luxury-booking .section-sequence {
+        width: 30px;
+        height: 30px;
+        font-size: 9px;
+      }
+
+      .luxury-booking .search-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 9px 6px;
+      }
+
+      .luxury-booking .search-grid .trip-field { grid-column: 1 / 4; }
+      .luxury-booking .search-grid .date-field { grid-column: 4 / 8; }
+      .luxury-booking .search-grid .time-field { grid-column: 1 / 5; }
+      .luxury-booking .search-grid .seat-field { grid-column: 5 / 8; }
+
+      .luxury-booking input,
+      .luxury-booking select,
+      .luxury-booking textarea,
+      .luxury-booking .swap-btn {
+        min-height: 46px;
+        font-size: 13px;
+      }
+
+      .luxury-booking .itinerary-assurance {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .luxury-booking .mobile-booking-bar {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(18px);
+        transition: opacity 200ms ease, transform 200ms ease;
+      }
+
+      .luxury-booking .mobile-booking-bar.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      .luxury-booking .route-map-head {
+        display: none;
+      }
+
+      .luxury-booking .route-experience {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+
+      .luxury-booking .route-experience-item:nth-of-type(3),
+      .luxury-booking .route-experience-item:nth-of-type(4),
+      .luxury-booking .route-experience-item:nth-of-type(5) {
+        display: none;
+      }
+
+      .luxury-booking .smart-route-primary p {
+        display: none;
+      }
+
+      .luxury-booking .route-map-shell {
+        height: 248px;
+        min-height: 248px;
+      }
+
+      .luxury-booking .aircraft-photo {
+        min-height: 180px;
+      }
+
+      .luxury-booking .aircraft-feature-copy {
+        padding: 18px;
+      }
+
+      .luxury-booking .aircraft-facts {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .luxury-booking .amenity-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .luxury-booking .amenity {
+        min-height: 42px;
+        padding: 7px;
+        font-size: 8px;
+      }
+
+      .luxury-booking .review-card {
+        padding: 18px;
+      }
+
+      .luxury-booking .preflight-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .luxury-booking .preflight-item:nth-child(2) {
+        border-right: 0;
+      }
+
+      .luxury-booking .booking-lookup-card > summary,
+      .luxury-booking .booking-lookup-content {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .luxury-booking .booking-lookup-card > summary strong {
+        font-size: 20px;
+      }
+
+      .luxury-booking .review-dialog-card {
+        padding: 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .luxury-booking *,
+      .luxury-booking *::before,
+      .luxury-booking *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 <body class="luxury-booking">
   <main class="frame">
@@ -5955,18 +7245,20 @@
         <p class="luxury-copy">Plan a scenic or regional private flight with a refined request flow, pilot review, passenger information passes, and final operational confirmation before any flight is booked.</p>
         <div class="luxury-flight-desk" aria-label="Live selected flight summary">
           <div class="luxury-flight-card">
-            <span class="flight-desk-label">Live request preview</span>
+            <span class="flight-desk-label"><i aria-hidden="true"></i> Live itinerary</span>
             <div id="heroRouteLine" class="flight-desk-route">Hyvinkää to Hanko</div>
             <span id="heroRouteMeta" class="flight-desk-meta">One way / 1 passenger / 20 min boarding target</span>
             <div class="flight-desk-grid">
               <div class="flight-desk-mini"><span>Flight time</span><strong id="heroFlightTime">00H 40M</strong></div>
               <div class="flight-desk-mini"><span>Estimate</span><strong id="heroPrice">Approx. €129 EUR (1 PAX)</strong></div>
-              <div class="flight-desk-mini"><span>Status</span><strong>Request only</strong></div>
+              <div class="flight-desk-mini"><span>Aircraft</span><strong>PA-28R-200</strong></div>
             </div>
           </div>
-          <div class="luxury-flight-side">
-            <div><span>Flight desk</span><strong>Smart request</strong><p>The form adapts route notes, baggage, cabin requests, and review details before you send anything to operations.</p></div>
-            <div><span>Confirmation</span><strong>Within 24H</strong><p>After submission, the pilot and operations team review route, aircraft, weather, loading, and passenger details.</p></div>
+          <aside class="luxury-flight-side" aria-label="Flight request service">
+            <span class="flight-desk-availability"><i aria-hidden="true"></i> Request desk open</span>
+            <div><strong>Tailored flight review</strong><p>Your route, timing, loading and preferences are reviewed by the flight team before confirmation.</p></div>
+            <div class="flight-desk-service"><span>Response target</span><b>Within 24 hours</b></div>
+          </aside>
           </div>
         </div>
         <div class="luxury-hero-actions">
@@ -5985,47 +7277,22 @@
       </div>
     </section>
     <div class="luxury-content">
-      <section class="luxury-desk luxury-reveal" aria-label="Private flight desk overview">
-        <div class="luxury-desk-main">
-          <div class="luxury-desk-eyebrow">NGA private flight desk</div>
-          <h2>Designed for relaxed private flying</h2>
-          <p>Choose a route or scenic experience, add passengers and cabin preferences, then let operations and the pilot review the request before final confirmation.</p>
-          <div class="luxury-desk-tags" aria-label="Service highlights">
-            <span>EASA NCO basis</span>
-            <span>Equal-share only</span>
-            <span>Non-commercial</span>
-            <span>Pilot discretion</span>
-          </div>
-        </div>
-      </section>
-
-    <div class="title-row">
-      <div class="brand-lockup">
-        <img class="brand-logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation logo" />
-        <div>
-          <div class="title">PRIVATE FLIGHT BOOKING</div>
-          <div class="subtitle">Private aviation requests / Equal-share, non-commercial operation</div>
-        </div>
+    <div class="booking-progress primary-progress" aria-label="Booking completion">
+      <div class="progress-readiness">
+        <span>Request readiness</span>
+        <strong data-readiness-value>0%</strong>
+        <small id="draftStatus" aria-live="polite">Saved locally on this device</small>
+      </div>
+      <div class="progress-steps">
+        <a href="#itinerarySection" data-progress-step="route"><i aria-hidden="true"></i>Itinerary</a>
+        <a href="#passengerSection" data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</a>
+        <a href="#luggageSection" data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</a>
+        <a href="#extrasSection" data-progress-step="extras"><i aria-hidden="true"></i>Cabin</a>
+        <a href="#reviewSection" data-progress-step="review"><i aria-hidden="true"></i>Review</a>
       </div>
     </div>
-    <div class="booking-progress" aria-label="Booking completion">
-      <span data-progress-step="route"><i aria-hidden="true"></i>Itinerary</span>
-      <span data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</span>
-      <span data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</span>
-      <span data-progress-step="extras"><i aria-hidden="true"></i>Extras</span>
-      <span data-progress-step="review"><i aria-hidden="true"></i>Review</span>
-    </div>
-    <div id="draftStatus" class="draft-status" aria-live="polite">Booking progress is saved locally on this device.</div>
 
-    <section class="guided-journey" aria-label="Booking section completion">
-      <a class="guided-journey-card" href="#routeMapShell" data-journey-step="route"><span>ITINERARY</span><strong>Route</strong><em>Date, time, route, and passenger count.</em></a>
-      <a class="guided-journey-card" href="#bookingForm" data-journey-step="travellers"><span>PASSENGERS</span><strong>Guests</strong><em>Required traveller details and contact info.</em></a>
-      <a class="guided-journey-card" href="#luggageSection" data-journey-step="luggage"><span>LUGGAGE</span><strong>Bags</strong><em>Included carry-on and declared weight.</em></a>
-      <a class="guided-journey-card" href="#extrasSection" data-journey-step="extras"><span>CABIN</span><strong>Extras</strong><em>Optional cabin and transfer requests.</em></a>
-      <a class="guided-journey-card" href="#submitBooking" data-journey-step="review"><span>FINAL</span><strong>Review</strong><em>Check details before sending.</em></a>
-    </section>
-
-    <form id="bookingForm">
+    <form id="bookingForm" class="booking-workspace">
       <section class="route-map-card" aria-label="Selected flight route map">
         <div class="route-map-head">
           <div class="route-map-title">Route overview</div>
@@ -6064,9 +7331,10 @@
         </div>
       </section>
 
-      <section class="search-card">
+      <section id="itinerarySection" class="search-card">
         <div class="booking-panel-head">
-          <div class="booking-kicker">Your itinerary</div>
+          <div><span class="section-overline">Flight plan</span><div class="booking-kicker">Build your itinerary</div></div>
+          <span class="section-sequence">01</span>
         </div>
         <input id="flightExperience" type="hidden" value="" />
         <div class="grid search-grid">
@@ -6124,6 +7392,11 @@
             </select>
           </div>
         </div>
+        <div class="itinerary-assurance" aria-label="Itinerary inclusions">
+          <span><i aria-hidden="true">01</i> Carry-on included</span>
+          <span><i aria-hidden="true">02</i> Pilot reviewed</span>
+          <span><i aria-hidden="true">03</i> No charge to request</span>
+        </div>
       </section>
 
       <section class="card aircraft-feature" aria-label="Piper Arrow PA-28R-200">
@@ -6152,16 +7425,17 @@
 
       <div class="layout">
         <section>
-          <div class="card">
-            <h2 class="section-title">Passenger details</h2>
+          <div id="passengerSection" class="card passenger-section-card">
+            <div class="section-heading"><div><span class="section-overline">Passenger manifest</span><h2 class="section-title">Passenger details</h2></div><span class="section-sequence">02</span></div>
             <div id="passengerList" class="passenger-list"></div>
+            <p class="data-use-note">Identity details are used only for operational review and passenger flight documents.</p>
           </div>
 
         </section>
 
         <aside>
           <div id="luggageSection" class="card">
-            <h2 class="section-title">Luggage declaration</h2>
+            <div class="section-heading"><div><span class="section-overline">Aircraft loading</span><h2 class="section-title">Luggage declaration</h2></div><span class="section-sequence">03</span></div>
             <div class="declaration">
               Keep baggage within the selected limit and declare power banks. Dangerous goods, weapons, flammables, pressurised containers, chemicals, and unsecured batteries are not permitted.
             </div>
@@ -6184,7 +7458,7 @@
       <div class="card summary-card">
         <div class="cabin-preference-head">
           <div>
-            <h2 class="section-title">Cabin preference</h2>
+            <span class="section-overline light">Cabin layout</span><h2 class="section-title">Cabin preference</h2>
             <p class="cabin-preference-copy">Choose your preferred rear cabin seat.</p>
           </div>
           <div class="cabin-selected-badge" aria-live="polite"><span>Selected preference</span><strong id="selectedSeatLabel">Seat 2A</strong></div>
@@ -6213,7 +7487,7 @@
 
       <div class="baggage-request-grid">
         <div id="extrasSection" class="card">
-          <h2 class="section-title">Cabin requests</h2>
+          <div class="section-heading"><div><span class="section-overline">Optional service</span><h2 class="section-title">Cabin requests</h2></div><span class="section-sequence">04</span></div>
           <div class="request-panel">
             <div class="request-panel-header">
               <div>
@@ -6272,8 +7546,8 @@
         </div>
       </div>
 
-      <div class="card">
-        <h2 class="section-title">Travel readiness</h2>
+      <div id="readinessSection" class="card readiness-card">
+        <div class="section-heading"><div><span class="section-overline">Required declaration</span><h2 class="section-title">Travel readiness</h2></div><span class="section-sequence">05</span></div>
         <div class="declaration">
           <strong>Passenger safety declaration</strong>
           I will tell the pilot or operations team about anything that could affect safe flight, including illness, breathing or circulation conditions, seizures, anxiety or panic, surgery, pregnancy, injury, medication effects, alcohol, sedatives, cannabis, or feeling unwell. I understand there is no supplemental oxygen on board, I must follow pilot instructions, and the pilot may delay, change, or decline the flight for safety, weather, aircraft, legal, or weight-and-balance reasons.
@@ -6283,16 +7557,19 @@
         </div>
       </div>
 
-      <div class="booking-progress" aria-label="Booking completion">
-        <span data-progress-step="route"><i aria-hidden="true"></i>Itinerary</span>
-        <span data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</span>
-        <span data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</span>
-        <span data-progress-step="extras"><i aria-hidden="true"></i>Extras</span>
-        <span data-progress-step="review"><i aria-hidden="true"></i>Review</span>
+      <div class="booking-progress final-progress" aria-label="Booking completion">
+        <div class="progress-readiness"><span>Request readiness</span><strong data-readiness-value>0%</strong></div>
+        <div class="progress-steps">
+          <a href="#itinerarySection" data-progress-step="route"><i aria-hidden="true"></i>Itinerary</a>
+          <a href="#passengerSection" data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</a>
+          <a href="#luggageSection" data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</a>
+          <a href="#extrasSection" data-progress-step="extras"><i aria-hidden="true"></i>Cabin</a>
+          <a href="#reviewSection" data-progress-step="review"><i aria-hidden="true"></i>Review</a>
+        </div>
       </div>
 
-      <div class="card review-card">
-        <h2 class="section-title">Trip details</h2>
+      <div id="reviewSection" class="card review-card">
+        <div class="section-heading"><div><span class="section-overline">Live request summary</span><h2 class="section-title">Trip details</h2></div><span class="section-sequence">06</span></div>
         <div class="quote-label">Private flight request review</div>
         <div class="route-summary">
           <div class="route-box">
@@ -6306,7 +7583,9 @@
           <li><span>Trip type</span><strong id="summaryTripType">One way</strong></li>
           <li id="summaryReturnRow"><span>Return</span><strong id="summaryReturn">Not requested</strong></li>
           <li><span>Est. flight time</span><strong id="summaryFlightTime">----</strong></li>
+          <li><span>Boarding target</span><strong id="summaryBoarding">20 min before departure</strong></li>
           <li><span>Passengers</span><strong id="summarySeats">1</strong></li>
+          <li><span>Declared payload</span><strong id="summaryPayload">Passenger weights pending</strong></li>
           <li><span>Luggage</span><strong id="summaryBaggage">No carry-on bags</strong></li>
           <li class="total-cost"><span>Total flight cost</span><strong id="summaryCost">Flight team confirms</strong><em>Includes 1 standard carry-on bag. Extras charged separately.</em></li>
           <li class="summary-requests"><span>Cabin requests</span><div id="summaryRequests" class="request-pill-list"><span class="request-pill">None selected</span></div></li>
@@ -6323,19 +7602,18 @@
         </div>
       </div>
 
-      <section id="bookingLookup" class="card booking-lookup-card" aria-label="Passenger booking lookup">
-        <div>
-          <span class="booking-lookup-kicker">Already requested?</span>
-          <h2>Check your flight request</h2>
+      <details id="bookingLookup" class="card booking-lookup-card" aria-label="Passenger booking lookup">
+        <summary><span><small class="booking-lookup-kicker">Already requested?</small><strong>Open flight request status</strong></span><i aria-hidden="true">+</i></summary>
+        <div class="booking-lookup-content">
           <p>Enter the booking reference and a passenger email to see the safe public status view. Sensitive passenger details are never shown here.</p>
-        </div>
-        <div class="booking-lookup-form">
+          <div class="booking-lookup-form">
           <div><label for="lookupReference">Reference</label><input id="lookupReference" type="text" placeholder="HYV-HNK-001" autocomplete="off" /></div>
           <div><label for="lookupEmail">Passenger email</label><input id="lookupEmail" type="email" placeholder="name@example.com" autocomplete="email" /></div>
           <button id="lookupBookingBtn" class="btn" type="button">Check request</button>
           <div id="lookupStatus" class="booking-lookup-result" aria-live="polite"></div>
+          </div>
         </div>
-      </section>
+      </details>
 
       <div class="submit-footer">
         <button id="submitBooking" class="btn" type="submit">Submit flight request</button>
@@ -6697,7 +7975,7 @@
           zoomControl: false,
           dragging: true,
           touchZoom: true,
-          scrollWheelZoom: true,
+          scrollWheelZoom: false,
           doubleClickZoom: true,
           boxZoom: false,
           keyboard: false,
@@ -7121,6 +8399,62 @@
       });
     }
 
+    function updateCompletionDisplay(states) {
+      const values = Object.values(states);
+      const percent = Math.round((values.filter(Boolean).length / values.length) * 100);
+      document.querySelectorAll('[data-readiness-value]').forEach(output => {
+        output.textContent = `${percent}%`;
+      });
+      document.querySelectorAll('.booking-progress').forEach(progress => {
+        progress.style.setProperty('--completion', `${percent}%`);
+      });
+    }
+
+    function setCurrentJourneyStep(step) {
+      document.querySelectorAll('[data-progress-step]').forEach(marker => {
+        const current = marker.dataset.progressStep === step;
+        marker.classList.toggle('is-current', current);
+        if (current) marker.setAttribute('aria-current', 'step');
+        else marker.removeAttribute('aria-current');
+      });
+    }
+
+    function setupJourneyNavigation() {
+      const sections = [
+        ['route', el('itinerarySection')],
+        ['travellers', el('passengerSection')],
+        ['luggage', el('luggageSection')],
+        ['extras', el('extrasSection')],
+        ['review', el('reviewSection')]
+      ].filter(([, section]) => section);
+      if (!sections.length) return;
+      setCurrentJourneyStep('route');
+      if (!('IntersectionObserver' in window)) return;
+      const observer = new IntersectionObserver(entries => {
+        const visible = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        const match = sections.find(([, section]) => section === visible.target);
+        if (match) setCurrentJourneyStep(match[0]);
+      }, { rootMargin: '-18% 0px -58% 0px', threshold: [0.05, 0.25, 0.55] });
+      sections.forEach(([, section]) => observer.observe(section));
+    }
+
+    function setupMobileBookingBar() {
+      const bar = document.querySelector('.mobile-booking-bar');
+      const itinerary = el('itinerarySection');
+      if (!bar || !itinerary) return;
+      const update = () => {
+        const show = window.innerWidth > 700 || itinerary.getBoundingClientRect().top < window.innerHeight * 0.82;
+        bar.classList.toggle('is-visible', show);
+      };
+      update();
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+      form.addEventListener('focusin', () => bar.classList.add('is-visible'), { once: true });
+    }
+
     function watchBookingSection(id, onViewed) {
       const target = el(id);
       if (!target) return;
@@ -7222,11 +8556,40 @@
       const routeReady = Boolean(dep && arr && (dep.icao !== arr.icao || isScenicExperienceSelected()) && el('requestDate').value && el('requestTime').value && returnReady);
       const luggageReady = luggageSectionViewed && (el('carryOnBags').value !== 'YES' || Boolean(el('baggageWeightKg').value));
       const extrasReady = extrasSectionViewed;
+      const safetyReady = Boolean(el('safetyAgreement').checked);
+      const reviewReady = routeReady && completePassengers && luggageReady && extrasReady && safetyReady;
       setMobileMarker('route', routeReady);
       setMobileMarker('travellers', completePassengers);
       setMobileMarker('luggage', luggageReady);
       setMobileMarker('extras', extrasReady);
-      setMobileMarker('review', routeReady && completePassengers && luggageReady && extrasReady);
+      setMobileMarker('review', reviewReady);
+      updateCompletionDisplay({
+        route: routeReady,
+        travellers: completePassengers,
+        luggage: luggageReady,
+        extras: extrasReady,
+        review: reviewReady
+      });
+    }
+
+    function boardingTimeSummary() {
+      const value = el('requestTime').value;
+      const match = String(value || '').match(/^(\d{2}):(\d{2})$/);
+      if (!match) return '20 min before departure';
+      const totalMinutes = (Number(match[1]) * 60) + Number(match[2]) - 20;
+      const normalized = (totalMinutes + 1440) % 1440;
+      return `${pad(Math.floor(normalized / 60))}:${pad(normalized % 60)} / 20 min before`;
+    }
+
+    function declaredPayloadSummary() {
+      const passengers = collectPassengers(false);
+      const passengerWeights = passengers
+        .map(passenger => Number(passenger.weightKg))
+        .filter(weight => Number.isFinite(weight) && weight > 0);
+      if (!passengerWeights.length) return 'Passenger weights pending';
+      const baggageWeight = el('carryOnBags').value === 'YES' ? Number(el('baggageWeightKg').value || 0) : 0;
+      const total = passengerWeights.reduce((sum, weight) => sum + weight, 0) + baggageWeight;
+      return `${Math.round(total)} KG declared / pilot check`;
     }
 
     function refreshSummary() {
@@ -7256,7 +8619,9 @@
         ? `${el('returnDate').value || 'Date pending'} / ${el('returnTime').value || 'Time pending'} / ${el('returnPlan').value || 'Passengers to be confirmed'}`
         : 'Not requested';
       el('summaryFlightTime').textContent = formatFlightTime(dep, arr);
+      el('summaryBoarding').textContent = boardingTimeSummary();
       el('summarySeats').textContent = el('seats').value || '1';
+      el('summaryPayload').textContent = declaredPayloadSummary();
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
       updateRouteExperience(dep, arr);
@@ -7348,7 +8713,7 @@
         savedAt: new Date().toISOString()
       };
       localStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
-      draftStatus.textContent = 'Booking progress saved locally on this device.';
+      draftStatus.textContent = `Saved locally at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       draftStatus.classList.add('saved');
     }
 
@@ -7377,7 +8742,7 @@
       setSeatPreference(draft.seatPreference || 'NO PREFERENCE');
       updateBaggageFields();
       restoringDraft = false;
-      draftStatus.textContent = 'Booking progress restored from this device.';
+      draftStatus.textContent = 'Saved booking restored on this device';
       draftStatus.classList.add('saved');
     }
 
@@ -7749,6 +9114,8 @@
     updateBaggageFields();
     restoreBookingDraft();
     setupSectionProgress();
+    setupJourneyNavigation();
+    setupMobileBookingBar();
     setupLuxuryReveal();
     setupLuxuryScrollMotion();
     loadBookingAvailability().catch(() => {});
