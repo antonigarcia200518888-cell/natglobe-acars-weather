@@ -3561,6 +3561,378 @@
       font: 12px/1.55 Poppins, Arial, sans-serif;
     }
 
+    .luxury-flight-desk {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      gap: 14px;
+      max-width: 920px;
+      margin: 30px 0 0;
+    }
+
+    .luxury-flight-card,
+    .luxury-flight-side {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 24px;
+      background: rgba(255,255,255,0.11);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.24);
+      backdrop-filter: blur(18px);
+    }
+
+    .luxury-flight-card {
+      padding: clamp(18px, 2.4vw, 26px);
+    }
+
+    .luxury-flight-card::after {
+      content: '';
+      position: absolute;
+      inset: auto -18% -45% 28%;
+      height: 72%;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.20), transparent 62%);
+      transform: rotate(-7deg);
+      pointer-events: none;
+    }
+
+    .flight-desk-label,
+    .flight-desk-mini span,
+    .luxury-flight-side span,
+    .guided-journey-card span,
+    .smart-route-kicker,
+    .booking-lookup-kicker {
+      display: block;
+      font: 700 10px/1.2 "Courier New", monospace;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .flight-desk-label,
+    .flight-desk-mini span,
+    .luxury-flight-side span {
+      color: rgba(255,255,255,0.72);
+    }
+
+    .flight-desk-route {
+      position: relative;
+      z-index: 1;
+      margin: 10px 0 0;
+      color: #fff;
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: clamp(28px, 5vw, 58px);
+      font-weight: 400;
+      line-height: 0.95;
+      letter-spacing: 0.035em;
+      text-transform: uppercase;
+    }
+
+    .flight-desk-meta {
+      position: relative;
+      z-index: 1;
+      display: block;
+      margin-top: 10px;
+      color: rgba(255,255,255,0.76);
+      font: 13px/1.5 Poppins, Arial, sans-serif;
+    }
+
+    .flight-desk-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .flight-desk-mini {
+      min-height: 72px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.10);
+    }
+
+    .flight-desk-mini strong {
+      display: block;
+      margin-top: 7px;
+      color: #fff;
+      font: 700 13px/1.2 "Courier New", monospace;
+    }
+
+    .luxury-flight-side {
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+      padding: 20px;
+    }
+
+    .luxury-flight-side strong {
+      display: block;
+      color: #fff;
+      font: 400 clamp(24px, 3vw, 40px)/0.98 "Computer Says No", "Courier New", monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .luxury-flight-side p {
+      margin: 8px 0 0;
+      color: rgba(255,255,255,0.72);
+      font: 12px/1.55 Poppins, Arial, sans-serif;
+    }
+
+    .guided-journey {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+
+    .guided-journey-card {
+      position: relative;
+      min-height: 118px;
+      padding: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(7,29,73,0.12);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,250,253,0.92));
+      box-shadow: 0 18px 48px rgba(7,29,73,0.09);
+      text-decoration: none;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .guided-journey-card::after {
+      content: '';
+      position: absolute;
+      inset: auto 14px 14px 14px;
+      height: 4px;
+      border-radius: 999px;
+      background: #dce3ed;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(7,29,73,0.05);
+    }
+
+    .guided-journey-card::before {
+      content: '';
+      position: absolute;
+      left: 14px;
+      right: calc(100% - 14px);
+      bottom: 14px;
+      z-index: 1;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--live), #a6efbf);
+      transition: right 240ms ease;
+    }
+
+    .guided-journey-card.is-complete::before {
+      right: 14px;
+    }
+
+    .guided-journey-card:hover,
+    .guided-journey-card:focus-visible {
+      transform: translateY(-3px);
+      border-color: rgba(7,29,73,0.20);
+      box-shadow: 0 24px 58px rgba(7,29,73,0.14);
+      outline: none;
+    }
+
+    .guided-journey-card span {
+      color: #78869a;
+    }
+
+    .guided-journey-card strong {
+      display: block;
+      margin-top: 18px;
+      color: var(--navy);
+      font: 400 24px/0.95 "Computer Says No", "Courier New", monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .guided-journey-card em {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink-soft);
+      font: 12px/1.45 Poppins, Arial, sans-serif;
+      font-style: normal;
+    }
+
+    .smart-route-intel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 0.78fr);
+      gap: 10px;
+      margin: 0 0 14px;
+    }
+
+    .smart-route-primary,
+    .smart-route-metrics {
+      border: 1px solid rgba(7,29,73,0.11);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.78);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.78);
+      padding: 16px;
+    }
+
+    .smart-route-kicker,
+    .booking-lookup-kicker {
+      color: #6e7b8f;
+    }
+
+    .smart-route-primary strong {
+      display: block;
+      margin-top: 9px;
+      color: var(--navy);
+      font: 400 clamp(22px, 3vw, 38px)/0.98 "Computer Says No", "Courier New", monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .smart-route-primary p {
+      margin: 10px 0 0;
+      color: var(--ink-soft);
+      font: 13px/1.55 Poppins, Arial, sans-serif;
+    }
+
+    .smart-route-metrics {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .smart-metric {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(7,29,73,0.08);
+      padding-bottom: 8px;
+      color: var(--ink-soft);
+      font: 12px/1.35 Poppins, Arial, sans-serif;
+    }
+
+    .smart-metric:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .smart-metric span {
+      color: #6e7b8f;
+      font: 700 10px/1.3 "Courier New", monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .smart-metric strong {
+      color: var(--navy);
+      text-align: right;
+      font: 700 12px/1.35 "Courier New", monospace;
+    }
+
+    .booking-lookup-card {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(300px, 1.2fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .booking-lookup-card h2 {
+      margin: 8px 0 0;
+      color: var(--navy);
+      font: 400 clamp(28px, 4vw, 52px)/0.95 "Computer Says No", "Courier New", monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .booking-lookup-card p {
+      margin: 12px 0 0;
+      color: var(--ink-soft);
+      font: 13px/1.62 Poppins, Arial, sans-serif;
+    }
+
+    .booking-lookup-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .booking-lookup-result {
+      grid-column: 1 / -1;
+      min-height: 0;
+      border: 1px solid rgba(7,29,73,0.10);
+      border-radius: 18px;
+      padding: 0;
+      background: rgba(255,255,255,0.72);
+      color: var(--ink-soft);
+      font: 13px/1.55 Poppins, Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .booking-lookup-result:empty {
+      display: none;
+    }
+
+    .lookup-status-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(7,29,73,0.10);
+      background: linear-gradient(135deg, rgba(7,29,73,0.96), rgba(18,55,96,0.92));
+      color: #fff;
+    }
+
+    .lookup-status-head strong {
+      font: 400 24px/1 "Computer Says No", "Courier New", monospace;
+      letter-spacing: 0.05em;
+    }
+
+    .lookup-status-head span {
+      align-self: start;
+      border-radius: 999px;
+      padding: 6px 9px;
+      background: rgba(255,255,255,0.14);
+      font: 700 10px/1 "Courier New", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .lookup-status-lines {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 14px;
+      padding: 14px 16px 16px;
+    }
+
+    .lookup-status-lines div {
+      border-bottom: 1px solid rgba(7,29,73,0.07);
+      padding-bottom: 8px;
+    }
+
+    .lookup-status-lines span {
+      display: block;
+      color: #6e7b8f;
+      font: 700 9px/1.2 "Courier New", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .lookup-status-lines strong,
+    .lookup-status-lines a {
+      display: block;
+      margin-top: 4px;
+      color: var(--navy);
+      font: 700 12px/1.35 "Courier New", monospace;
+      text-decoration: none;
+    }
+
+    .lookup-error {
+      padding: 14px 16px;
+      color: var(--danger);
+      font: 700 12px/1.45 "Courier New", monospace;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
     .luxury-booking .title-row {
       display: none;
     }
@@ -4938,6 +5310,46 @@
         line-height: 1.5;
       }
 
+      .luxury-flight-desk,
+      .smart-route-intel,
+      .booking-lookup-card {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-flight-desk {
+        margin-top: 18px;
+        gap: 9px;
+      }
+
+      .luxury-flight-card,
+      .luxury-flight-side {
+        border-radius: 18px;
+        padding: 14px;
+      }
+
+      .flight-desk-route {
+        font-size: clamp(26px, 10vw, 42px);
+      }
+
+      .flight-desk-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .flight-desk-mini {
+        min-height: 62px;
+        padding: 9px;
+      }
+
+      .flight-desk-mini span {
+        font-size: 8px;
+        letter-spacing: 0.08em;
+      }
+
+      .flight-desk-mini strong {
+        font-size: 10px;
+      }
+
       .luxury-hero-actions {
         grid-template-columns: 1fr 1fr;
         gap: 8px;
@@ -4975,6 +5387,29 @@
 
       .luxury-content {
         padding: 10px 8px 16px;
+      }
+
+      .guided-journey {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+        margin-bottom: 10px;
+      }
+
+      .guided-journey-card {
+        min-height: 88px;
+        border-radius: 16px;
+        padding: 12px;
+      }
+
+      .guided-journey-card strong {
+        margin-top: 10px;
+        font-size: 17px;
+      }
+
+      .guided-journey-card em {
+        margin-top: 5px;
+        font-size: 10px;
+        line-height: 1.3;
       }
 
       .search-card,
@@ -5027,6 +5462,28 @@
 
       .luxury-booking .route-experience-route {
         font-size: 28px;
+      }
+
+      .smart-route-primary,
+      .smart-route-metrics {
+        padding: 12px;
+        border-radius: 16px;
+      }
+
+      .smart-route-primary strong {
+        font-size: 24px;
+      }
+
+      .booking-lookup-form {
+        grid-template-columns: 1fr;
+      }
+
+      .booking-lookup-card h2 {
+        font-size: 30px;
+      }
+
+      .lookup-status-lines {
+        grid-template-columns: 1fr;
       }
 
       .search-grid {
@@ -5300,6 +5757,15 @@
     }
 
     @media (max-width: 430px) {
+      .flight-desk-grid,
+      .guided-journey {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-flight-side {
+        display: none;
+      }
+
       .luxury-booking .summary-card .seat-options {
         grid-template-columns: 1fr;
       }
@@ -5487,6 +5953,22 @@
           <span style="--i:2">Booking</span>
         </h1>
         <p class="luxury-copy">Plan a scenic or regional private flight with a refined request flow, pilot review, passenger information passes, and final operational confirmation before any flight is booked.</p>
+        <div class="luxury-flight-desk" aria-label="Live selected flight summary">
+          <div class="luxury-flight-card">
+            <span class="flight-desk-label">Live request preview</span>
+            <div id="heroRouteLine" class="flight-desk-route">Hyvinkää to Hanko</div>
+            <span id="heroRouteMeta" class="flight-desk-meta">One way / 1 passenger / 20 min boarding target</span>
+            <div class="flight-desk-grid">
+              <div class="flight-desk-mini"><span>Flight time</span><strong id="heroFlightTime">00H 40M</strong></div>
+              <div class="flight-desk-mini"><span>Estimate</span><strong id="heroPrice">Approx. €129 EUR (1 PAX)</strong></div>
+              <div class="flight-desk-mini"><span>Status</span><strong>Request only</strong></div>
+            </div>
+          </div>
+          <div class="luxury-flight-side">
+            <div><span>Flight desk</span><strong>Smart request</strong><p>The form adapts route notes, baggage, cabin requests, and review details before you send anything to operations.</p></div>
+            <div><span>Confirmation</span><strong>Within 24H</strong><p>After submission, the pilot and operations team review route, aircraft, weather, loading, and passenger details.</p></div>
+          </div>
+        </div>
         <div class="luxury-hero-actions">
           <a class="luxury-cta" href="#bookingForm">Start request</a>
           <a class="luxury-secondary" href="#routeMapShell">View route map</a>
@@ -5535,6 +6017,14 @@
     </div>
     <div id="draftStatus" class="draft-status" aria-live="polite">Booking progress is saved locally on this device.</div>
 
+    <section class="guided-journey" aria-label="Booking section completion">
+      <a class="guided-journey-card" href="#routeMapShell" data-journey-step="route"><span>ITINERARY</span><strong>Route</strong><em>Date, time, route, and passenger count.</em></a>
+      <a class="guided-journey-card" href="#bookingForm" data-journey-step="travellers"><span>PASSENGERS</span><strong>Guests</strong><em>Required traveller details and contact info.</em></a>
+      <a class="guided-journey-card" href="#luggageSection" data-journey-step="luggage"><span>LUGGAGE</span><strong>Bags</strong><em>Included carry-on and declared weight.</em></a>
+      <a class="guided-journey-card" href="#extrasSection" data-journey-step="extras"><span>CABIN</span><strong>Extras</strong><em>Optional cabin and transfer requests.</em></a>
+      <a class="guided-journey-card" href="#submitBooking" data-journey-step="review"><span>FINAL</span><strong>Review</strong><em>Check details before sending.</em></a>
+    </section>
+
     <form id="bookingForm">
       <section class="route-map-card" aria-label="Selected flight route map">
         <div class="route-map-head">
@@ -5551,6 +6041,18 @@
           <div class="route-experience-item"><span>Boarding target</span><strong id="routeExpBoarding">20 min before departure</strong></div>
           <div class="route-experience-item"><span>Aircraft</span><strong>PA-28R-200</strong></div>
           <div class="route-experience-item"><span>Estimate</span><strong id="routeExpPrice">Approx. €129 EUR (1 PAX)</strong></div>
+        </div>
+        <div id="smartRouteIntel" class="smart-route-intel" aria-label="Smart route intelligence">
+          <div class="smart-route-primary">
+            <span class="smart-route-kicker">Smart route intelligence</span>
+            <strong id="smartRouteTitle">Hyvinkää is preferred for Hanko</strong>
+            <p id="smartRouteCopy">This route has the simplest operating profile for Hanko requests and keeps the airport-fee profile lower than Helsinki-Vantaa.</p>
+          </div>
+          <div class="smart-route-metrics">
+            <div class="smart-metric"><span>Airport profile</span><strong id="smartAirportNote">GA airfield / simple arrival</strong></div>
+            <div class="smart-metric"><span>Price profile</span><strong id="smartPriceNote">Approximate equal-share estimate</strong></div>
+            <div class="smart-metric"><span>Ops note</span><strong id="smartOpsNote">Pilot review before confirmation</strong></div>
+          </div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
           <div id="routeMap" aria-label="Interactive route map"></div>
@@ -5821,6 +6323,20 @@
         </div>
       </div>
 
+      <section id="bookingLookup" class="card booking-lookup-card" aria-label="Passenger booking lookup">
+        <div>
+          <span class="booking-lookup-kicker">Already requested?</span>
+          <h2>Check your flight request</h2>
+          <p>Enter the booking reference and a passenger email to see the safe public status view. Sensitive passenger details are never shown here.</p>
+        </div>
+        <div class="booking-lookup-form">
+          <div><label for="lookupReference">Reference</label><input id="lookupReference" type="text" placeholder="HYV-HNK-001" autocomplete="off" /></div>
+          <div><label for="lookupEmail">Passenger email</label><input id="lookupEmail" type="email" placeholder="name@example.com" autocomplete="email" /></div>
+          <button id="lookupBookingBtn" class="btn" type="button">Check request</button>
+          <div id="lookupStatus" class="booking-lookup-result" aria-live="polite"></div>
+        </div>
+      </section>
+
       <div class="submit-footer">
         <button id="submitBooking" class="btn" type="submit">Submit flight request</button>
         <div class="submit-result-stack" aria-live="polite">
@@ -5855,9 +6371,9 @@
   </main>
 
   <div id="reviewDialog" class="review-dialog" role="dialog" aria-modal="true" aria-labelledby="reviewDialogTitle" hidden>
-    <div class="review-dialog-card">
-      <div class="review-dialog-head">
-        <div><div class="review-dialog-eyebrow">Private Flight</div><h2 id="reviewDialogTitle">Review request</h2><p>Check the journey details before sending your request. Operations will contact you as soon as possible after pilot and aircraft review.</p></div>
+      <div class="review-dialog-card">
+        <div class="review-dialog-head">
+        <div><div class="review-dialog-eyebrow">Private Flight</div><h2 id="reviewDialogTitle">Review flight request</h2><p>Check the details before sending. Once received, operations will review pilot, route, aircraft, and passenger details, then contact you within 24 hours.</p></div>
         <button id="closeReview" class="review-close" type="button" aria-label="Close review">×</button>
       </div>
       <div id="reviewDialogBody" class="review-grid"></div>
@@ -5947,6 +6463,19 @@
     const routeExpTime = el('routeExpTime');
     const routeExpBoarding = el('routeExpBoarding');
     const routeExpPrice = el('routeExpPrice');
+    const heroRouteLine = el('heroRouteLine');
+    const heroRouteMeta = el('heroRouteMeta');
+    const heroFlightTime = el('heroFlightTime');
+    const heroPrice = el('heroPrice');
+    const smartRouteTitle = el('smartRouteTitle');
+    const smartRouteCopy = el('smartRouteCopy');
+    const smartAirportNote = el('smartAirportNote');
+    const smartPriceNote = el('smartPriceNote');
+    const smartOpsNote = el('smartOpsNote');
+    const lookupReference = el('lookupReference');
+    const lookupEmail = el('lookupEmail');
+    const lookupBookingBtn = el('lookupBookingBtn');
+    const lookupStatus = el('lookupStatus');
     const locateMeBtn = el('locateMeBtn');
     const reviewDialog = el('reviewDialog');
     const reviewDialogBody = el('reviewDialogBody');
@@ -6365,6 +6894,96 @@
       routeExpPrice.textContent = validRoute ? routePrice(dep, arr) : 'Flight team confirms';
     }
 
+    function updateHeroFlightDesk(dep, arr) {
+      if (!heroRouteLine || !heroRouteMeta || !heroFlightTime || !heroPrice) return;
+      const validRoute = Boolean(dep && arr && (dep.icao !== arr.icao || isScenicExperienceSelected()));
+      const passengers = Number(el('seats').value || 1);
+      const tripLabel = isScenicExperienceSelected()
+        ? 'Scenic overflight'
+        : (el('tripType').value === 'ROUNDTRIP' ? 'Roundtrip' : 'One way');
+      heroRouteLine.textContent = validRoute
+        ? `${routeDisplayName(dep)} ${isScenicExperienceSelected() ? 'scenic flight' : `to ${routeDisplayName(arr)}`}`
+        : 'Build your private route';
+      heroRouteMeta.textContent = `${tripLabel} / ${passengers} passenger${passengers === 1 ? '' : 's'} / ${routeBoardingTarget()}`;
+      heroFlightTime.textContent = validRoute ? formatFlightTime(dep, arr) : '--H --M';
+      heroPrice.textContent = validRoute ? routePrice(dep, arr) : 'Pilot confirms';
+    }
+
+    function routeInsight(dep, arr) {
+      if (!dep || !arr || (dep.icao === arr.icao && !isScenicExperienceSelected())) {
+        return {
+          title: 'Choose route',
+          copy: 'Select departure, destination, date, and passengers to build the private flight request.',
+          airport: 'Awaiting route',
+          price: 'Pilot confirms',
+          ops: 'Route check pending'
+        };
+      }
+      if (isHankoScenicSelected()) {
+        return {
+          title: 'Hanko scenic profile',
+          copy: 'Short local overflight request from Hanko for the Regatta area, subject to pilot, daylight, weather, and aircraft review.',
+          airport: 'Local Hanko departure',
+          price: 'Approximate scenic estimate',
+          ops: '25-30 minute request profile'
+        };
+      }
+      if (isHelsinkiCityScenicSelected()) {
+        return {
+          title: 'Helsinki scenic profile',
+          copy: 'A private scenic route over the Helsinki area from Hyvinkää or Nummela, with the exact routing adjusted by pilot review and airspace conditions.',
+          airport: 'Hyvinkää or Nummela',
+          price: 'Approximate scenic estimate',
+          ops: 'City route subject to airspace'
+        };
+      }
+      const key = `${dep.icao}-${arr.icao}`;
+      if (['EFHV-EFHN', 'EFHN-EFHV'].includes(key)) {
+        return {
+          title: 'Preferred Hanko routing',
+          copy: 'Hyvinkää is the recommended Hanko operating profile because it keeps the request simple and avoids the higher airport-fee profile at Helsinki-Vantaa.',
+          airport: 'Recommended GA airfield profile',
+          price: 'Approximate equal-share estimate',
+          ops: 'Coastal route / pilot review'
+        };
+      }
+      if (['EFHK-EFHN', 'EFHN-EFHK'].includes(key)) {
+        return {
+          title: 'Helsinki-Vantaa premium airport profile',
+          copy: 'Helsinki-Vantaa is available by request, but handling, departure, and landing fees make this option materially higher than Hyvinkää.',
+          airport: 'Major airport fees apply',
+          price: 'Higher airport-fee estimate',
+          ops: 'Handling coordination required'
+        };
+      }
+      if (dep.icao === 'EFHN' || arr.icao === 'EFHN') {
+        return {
+          title: 'Hanko route by request',
+          copy: 'Hanko routes outside the preferred profile are reviewed individually for cost, timing, aircraft performance, weather, and airport conditions.',
+          airport: 'Hanko route review',
+          price: 'Determined by request',
+          ops: 'Pilot and ops quote required'
+        };
+      }
+      return {
+        title: 'Custom regional route',
+        copy: 'This route is priced and reviewed by request. Operations will check distance, airport access, weather, aircraft loading, and passenger timing.',
+        airport: 'Airport access review',
+        price: 'Determined by request',
+        ops: 'Pilot decision required'
+      };
+    }
+
+    function updateSmartRouteInsights(dep, arr) {
+      if (!smartRouteTitle || !smartRouteCopy || !smartAirportNote || !smartPriceNote || !smartOpsNote) return;
+      const insight = routeInsight(dep, arr);
+      smartRouteTitle.textContent = insight.title;
+      smartRouteCopy.textContent = insight.copy;
+      smartAirportNote.textContent = insight.airport;
+      smartPriceNote.textContent = insight.price;
+      smartOpsNote.textContent = insight.ops;
+    }
+
     function fillPickerWheels() {
       const today = new Date();
       el('requestDate').innerHTML = Array.from({ length: 120 }, (_, index) => {
@@ -6497,6 +7116,9 @@
       document.querySelectorAll(`[data-progress-step="${step}"]`).forEach(marker => {
         marker.classList.toggle('is-complete', complete);
       });
+      document.querySelectorAll(`[data-journey-step="${step}"]`).forEach(marker => {
+        marker.classList.toggle('is-complete', complete);
+      });
     }
 
     function watchBookingSection(id, onViewed) {
@@ -6525,7 +7147,14 @@
     function setupLuxuryReveal() {
       const revealTargets = [
         '.luxury-desk',
-        '.luxury-flow'
+        '.guided-journey-card',
+        '.route-map-card',
+        '.search-card',
+        '.aircraft-feature',
+        '.summary-card',
+        '.baggage-request-grid',
+        '.preflight-card',
+        '.booking-lookup-card'
       ];
       const sections = [...new Set(revealTargets.flatMap(selector => [...document.querySelectorAll(selector)]))];
       sections.forEach(section => section.classList.add('luxury-reveal'));
@@ -6631,6 +7260,8 @@
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
       updateRouteExperience(dep, arr);
+      updateHeroFlightDesk(dep, arr);
+      updateSmartRouteInsights(dep, arr);
       requestSummary();
       updateReadiness(dep, arr);
       el('mobileTripLine').textContent = itineraryName(dep, arr);
@@ -6771,7 +7402,8 @@
         reviewItem('Luggage', baggageSummary()),
         reviewItem('Seat preference', el('seatPreference').value || checkedValue('seatPreference', 'No preference')),
         reviewItem('Cabin requests', extras.length ? [extras.join(' / '), alcoholRequestDetails()].filter(Boolean).join(' / ') : 'None selected'),
-        reviewItem('Total flight cost', routePrice(dep, arr))
+        reviewItem('Total flight cost', routePrice(dep, arr)),
+        reviewItem('Next step', 'Pilot and operations review before final confirmation')
       ].join('');
       reviewDialog.hidden = false;
       document.body.style.overflow = 'hidden';
@@ -6848,6 +7480,50 @@
       if (Number(el('baggageWeightKg').value) > limit) el('baggageWeightKg').value = limit;
     }
 
+    function renderLookupResult(request) {
+      const passLink = request.flightPassUrl
+        ? `<a href="${escapeHtml(request.flightPassUrl)}">Open Private Flight Information Pass</a>`
+        : 'Available after approval and final confirmation';
+      lookupStatus.innerHTML = `
+        <div class="lookup-status-head"><strong>${escapeHtml(request.reference)}</strong><span>${escapeHtml(request.statusLabel)}</span></div>
+        <div class="lookup-status-lines">
+          <div><span>Route</span><strong>${escapeHtml(request.route)}</strong></div>
+          <div><span>Date / time</span><strong>${escapeHtml(request.date)} / ${escapeHtml(request.departureTime)}</strong></div>
+          <div><span>Pilot decision</span><strong>${escapeHtml(request.pilotDecision)}</strong></div>
+          <div><span>Payment</span><strong>${escapeHtml(request.paymentStatus)}</strong></div>
+          <div><span>Agreements</span><strong>${escapeHtml(request.agreementStatus)}</strong></div>
+          <div><span>Passenger pass</span><strong>${passLink}</strong></div>
+        </div>`;
+    }
+
+    async function lookupBookingRequest() {
+      if (!lookupReference || !lookupEmail || !lookupBookingBtn || !lookupStatus) return;
+      const reference = lookupReference.value.trim();
+      const email = lookupEmail.value.trim();
+      lookupStatus.innerHTML = '';
+      if (!reference || !email) {
+        lookupStatus.innerHTML = '<div class="lookup-error">Enter the booking reference and passenger email.</div>';
+        return;
+      }
+      lookupBookingBtn.disabled = true;
+      lookupBookingBtn.textContent = 'Checking...';
+      try {
+        const res = await fetch('/api/booking-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reference, email })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Request not found');
+        renderLookupResult(data.request);
+      } catch (err) {
+        lookupStatus.innerHTML = `<div class="lookup-error">${escapeHtml(err.message || 'Request not found')}</div>`;
+      } finally {
+        lookupBookingBtn.disabled = false;
+        lookupBookingBtn.textContent = 'Check request';
+      }
+    }
+
     async function loadAirports() {
       const res = await fetch('/api/booking-airports', { cache: 'no-store' });
       if (res.status === 401) {
@@ -6911,6 +7587,14 @@
       refreshSummary();
     });
     locateMeBtn.addEventListener('click', locateUserOnMap);
+    if (lookupBookingBtn) lookupBookingBtn.addEventListener('click', lookupBookingRequest);
+    [lookupReference, lookupEmail].forEach(input => {
+      input?.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        lookupBookingRequest();
+      });
+    });
     const hankoScenicBtn = el('hankoScenicBtn');
     if (hankoScenicBtn) hankoScenicBtn.addEventListener('click', () => {
       el('flightExperience').value = HANKO_SCENIC_EXPERIENCE;

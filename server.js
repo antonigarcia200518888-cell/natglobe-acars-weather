@@ -3345,6 +3345,57 @@ app.get('/api/booking-availability', async (req, res) => {
   });
 });
 
+app.post('/api/booking-status', async (req, res) => {
+  await bookingStoreReady;
+  const reference = normalizeBookingText(req.body?.reference, 40).toUpperCase();
+  const email = normalizeBookingEmail(req.body?.email);
+  if (!reference || !email || !email.includes('@')) {
+    return res.status(400).json({ error: 'REFERENCE AND PASSENGER EMAIL REQUIRED' });
+  }
+
+  const request = bookingRequests.find(item => item.id === reference || item.flightId === reference);
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+
+  const passengers = getRequestPassengers(request);
+  const matchingPassenger = passengers.find(passenger => normalizeBookingEmail(passenger.email) === email) || null;
+  const extraEmails = normalizeAdditionalEmailContacts(request.additionalEmailContacts).map(item => normalizeBookingEmail(item));
+  const payerEmail = normalizeBookingEmail(request.reimbursementStatement?.payerEmail);
+  const requestEmail = normalizeBookingEmail(request.email);
+  const allowed = Boolean(
+    matchingPassenger ||
+    requestEmail === email ||
+    extraEmails.includes(email) ||
+    (payerEmail && payerEmail === email)
+  );
+  if (!allowed) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND FOR THIS EMAIL' });
+
+  const signedCount = passengers.filter(passenger => passenger.agreementSignedAt).length;
+  const agreementStatus = passengers.length
+    ? `${signedCount}/${passengers.length} signed`
+    : 'Pending';
+  const matchedPassPassenger = matchingPassenger || passengers.find(passenger => normalizeBookingEmail(passenger.email) === requestEmail) || passengers[0];
+  const flightPassUrl = isBoardingPassReady(request) && matchedPassPassenger?.boardingPassToken
+    ? `${PUBLIC_SITE_URL}/private-flight-information-pass/${encodeURIComponent(request.id)}/${matchedPassPassenger.boardingPassToken}`
+    : '';
+
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    request: {
+      reference: request.id,
+      statusLabel: request.status || 'REQUESTED',
+      route: `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`,
+      date: emailDate(request.requestDate),
+      departureTime: `${formatBoardingPassTime(request.requestTime)} Local Time`,
+      pilotDecision: request.pilotDecision || 'PENDING',
+      paymentStatus: request.paymentStatus || 'UNPAID',
+      agreementStatus,
+      passengerCount: passengers.length,
+      flightTime: emailFlightTime(request),
+      flightPassUrl
+    }
+  });
+});
+
 app.get('/api/booking-ops/availability', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   res.json({ dates: [...bookingAvailability.entries()].map(([date, item]) => ({ date, ...item })) });
