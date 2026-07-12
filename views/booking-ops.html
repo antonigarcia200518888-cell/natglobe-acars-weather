@@ -96,6 +96,35 @@
     .calendar-flight:first-of-type { border-top: 0; padding-top: 0; }
     .calendar-flight:hover { color: #fff; }
 
+    .ops-command-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .ops-command-card {
+      border: 1px solid #555;
+      background: #050505;
+      padding: 10px;
+      text-transform: uppercase;
+      min-width: 0;
+    }
+
+    .ops-command-card span {
+      display: block;
+      color: #8d8d8d;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      margin-bottom: 5px;
+    }
+
+    .ops-command-card strong {
+      color: #fff;
+      font-size: clamp(18px, 2vw, 26px);
+      line-height: 1;
+    }
+
     .layout {
       display: grid;
       grid-template-columns: minmax(260px, 0.32fr) minmax(0, 1fr);
@@ -127,6 +156,28 @@
 
     .queue-filters { display: grid; gap: 7px; margin-bottom: 12px; }
     .queue-filters input, .queue-filters select { width: 100%; min-height: 38px; border: 1px solid #555; background: #000; color: #fff; padding: 7px; font: 12px "Courier New", monospace; text-transform: uppercase; }
+
+    .quick-filters {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .quick-filter {
+      min-height: 32px;
+      border: 1px solid #555;
+      background: #000;
+      color: #d7d7d7;
+      font: 700 10px "Courier New", monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .quick-filter.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
 
     .request {
       border: 1px solid #555;
@@ -312,6 +363,101 @@
       border-color: var(--danger);
       color: var(--danger);
     }
+
+    .dispatch-board {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.3fr) repeat(4, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .dispatch-route,
+    .dispatch-metric,
+    .ops-readiness {
+      border: 1px solid #555;
+      background: #050505;
+      padding: 10px;
+      text-transform: uppercase;
+    }
+
+    .dispatch-route {
+      display: grid;
+      gap: 6px;
+    }
+
+    .dispatch-route span,
+    .dispatch-metric span,
+    .ops-readiness-head span {
+      color: #8d8d8d;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .dispatch-route strong {
+      color: #fff;
+      font-size: clamp(18px, 2vw, 24px);
+      line-height: 1.05;
+    }
+
+    .dispatch-route em,
+    .dispatch-metric strong {
+      color: #fff;
+      font-style: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .dispatch-metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .ops-readiness {
+      margin-bottom: 10px;
+    }
+
+    .ops-readiness-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .ops-readiness-head strong {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .ops-readiness-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+    }
+
+    .ops-check {
+      border: 1px solid #444;
+      background: #000;
+      padding: 8px;
+      min-height: 72px;
+      color: #d7d7d7;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .ops-check strong {
+      display: block;
+      color: #fff;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .ops-check.good { border-color: var(--live); color: var(--live); }
+    .ops-check.warn { border-color: var(--warn); color: var(--warn); }
+    .ops-check.danger { border-color: var(--danger); color: var(--danger); }
+    .ops-check.good strong { color: var(--live); }
+    .ops-check.warn strong { color: var(--warn); }
+    .ops-check.danger strong { color: var(--danger); }
 
     .timeline-compose {
       display: grid;
@@ -565,7 +711,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose, .ops-command-strip, .dispatch-board, .ops-readiness-grid { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
@@ -585,6 +731,13 @@
     <div id="clock" class="clock">UTC --:--:--</div>
     <div class="intro">Customer-facing booking requests converted into structured pilot and dispatch messages.</div>
     <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
+    <section class="ops-command-strip" aria-label="Operations queue totals">
+      <div class="ops-command-card"><span>Total requests</span><strong id="opsTotal">0</strong></div>
+      <div class="ops-command-card"><span>Needs action</span><strong id="opsNeedsAction">0</strong></div>
+      <div class="ops-command-card"><span>Confirmed</span><strong id="opsConfirmed">0</strong></div>
+      <div class="ops-command-card"><span>Unpaid</span><strong id="opsUnpaid">0</strong></div>
+      <div class="ops-command-card"><span>Today</span><strong id="opsToday">0</strong></div>
+    </section>
     <section class="ops-calendar"><div class="panel-title">OPERATIONS CALENDAR</div><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></section>
 
     <div class="layout">
@@ -594,6 +747,14 @@
           <input id="filterQuery" type="search" placeholder="Search route or passenger" />
           <select id="filterStatus"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option></select>
           <input id="filterDate" type="date" aria-label="Filter by departure date" />
+          <div class="quick-filters" aria-label="Quick filters">
+            <button class="quick-filter active" type="button" data-quick-filter="ALL">All</button>
+            <button class="quick-filter" type="button" data-quick-filter="ACTION">Needs action</button>
+            <button class="quick-filter" type="button" data-quick-filter="CONFIRMED">Confirmed</button>
+            <button class="quick-filter" type="button" data-quick-filter="UNPAID">Unpaid</button>
+            <button class="quick-filter" type="button" data-quick-filter="TODAY">Today</button>
+            <button class="quick-filter" type="button" data-quick-filter="PROPOSAL">Time proposal</button>
+          </div>
         </div>
         <div id="requestList" class="request-list"></div>
       </aside>
@@ -610,6 +771,19 @@
             <div class="meta"><span>PAYMENT</span><strong id="payment">.....</strong></div>
           </div>
           <div id="opsAlerts" class="ops-alerts"></div>
+          <div class="dispatch-board" aria-label="Selected flight dispatch overview">
+            <div class="dispatch-route"><span>Selected flight</span><strong id="dispatchRoute">NO REQUEST SELECTED</strong><em id="dispatchSchedule">Select an active request.</em></div>
+            <div class="dispatch-metric"><span>Flight time</span><strong id="dispatchFlightTime">.....</strong></div>
+            <div class="dispatch-metric"><span>Passengers</span><strong id="dispatchPax">.....</strong></div>
+            <div class="dispatch-metric"><span>Luggage</span><strong id="dispatchLuggage">.....</strong></div>
+            <div class="dispatch-metric"><span>Cost estimate</span><strong id="dispatchCost">.....</strong></div>
+          </div>
+          <div class="ops-readiness" aria-label="Ready for flight checklist">
+            <div class="ops-readiness-head"><strong>Ready for flight checklist</strong><span id="readinessScore">0/8 complete</span></div>
+            <div id="opsReadinessList" class="ops-readiness-grid">
+              <div class="ops-check warn"><strong>Select request</strong>Choose a booking to review readiness.</div>
+            </div>
+          </div>
           <div class="ops-brief">
             <div class="brief-card wide">
               <div class="brief-title">Route and schedule</div>
@@ -777,6 +951,19 @@ END OF MESSAGE</pre>
     const correctExperience = el('correctExperience');
     const correctTripType = el('correctTripType');
     const saveItineraryBtn = el('saveItineraryBtn');
+    const opsTotal = el('opsTotal');
+    const opsNeedsAction = el('opsNeedsAction');
+    const opsConfirmed = el('opsConfirmed');
+    const opsUnpaid = el('opsUnpaid');
+    const opsToday = el('opsToday');
+    const dispatchRoute = el('dispatchRoute');
+    const dispatchSchedule = el('dispatchSchedule');
+    const dispatchFlightTime = el('dispatchFlightTime');
+    const dispatchPax = el('dispatchPax');
+    const dispatchLuggage = el('dispatchLuggage');
+    const dispatchCost = el('dispatchCost');
+    const opsReadinessList = el('opsReadinessList');
+    const readinessScore = el('readinessScore');
 
     const OPS_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', label: '(HEL) Helsinki-Vantaa' },
@@ -798,6 +985,7 @@ END OF MESSAGE</pre>
 
     let requests = [];
     let selected = null;
+    let quickFilter = 'ALL';
 
     function tick() {
       clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;
@@ -823,6 +1011,78 @@ END OF MESSAGE</pre>
 
     function setText(id, value, fallback = '.....') {
       el(id).textContent = text(value, fallback);
+    }
+
+    function todayIso() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function opsFlightTime(req) {
+      const mins = Number(req?.estimatedFlightMinutes);
+      if (!Number.isFinite(mins) || mins <= 0) return 'PILOT CONFIRMS';
+      const hours = Math.floor(mins / 60);
+      const minutes = mins % 60;
+      return `${String(hours).padStart(2, '0')}H ${String(minutes).padStart(2, '0')}M`;
+    }
+
+    function passengerList(req) {
+      return req.passengers?.length ? req.passengers : [{
+        number: 1,
+        name: req.name,
+        email: req.email,
+        phone: req.phone,
+        dob: req.dob,
+        weightKg: req.weightKg,
+        passportCountry: req.passportCountry,
+        nationalId: req.nationalId
+      }];
+    }
+
+    function passengerManifestComplete(req) {
+      const passengers = passengerList(req);
+      return passengers.length >= Number(req.seats || 1) && passengers.every(passenger =>
+        passenger.name && passenger.email && passenger.phone && passenger.dob && passenger.weightKg && passenger.passportCountry && passenger.nationalId
+      );
+    }
+
+    function agreementCount(req) {
+      const passengers = passengerList(req);
+      return passengers.filter(passenger => passenger.agreementSignedAt).length;
+    }
+
+    function needsOpsAction(req) {
+      if (!req) return false;
+      if (req.status === 'REQUESTED') return true;
+      if (req.pilotDecision !== 'APPROVED') return true;
+      if (!req.reimbursementStatement) return true;
+      if (req.status === 'CONFIRMED' && agreementCount(req) < passengerList(req).length) return true;
+      if (req.paymentStatus !== 'PAID') return true;
+      if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(String(req.timeProposal.responseStatus || '').toUpperCase())) return true;
+      return false;
+    }
+
+    function renderOpsTotals() {
+      const today = todayIso();
+      opsTotal.textContent = requests.length;
+      opsNeedsAction.textContent = requests.filter(needsOpsAction).length;
+      opsConfirmed.textContent = requests.filter(req => req.status === 'CONFIRMED').length;
+      opsUnpaid.textContent = requests.filter(req => req.paymentStatus !== 'PAID').length;
+      opsToday.textContent = requests.filter(req => req.requestDate === today).length;
+    }
+
+    function matchesQuickFilter(req) {
+      if (quickFilter === 'ACTION') return needsOpsAction(req);
+      if (quickFilter === 'CONFIRMED') return req.status === 'CONFIRMED';
+      if (quickFilter === 'UNPAID') return req.paymentStatus !== 'PAID';
+      if (quickFilter === 'TODAY') return req.requestDate === todayIso();
+      if (quickFilter === 'PROPOSAL') return Boolean(req.timeProposal);
+      return true;
+    }
+
+    function renderQuickFilterState() {
+      document.querySelectorAll('[data-quick-filter]').forEach(button => {
+        button.classList.toggle('active', button.dataset.quickFilter === quickFilter);
+      });
     }
 
     function requestReturnText(req) {
@@ -907,17 +1167,78 @@ END OF MESSAGE</pre>
       opsAlerts.innerHTML = alerts.map(alert => `<div class="ops-alert ${alert.tone}">${escapeHtml(alert.label)}</div>`).join('');
     }
 
+    function readinessItems(req) {
+      const passengers = passengerList(req);
+      const signed = agreementCount(req);
+      const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
+      return [
+        {
+          label: 'Flight info',
+          tone: req.requestDate && req.requestTime && req.dep && req.arr ? 'good' : 'danger',
+          detail: req.requestDate && req.requestTime ? `${req.requestDate} ${req.requestTime}` : 'Route or schedule missing'
+        },
+        {
+          label: 'Manifest',
+          tone: passengerManifestComplete(req) ? 'good' : 'danger',
+          detail: passengerManifestComplete(req) ? `${passengers.length}/${req.seats || passengers.length} passenger details complete` : 'Passenger details incomplete'
+        },
+        {
+          label: 'Statement',
+          tone: req.reimbursementStatement ? 'good' : 'danger',
+          detail: req.reimbursementStatement ? 'Reimbursement statement saved' : 'Save statement before approval'
+        },
+        {
+          label: 'Pilot decision',
+          tone: approved ? 'good' : req.pilotDecision === 'NEEDS INFO' ? 'warn' : 'danger',
+          detail: approved ? 'Approved and confirmed' : (req.pilotDecision || 'Pending pilot decision')
+        },
+        {
+          label: 'Passenger docs',
+          tone: signed === passengers.length && passengers.length ? 'good' : approved ? 'warn' : 'danger',
+          detail: approved ? `Agreements signed ${signed}/${passengers.length}` : 'Issued after approval'
+        },
+        {
+          label: 'Payment',
+          tone: req.paymentStatus === 'PAID' ? 'good' : req.paymentStatus === 'DEPOSIT PAID' ? 'warn' : 'danger',
+          detail: req.paymentStatus || 'UNPAID'
+        },
+        {
+          label: 'Crew',
+          tone: req.crew?.commander && req.crew.commander !== 'UNASSIGNED' ? 'good' : 'warn',
+          detail: req.crew?.commander && req.crew.commander !== 'UNASSIGNED' ? `CMD ${req.crew.commander}` : 'Commander not assigned'
+        },
+        {
+          label: 'Time proposal',
+          tone: !req.timeProposal ? 'good' : req.timeProposal.responseStatus === 'ACCEPTED' ? 'good' : req.timeProposal.responseStatus === 'DENIED' ? 'danger' : 'warn',
+          detail: req.timeProposal ? `${proposalLabel(req.timeProposal)} / ${req.timeProposal.responseStatus || 'PENDING'}` : 'No active proposal'
+        }
+      ];
+    }
+
+    function renderDispatchBoard(req) {
+      const passengers = passengerList(req);
+      dispatchRoute.textContent = req.route || '.....';
+      dispatchSchedule.textContent = `${req.depName || req.dep || 'DEP'} to ${req.arrName || req.arr || 'ARR'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}`;
+      dispatchFlightTime.textContent = opsFlightTime(req);
+      dispatchPax.textContent = `${req.seats || passengers.length || 1} PAX / ${passengers[0]?.name || req.name || 'PASSENGER'}`;
+      dispatchLuggage.textContent = req.carryOnBags === 'YES' ? `${req.baggageWeightKg || '0'} KG / ${req.bagType || 'BAG TYPE NIL'}` : 'NO DECLARED LUGGAGE';
+      dispatchCost.textContent = req.estimatedTotalEur ? `${money(req.estimatedTotalEur)} TOTAL` : 'PILOT CONFIRMS';
+    }
+
+    function renderReadiness(req) {
+      const items = readinessItems(req);
+      const complete = items.filter(item => item.tone === 'good').length;
+      readinessScore.textContent = `${complete}/${items.length} complete`;
+      opsReadinessList.innerHTML = items.map(item => `
+        <div class="ops-check ${escapeHtml(item.tone)}">
+          <strong>${escapeHtml(item.label)}</strong>
+          ${escapeHtml(item.detail)}
+        </div>
+      `).join('');
+    }
+
     function renderManifest(req) {
-      const passengers = req.passengers?.length ? req.passengers : [{
-        number: 1,
-        name: req.name,
-        email: req.email,
-        phone: req.phone,
-        dob: req.dob,
-        weightKg: req.weightKg,
-        passportCountry: req.passportCountry,
-        nationalId: req.nationalId
-      }];
+      const passengers = passengerList(req);
       manifestList.innerHTML = passengers.map(passenger => `
         <div class="manifest-card">
           <strong>PAX ${escapeHtml(passenger.number || 1)} / ${escapeHtml(passenger.name || 'NIL')}</strong>
@@ -962,21 +1283,23 @@ END OF MESSAGE</pre>
 
     function renderList() {
       const query = filterQuery.value.trim().toUpperCase();
+      renderQuickFilterState();
       const visible = requests.filter(req => {
         const matchesQuery = !query || `${req.id} ${req.route} ${req.name}`.toUpperCase().includes(query);
-        return matchesQuery && (filterStatus.value === 'ALL' || req.status === filterStatus.value) && (!filterDate.value || req.requestDate === filterDate.value);
+        return matchesQuery && matchesQuickFilter(req) && (filterStatus.value === 'ALL' || req.status === filterStatus.value) && (!filterDate.value || req.requestDate === filterDate.value);
       });
       requestList.innerHTML = visible.map(req => {
         const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
         const paid = req.paymentStatus === 'PAID';
         const proposal = String(req.timeProposal?.responseStatus || '').toUpperCase();
         const proposalClass = proposal === 'ACCEPTED' ? 'state-good' : proposal === 'DENIED' ? 'state-danger' : 'state-warn';
+        const actionClass = needsOpsAction(req) ? 'state-warn' : 'state-good';
         return `
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
           <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
           ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
           ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
-          <div class="request-state-row"><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span>${req.timeProposal ? `<span class="request-state ${proposalClass}">TIME ${escapeHtml(proposal || 'PENDING')}</span>` : ''}</div>
+          <div class="request-state-row"><span class="request-state ${actionClass}">${needsOpsAction(req) ? 'ACTION' : 'READY'}</span><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span>${req.timeProposal ? `<span class="request-state ${proposalClass}">TIME ${escapeHtml(proposal || 'PENDING')}</span>` : ''}</div>
         </div>
       `;
       }).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
@@ -1033,6 +1356,8 @@ END OF MESSAGE</pre>
       syncItineraryCorrectionControls(req);
       renderProposal(req);
       renderAlerts(req);
+      renderDispatchBoard(req);
+      renderReadiness(req);
       renderManifest(req);
       updateWalletControls(req);
       loadTimeline(req.id).catch(() => {});
@@ -1041,6 +1366,7 @@ END OF MESSAGE</pre>
 
     function replaceRequest(req) {
       requests = requests.map(item => item.id === req.id ? req : item);
+      renderOpsTotals();
       selectRequest(req);
     }
 
@@ -1075,6 +1401,7 @@ END OF MESSAGE</pre>
       const data = await res.json();
       requests = data.requests || [];
       selected = null;
+      renderOpsTotals();
       renderList();
       renderCalendar();
       if (requests[0]) selectRequest(requests[0]);
@@ -1088,6 +1415,7 @@ END OF MESSAGE</pre>
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return selected;
       requests = data.requests || [];
+      renderOpsTotals();
       const latest = requests.find(request => request.id === selectedId) || null;
       if (latest) selectRequest(latest);
       return latest;
@@ -1113,6 +1441,12 @@ END OF MESSAGE</pre>
 
     [filterQuery, filterStatus, filterDate].forEach(input => input.addEventListener('input', renderList));
     filterStatus.addEventListener('change', renderList);
+    document.querySelectorAll('[data-quick-filter]').forEach(button => {
+      button.addEventListener('click', () => {
+        quickFilter = button.dataset.quickFilter || 'ALL';
+        renderList();
+      });
+    });
     correctExperience.addEventListener('change', () => normalizeCorrectionSelection('experience'));
     correctDep.addEventListener('change', () => normalizeCorrectionSelection('dep'));
     correctArr.addEventListener('change', () => normalizeCorrectionSelection('arr'));

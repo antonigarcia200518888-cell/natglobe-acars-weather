@@ -149,6 +149,81 @@
       text-transform: uppercase;
     }
 
+    .route-experience {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) repeat(4, minmax(120px, 0.8fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .route-experience-main,
+    .route-experience-item {
+      border: 1px solid #555;
+      background: #050505;
+      padding: 10px;
+      min-width: 0;
+      text-transform: uppercase;
+    }
+
+    .route-experience-main {
+      display: grid;
+      gap: 7px;
+    }
+
+    .route-experience-label,
+    .route-experience-item span {
+      color: #8d8d8d;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .route-experience-route {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+      font-size: clamp(18px, 2.4vw, 28px);
+      font-weight: 700;
+      line-height: 1.05;
+    }
+
+    .route-experience-route i {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.45;
+      position: relative;
+    }
+
+    .route-experience-route i::after {
+      content: "";
+      position: absolute;
+      right: -2px;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      border-top: 1px solid currentColor;
+      border-right: 1px solid currentColor;
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    .route-experience-names {
+      color: #bdbdbd;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .route-experience-item strong {
+      display: block;
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
     .route-map-shell {
       position: relative;
       width: 100%;
@@ -3575,6 +3650,53 @@
       font-size: 11px;
     }
 
+    .luxury-booking .route-experience {
+      grid-template-columns: minmax(230px, 1.35fr) repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .luxury-booking .route-experience-main,
+    .luxury-booking .route-experience-item {
+      border: 1px solid rgba(7,29,73,0.10);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.88), rgba(244,247,251,0.82));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
+    }
+
+    .luxury-booking .route-experience-main {
+      padding: 16px;
+    }
+
+    .luxury-booking .route-experience-item {
+      padding: 14px;
+    }
+
+    .luxury-booking .route-experience-label,
+    .luxury-booking .route-experience-item span {
+      color: #6c7890;
+      font: 700 10px/1.2 "Courier New", monospace;
+    }
+
+    .luxury-booking .route-experience-route {
+      color: var(--navy);
+      font-family: "Computer Says No", "Courier New", Courier, monospace;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+    }
+
+    .luxury-booking .route-experience-names {
+      color: var(--ink-soft);
+      font: 12px/1.45 Poppins, Arial, sans-serif;
+      text-transform: none;
+    }
+
+    .luxury-booking .route-experience-item strong {
+      color: var(--navy);
+      font: 700 13px/1.25 "Courier New", monospace;
+    }
+
     .luxury-booking .route-map-shell {
       height: clamp(420px, 48vw, 620px);
       border: 1px solid rgba(7,29,73,0.16);
@@ -4631,6 +4753,14 @@
         border-radius: 18px;
       }
 
+      .luxury-booking .route-experience {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .luxury-booking .route-experience-main {
+        grid-column: 1 / -1;
+      }
+
       .route-map-guide {
         right: 12px;
       }
@@ -4882,6 +5012,21 @@
         height: 260px;
         min-height: 260px;
         border-radius: 16px;
+      }
+
+      .luxury-booking .route-experience {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .luxury-booking .route-experience-main,
+      .luxury-booking .route-experience-item {
+        border-radius: 14px;
+        padding: 11px;
+      }
+
+      .luxury-booking .route-experience-route {
+        font-size: 28px;
       }
 
       .search-grid {
@@ -5396,6 +5541,17 @@
           <div class="route-map-title">Route overview</div>
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
+        <div class="route-experience" aria-label="Selected route details">
+          <div class="route-experience-main">
+            <span class="route-experience-label">Selected route</span>
+            <div class="route-experience-route"><strong id="routeExpDep">HYV</strong><i aria-hidden="true"></i><strong id="routeExpArr">HNK</strong></div>
+            <div id="routeExpNames" class="route-experience-names">Hyvinkää to Hanko</div>
+          </div>
+          <div class="route-experience-item"><span>Flight time</span><strong id="routeExpTime">00H 40M</strong></div>
+          <div class="route-experience-item"><span>Boarding target</span><strong id="routeExpBoarding">20 min before departure</strong></div>
+          <div class="route-experience-item"><span>Aircraft</span><strong>PA-28R-200</strong></div>
+          <div class="route-experience-item"><span>Estimate</span><strong id="routeExpPrice">Approx. €129 EUR (1 PAX)</strong></div>
+        </div>
         <div id="routeMapShell" class="route-map-shell">
           <div id="routeMap" aria-label="Interactive route map"></div>
           <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
@@ -5785,6 +5941,12 @@
     const routeMapShell = el('routeMapShell');
     const routeMapFallback = el('routeMapFallback');
     const routeMapGuideRoute = el('routeMapGuideRoute');
+    const routeExpDep = el('routeExpDep');
+    const routeExpArr = el('routeExpArr');
+    const routeExpNames = el('routeExpNames');
+    const routeExpTime = el('routeExpTime');
+    const routeExpBoarding = el('routeExpBoarding');
+    const routeExpPrice = el('routeExpPrice');
     const locateMeBtn = el('locateMeBtn');
     const reviewDialog = el('reviewDialog');
     const reviewDialogBody = el('reviewDialogBody');
@@ -5918,6 +6080,24 @@
       return `(${airport.short || airport.icao}) ${place}, ${airport.country}`;
     }
 
+    function routeDisplayCode(airport) {
+      return airport?.short || airport?.iata || airport?.icao || '---';
+    }
+
+    function routeDisplayName(airport) {
+      if (!airport) return 'Select airport';
+      const prettyNames = {
+        EFHV: 'Hyvinkää',
+        EFHN: 'Hanko',
+        EFNU: 'Nummela',
+        EFPR: 'Pyhtää',
+        EFRY: 'Räyskälä',
+        EFHK: 'Helsinki-Vantaa'
+      };
+      if (prettyNames[airport.icao]) return prettyNames[airport.icao];
+      return airport.icao === 'EFHK' ? 'Helsinki-Vantaa' : (airport.city || airport.name || airport.short || airport.icao);
+    }
+
     function selectedAirport(id) {
       const icao = el(id).value;
       return airports.find(airport => airport.icao === icao) || null;
@@ -5938,7 +6118,7 @@
     function itineraryName(dep, arr) {
       if (isHankoScenicSelected()) return 'Hanko Regatta scenic overflight';
       if (isHelsinkiCityScenicSelected()) return 'Helsinki city scenic overflight';
-      return dep && arr ? `${dep.city} to ${arr.city}` : 'Select airports to build your trip.';
+      return dep && arr ? `${routeDisplayName(dep)} to ${routeDisplayName(arr)}` : 'Select airports to build your trip.';
     }
 
     function airportLatLng(airport) {
@@ -6165,6 +6345,24 @@
     function formatFlightTime(dep, arr) {
       const mins = flightMinutes(dep, arr);
       return Number.isFinite(mins) ? formatMinutes(mins) : mins;
+    }
+
+    function routeBoardingTarget() {
+      const time = el('requestTime').value;
+      return time ? `20 min before ${time}` : '20 min before departure';
+    }
+
+    function updateRouteExperience(dep, arr) {
+      if (!routeExpDep || !routeExpArr || !routeExpNames || !routeExpTime || !routeExpBoarding || !routeExpPrice) return;
+      const validRoute = Boolean(dep && arr && (dep.icao !== arr.icao || isScenicExperienceSelected()));
+      routeExpDep.textContent = validRoute ? routeDisplayCode(dep) : '---';
+      routeExpArr.textContent = validRoute ? (isScenicExperienceSelected() ? 'SCN' : routeDisplayCode(arr)) : '---';
+      routeExpNames.textContent = validRoute
+        ? `${routeDisplayName(dep)} ${isScenicExperienceSelected() ? 'scenic flight' : `to ${routeDisplayName(arr)}`}`
+        : 'Choose departure and destination to build your private flight request.';
+      routeExpTime.textContent = validRoute ? formatFlightTime(dep, arr) : '--H --M';
+      routeExpBoarding.textContent = validRoute ? routeBoardingTarget() : '20 min before departure';
+      routeExpPrice.textContent = validRoute ? routePrice(dep, arr) : 'Flight team confirms';
     }
 
     function fillPickerWheels() {
@@ -6432,6 +6630,7 @@
       el('summarySeats').textContent = el('seats').value || '1';
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
+      updateRouteExperience(dep, arr);
       requestSummary();
       updateReadiness(dep, arr);
       el('mobileTripLine').textContent = itineraryName(dep, arr);
