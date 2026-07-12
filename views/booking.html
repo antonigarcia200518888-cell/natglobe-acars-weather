@@ -5950,13 +5950,15 @@
       margin: 0 auto;
       padding: 0;
       border: 0;
+      border-radius: 18px;
+      overflow: hidden;
       background: #f7f8fa;
       box-shadow: 0 0 80px rgba(7, 29, 73, 0.10);
     }
 
     .luxury-booking .luxury-hero {
-      min-height: 780px;
-      padding: 28px clamp(28px, 5vw, 72px) 34px;
+      min-height: 740px;
+      padding: 24px clamp(28px, 5vw, 72px) 26px;
       overflow: hidden;
       border-radius: 0 0 8px 8px;
       background:
@@ -6025,15 +6027,15 @@
 
     .luxury-booking .luxury-hero-center {
       max-width: 1040px;
-      padding: 96px 0 50px;
+      padding: 54px 0 32px;
     }
 
     .luxury-booking .luxury-title {
       display: block;
       max-width: 700px;
       margin: 16px 0 0;
-      font-size: 76px;
-      line-height: 0.82;
+      font-size: 70px;
+      line-height: 0.88;
     }
 
     .luxury-booking .luxury-title span {
@@ -6042,16 +6044,16 @@
 
     .luxury-booking .luxury-copy {
       max-width: 620px;
-      margin-top: 24px;
+      margin-top: 18px;
       color: rgba(255,255,255,0.78);
-      font-size: 15px;
-      line-height: 1.65;
+      font-size: 14px;
+      line-height: 1.58;
     }
 
     .luxury-booking .luxury-flight-desk {
       grid-template-columns: minmax(0, 1fr) 280px;
       max-width: 900px;
-      margin-top: 34px;
+      margin-top: 24px;
       gap: 12px;
     }
 
@@ -6146,7 +6148,7 @@
     }
 
     .luxury-booking .luxury-hero-actions {
-      margin-top: 20px;
+      margin-top: 16px;
     }
 
     .luxury-booking .luxury-cta,
@@ -6165,8 +6167,8 @@
     }
 
     .luxury-booking .luxury-stat {
-      min-height: 78px;
-      padding: 14px 16px;
+      min-height: 66px;
+      padding: 10px 14px;
       border: 0;
       border-right: 1px solid rgba(255,255,255,0.14);
       border-radius: 0;
@@ -6178,7 +6180,11 @@
     }
 
     .luxury-booking .luxury-stat strong {
-      font-size: 28px;
+      font-size: 24px;
+    }
+
+    .luxury-booking .luxury-scroll-hint {
+      display: none;
     }
 
     .luxury-booking .luxury-content {
@@ -6297,6 +6303,10 @@
     .luxury-booking .booking-workspace > .search-card {
       grid-column: 1;
       grid-row: 1;
+      display: flex;
+      height: 100%;
+      flex-direction: column;
+      align-self: stretch;
       margin: 0;
     }
 
@@ -6404,6 +6414,13 @@
       outline: 3px solid rgba(7,29,73,0.09);
     }
 
+    .luxury-booking .search-grid .route-field select {
+      padding-left: 10px;
+      padding-right: 24px;
+      font: 600 11px/1.2 Poppins, Arial, sans-serif;
+      text-transform: none;
+    }
+
     .luxury-booking .swap-btn {
       min-height: 52px;
       border-radius: 6px;
@@ -6434,6 +6451,96 @@
       color: #071d49;
       font-style: normal;
       font-weight: 700;
+    }
+
+    .luxury-booking .planner-live-brief {
+      margin-top: auto;
+      padding: 17px;
+      border-radius: 6px;
+      background: #071d49;
+      color: #fff;
+      box-shadow: 0 16px 34px rgba(7,29,73,0.16);
+    }
+
+    .luxury-booking .planner-live-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 11px;
+      border-bottom: 1px solid rgba(255,255,255,0.17);
+    }
+
+    .luxury-booking .planner-live-head span,
+    .luxury-booking .planner-live-grid span {
+      display: block;
+      color: rgba(255,255,255,0.58);
+      font: 700 9px/1.2 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .planner-live-head small {
+      color: #7ed795;
+      font: 700 9px/1.2 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .planner-live-route {
+      margin-top: 14px;
+      color: #fff;
+      font: 400 34px/0.95 "Computer Says No", "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .planner-live-route i {
+      display: inline-block;
+      width: 34px;
+      height: 1px;
+      margin: 0 8px 6px;
+      background: rgba(255,255,255,0.52);
+    }
+
+    .luxury-booking .planner-live-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin-top: 15px;
+    }
+
+    .luxury-booking .planner-live-grid > div {
+      min-width: 0;
+      padding-right: 10px;
+      border-right: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .luxury-booking .planner-live-grid > div:not(:first-child) {
+      padding-left: 10px;
+    }
+
+    .luxury-booking .planner-live-grid > div:nth-child(2) {
+      padding-right: 0;
+      border-right: 0;
+    }
+
+    .luxury-booking .planner-live-grid .planner-live-price {
+      grid-column: 1 / -1;
+      margin-top: 11px;
+      padding: 10px 0 0;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      border-right: 0;
+    }
+
+    .luxury-booking .planner-live-grid .planner-live-price strong {
+      overflow-wrap: normal;
+    }
+
+    .luxury-booking .planner-live-grid strong {
+      display: block;
+      margin-top: 5px;
+      color: #fff;
+      font: 700 11px/1.28 "Courier New", monospace;
+      overflow-wrap: anywhere;
+      text-transform: uppercase;
     }
 
     .luxury-booking .route-map-head {
@@ -6619,9 +6726,68 @@
       border-radius: 6px;
     }
 
+    .luxury-booking .summary-card .seat-map {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(330px, 0.82fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .luxury-booking .summary-card .seat-map > .declaration {
+      grid-column: 1 / -1;
+      margin: 0;
+    }
+
     .luxury-booking .summary-card .seat-map-shell {
+      grid-column: 1;
+      grid-row: 2;
+      min-height: 314px;
       background: rgba(255,255,255,0.07);
       box-shadow: none;
+    }
+
+    .luxury-booking .summary-card .seat-options {
+      grid-column: 2;
+      grid-row: 2;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .luxury-booking .summary-card .seat-option {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      grid-template-areas:
+        "badge title control"
+        "badge copy control";
+      min-height: 96px;
+      padding: 13px;
+      align-items: center;
+      column-gap: 12px;
+      row-gap: 4px;
+    }
+
+    .luxury-booking .summary-card .seat-option small {
+      grid-area: badge;
+      align-self: center;
+    }
+
+    .luxury-booking .summary-card .seat-option strong {
+      grid-area: title;
+      align-self: end;
+    }
+
+    .luxury-booking .summary-card .seat-option span {
+      grid-area: copy;
+      align-self: start;
+      max-width: 280px;
+    }
+
+    .luxury-booking .summary-card .seat-option .seat-select-control {
+      grid-area: control;
+      align-self: center;
+      margin: 0;
+      white-space: nowrap;
     }
 
     .luxury-booking .summary-card .seat-option:has(input:checked),
@@ -6700,16 +6866,29 @@
       background: #fff;
     }
 
-    .luxury-booking .review-card .section-heading,
-    .luxury-booking .review-card .quote-label,
-    .luxury-booking .review-card .route-summary {
+    .luxury-booking .review-card .review-overview {
       grid-column: 1;
+      grid-row: 1;
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .luxury-booking .review-card .summary-list {
       grid-column: 2;
-      grid-row: 1 / span 3;
+      grid-row: 1;
       margin: 0;
+    }
+
+    .luxury-booking .review-card .review-overview .section-heading {
+      width: 100%;
+      margin-bottom: 22px;
+    }
+
+    .luxury-booking .review-card .review-overview .route-summary {
+      width: 100%;
+      margin-top: 12px;
     }
 
     .luxury-booking .review-card .route-box {
@@ -6724,9 +6903,13 @@
     .luxury-booking .review-card .quote-label {
       display: inline-flex;
       width: fit-content;
+      height: auto;
       min-height: 0;
       margin: 0 0 16px;
       padding: 7px 10px;
+      align-self: start;
+      justify-self: start;
+      align-items: center;
       border: 0;
       border-radius: 999px;
       background: #071d49;
@@ -6877,6 +7060,45 @@
       background: #071d49;
     }
 
+    .luxury-booking .submit-footer #submitBooking {
+      border: 1px solid #fff;
+      background: #fff;
+      color: #071d49;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.18);
+    }
+
+    .luxury-booking .submit-footer #submitBooking:hover,
+    .luxury-booking .submit-footer #submitBooking:focus-visible {
+      border-color: #d7dce5;
+      background: #eef2f7;
+      color: #071d49;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.18);
+    }
+
+    .luxury-booking .btn.is-sending,
+    .luxury-booking .submit-footer #submitBooking.is-sending {
+      border-color: #aeb8c7;
+      background: #aeb8c7;
+      color: #071d49;
+      cursor: wait;
+    }
+
+    .luxury-booking .btn.is-success,
+    .luxury-booking .submit-footer #submitBooking.is-success {
+      border-color: #2fbf58;
+      background: #2fbf58;
+      color: #fff;
+      box-shadow: 0 14px 36px rgba(47,191,88,0.30);
+    }
+
+    .luxury-booking .btn.is-error,
+    .luxury-booking .submit-footer #submitBooking.is-error {
+      border-color: #c92626;
+      background: #c92626;
+      color: #fff;
+      box-shadow: 0 14px 36px rgba(201,38,38,0.26);
+    }
+
     .luxury-booking .btn {
       border-radius: 999px;
     }
@@ -6884,6 +7106,11 @@
     .luxury-booking .private-flight-notice,
     .luxury-booking .booking-support {
       box-shadow: none;
+    }
+
+    .luxury-booking .luxury-reveal {
+      transform: translateY(14px);
+      transition: opacity 360ms ease, transform 360ms cubic-bezier(.2,.9,.2,1);
     }
 
     @media (max-width: 980px) {
@@ -6928,6 +7155,7 @@
       .luxury-booking .readiness-card .section-heading,
       .luxury-booking .readiness-card .declaration,
       .luxury-booking .readiness-card .consent,
+      .luxury-booking .review-card .review-overview,
       .luxury-booking .review-card .section-heading,
       .luxury-booking .review-card .quote-label,
       .luxury-booking .review-card .route-summary,
@@ -6953,6 +7181,10 @@
     @media (max-width: 700px) {
       body.luxury-booking {
         padding-bottom: calc(78px + env(safe-area-inset-bottom));
+      }
+
+      .luxury-booking .frame {
+        border-radius: 0;
       }
 
       .luxury-booking .luxury-hero {
@@ -7123,6 +7355,10 @@
         gap: 8px;
       }
 
+      .luxury-booking .planner-live-brief {
+        display: none;
+      }
+
       .luxury-booking .mobile-booking-bar {
         opacity: 0;
         pointer-events: none;
@@ -7181,8 +7417,77 @@
         font-size: 8px;
       }
 
+      .luxury-booking .summary-card .seat-map {
+        grid-template-columns: 1fr;
+        gap: 9px;
+      }
+
+      .luxury-booking .summary-card .seat-map > .declaration {
+        grid-column: 1;
+      }
+
+      .luxury-booking .summary-card .seat-map-shell {
+        grid-column: 1;
+        grid-row: 2;
+        min-height: 176px;
+      }
+
+      .luxury-booking .summary-card .seat-options {
+        grid-column: 1;
+        grid-row: 3;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .luxury-booking .summary-card .seat-option {
+        display: flex;
+        min-height: 112px;
+        padding: 9px;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .luxury-booking .summary-card .seat-option small {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        margin: 0;
+      }
+
+      .luxury-booking .summary-card .seat-option strong {
+        font-size: 11px;
+        line-height: 1.15;
+      }
+
+      .luxury-booking .summary-card .seat-option span {
+        display: none;
+      }
+
+      .luxury-booking .summary-card .seat-option .seat-select-control {
+        width: 100%;
+        margin-top: auto;
+        padding: 6px 4px;
+        font-size: 7px;
+        text-align: center;
+        white-space: normal;
+      }
+
       .luxury-booking .review-card {
         padding: 18px;
+      }
+
+      .luxury-booking .review-card .route-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-direction: row;
+        gap: 10px;
+        font-size: 28px;
+      }
+
+      .luxury-booking .review-card .quote-label {
+        margin-bottom: 10px;
       }
 
       .luxury-booking .preflight-strip {
@@ -7205,6 +7510,15 @@
 
       .luxury-booking .review-dialog-card {
         padding: 18px;
+      }
+
+      .luxury-booking .luxury-reveal,
+      .luxury-booking .luxury-reveal .section-title,
+      .luxury-booking .luxury-reveal .booking-kicker,
+      .luxury-booking .luxury-reveal .route-map-title {
+        opacity: 1;
+        transform: none;
+        transition: none;
       }
     }
 
@@ -7238,9 +7552,8 @@
       <div class="luxury-hero-center">
         <div class="luxury-eyebrow">Equal-share private flight requests</div>
         <h1 class="luxury-title" aria-label="Private flight booking">
-          <span style="--i:0">Private</span>
-          <span style="--i:1">Flight</span>
-          <span style="--i:2">Booking</span>
+          <span style="--i:0">Private Flight</span>
+          <span style="--i:1">Booking</span>
         </h1>
         <p class="luxury-copy">Plan a scenic or regional private flight with a refined request flow, pilot review, passenger information passes, and final operational confirmation before any flight is booked.</p>
         <div class="luxury-flight-desk" aria-label="Live selected flight summary">
@@ -7397,6 +7710,15 @@
           <span><i aria-hidden="true">02</i> Pilot reviewed</span>
           <span><i aria-hidden="true">03</i> No charge to request</span>
         </div>
+        <div class="planner-live-brief" aria-label="Live selected flight brief">
+          <div class="planner-live-head"><span>Selected flight</span><small>Updates automatically</small></div>
+          <div id="plannerBriefRoute" class="planner-live-route">HYV <i aria-hidden="true"></i> HNK</div>
+          <div class="planner-live-grid">
+            <div><span>Flight time</span><strong id="plannerBriefTime">00H 40M</strong></div>
+            <div><span>Boarding</span><strong id="plannerBriefBoarding">09:40</strong></div>
+            <div class="planner-live-price"><span>Estimate</span><strong id="plannerBriefPrice">Approx. €129 EUR (1 PAX)</strong></div>
+          </div>
+        </div>
       </section>
 
       <section class="card aircraft-feature" aria-label="Piper Arrow PA-28R-200">
@@ -7437,7 +7759,7 @@
           <div id="luggageSection" class="card">
             <div class="section-heading"><div><span class="section-overline">Aircraft loading</span><h2 class="section-title">Luggage declaration</h2></div><span class="section-sequence">03</span></div>
             <div class="declaration">
-              Keep baggage within the selected limit and declare power banks. Dangerous goods, weapons, flammables, pressurised containers, chemicals, and unsecured batteries are not permitted.
+              Declare all bags, total weight, power banks and lithium batteries. Dangerous goods and unsecured batteries are not permitted.
             </div>
             <input id="carryOnBags" type="hidden" value="NO" /><input id="bagCount" type="hidden" value="0" />
             <div class="baggage-addon">
@@ -7569,12 +7891,14 @@
       </div>
 
       <div id="reviewSection" class="card review-card">
-        <div class="section-heading"><div><span class="section-overline">Live request summary</span><h2 class="section-title">Trip details</h2></div><span class="section-sequence">06</span></div>
-        <div class="quote-label">Private flight request review</div>
-        <div class="route-summary">
-          <div class="route-box">
-            <div class="route-line"><span id="depCode">----</span><span>to</span><span id="arrCode">----</span></div>
-            <div id="routeNames" class="airport-name">Select airports to build your trip.</div>
+        <div class="review-overview">
+          <div class="section-heading"><div><span class="section-overline">Live request summary</span><h2 class="section-title">Trip details</h2></div><span class="section-sequence">06</span></div>
+          <div class="quote-label">Private flight request review</div>
+          <div class="route-summary">
+            <div class="route-box">
+              <div class="route-line"><span id="depCode">----</span><span>to</span><span id="arrCode">----</span></div>
+              <div id="routeNames" class="airport-name">Select airports to build your trip.</div>
+            </div>
           </div>
         </div>
         <ul class="summary-list">
@@ -8185,6 +8509,13 @@
       heroRouteMeta.textContent = `${tripLabel} / ${passengers} passenger${passengers === 1 ? '' : 's'} / ${routeBoardingTarget()}`;
       heroFlightTime.textContent = validRoute ? formatFlightTime(dep, arr) : '--H --M';
       heroPrice.textContent = validRoute ? routePrice(dep, arr) : 'Pilot confirms';
+      if (el('plannerBriefRoute')) {
+        const destinationCode = isScenicExperienceSelected() ? 'SCN' : routeDisplayCode(arr);
+        el('plannerBriefRoute').textContent = validRoute ? `${routeDisplayCode(dep)} → ${destinationCode}` : '--- → ---';
+        el('plannerBriefTime').textContent = validRoute ? formatFlightTime(dep, arr) : '--H --M';
+        el('plannerBriefBoarding').textContent = validRoute ? boardingTimeSummary().split(' / ')[0] : '--:--';
+        el('plannerBriefPrice').textContent = validRoute ? routePrice(dep, arr) : 'Flight team confirms';
+      }
     }
 
     function routeInsight(dep, arr) {
