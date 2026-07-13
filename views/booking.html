@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Private Flight Booking</title>
+  <link rel="preload" as="image" href="/nga-coastal-flight-hero.jpg" fetchpriority="high" />
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -9824,6 +9825,189 @@
         border-radius: 4px;
       }
     }
+
+    /* Real aircraft imagery: coastal hero and integrated cabin gallery. */
+    .luxury-booking .luxury-hero {
+      background:
+        linear-gradient(90deg, rgba(1,9,27,0.94) 0%, rgba(3,19,47,0.84) 36%, rgba(4,25,57,0.42) 63%, rgba(5,24,52,0.08) 100%),
+        linear-gradient(0deg, rgba(1,10,27,0.70), transparent 48%),
+        url('/nga-coastal-flight-hero.jpg') 50% 30% / cover no-repeat;
+      background-color: var(--nga-navy);
+    }
+
+    .luxury-booking .aircraft-cabin-view {
+      display: block;
+      padding: 0;
+      background: var(--nga-navy);
+    }
+
+    .luxury-booking .aircraft-cabin-shell {
+      position: absolute;
+      inset: 0;
+      width: auto;
+      max-width: none;
+      height: 100%;
+      text-align: left;
+    }
+
+    .luxury-booking .aircraft-cabin-gallery {
+      display: grid;
+      grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.86fr);
+      gap: 2px;
+      width: 100%;
+      height: 100%;
+      background: var(--nga-navy);
+    }
+
+    .luxury-booking .aircraft-cabin-photo {
+      position: relative;
+      min-width: 0;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #07152f;
+    }
+
+    .luxury-booking .aircraft-cabin-photo::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 45%, rgba(1,9,27,0.76) 100%);
+      pointer-events: none;
+    }
+
+    .luxury-booking .aircraft-cabin-gallery img {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      max-height: none;
+      margin: 0;
+      padding: 0;
+      object-fit: cover;
+      mix-blend-mode: normal;
+      filter: saturate(0.92) contrast(1.03);
+      transform: scale(1.01);
+      transition: transform 700ms cubic-bezier(.2,.7,.2,1), filter 400ms ease;
+    }
+
+    .luxury-booking .aircraft-cabin-photo-primary img {
+      object-position: center 54%;
+    }
+
+    .luxury-booking .aircraft-cabin-photo-detail img {
+      object-position: center 48%;
+    }
+
+    .luxury-booking .aircraft-cabin-view.is-active .aircraft-cabin-photo:hover img {
+      filter: saturate(1) contrast(1.04);
+      transform: scale(1.045);
+    }
+
+    .luxury-booking .aircraft-cabin-photo figcaption {
+      position: absolute;
+      z-index: 2;
+      right: 16px;
+      bottom: 78px;
+      left: 16px;
+      color: #fff;
+    }
+
+    .luxury-booking .aircraft-cabin-photo figcaption span,
+    .luxury-booking .aircraft-cabin-photo figcaption strong {
+      display: block;
+    }
+
+    .luxury-booking .aircraft-cabin-photo figcaption span {
+      color: rgba(255,255,255,0.68);
+      font: 700 8px/1.2 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .aircraft-cabin-photo figcaption strong {
+      margin-top: 5px;
+      font: 400 21px/0.95 "Computer Says No", "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .aircraft-cabin-gallery-footer {
+      position: absolute;
+      z-index: 4;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      min-height: 62px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px 14px 10px 18px;
+      border-top: 1px solid rgba(255,255,255,0.22);
+      background: rgba(3,17,43,0.78);
+      backdrop-filter: blur(14px);
+    }
+
+    .luxury-booking .aircraft-cabin-gallery-footer .aircraft-panel-overline {
+      color: rgba(255,255,255,0.74);
+    }
+
+    .luxury-booking .aircraft-cabin-gallery-footer .aircraft-panel-action {
+      min-height: 38px;
+      margin: 0;
+      border-color: rgba(255,255,255,0.68);
+      background: #fff;
+      color: var(--nga-navy);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .luxury-booking .luxury-hero {
+        background:
+          linear-gradient(180deg, rgba(1,9,27,0.88) 0%, rgba(3,19,47,0.62) 52%, rgba(2,14,36,0.72) 100%),
+          url('/nga-coastal-flight-hero.jpg') 50% 48% / cover no-repeat;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .luxury-booking .luxury-hero {
+        background:
+          linear-gradient(180deg, rgba(1,9,27,0.86) 0%, rgba(3,19,47,0.58) 46%, rgba(2,14,36,0.78) 100%),
+          url('/nga-coastal-flight-hero.jpg') 52% center / cover no-repeat;
+      }
+
+      .luxury-booking .aircraft-cabin-gallery {
+        grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+      }
+
+      .luxury-booking .aircraft-cabin-photo figcaption {
+        right: 9px;
+        bottom: 65px;
+        left: 9px;
+      }
+
+      .luxury-booking .aircraft-cabin-photo figcaption span {
+        display: none;
+      }
+
+      .luxury-booking .aircraft-cabin-photo figcaption strong {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .luxury-booking .aircraft-cabin-gallery-footer {
+        min-height: 54px;
+        padding: 8px 9px 8px 11px;
+      }
+
+      .luxury-booking .aircraft-cabin-gallery-footer .aircraft-panel-overline {
+        font-size: 7px;
+      }
+
+      .luxury-booking .aircraft-cabin-gallery-footer .aircraft-panel-action {
+        min-height: 36px;
+        padding: 0 11px;
+        font-size: 7px;
+      }
+    }
   </style>
 </head>
 <body class="luxury-booking">
@@ -10009,10 +10193,20 @@
             </div>
             <div class="aircraft-layer aircraft-cabin-view" data-aircraft-panel="cabin" aria-hidden="true">
               <div class="aircraft-cabin-shell">
-                <span class="aircraft-panel-overline">Four-seat cabin</span>
-                <img src="/pa28-seat-map.png" alt="PA-28R cabin layout with two forward crew seats and two rear passenger seats" />
-                <div class="aircraft-cabin-legend"><span>Forward / Crew</span><span>Rear / Passenger cabin</span></div>
-                <button class="aircraft-panel-action" type="button" data-aircraft-cabin-action>Choose rear seat <span aria-hidden="true">&#8594;</span></button>
+                <div class="aircraft-cabin-gallery" aria-label="Actual PA-28R passenger cabin">
+                  <figure class="aircraft-cabin-photo aircraft-cabin-photo-primary">
+                    <img src="/nga-cabin-doorway.jpg" alt="PA-28R rear passenger cabin viewed through the open aircraft door" loading="lazy" decoding="async" />
+                    <figcaption><span>Doorway view</span><strong>Private rear cabin</strong></figcaption>
+                  </figure>
+                  <figure class="aircraft-cabin-photo aircraft-cabin-photo-detail">
+                    <img src="/nga-cabin-detail.jpg" alt="PA-28R cream leather passenger seats and cabin lighting" loading="lazy" decoding="async" />
+                    <figcaption><span>Cabin detail</span><strong>Prepared seating</strong></figcaption>
+                  </figure>
+                </div>
+                <div class="aircraft-cabin-gallery-footer">
+                  <span class="aircraft-panel-overline">Actual passenger cabin</span>
+                  <button class="aircraft-panel-action" type="button" data-aircraft-cabin-action>Choose rear seat <span aria-hidden="true">&#8594;</span></button>
+                </div>
               </div>
             </div>
             <div class="aircraft-layer aircraft-specification-view" data-aircraft-panel="specifications" aria-hidden="true">
