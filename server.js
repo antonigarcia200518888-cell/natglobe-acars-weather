@@ -51,6 +51,8 @@ const OPERATING_COST_EUR_PER_HOUR = 300;
 const PUBLIC_AIRCRAFT_TYPE = 'PA-28R';
 const HANKO_SCENIC_EXPERIENCE = 'HANKO_REGATTA_SCENIC';
 const HELSINKI_CITY_SCENIC_EXPERIENCE = 'HELSINKI_CITY_SCENIC';
+const HELSINKI_DAY_VARIANT = 'DAY';
+const HELSINKI_NIGHT_VARIANT = 'NIGHT';
 const HANKO_SCENIC_DURATION_MIN = 30;
 const HELSINKI_CITY_SCENIC_DURATION_MIN = 45;
 const FIXED_BOOKING_ROUTE_PRICES = {
@@ -1347,11 +1349,15 @@ function normalizeBookingItineraryUpdate(body, fallbackTripType = 'ONE_WAY') {
   if (depAirport.icao === arrAirport.icao && !isHankoScenic && !isHelsinkiCityScenic) return { error: 'CHOOSE DIFFERENT DEPARTURE AND DESTINATION OR SELECT A SCENIC FLIGHT' };
 
   const normalizedExperience = isHankoScenic ? HANKO_SCENIC_EXPERIENCE : isHelsinkiCityScenic ? HELSINKI_CITY_SCENIC_EXPERIENCE : '';
+  const requestedScenicVariant = normalizeBookingText(body?.scenicVariant, 10).toUpperCase();
+  const scenicVariant = isHelsinkiCityScenic
+    ? (requestedScenicVariant === HELSINKI_NIGHT_VARIANT ? HELSINKI_NIGHT_VARIANT : HELSINKI_DAY_VARIANT)
+    : '';
   const normalizedTripType = normalizedExperience ? 'ONE_WAY' : tripType;
   const title = isHankoScenic
     ? 'Hanko Regatta scenic overflight'
     : isHelsinkiCityScenic
-      ? 'Helsinki city scenic overflight'
+      ? `Helsinki ${scenicVariant === HELSINKI_NIGHT_VARIANT ? 'night' : 'day'} scenic flight`
       : `${depAirport.city} to ${arrAirport.city}`;
 
   return {
@@ -1359,6 +1365,7 @@ function normalizeBookingItineraryUpdate(body, fallbackTripType = 'ONE_WAY') {
     arrAirport,
     tripType: normalizedTripType,
     flightExperience: normalizedExperience,
+    scenicVariant,
     flightTitle: title,
     estimatedFlightMinutes: estimateBoardingPassFlightMinutes(depAirport.icao, arrAirport.icao) || null
   };
@@ -1377,6 +1384,7 @@ function applyBookingItineraryUpdate(request, update) {
   request.arrName = update.arrAirport.name;
   request.tripType = update.tripType;
   request.flightExperience = update.flightExperience;
+  request.scenicVariant = update.scenicVariant;
   request.costPerSeatEur = priceEstimate.perPassengerEur;
   request.estimatedTotalEur = priceEstimate.totalEur;
   request.priceNote = priceEstimate.note;
@@ -4122,6 +4130,7 @@ app.post('/api/booking-requests', async (req, res) => {
     requestTime,
     tripType: itineraryUpdate.tripType,
     flightExperience: itineraryUpdate.flightExperience,
+    scenicVariant: itineraryUpdate.scenicVariant,
     estimatedFlightMinutes: itineraryUpdate.estimatedFlightMinutes,
     returnDate: itineraryUpdate.flightExperience ? '' : returnDate,
     returnTime: itineraryUpdate.flightExperience ? '' : returnTime,

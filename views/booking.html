@@ -7972,7 +7972,7 @@
     }
 
     .luxury-booking .route-map-shell {
-      min-height: 530px;
+      min-height: 450px;
       height: auto;
       border-color: rgba(6,26,64,0.16);
       border-radius: 4px;
@@ -9098,7 +9098,123 @@
       color: #fff;
     }
 
+    .luxury-booking .flight-presets {
+      display: grid;
+      grid-template-columns: minmax(150px, 0.72fr) repeat(2, minmax(220px, 1fr));
+      gap: 8px;
+      margin: 18px 0 20px;
+      padding: 7px;
+      border: 1px solid var(--nga-line);
+      border-radius: 5px;
+      background: #f5f7fa;
+    }
+
+    .luxury-booking .flight-preset {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 68px;
+      padding: 11px 13px;
+      overflow: hidden;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--nga-navy);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+    }
+
+    .luxury-booking .flight-preset:hover,
+    .luxury-booking .flight-preset:focus-visible {
+      border-color: #b7c0cd;
+      background: #fff;
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .luxury-booking .flight-preset.is-active {
+      border-color: var(--nga-navy);
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(7,29,73,0.10);
+    }
+
+    .luxury-booking .flight-preset-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid #cbd2dc;
+      border-radius: 50%;
+      background: #fff;
+      font-family: "Courier New", monospace;
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .luxury-booking .flight-preset[data-flight-preset="night"] .flight-preset-icon {
+      border-color: #263b66;
+      background: var(--nga-navy);
+      color: #fff;
+    }
+
+    .luxury-booking .flight-preset-copy {
+      min-width: 0;
+    }
+
+    .luxury-booking .flight-preset-copy strong,
+    .luxury-booking .flight-preset-copy span {
+      display: block;
+    }
+
+    .luxury-booking .flight-preset-copy strong {
+      font-family: "Computer Says No", "Courier New", monospace;
+      font-size: 15px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .luxury-booking .flight-preset-copy span {
+      margin-top: 4px;
+      overflow: hidden;
+      color: #657084;
+      font-family: "Courier New", monospace;
+      font-size: 9px;
+      line-height: 1.3;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .luxury-booking .flight-preset-status {
+      color: #7a8495;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+    }
+
+    .luxury-booking .flight-preset.is-active .flight-preset-status {
+      color: var(--nga-navy);
+    }
+
     @media (max-width: 900px) {
+      .luxury-booking .flight-presets {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .luxury-booking .flight-preset {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 7px;
+        padding: 10px 8px;
+        text-align: center;
+      }
+
+      .luxury-booking .flight-preset-copy span,
+      .luxury-booking .flight-preset-status {
+        display: none;
+      }
+
       .luxury-booking .luxury-hero-top {
         flex-wrap: wrap;
       }
@@ -9128,6 +9244,27 @@
     }
 
     @media (max-width: 700px) {
+      .luxury-booking .flight-presets {
+        margin: 14px 0 16px;
+        padding: 5px;
+        gap: 4px;
+      }
+
+      .luxury-booking .flight-preset {
+        min-height: 74px;
+        padding: 8px 4px;
+      }
+
+      .luxury-booking .flight-preset-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+      }
+
+      .luxury-booking .flight-preset-copy strong {
+        font-size: 11px;
+      }
+
       .luxury-booking .luxury-hero-nav {
         justify-content: space-between;
         gap: 0;
@@ -9222,10 +9359,29 @@
     </div>
 
     <form id="bookingForm" class="booking-workspace">
+      <input id="flightExperience" type="hidden" value="" />
+      <input id="scenicVariant" type="hidden" value="" />
       <section class="route-map-card" aria-label="Selected flight route map">
         <div class="route-map-head">
           <div><span class="section-overline">Live route canvas</span><div class="route-map-title">Your flight, in view</div></div>
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
+        </div>
+        <div class="flight-presets" aria-label="Flight type">
+          <button class="flight-preset is-active" type="button" data-flight-preset="custom" aria-pressed="true">
+            <span class="flight-preset-icon" aria-hidden="true">↗</span>
+            <span class="flight-preset-copy"><strong>Build a route</strong><span>Choose any available airport pair</span></span>
+            <span class="flight-preset-status" aria-hidden="true">01</span>
+          </button>
+          <button class="flight-preset" type="button" data-flight-preset="day" aria-pressed="false">
+            <span class="flight-preset-icon" aria-hidden="true">☼</span>
+            <span class="flight-preset-copy"><strong>Helsinki Day</strong><span>City and archipelago / 45 min / approx. €125</span></span>
+            <span class="flight-preset-status" aria-hidden="true">DAY</span>
+          </button>
+          <button class="flight-preset" type="button" data-flight-preset="night" aria-pressed="false">
+            <span class="flight-preset-icon" aria-hidden="true">◐</span>
+            <span class="flight-preset-copy"><strong>Helsinki Night</strong><span>Evening skyline / seasonal darkness / 45 min</span></span>
+            <span class="flight-preset-status" aria-hidden="true">NIGHT</span>
+          </button>
         </div>
         <div id="routeMapShell" class="route-map-shell">
           <div id="routeMap" aria-label="Interactive route map"></div>
@@ -9242,7 +9398,6 @@
           <div><span class="section-overline">Flight composer</span><div class="booking-kicker">Shape your journey</div></div>
           <span class="section-sequence">01</span>
         </div>
-        <input id="flightExperience" type="hidden" value="" />
         <div class="grid search-grid">
           <div class="route-field">
             <label for="dep">From</label>
@@ -9654,8 +9809,14 @@
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const HANKO_SCENIC_EXPERIENCE = 'HANKO_REGATTA_SCENIC';
     const HELSINKI_CITY_SCENIC_EXPERIENCE = 'HELSINKI_CITY_SCENIC';
+    const HELSINKI_DAY_VARIANT = 'DAY';
+    const HELSINKI_NIGHT_VARIANT = 'NIGHT';
     const HANKO_SCENIC_DURATION_MIN = 30;
     const HELSINKI_CITY_SCENIC_DURATION_MIN = 45;
+    const HELSINKI_SCENIC_POINTS = [
+      [60.1699, 24.9384],
+      [60.1458, 24.9889]
+    ];
     const FIXED_ROUTE_PRICES = {
       'EFHV-EFHN': { oneWay: 129, roundtrip: 258, label: 'Estimated Hyvinkää-Hanko cost share', estimated: true },
       'EFHN-EFHV': { oneWay: 129, roundtrip: 258, label: 'Estimated Hanko-Hyvinkää cost share', estimated: true },
@@ -9672,6 +9833,8 @@
     let draftSaveTimer = null;
     let restoringDraft = false;
     let routeMap = null;
+    let routeTileLayer = null;
+    let routeMapTheme = '';
     let routeLayer = null;
     let depMarker = null;
     let arrMarker = null;
@@ -9801,13 +9964,17 @@
       return el('flightExperience').value === HELSINKI_CITY_SCENIC_EXPERIENCE && ['EFHV', 'EFNU'].includes(el('dep').value) && el('arr').value === el('dep').value;
     }
 
+    function isHelsinkiNightSelected() {
+      return isHelsinkiCityScenicSelected() && el('scenicVariant').value === HELSINKI_NIGHT_VARIANT;
+    }
+
     function isScenicExperienceSelected() {
       return isHankoScenicSelected() || isHelsinkiCityScenicSelected();
     }
 
     function itineraryName(dep, arr) {
       if (isHankoScenicSelected()) return 'Hanko Regatta scenic overflight';
-      if (isHelsinkiCityScenicSelected()) return 'Helsinki city scenic overflight';
+      if (isHelsinkiCityScenicSelected()) return `Helsinki ${isHelsinkiNightSelected() ? 'night' : 'day'} scenic flight`;
       return dep && arr ? `${routeDisplayName(dep)} to ${routeDisplayName(arr)}` : 'Select airports to build your trip.';
     }
 
@@ -9844,6 +10011,20 @@
       });
     }
 
+    function applyRouteMapTheme() {
+      if (!routeMap || !window.L) return;
+      const nextTheme = isHelsinkiNightSelected() ? 'night' : 'day';
+      routeMapShell.classList.toggle('is-night-map', nextTheme === 'night');
+      if (nextTheme === routeMapTheme && routeTileLayer) return;
+      if (routeTileLayer) routeMap.removeLayer(routeTileLayer);
+      const tileStyle = nextTheme === 'night' ? 'dark_all' : 'light_all';
+      routeTileLayer = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${tileStyle}/{z}/{x}/{y}{r}.png`, {
+        maxZoom: 19,
+        crossOrigin: true
+      }).addTo(routeMap);
+      routeMapTheme = nextTheme;
+    }
+
     function initRouteMap() {
       if (routeMap) return true;
       if (!window.L) {
@@ -9865,10 +10046,7 @@
           tap: true
         }).setView([60.35, 24.95], 7);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19,
-          crossOrigin: true
-        }).addTo(routeMap);
+        applyRouteMapTheme();
 
         setTimeout(() => routeMap.invalidateSize(false), 150);
         return true;
@@ -9888,6 +10066,24 @@
       }
 
       clearRouteMap();
+      applyRouteMapTheme();
+      if (isHelsinkiCityScenicSelected()) {
+        const scenicRoute = [depLatLng, ...HELSINKI_SCENIC_POINTS, depLatLng];
+        depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure', dep.short), interactive: false }).addTo(routeMap);
+        arrMarker = L.marker(HELSINKI_SCENIC_POINTS[0], { icon: createRouteIcon('arrival', 'CITY'), interactive: false }).addTo(routeMap);
+        routeLayer = L.polyline(scenicRoute, {
+          color: isHelsinkiNightSelected() ? '#ffffff' : '#071d49',
+          weight: 3,
+          opacity: 0.96,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }).addTo(routeMap);
+        const bounds = L.latLngBounds(scenicRoute);
+        routeMap.fitBounds(bounds, { padding: [62, 62], animate: false, maxZoom: 9 });
+        setTimeout(() => routeMap?.invalidateSize(false), 120);
+        return;
+      }
+
       if (dep.icao === arr.icao) {
         depMarker = L.marker(depLatLng, { icon: createRouteIcon('departure', dep.short), interactive: false }).addTo(routeMap);
         routeLayer = L.circle(depLatLng, {
@@ -10570,6 +10766,30 @@
       return `${Math.round(total)} KG declared / pilot check`;
     }
 
+    function updateFlightPresetState() {
+      const activePreset = isHelsinkiCityScenicSelected()
+        ? (isHelsinkiNightSelected() ? 'night' : 'day')
+        : 'custom';
+      form.querySelectorAll('[data-flight-preset]').forEach(button => {
+        const active = button.dataset.flightPreset === activePreset;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+    }
+
+    function selectHelsinkiScenicPreset(variant) {
+      const normalizedVariant = variant === HELSINKI_NIGHT_VARIANT ? HELSINKI_NIGHT_VARIANT : HELSINKI_DAY_VARIANT;
+      el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
+      el('scenicVariant').value = normalizedVariant;
+      if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
+      el('arr').value = el('dep').value;
+      el('tripType').value = 'ONE_WAY';
+      el('requestTime').value = normalizedVariant === HELSINKI_NIGHT_VARIANT ? '21:00' : '13:00';
+      updateReturnTripFields();
+      refreshSummary();
+      queueDraftSave();
+    }
+
     function refreshSummary() {
       syncAlcoholPreferences();
       if (el('flightExperience').value === HELSINKI_CITY_SCENIC_EXPERIENCE) {
@@ -10579,6 +10799,7 @@
       let dep = selectedAirport('dep');
       let arr = selectedAirport('arr');
       if (el('flightExperience').value && !isScenicExperienceSelected()) el('flightExperience').value = '';
+      if (!isHelsinkiCityScenicSelected()) el('scenicVariant').value = '';
       if (isScenicExperienceSelected() && el('tripType').value !== 'ONE_WAY') {
         el('tripType').value = 'ONE_WAY';
         updateReturnTripFields();
@@ -10606,6 +10827,7 @@
       updateHeroFlightDesk(dep, arr);
       requestSummary();
       updateReadiness(dep, arr);
+      updateFlightPresetState();
       el('mobileTripLine').textContent = itineraryName(dep, arr);
       el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'}`;
       const mobileTripPrice = el('mobileTripPrice');
@@ -10679,7 +10901,7 @@
       }));
       const draft = {
         dep: el('dep').value, arr: el('arr').value, requestDate: el('requestDate').value, requestTime: el('requestTime').value,
-        flightExperience: el('flightExperience').value,
+        flightExperience: el('flightExperience').value, scenicVariant: el('scenicVariant').value,
         tripType: el('tripType').value, returnDate: el('returnDate').value, returnTime: el('returnTime').value, returnPlan: el('returnPlan').value,
         seats: el('seats').value, passengers, bagCount: el('bagCount').value, bagType: el('bagType').value,
         baggageWeightKg: el('baggageWeightKg').value, powerBanks: el('powerBanks').value, seatPreference: el('seatPreference').value,
@@ -10704,7 +10926,7 @@
       try { draft = JSON.parse(localStorage.getItem(BOOKING_DRAFT_KEY) || 'null'); } catch { draft = null; }
       if (!draft) return;
       restoringDraft = true;
-      ['dep', 'arr', 'flightExperience', 'requestDate', 'requestTime', 'tripType', 'returnDate', 'returnTime', 'returnPlan', 'seats', 'bagCount', 'bagType', 'baggageWeightKg', 'powerBanks', 'seatPreference', 'extrasNotes', 'wineStyle', 'wineBrand', 'wineBottles', 'champagneStyle', 'champagneBrand', 'champagneBottles', 'beerStyle', 'beerBrand', 'beerQuantity'].forEach(id => {
+      ['dep', 'arr', 'flightExperience', 'scenicVariant', 'requestDate', 'requestTime', 'tripType', 'returnDate', 'returnTime', 'returnPlan', 'seats', 'bagCount', 'bagType', 'baggageWeightKg', 'powerBanks', 'seatPreference', 'extrasNotes', 'wineStyle', 'wineBrand', 'wineBottles', 'champagneStyle', 'champagneBrand', 'champagneBottles', 'beerStyle', 'beerBrand', 'beerQuantity'].forEach(id => {
         if (draft[id] != null && el(id)) el(id).value = draft[id];
       });
       updateReturnTripFields();
@@ -10894,15 +11116,18 @@
       if (!target) return;
       if (target.id === 'arr') {
         el('flightExperience').value = '';
+        el('scenicVariant').value = '';
         return;
       }
       if (target.id === 'dep') {
         const nextDep = target.value;
         if (el('flightExperience').value === HANKO_SCENIC_EXPERIENCE) {
           el('flightExperience').value = '';
+          el('scenicVariant').value = '';
         }
         if (el('flightExperience').value === HELSINKI_CITY_SCENIC_EXPERIENCE && !['EFHV', 'EFNU'].includes(nextDep)) {
           el('flightExperience').value = '';
+          el('scenicVariant').value = '';
         }
       }
     }
@@ -10925,6 +11150,7 @@
     el('swapRoute').addEventListener('click', () => {
       const depValue = el('dep').value;
       el('flightExperience').value = '';
+      el('scenicVariant').value = '';
       el('dep').value = el('arr').value;
       el('arr').value = depValue;
       refreshSummary();
@@ -10938,9 +11164,30 @@
         lookupBookingRequest();
       });
     });
+    form.querySelectorAll('[data-flight-preset]').forEach(button => {
+      button.addEventListener('click', () => {
+        const preset = button.dataset.flightPreset;
+        if (preset === 'day') {
+          selectHelsinkiScenicPreset(HELSINKI_DAY_VARIANT);
+          return;
+        }
+        if (preset === 'night') {
+          selectHelsinkiScenicPreset(HELSINKI_NIGHT_VARIANT);
+          return;
+        }
+        el('flightExperience').value = '';
+        el('scenicVariant').value = '';
+        if (el('dep').value === el('arr').value) {
+          el('arr').value = airports.some(airport => airport.icao === 'EFHN') ? 'EFHN' : (airports.find(airport => airport.icao !== el('dep').value)?.icao || '');
+        }
+        refreshSummary();
+        queueDraftSave();
+      });
+    });
     const hankoScenicBtn = el('hankoScenicBtn');
     if (hankoScenicBtn) hankoScenicBtn.addEventListener('click', () => {
       el('flightExperience').value = HANKO_SCENIC_EXPERIENCE;
+      el('scenicVariant').value = '';
       el('dep').value = 'EFHN';
       el('arr').value = 'EFHN';
       el('tripType').value = 'ONE_WAY';
@@ -10951,14 +11198,7 @@
     });
     const helsinkiScenicBtn = el('helsinkiScenicBtn');
     if (helsinkiScenicBtn) helsinkiScenicBtn.addEventListener('click', () => {
-      el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
-      if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
-      el('arr').value = el('dep').value;
-      el('tripType').value = 'ONE_WAY';
-      updateReturnTripFields();
-      setStatus('Helsinki city scenic overflight selected', 'ok');
-      refreshSummary();
-      queueDraftSave();
+      selectHelsinkiScenicPreset(HELSINKI_DAY_VARIANT);
     });
     function changeBagCount(delta) {
       const next = Math.max(0, Math.min(3, Number(el('bagCount').value || 0) + delta));
@@ -11036,6 +11276,7 @@
             dep: el('dep').value,
             arr: el('arr').value,
             flightExperience: el('flightExperience').value,
+            scenicVariant: el('scenicVariant').value,
             requestDate: el('requestDate').value,
             requestTime: el('requestTime').value,
             tripType: el('tripType').value,
