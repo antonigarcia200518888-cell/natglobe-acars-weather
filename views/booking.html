@@ -9167,71 +9167,21 @@
       box-shadow: 0 12px 34px rgba(6,26,64,0.07);
     }
 
-    .luxury-booking .route-highlights {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--nga-line);
-    }
-
-    .luxury-booking .route-highlights-head {
-      display: flex;
+    .luxury-booking .booking-status-dock > summary strong {
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 9px;
+      gap: 10px;
     }
 
-    .luxury-booking .route-highlights-head span,
-    .luxury-booking .route-highlights-head small,
-    .luxury-booking .route-highlights-track article > span {
-      font: 700 8px/1.25 "Courier New", monospace;
-      text-transform: uppercase;
-    }
-
-    .luxury-booking .route-highlights-head span {
-      color: var(--nga-navy);
-    }
-
-    .luxury-booking .route-highlights-head small {
-      color: #7b8798;
-      text-align: right;
-    }
-
-    .luxury-booking .route-highlights-track {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 7px;
-    }
-
-    .luxury-booking .route-highlights-track article {
-      min-width: 0;
-      padding: 12px;
-      border: 1px solid rgba(7,29,73,0.10);
-      border-radius: 4px;
-      background: #fff;
-    }
-
-    .luxury-booking .route-highlights-track article > span {
-      color: #7b8798;
-    }
-
-    .luxury-booking .route-highlights-track strong,
-    .luxury-booking .route-highlights-track p {
-      display: block;
-      margin: 0;
-    }
-
-    .luxury-booking .route-highlights-track strong {
-      margin-top: 5px;
-      color: var(--nga-navy);
-      font: 400 18px/1 "Computer Says No", "Courier New", monospace;
-      text-transform: uppercase;
-    }
-
-    .luxury-booking .route-highlights-track p {
-      margin-top: 6px;
-      color: #66758a;
-      font: 9px/1.45 "Courier New", monospace;
+    .luxury-booking .tracking-live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 50%;
+      background: #2fb365;
+      box-shadow: 0 0 0 3px rgba(47,179,101,0.13), 0 0 12px rgba(47,179,101,0.36);
     }
 
     .luxury-booking .aircraft-photo {
@@ -9673,36 +9623,6 @@
         font-size: 9px;
       }
 
-      .luxury-booking .route-highlights-head {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 3px;
-      }
-
-      .luxury-booking .route-highlights-head small {
-        text-align: left;
-      }
-
-      .luxury-booking .route-highlights-track {
-        display: flex;
-        gap: 7px;
-        padding-bottom: 4px;
-        overflow-x: auto;
-        scroll-snap-type: x proximity;
-        scrollbar-width: none;
-      }
-
-      .luxury-booking .route-highlights-track::-webkit-scrollbar {
-        display: none;
-      }
-
-      .luxury-booking .route-highlights-track article {
-        width: 76%;
-        min-width: 210px;
-        flex: 0 0 76%;
-        scroll-snap-align: start;
-      }
-
       .luxury-booking .aircraft-stage {
         min-height: 252px;
         touch-action: pan-y;
@@ -9983,7 +9903,7 @@
     </div>
 
     <details id="bookingLookup" class="card booking-lookup-card booking-status-dock" aria-label="Passenger booking lookup">
-      <summary><span><small class="booking-lookup-kicker">Already requested?</small><strong>Track your flight request</strong></span><i aria-hidden="true">+</i></summary>
+      <summary><span><small class="booking-lookup-kicker">Already requested?</small><strong>Track your flight request <span class="tracking-live-dot" role="img" aria-label="Tracking service active"></span></strong></span><i aria-hidden="true">+</i></summary>
       <div class="booking-lookup-content">
         <p>Enter the booking reference and a passenger email to view the latest safe status. Sensitive passenger details are never shown here.</p>
         <div class="booking-lookup-form">
@@ -10010,19 +9930,11 @@
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label"></div>
         </div>
-        <div class="route-highlights" aria-live="polite">
-          <div class="route-highlights-head"><span>Potential route highlights</span><small>Final routing remains at pilot discretion</small></div>
-          <div class="route-highlights-track">
-            <article><span id="routeHighlightLabel1">Departure</span><strong id="routeHighlightTitle1">Hyvinkää landscape</strong><p id="routeHighlightCopy1">Southern Finland opens beneath the aircraft after departure.</p></article>
-            <article><span id="routeHighlightLabel2">En route</span><strong id="routeHighlightTitle2">Lakes and coastline</strong><p id="routeHighlightCopy2">Potential views across the lake district and southern coastline.</p></article>
-            <article><span id="routeHighlightLabel3">Arrival</span><strong id="routeHighlightTitle3">Hanko peninsula</strong><p id="routeHighlightCopy3">The peninsula and archipelago may appear during the arrival profile.</p></article>
-          </div>
-        </div>
       </section>
 
       <section id="itinerarySection" class="search-card">
         <div class="booking-panel-head">
-          <div><span class="section-overline">Flight composer</span><div class="booking-kicker">Shape your journey</div></div>
+          <div><span class="section-overline">Flight composer</span><div class="booking-kicker">Compose your private journey</div></div>
           <span class="section-sequence">01</span>
         </div>
         <div class="grid search-grid">
@@ -11024,64 +10936,6 @@
       routeExpPrice.textContent = validRoute ? routePrice(dep, arr) : 'Flight team confirms';
     }
 
-    function routeHighlightProfile(dep, arr) {
-      const departureName = routeDisplayName(dep) || 'Departure region';
-      const arrivalName = routeDisplayName(arr) || 'Destination region';
-      if (isHelsinkiCityScenicSelected()) {
-        const lightProfile = el('scenicVariant').value === HELSINKI_NIGHT_VARIANT
-          ? ['City lights', 'Helsinki after dark may form the visual focus when conditions allow.']
-          : ['Skyline light', 'Daylight and golden-hour views may frame the Helsinki skyline.'];
-        return [
-          ['Scenic departure', departureName, 'The route begins with changing views across southern Finland.'],
-          ['Maritime Helsinki', 'Archipelago and Suomenlinna', 'Potential views include Helsinki harbour, Suomenlinna and nearby islands.'],
-          ['Light profile', lightProfile[0], lightProfile[1]]
-        ];
-      }
-      if (el('flightExperience').value === HANKO_SCENIC_EXPERIENCE) {
-        return [
-          ['Event view', 'Hanko harbour', 'The harbour and Regatta activity may be visible from the approved scenic route.'],
-          ['Coastline', 'Hanko peninsula', 'Potential views stretch along the distinctive shoreline and beaches.'],
-          ['Archipelago', 'Coastal islands', 'Small islands and maritime approaches shape the local flying experience.']
-        ];
-      }
-      const routeKey = `${dep?.icao || ''}-${arr?.icao || ''}`;
-      if (['EFHV-EFHN', 'EFHN-EFHV'].includes(routeKey)) {
-        return [
-          ['Departure', departureName, 'Southern Finland opens beneath the aircraft after departure.'],
-          ['En route', 'Lakes and coastline', 'Potential views transition from inland lakes toward the southern coast.'],
-          ['Arrival', arrivalName, 'The Hanko peninsula or Hyvinkää landscape may define the arrival profile.']
-        ];
-      }
-      if (['EFHK-EFHN', 'EFHN-EFHK'].includes(routeKey)) {
-        return [
-          ['Departure', departureName, 'Airport and city views may appear shortly after departure.'],
-          ['En route', 'Gulf coastline', 'The southern coastline and maritime landscape may remain in view.'],
-          ['Arrival', arrivalName, 'The arrival may reveal the Hanko peninsula or Helsinki region.']
-        ];
-      }
-      if (dep?.country && arr?.country && dep.country !== arr.country) {
-        return [
-          ['Departure', departureName, `The journey begins above ${dep.country}.`],
-          ['En route', 'Baltic region', 'Coastlines, islands and open water may shape the international routing.'],
-          ['Arrival', arrivalName, `The destination landscape introduces ${arr.country} from the air.`]
-        ];
-      }
-      return [
-        ['Departure', departureName, 'Local landscapes develop as the aircraft settles into the route.'],
-        ['En route', 'Regional perspective', 'Lakes, forests, towns and coastline may appear along the approved routing.'],
-        ['Arrival', arrivalName, 'The destination approach completes the journey from a new perspective.']
-      ];
-    }
-
-    function updateRouteHighlights(dep, arr) {
-      routeHighlightProfile(dep, arr).forEach((highlight, index) => {
-        const suffix = index + 1;
-        el(`routeHighlightLabel${suffix}`).textContent = highlight[0];
-        el(`routeHighlightTitle${suffix}`).textContent = highlight[1];
-        el(`routeHighlightCopy${suffix}`).textContent = highlight[2];
-      });
-    }
-
     function setupAircraftExplorer() {
       const explorer = el('aircraftExplorer');
       const stage = el('aircraftStage');
@@ -11687,7 +11541,6 @@
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
       updateRouteExperience(dep, arr);
-      updateRouteHighlights(dep, arr);
       updateHeroFlightDesk(dep, arr);
       requestSummary();
       updateReadiness(dep, arr);
