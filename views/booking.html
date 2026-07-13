@@ -9234,82 +9234,367 @@
       font: 9px/1.45 "Courier New", monospace;
     }
 
-    .luxury-booking .aircraft-hotspots {
-      position: absolute;
-      inset: 0;
-      z-index: 3;
-      pointer-events: none;
-    }
-
     .luxury-booking .aircraft-photo {
       position: relative;
       overflow: hidden;
     }
 
-    .luxury-booking .aircraft-hotspot {
-      position: absolute;
+    .luxury-booking .aircraft-explorer {
+      --aircraft-pan-x: 0px;
+      --aircraft-pan-y: 0px;
+      --aircraft-zoom: 1;
+      --aircraft-tilt-x: 0deg;
+      --aircraft-tilt-y: 0deg;
+      --aircraft-light-x: 50%;
+      --aircraft-light-y: 35%;
       display: grid;
-      width: 34px;
-      height: 34px;
+      grid-template-rows: minmax(0, 1fr) auto;
+      width: 100%;
+      min-width: 0;
       padding: 0;
-      place-items: center;
-      border: 1px solid rgba(255,255,255,0.92);
-      border-radius: 50%;
-      background: var(--nga-navy);
-      color: #fff;
-      box-shadow: 0 8px 24px rgba(6,26,64,0.28), 0 0 0 5px rgba(255,255,255,0.72);
-      cursor: pointer;
-      pointer-events: auto;
-      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      place-items: stretch;
+      isolation: isolate;
+      background: #f6f7f9;
     }
 
-    .luxury-booking .aircraft-hotspot:hover,
-    .luxury-booking .aircraft-hotspot:focus-visible,
-    .luxury-booking .aircraft-hotspot.is-active {
-      z-index: 4;
-      background: #fff;
-      color: var(--nga-navy);
-      box-shadow: 0 10px 28px rgba(6,26,64,0.30), 0 0 0 7px rgba(7,29,73,0.16);
+    .luxury-booking .aircraft-explorer::after {
+      display: none;
+    }
+
+    .luxury-booking .aircraft-stage {
+      position: relative;
+      min-height: 382px;
+      overflow: hidden;
       outline: none;
-      transform: scale(1.08);
+      perspective: 1200px;
+      touch-action: none;
+      cursor: grab;
+      background:
+        radial-gradient(circle at var(--aircraft-light-x) var(--aircraft-light-y), rgba(255,255,255,0.96), rgba(255,255,255,0) 34%),
+        linear-gradient(145deg, #fff 0%, #f5f6f8 54%, #e9edf2 100%);
     }
 
-    .luxury-booking .aircraft-hotspot span {
-      font: 700 10px/1 "Courier New", monospace;
+    .luxury-booking .aircraft-stage:focus-visible {
+      box-shadow: inset 0 0 0 2px var(--nga-navy);
     }
 
-    .luxury-booking .aircraft-hotspot.cabin { left: 39%; top: 34%; }
-    .luxury-booking .aircraft-hotspot.connectivity { left: 49%; top: 25%; }
-    .luxury-booking .aircraft-hotspot.performance { left: 57%; top: 57%; }
-
-    .luxury-booking .aircraft-hotspot-readout {
-      margin: 16px 0 4px;
-      padding: 14px;
-      border: 1px solid rgba(7,29,73,0.12);
-      border-left: 3px solid var(--nga-navy);
-      border-radius: 4px;
-      background: #f4f6f9;
+    .luxury-booking .aircraft-stage.is-interacting {
+      cursor: grabbing;
     }
 
-    .luxury-booking .aircraft-hotspot-readout span {
-      display: flex;
-      align-items: center;
-      gap: 9px;
+    .luxury-booking .aircraft-stage-glow {
+      position: absolute;
+      z-index: 0;
+      width: 58%;
+      height: 48%;
+      left: var(--aircraft-light-x);
+      top: var(--aircraft-light-y);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.82);
+      filter: blur(44px);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: left 160ms ease, top 160ms ease;
+    }
+
+    .luxury-booking .aircraft-layer {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 300ms ease, transform 420ms cubic-bezier(.2,.7,.2,1);
+    }
+
+    .luxury-booking .aircraft-layer.is-active {
+      z-index: 2;
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .luxury-booking .aircraft-exterior-view img {
+      position: absolute;
+      width: 94%;
+      height: 88%;
+      min-height: 0;
+      max-height: none;
+      left: 50%;
+      top: 48%;
+      box-sizing: border-box;
+      padding: 0;
+      object-fit: contain;
+      object-position: center;
+      mix-blend-mode: darken;
+      user-select: none;
+      filter: drop-shadow(0 28px 32px rgba(6,26,64,0.20));
+      transform:
+        translate(-50%, -50%)
+        translate3d(var(--aircraft-pan-x), var(--aircraft-pan-y), 0)
+        rotateX(var(--aircraft-tilt-x))
+        rotateY(var(--aircraft-tilt-y))
+        scale(var(--aircraft-zoom));
+      transform-origin: center;
+      transition: transform 210ms cubic-bezier(.2,.7,.2,1), filter 210ms ease;
+      will-change: transform;
+      -webkit-user-drag: none;
+    }
+
+    .luxury-booking .aircraft-stage.is-interacting .aircraft-exterior-view img {
+      filter: drop-shadow(0 36px 38px rgba(6,26,64,0.25));
+      transition: filter 140ms ease;
+    }
+
+    .luxury-booking .aircraft-view-label {
+      position: absolute;
+      top: 18px;
+      left: 20px;
+      display: grid;
+      gap: 4px;
+      padding-left: 11px;
+      border-left: 2px solid var(--nga-navy);
+      color: var(--nga-navy);
+      pointer-events: none;
+    }
+
+    .luxury-booking .aircraft-view-label span,
+    .luxury-booking .aircraft-panel-overline {
       color: #718095;
       font: 700 8px/1.2 "Courier New", monospace;
       text-transform: uppercase;
     }
 
-    .luxury-booking .aircraft-hotspot-readout i {
-      color: var(--nga-navy);
-      font-style: normal;
+    .luxury-booking .aircraft-view-label strong {
+      font: 400 25px/0.9 "Computer Says No", "Courier New", monospace;
+      letter-spacing: 0;
     }
 
-    .luxury-booking .aircraft-hotspot-readout strong {
-      display: block;
-      margin-top: 7px;
+    .luxury-booking .aircraft-gesture-hint {
+      position: absolute;
+      z-index: 4;
+      right: 18px;
+      bottom: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px;
+      border: 1px solid rgba(7,29,73,0.12);
+      border-radius: 3px;
+      background: rgba(255,255,255,0.84);
       color: var(--nga-navy);
-      font: 700 10px/1.45 "Courier New", monospace;
+      font: 700 8px/1 "Courier New", monospace;
+      text-transform: uppercase;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .luxury-booking .aircraft-gesture-hint i {
+      color: #7b8798;
+      font-style: normal;
+      font-weight: 400;
+      text-transform: none;
+    }
+
+    .luxury-booking .aircraft-reset {
+      position: absolute;
+      z-index: 5;
+      top: 16px;
+      right: 18px;
+      display: grid;
+      width: 36px;
+      height: 36px;
+      min-height: 0;
+      padding: 0;
+      place-items: center;
+      border: 1px solid rgba(7,29,73,0.14);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.84);
+      color: var(--nga-navy);
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .luxury-booking .aircraft-reset:hover,
+    .luxury-booking .aircraft-reset:focus-visible {
+      background: #fff;
+      outline: none;
+      transform: rotate(-18deg);
+    }
+
+    .luxury-booking .aircraft-reset svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .luxury-booking .aircraft-explorer:not([data-aircraft-view="exterior"]) .aircraft-gesture-hint,
+    .luxury-booking .aircraft-explorer:not([data-aircraft-view="exterior"]) .aircraft-reset {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .luxury-booking .aircraft-view-controls {
+      position: relative;
+      z-index: 6;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid rgba(7,29,73,0.12);
+      background: rgba(255,255,255,0.94);
+    }
+
+    .luxury-booking .aircraft-view-controls button {
+      position: relative;
+      min-height: 58px;
+      padding: 12px 8px;
+      border: 0;
+      border-right: 1px solid rgba(7,29,73,0.09);
+      border-radius: 0;
+      background: transparent;
+      color: #79869a;
+      font: 700 9px/1 "Courier New", monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .luxury-booking .aircraft-view-controls button:last-child {
+      border-right: 0;
+    }
+
+    .luxury-booking .aircraft-view-controls button::after {
+      content: '';
+      position: absolute;
+      height: 2px;
+      right: 22%;
+      bottom: 0;
+      left: 22%;
+      background: var(--nga-navy);
+      opacity: 0;
+      transform: scaleX(0.4);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .luxury-booking .aircraft-view-controls button:hover,
+    .luxury-booking .aircraft-view-controls button:focus-visible,
+    .luxury-booking .aircraft-view-controls button.is-active {
+      color: var(--nga-navy);
+      outline: none;
+    }
+
+    .luxury-booking .aircraft-view-controls button.is-active::after {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+
+    .luxury-booking .aircraft-cabin-view,
+    .luxury-booking .aircraft-specification-view {
+      display: grid;
+      padding: 42px;
+      box-sizing: border-box;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 22%, rgba(255,255,255,0.98), rgba(255,255,255,0) 32%),
+        linear-gradient(145deg, #f9fafb, #e9edf3);
+    }
+
+    .luxury-booking .aircraft-cabin-shell,
+    .luxury-booking .aircraft-specification-shell {
+      width: min(100%, 560px);
+      text-align: center;
+    }
+
+    .luxury-booking .aircraft-cabin-shell img {
+      width: min(92%, 520px);
+      height: auto;
+      min-height: 0;
+      max-height: 205px;
+      margin: 24px auto 16px;
+      padding: 0;
+      object-fit: contain;
+      mix-blend-mode: normal;
+      filter: drop-shadow(0 20px 24px rgba(6,26,64,0.18));
+      transform: none;
+    }
+
+    .luxury-booking .aircraft-cabin-legend {
+      display: flex;
+      justify-content: center;
+      gap: 22px;
+      color: #718095;
+      font: 700 8px/1.3 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .aircraft-cabin-legend span::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: var(--nga-navy);
+      vertical-align: 1px;
+    }
+
+    .luxury-booking .aircraft-cabin-legend span:last-child::before {
+      background: #aab3c0;
+    }
+
+    .luxury-booking .aircraft-panel-action {
+      min-height: 42px;
+      margin-top: 18px;
+      padding: 0 18px;
+      border: 1px solid var(--nga-navy);
+      border-radius: 3px;
+      background: var(--nga-navy);
+      color: #fff;
+      font: 700 9px/1 "Courier New", monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .luxury-booking .aircraft-panel-action span {
+      margin-left: 7px;
+    }
+
+    .luxury-booking .aircraft-specification-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 26px;
+      border-block: 1px solid rgba(7,29,73,0.12);
+    }
+
+    .luxury-booking .aircraft-specification-grid div {
+      padding: 24px 12px;
+      border-right: 1px solid rgba(7,29,73,0.10);
+    }
+
+    .luxury-booking .aircraft-specification-grid div:last-child {
+      border-right: 0;
+    }
+
+    .luxury-booking .aircraft-specification-grid strong,
+    .luxury-booking .aircraft-specification-grid span {
+      display: block;
+    }
+
+    .luxury-booking .aircraft-specification-grid strong {
+      color: var(--nga-navy);
+      font: 400 42px/0.9 "Computer Says No", "Courier New", monospace;
+    }
+
+    .luxury-booking .aircraft-specification-grid span {
+      margin-top: 8px;
+      color: #718095;
+      font: 700 8px/1.25 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .aircraft-specification-shell p {
+      max-width: 520px;
+      margin: 18px auto 0;
+      color: #66758a;
+      font: 10px/1.55 "Courier New", monospace;
     }
 
     .luxury-booking .submit-footer #submitBooking {
@@ -9330,6 +9615,12 @@
     }
 
     @media (max-width: 700px) {
+      .luxury-booking .aircraft-explorer {
+        height: auto;
+        min-height: 303px;
+        max-height: none;
+      }
+
       .luxury-booking .booking-status-dock {
         margin: 10px 0;
         border-radius: 4px;
@@ -9412,19 +9703,96 @@
         scroll-snap-align: start;
       }
 
-      .luxury-booking .aircraft-hotspot {
-        width: 28px;
-        height: 28px;
-        box-shadow: 0 7px 18px rgba(6,26,64,0.26), 0 0 0 4px rgba(255,255,255,0.74);
+      .luxury-booking .aircraft-stage {
+        min-height: 252px;
+        touch-action: pan-y;
       }
 
-      .luxury-booking .aircraft-hotspot.cabin { left: 37%; top: 33%; }
-      .luxury-booking .aircraft-hotspot.connectivity { left: 49%; top: 23%; }
-      .luxury-booking .aircraft-hotspot.performance { left: 58%; top: 56%; }
+      .luxury-booking .aircraft-exterior-view img {
+        width: 98%;
+        height: 82%;
+        top: 49%;
+      }
 
-      .luxury-booking .aircraft-hotspot-readout {
-        margin-top: 12px;
-        padding: 12px;
+      .luxury-booking .aircraft-view-label {
+        top: 12px;
+        left: 13px;
+      }
+
+      .luxury-booking .aircraft-view-label strong {
+        font-size: 21px;
+      }
+
+      .luxury-booking .aircraft-reset {
+        top: 10px;
+        right: 11px;
+        width: 34px;
+        height: 34px;
+      }
+
+      .luxury-booking .aircraft-gesture-hint {
+        right: 11px;
+        bottom: 10px;
+        padding: 7px 8px;
+        font-size: 7px;
+      }
+
+      .luxury-booking .aircraft-gesture-hint i {
+        display: none;
+      }
+
+      .luxury-booking .aircraft-view-controls button {
+        min-height: 50px;
+        padding-inline: 4px;
+        font-size: 8px;
+      }
+
+      .luxury-booking .aircraft-feature-copy .booking-kicker {
+        font-size: 24px;
+        line-height: 0.95;
+        white-space: normal;
+      }
+
+      .luxury-booking .aircraft-cabin-view,
+      .luxury-booking .aircraft-specification-view {
+        padding: 24px 14px 18px;
+      }
+
+      .luxury-booking .aircraft-cabin-shell img {
+        width: 96%;
+        max-height: 126px;
+        margin: 17px auto 11px;
+      }
+
+      .luxury-booking .aircraft-cabin-legend {
+        gap: 12px;
+        font-size: 7px;
+      }
+
+      .luxury-booking .aircraft-panel-action {
+        min-height: 38px;
+        margin-top: 13px;
+      }
+
+      .luxury-booking .aircraft-specification-grid {
+        margin-top: 18px;
+      }
+
+      .luxury-booking .aircraft-specification-grid div {
+        padding: 18px 7px;
+      }
+
+      .luxury-booking .aircraft-specification-grid strong {
+        font-size: 31px;
+      }
+
+      .luxury-booking .aircraft-specification-grid span {
+        font-size: 7px;
+      }
+
+      .luxury-booking .aircraft-specification-shell p {
+        margin-top: 13px;
+        font-size: 8px;
       }
 
       .luxury-booking #extrasSection .extras-grid {
@@ -9720,12 +10088,41 @@
       </section>
 
       <section id="aircraftSection" class="card aircraft-feature" aria-label="Piper Arrow PA-28R-200">
-        <div class="aircraft-photo">
-          <img src="/piper-hangar-customer.png" alt="PA-28R aircraft in hangar-style studio view" />
-          <div class="aircraft-hotspots" aria-label="Explore aircraft features">
-            <button class="aircraft-hotspot is-active cabin" type="button" data-aircraft-hotspot="cabin" aria-label="Explore passenger cabin" aria-pressed="true"><span>1</span></button>
-            <button class="aircraft-hotspot connectivity" type="button" data-aircraft-hotspot="connectivity" aria-label="Explore onboard connectivity" aria-pressed="false"><span>2</span></button>
-            <button class="aircraft-hotspot performance" type="button" data-aircraft-hotspot="performance" aria-label="Explore aircraft performance" aria-pressed="false"><span>3</span></button>
+        <div id="aircraftExplorer" class="aircraft-photo aircraft-explorer" data-aircraft-view="exterior">
+          <div id="aircraftStage" class="aircraft-stage" tabindex="0" aria-label="Interactive PA-28R aircraft explorer. Drag to inspect, pinch or scroll to zoom, and press zero to reset.">
+            <div class="aircraft-stage-glow" aria-hidden="true"></div>
+            <div class="aircraft-layer aircraft-exterior-view is-active" data-aircraft-panel="exterior" aria-hidden="false">
+              <img id="aircraftExplorerImage" src="/piper-hangar-customer.png" alt="PA-28R aircraft in hangar-style studio view" draggable="false" />
+              <div class="aircraft-view-label"><span>Exterior profile</span><strong>PA-28R</strong></div>
+            </div>
+            <div class="aircraft-layer aircraft-cabin-view" data-aircraft-panel="cabin" aria-hidden="true">
+              <div class="aircraft-cabin-shell">
+                <span class="aircraft-panel-overline">Four-seat cabin</span>
+                <img src="/pa28-seat-map.png" alt="PA-28R cabin layout with two forward crew seats and two rear passenger seats" />
+                <div class="aircraft-cabin-legend"><span>Forward / Crew</span><span>Rear / Passenger cabin</span></div>
+                <button class="aircraft-panel-action" type="button" data-aircraft-cabin-action>Choose rear seat <span aria-hidden="true">&#8594;</span></button>
+              </div>
+            </div>
+            <div class="aircraft-layer aircraft-specification-view" data-aircraft-panel="specifications" aria-hidden="true">
+              <div class="aircraft-specification-shell">
+                <span class="aircraft-panel-overline">Touring profile</span>
+                <div class="aircraft-specification-grid">
+                  <div><strong>115</strong><span>KT typical cruise</span></div>
+                  <div><strong>2</strong><span>Rear cabin seats</span></div>
+                  <div><strong>3-5H</strong><span>Endurance profile</span></div>
+                </div>
+                <p>Regional touring performance for private routes and scenic journeys, subject to pilot planning and operating conditions.</p>
+              </div>
+            </div>
+            <div class="aircraft-gesture-hint"><span aria-hidden="true">&#8596;</span> Drag to inspect <i>Pinch or scroll to zoom</i></div>
+            <button id="aircraftReset" class="aircraft-reset" type="button" aria-label="Reset aircraft view" title="Reset aircraft view">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/></svg>
+            </button>
+          </div>
+          <div class="aircraft-view-controls" role="tablist" aria-label="Aircraft views">
+            <button class="is-active" type="button" role="tab" data-aircraft-view-button="exterior" aria-selected="true">Aircraft</button>
+            <button type="button" role="tab" data-aircraft-view-button="cabin" aria-selected="false">Cabin</button>
+            <button type="button" role="tab" data-aircraft-view-button="specifications" aria-selected="false">Specifications</button>
           </div>
         </div>
         <div class="aircraft-feature-copy">
@@ -9733,11 +10130,7 @@
             <div class="aircraft-eyebrow">Your aircraft profile</div>
             <div class="booking-kicker">Piper Arrow PA-28R-200</div>
           </div>
-          <p>A private four-seat cabin designed for scenic coastlines and regional journeys, with direct boarding and a personal flight experience.</p>
-          <div class="aircraft-hotspot-readout" aria-live="polite">
-            <span><i aria-hidden="true">01</i><b id="aircraftHotspotTitle">Passenger cabin</b></span>
-            <strong id="aircraftHotspotCopy">Two rear window seats create a personal cabin with clear sightseeing views.</strong>
-          </div>
+          <p id="aircraftExplorerCopy" aria-live="polite">A private four-seat touring aircraft for scenic coastlines and regional journeys, with direct boarding and a personal flight experience.</p>
           <div class="aircraft-performance" aria-label="Aircraft performance profile">
             <div><strong>115 KT</strong><span>Typical cruise</span></div>
             <div><strong>2</strong><span>Rear cabin seats</span></div>
@@ -10074,22 +10467,10 @@
       'EFHV-EFHV': { oneWay: 125, roundtrip: 125, label: 'Helsinki city scenic overflight', estimated: true },
       'EFNU-EFNU': { oneWay: 125, roundtrip: 125, label: 'Helsinki city scenic overflight', estimated: true }
     };
-    const AIRCRAFT_HOTSPOT_DETAILS = {
-      cabin: {
-        number: '01',
-        title: 'Passenger cabin',
-        copy: 'Two rear window seats create a personal cabin with clear sightseeing views.'
-      },
-      connectivity: {
-        number: '02',
-        title: 'Onboard connectivity',
-        copy: 'USB-C charging and onboard Wi-Fi are available subject to equipment and service coverage.'
-      },
-      performance: {
-        number: '03',
-        title: 'Touring performance',
-        copy: 'A typical 115 KT cruise profile supports efficient regional journeys and scenic routes.'
-      }
+    const AIRCRAFT_VIEW_DETAILS = {
+      exterior: 'A private four-seat touring aircraft for scenic coastlines and regional journeys, with direct boarding and a personal flight experience.',
+      cabin: 'Two rear window seats create a personal cabin with clear sightseeing views. Forward seats remain reserved for the flight crew.',
+      specifications: 'A typical 115 KT cruise profile supports efficient regional journeys and scenic routes, subject to pilot planning and conditions.'
     };
 
     let airports = [];
@@ -10701,23 +11082,137 @@
       });
     }
 
-    function setAircraftHotspot(key) {
-      const detail = AIRCRAFT_HOTSPOT_DETAILS[key];
-      if (!detail) return;
-      document.querySelectorAll('[data-aircraft-hotspot]').forEach(button => {
-        const active = button.dataset.aircraftHotspot === key;
-        button.classList.toggle('is-active', active);
-        button.setAttribute('aria-pressed', String(active));
-      });
-      el('aircraftHotspotTitle').textContent = detail.title;
-      el('aircraftHotspotCopy').textContent = detail.copy;
-      el('aircraftHotspotTitle').previousElementSibling.textContent = detail.number;
-    }
+    function setupAircraftExplorer() {
+      const explorer = el('aircraftExplorer');
+      const stage = el('aircraftStage');
+      const resetButton = el('aircraftReset');
+      const copy = el('aircraftExplorerCopy');
+      if (!explorer || !stage || !resetButton || !copy) return;
 
-    function setupAircraftHotspots() {
-      document.querySelectorAll('[data-aircraft-hotspot]').forEach(button => {
-        button.addEventListener('click', () => setAircraftHotspot(button.dataset.aircraftHotspot));
+      const panels = [...explorer.querySelectorAll('[data-aircraft-panel]')];
+      const viewButtons = [...explorer.querySelectorAll('[data-aircraft-view-button]')];
+      const pointers = new Map();
+      const state = { panX: 0, panY: 0, zoom: 1, tiltX: 0, tiltY: 0 };
+      let dragStart = null;
+      let pinchStart = null;
+
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+      const applyTransform = () => {
+        explorer.style.setProperty('--aircraft-pan-x', `${state.panX}px`);
+        explorer.style.setProperty('--aircraft-pan-y', `${state.panY}px`);
+        explorer.style.setProperty('--aircraft-zoom', state.zoom.toFixed(3));
+        explorer.style.setProperty('--aircraft-tilt-x', `${state.tiltX.toFixed(2)}deg`);
+        explorer.style.setProperty('--aircraft-tilt-y', `${state.tiltY.toFixed(2)}deg`);
+      };
+      const resetView = () => {
+        Object.assign(state, { panX: 0, panY: 0, zoom: 1, tiltX: 0, tiltY: 0 });
+        applyTransform();
+      };
+      const pointerDistance = () => {
+        const values = [...pointers.values()];
+        if (values.length < 2) return 0;
+        return Math.hypot(values[0].x - values[1].x, values[0].y - values[1].y);
+      };
+      const selectView = key => {
+        if (!AIRCRAFT_VIEW_DETAILS[key]) return;
+        explorer.dataset.aircraftView = key;
+        panels.forEach(panel => {
+          const active = panel.dataset.aircraftPanel === key;
+          panel.classList.toggle('is-active', active);
+          panel.setAttribute('aria-hidden', String(!active));
+        });
+        viewButtons.forEach(button => {
+          const active = button.dataset.aircraftViewButton === key;
+          button.classList.toggle('is-active', active);
+          button.setAttribute('aria-selected', String(active));
+          button.tabIndex = active ? 0 : -1;
+        });
+        copy.textContent = AIRCRAFT_VIEW_DETAILS[key];
+        resetView();
+      };
+
+      stage.addEventListener('pointerdown', event => {
+        if (explorer.dataset.aircraftView !== 'exterior' || event.target.closest('button')) return;
+        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        stage.setPointerCapture(event.pointerId);
+        stage.classList.add('is-interacting');
+        dragStart = { x: event.clientX, y: event.clientY, panX: state.panX, panY: state.panY };
+        if (pointers.size === 2) pinchStart = { distance: pointerDistance(), zoom: state.zoom };
       });
+
+      stage.addEventListener('pointermove', event => {
+        const point = pointers.get(event.pointerId);
+        if (!point || explorer.dataset.aircraftView !== 'exterior') return;
+        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (pointers.size >= 2 && pinchStart) {
+          state.zoom = clamp(pinchStart.zoom * (pointerDistance() / Math.max(1, pinchStart.distance)), 1, 1.34);
+        } else if (dragStart) {
+          const dx = event.clientX - dragStart.x;
+          const dy = event.clientY - dragStart.y;
+          state.panX = clamp(dragStart.panX + dx * 0.24, -38, 38);
+          state.panY = clamp(dragStart.panY + dy * 0.14, -18, 18);
+          state.tiltX = clamp(-dy * 0.018, -2.2, 2.2);
+          state.tiltY = clamp(dx * 0.022, -3, 3);
+        }
+        applyTransform();
+      });
+
+      const releasePointer = event => {
+        pointers.delete(event.pointerId);
+        if (pointers.size < 2) pinchStart = null;
+        if (!pointers.size) {
+          dragStart = null;
+          state.tiltX = 0;
+          state.tiltY = 0;
+          stage.classList.remove('is-interacting');
+          applyTransform();
+        }
+      };
+      stage.addEventListener('pointerup', releasePointer);
+      stage.addEventListener('pointercancel', releasePointer);
+
+      stage.addEventListener('mousemove', event => {
+        if (pointers.size || explorer.dataset.aircraftView !== 'exterior' || matchMedia('(pointer: coarse)').matches) return;
+        const bounds = stage.getBoundingClientRect();
+        state.tiltY = clamp(((event.clientX - bounds.left) / bounds.width - 0.5) * 3.4, -1.7, 1.7);
+        state.tiltX = clamp(-((event.clientY - bounds.top) / bounds.height - 0.5) * 2.2, -1.1, 1.1);
+        explorer.style.setProperty('--aircraft-light-x', `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
+        explorer.style.setProperty('--aircraft-light-y', `${((event.clientY - bounds.top) / bounds.height) * 100}%`);
+        applyTransform();
+      });
+      stage.addEventListener('mouseleave', () => {
+        if (pointers.size) return;
+        state.tiltX = 0;
+        state.tiltY = 0;
+        applyTransform();
+      });
+      stage.addEventListener('wheel', event => {
+        if (explorer.dataset.aircraftView !== 'exterior') return;
+        event.preventDefault();
+        state.zoom = clamp(state.zoom + (event.deltaY < 0 ? 0.045 : -0.045), 1, 1.34);
+        applyTransform();
+      }, { passive: false });
+      stage.addEventListener('keydown', event => {
+        if (explorer.dataset.aircraftView !== 'exterior') return;
+        const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', '0'];
+        if (!keys.includes(event.key)) return;
+        event.preventDefault();
+        if (event.key === '0') return resetView();
+        if (event.key === 'ArrowLeft') state.panX = clamp(state.panX - 8, -38, 38);
+        if (event.key === 'ArrowRight') state.panX = clamp(state.panX + 8, -38, 38);
+        if (event.key === 'ArrowUp') state.panY = clamp(state.panY - 6, -18, 18);
+        if (event.key === 'ArrowDown') state.panY = clamp(state.panY + 6, -18, 18);
+        if (event.key === '+' || event.key === '=') state.zoom = clamp(state.zoom + 0.05, 1, 1.34);
+        if (event.key === '-') state.zoom = clamp(state.zoom - 0.05, 1, 1.34);
+        applyTransform();
+      });
+
+      viewButtons.forEach(button => button.addEventListener('click', () => selectView(button.dataset.aircraftViewButton)));
+      resetButton.addEventListener('click', resetView);
+      explorer.querySelector('[data-aircraft-cabin-action]')?.addEventListener('click', () => {
+        el('cabinSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      applyTransform();
     }
 
     function updateHeroFlightDesk(dep, arr) {
@@ -11681,7 +12176,7 @@
     setupLuxuryReveal();
     setupLuxuryScrollMotion();
     setupTopNavigation();
-    setupAircraftHotspots();
+    setupAircraftExplorer();
     loadBookingAvailability().catch(() => {});
     loadAirports().catch(() => {
       setStatus('Route selector ready / Complete passenger manifest', 'ok');
