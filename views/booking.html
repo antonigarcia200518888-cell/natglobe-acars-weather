@@ -9098,123 +9098,50 @@
       color: #fff;
     }
 
-    .luxury-booking .flight-presets {
-      display: grid;
-      grid-template-columns: minmax(150px, 0.72fr) repeat(2, minmax(220px, 1fr));
-      gap: 8px;
-      margin: 18px 0 20px;
-      padding: 7px;
-      border: 1px solid var(--nga-line);
-      border-radius: 5px;
-      background: #f5f7fa;
-    }
-
-    .luxury-booking .flight-preset {
-      position: relative;
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 10px;
-      min-height: 68px;
-      padding: 11px 13px;
-      overflow: hidden;
-      border: 1px solid transparent;
-      border-radius: 4px;
-      background: transparent;
-      color: var(--nga-navy);
-      text-align: left;
-      cursor: pointer;
-      transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
-    }
-
-    .luxury-booking .flight-preset:hover,
-    .luxury-booking .flight-preset:focus-visible {
-      border-color: #b7c0cd;
-      background: #fff;
-      outline: none;
-      transform: translateY(-1px);
-    }
-
-    .luxury-booking .flight-preset.is-active {
-      border-color: var(--nga-navy);
-      background: #fff;
-      box-shadow: 0 10px 24px rgba(7,29,73,0.10);
-    }
-
-    .luxury-booking .flight-preset-icon {
-      display: grid;
-      place-items: center;
-      width: 34px;
-      height: 34px;
-      border: 1px solid #cbd2dc;
-      border-radius: 50%;
-      background: #fff;
-      font-family: "Courier New", monospace;
-      font-size: 15px;
-      line-height: 1;
-    }
-
-    .luxury-booking .flight-preset[data-flight-preset="night"] .flight-preset-icon {
-      border-color: #263b66;
-      background: var(--nga-navy);
-      color: #fff;
-    }
-
-    .luxury-booking .flight-preset-copy {
-      min-width: 0;
-    }
-
-    .luxury-booking .flight-preset-copy strong,
-    .luxury-booking .flight-preset-copy span {
+    .luxury-booking .route-map-shell .leaflet-control-container {
       display: block;
     }
 
-    .luxury-booking .flight-preset-copy strong {
-      font-family: "Computer Says No", "Courier New", monospace;
-      font-size: 15px;
-      line-height: 1.05;
-      letter-spacing: 0;
+    .luxury-booking .route-map-shell .leaflet-top.leaflet-right {
+      top: 88px;
+      right: 12px;
     }
 
-    .luxury-booking .flight-preset-copy span {
-      margin-top: 4px;
+    .luxury-booking .route-map-shell .leaflet-control-zoom {
+      margin: 0;
       overflow: hidden;
-      color: #657084;
-      font-family: "Courier New", monospace;
-      font-size: 9px;
-      line-height: 1.3;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.32);
+      border-radius: 3px;
+      box-shadow: 0 8px 22px rgba(3,17,45,0.18);
     }
 
-    .luxury-booking .flight-preset-status {
-      color: #7a8495;
+    .luxury-booking .route-map-shell .leaflet-control-zoom a {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.18);
+      background: rgba(6,26,64,0.92);
+      color: #fff;
       font-family: "Courier New", monospace;
-      font-size: 13px;
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1;
     }
 
-    .luxury-booking .flight-preset.is-active .flight-preset-status {
+    .luxury-booking .route-map-shell .leaflet-control-zoom a:last-child {
+      border-bottom: 0;
+    }
+
+    .luxury-booking .route-map-shell .leaflet-control-zoom a:hover,
+    .luxury-booking .route-map-shell .leaflet-control-zoom a:focus-visible {
+      background: #fff;
       color: var(--nga-navy);
+      outline: none;
     }
 
     @media (max-width: 900px) {
-      .luxury-booking .flight-presets {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .luxury-booking .flight-preset {
-        grid-template-columns: 1fr;
-        justify-items: center;
-        gap: 7px;
-        padding: 10px 8px;
-        text-align: center;
-      }
-
-      .luxury-booking .flight-preset-copy span,
-      .luxury-booking .flight-preset-status {
-        display: none;
-      }
-
       .luxury-booking .luxury-hero-top {
         flex-wrap: wrap;
       }
@@ -9244,25 +9171,14 @@
     }
 
     @media (max-width: 700px) {
-      .luxury-booking .flight-presets {
-        margin: 14px 0 16px;
-        padding: 5px;
-        gap: 4px;
+      .luxury-booking .route-map-shell .leaflet-top.leaflet-right {
+        top: 50px;
+        right: 8px;
       }
 
-      .luxury-booking .flight-preset {
-        min-height: 74px;
-        padding: 8px 4px;
-      }
-
-      .luxury-booking .flight-preset-icon {
-        width: 30px;
-        height: 30px;
-        font-size: 13px;
-      }
-
-      .luxury-booking .flight-preset-copy strong {
-        font-size: 11px;
+      .luxury-booking .route-map-shell .leaflet-control-zoom a {
+        width: 34px;
+        height: 34px;
       }
 
       .luxury-booking .luxury-hero-nav {
@@ -9366,27 +9282,9 @@
           <div><span class="section-overline">Live route canvas</span><div class="route-map-title">Your flight, in view</div></div>
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
-        <div class="flight-presets" aria-label="Flight type">
-          <button class="flight-preset is-active" type="button" data-flight-preset="custom" aria-pressed="true">
-            <span class="flight-preset-icon" aria-hidden="true">↗</span>
-            <span class="flight-preset-copy"><strong>Build a route</strong><span>Choose any available airport pair</span></span>
-            <span class="flight-preset-status" aria-hidden="true">01</span>
-          </button>
-          <button class="flight-preset" type="button" data-flight-preset="day" aria-pressed="false">
-            <span class="flight-preset-icon" aria-hidden="true">☼</span>
-            <span class="flight-preset-copy"><strong>Helsinki Day</strong><span>City and archipelago / 45 min / approx. €125</span></span>
-            <span class="flight-preset-status" aria-hidden="true">DAY</span>
-          </button>
-          <button class="flight-preset" type="button" data-flight-preset="night" aria-pressed="false">
-            <span class="flight-preset-icon" aria-hidden="true">◐</span>
-            <span class="flight-preset-copy"><strong>Helsinki Night</strong><span>Evening skyline / seasonal darkness / 45 min</span></span>
-            <span class="flight-preset-status" aria-hidden="true">NIGHT</span>
-          </button>
-        </div>
         <div id="routeMapShell" class="route-map-shell">
           <div id="routeMap" aria-label="Interactive route map"></div>
           <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
-          <div class="route-map-compass">N</div>
           <button id="locateMeBtn" class="locate-me-btn" type="button" aria-label="Locate me" title="Locate me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7.8 18-3.5-7.7L3 9.8 21 3Z"/><path d="m9.5 13.5 4-4"/></svg><span class="sr-only">Locate me</span></button>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label"></div>
@@ -9835,6 +9733,7 @@
     let routeMap = null;
     let routeTileLayer = null;
     let routeMapTheme = '';
+    let renderedRouteKey = '';
     let routeLayer = null;
     let depMarker = null;
     let arrMarker = null;
@@ -10046,6 +9945,11 @@
           tap: true
         }).setView([60.35, 24.95], 7);
 
+        L.control.zoom({
+          position: 'topright',
+          zoomInTitle: 'Zoom in',
+          zoomOutTitle: 'Zoom out'
+        }).addTo(routeMap);
         applyRouteMapTheme();
 
         setTimeout(() => routeMap.invalidateSize(false), 150);
@@ -10180,6 +10084,7 @@
         routeMapLabel.textContent = 'Route preview';
         if (routeMapGuideRoute) routeMapGuideRoute.textContent = 'Select route';
         clearRouteMap();
+        renderedRouteKey = '';
         return;
       }
 
@@ -10187,7 +10092,11 @@
       routeMapMeta.textContent = `${itineraryName(dep, arr)} / ${formatFlightTime(dep, arr)}`;
       if (routeMapGuideRoute) routeMapGuideRoute.textContent = `${dep.short} to ${arr.short}`;
       routeMapLabel.textContent = '';
-      drawRouteOnMap(dep, arr);
+      const routeKey = `${dep.icao}-${arr.icao}-${el('flightExperience').value}-${el('scenicVariant').value}`;
+      if (routeKey !== renderedRouteKey) {
+        drawRouteOnMap(dep, arr);
+        renderedRouteKey = routeKey;
+      }
     }
 
     function toRad(value) {
@@ -10766,36 +10675,30 @@
       return `${Math.round(total)} KG declared / pilot check`;
     }
 
-    function updateFlightPresetState() {
-      const activePreset = isHelsinkiCityScenicSelected()
-        ? (isHelsinkiNightSelected() ? 'night' : 'day')
-        : 'custom';
-      form.querySelectorAll('[data-flight-preset]').forEach(button => {
-        const active = button.dataset.flightPreset === activePreset;
-        button.classList.toggle('is-active', active);
-        button.setAttribute('aria-pressed', String(active));
-      });
-    }
-
-    function selectHelsinkiScenicPreset(variant) {
-      const normalizedVariant = variant === HELSINKI_NIGHT_VARIANT ? HELSINKI_NIGHT_VARIANT : HELSINKI_DAY_VARIANT;
-      el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
-      el('scenicVariant').value = normalizedVariant;
-      if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
-      el('arr').value = el('dep').value;
-      el('tripType').value = 'ONE_WAY';
-      el('requestTime').value = normalizedVariant === HELSINKI_NIGHT_VARIANT ? '21:00' : '13:00';
-      updateReturnTripFields();
-      refreshSummary();
-      queueDraftSave();
+    function syncAutomaticScenicExperience() {
+      const depIcao = el('dep').value;
+      const arrIcao = el('arr').value;
+      const sameAirport = depIcao && depIcao === arrIcao;
+      if (sameAirport && ['EFHV', 'EFNU'].includes(depIcao)) {
+        const departureHour = Number(String(el('requestTime').value || '12:00').split(':')[0]);
+        el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
+        el('scenicVariant').value = departureHour >= 18 || departureHour < 6 ? HELSINKI_NIGHT_VARIANT : HELSINKI_DAY_VARIANT;
+        return;
+      }
+      if (sameAirport && depIcao === 'EFHN') {
+        el('flightExperience').value = HANKO_SCENIC_EXPERIENCE;
+        el('scenicVariant').value = '';
+        return;
+      }
+      if ([HELSINKI_CITY_SCENIC_EXPERIENCE, HANKO_SCENIC_EXPERIENCE].includes(el('flightExperience').value)) {
+        el('flightExperience').value = '';
+        el('scenicVariant').value = '';
+      }
     }
 
     function refreshSummary() {
       syncAlcoholPreferences();
-      if (el('flightExperience').value === HELSINKI_CITY_SCENIC_EXPERIENCE) {
-        if (!['EFHV', 'EFNU'].includes(el('dep').value)) el('dep').value = 'EFHV';
-        el('arr').value = el('dep').value;
-      }
+      syncAutomaticScenicExperience();
       let dep = selectedAirport('dep');
       let arr = selectedAirport('arr');
       if (el('flightExperience').value && !isScenicExperienceSelected()) el('flightExperience').value = '';
@@ -10827,7 +10730,6 @@
       updateHeroFlightDesk(dep, arr);
       requestSummary();
       updateReadiness(dep, arr);
-      updateFlightPresetState();
       el('mobileTripLine').textContent = itineraryName(dep, arr);
       el('mobileTripMeta').textContent = `${formatFlightTime(dep, arr)} / ${el('seats').value || '1'} passenger${el('seats').value === '1' ? '' : 's'}`;
       const mobileTripPrice = el('mobileTripPrice');
@@ -11163,42 +11065,6 @@
         event.preventDefault();
         lookupBookingRequest();
       });
-    });
-    form.querySelectorAll('[data-flight-preset]').forEach(button => {
-      button.addEventListener('click', () => {
-        const preset = button.dataset.flightPreset;
-        if (preset === 'day') {
-          selectHelsinkiScenicPreset(HELSINKI_DAY_VARIANT);
-          return;
-        }
-        if (preset === 'night') {
-          selectHelsinkiScenicPreset(HELSINKI_NIGHT_VARIANT);
-          return;
-        }
-        el('flightExperience').value = '';
-        el('scenicVariant').value = '';
-        if (el('dep').value === el('arr').value) {
-          el('arr').value = airports.some(airport => airport.icao === 'EFHN') ? 'EFHN' : (airports.find(airport => airport.icao !== el('dep').value)?.icao || '');
-        }
-        refreshSummary();
-        queueDraftSave();
-      });
-    });
-    const hankoScenicBtn = el('hankoScenicBtn');
-    if (hankoScenicBtn) hankoScenicBtn.addEventListener('click', () => {
-      el('flightExperience').value = HANKO_SCENIC_EXPERIENCE;
-      el('scenicVariant').value = '';
-      el('dep').value = 'EFHN';
-      el('arr').value = 'EFHN';
-      el('tripType').value = 'ONE_WAY';
-      updateReturnTripFields();
-      setStatus('Hanko Regatta scenic overflight selected', 'ok');
-      refreshSummary();
-      queueDraftSave();
-    });
-    const helsinkiScenicBtn = el('helsinkiScenicBtn');
-    if (helsinkiScenicBtn) helsinkiScenicBtn.addEventListener('click', () => {
-      selectHelsinkiScenicPreset(HELSINKI_DAY_VARIANT);
     });
     function changeBagCount(delta) {
       const next = Math.max(0, Math.min(3, Number(el('bagCount').value || 0) + delta));

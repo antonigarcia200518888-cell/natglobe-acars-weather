@@ -1345,7 +1345,7 @@ function normalizeBookingItineraryUpdate(body, fallbackTripType = 'ONE_WAY') {
   const tripType = body?.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : fallbackTripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
   const flightExperience = normalizeBookingText(body?.flightExperience, 40);
   const isHankoScenic = flightExperience === HANKO_SCENIC_EXPERIENCE && depAirport.icao === 'EFHN' && arrAirport.icao === 'EFHN';
-  const isHelsinkiCityScenic = flightExperience === HELSINKI_CITY_SCENIC_EXPERIENCE && ['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao;
+  const isHelsinkiCityScenic = ['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao && (!flightExperience || flightExperience === HELSINKI_CITY_SCENIC_EXPERIENCE);
   if (depAirport.icao === arrAirport.icao && !isHankoScenic && !isHelsinkiCityScenic) return { error: 'CHOOSE DIFFERENT DEPARTURE AND DESTINATION OR SELECT A SCENIC FLIGHT' };
 
   const normalizedExperience = isHankoScenic ? HANKO_SCENIC_EXPERIENCE : isHelsinkiCityScenic ? HELSINKI_CITY_SCENIC_EXPERIENCE : '';
