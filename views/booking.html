@@ -8263,15 +8263,15 @@
 
     .luxury-booking .aircraft-feature {
       grid-template-columns: minmax(0, 1.16fr) minmax(410px, 0.84fr);
-      min-height: 480px;
+      min-height: 440px;
       border-radius: 5px;
       background: #fff;
     }
 
     .luxury-booking .aircraft-photo {
-      min-height: 480px;
+      min-height: 440px;
       border-radius: 4px 0 0 4px;
-      background: #fff;
+      background: #fafafa;
     }
 
     .luxury-booking .aircraft-photo::after {
@@ -8295,6 +8295,7 @@
       box-sizing: border-box;
       object-fit: contain;
       object-position: center;
+      mix-blend-mode: darken;
       transform: none;
       filter: drop-shadow(0 32px 38px rgba(6,26,64,0.22));
     }
@@ -9215,7 +9216,7 @@
         <a href="#itinerarySection" data-progress-step="route"><i aria-hidden="true"></i>Itinerary</a>
         <a href="#passengerSection" data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</a>
         <a href="#luggageSection" data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</a>
-        <a href="#extrasSection" data-progress-step="extras"><i aria-hidden="true"></i>Cabin</a>
+        <a href="#extrasSection" data-progress-step="extras"><i aria-hidden="true"></i>Requests</a>
         <a href="#reviewSection" data-progress-step="review"><i aria-hidden="true"></i>Review</a>
       </div>
     </div>
@@ -9313,30 +9314,6 @@
         </div>
       </section>
 
-      <section class="journey-sequence-card" aria-label="Live journey sequence">
-        <div class="journey-sequence-head">
-          <div><span class="section-overline">Your day of travel</span><h2 class="section-title">Journey sequence</h2></div>
-          <p id="journeySequenceDate">Selected date / local times</p>
-        </div>
-        <div class="journey-sequence-track">
-          <div class="journey-moment"><span>01</span><div><small>Board</small><strong id="timelineArrive">09:40</strong><em id="timelineDepAirport">Hyvinkää</em></div></div>
-          <div class="journey-line"><i></i></div>
-          <div class="journey-moment"><span>02</span><div><small>Depart</small><strong id="timelineDepart">10:00</strong><em>Local time</em></div></div>
-          <div class="journey-line is-flight"><i></i><b id="timelineFlightTime">00H 40M</b></div>
-          <div class="journey-moment"><span>03</span><div><small>Arrive</small><strong id="timelineArrival">10:40</strong><em id="timelineArrAirport">Hanko</em></div></div>
-          <div class="journey-line"><i></i></div>
-          <div class="journey-moment"><span>04</span><div><small>Next</small><strong>Pilot review</strong><em>Confirmation follows</em></div></div>
-        </div>
-        <div id="returnJourneySequence" class="return-journey-sequence" hidden>
-          <span>Return journey</span><strong id="timelineReturnSummary">Date and preferred time selected</strong>
-        </div>
-        <div class="journey-insights" aria-label="Journey planning intelligence">
-          <div><span>Daylight preview</span><strong id="daylightWindow">Calculating selected date</strong><small>Pilot verifies operating limits</small></div>
-          <div><span>Declared load</span><strong id="journeyLoadPreview">Passenger weights pending</strong><small>Passenger and luggage declaration</small></div>
-          <div><span>Cabin plan</span><strong id="journeyCabinPreview">Seat 2A / no extras</strong><small>Preferences remain subject to approval</small></div>
-        </div>
-      </section>
-
       <section class="card aircraft-feature" aria-label="Piper Arrow PA-28R-200">
         <div class="aircraft-photo">
           <img src="/piper-hangar-customer.png" alt="PA-28R aircraft in hangar-style studio view" />
@@ -9351,12 +9328,6 @@
             <div><strong>115 KT</strong><span>Typical cruise</span></div>
             <div><strong>2</strong><span>Rear cabin seats</span></div>
             <div><strong>3-5H</strong><span>Endurance profile</span></div>
-          </div>
-          <div class="aircraft-facts" aria-label="Aircraft facts">
-            <div class="aircraft-fact"><span>Cabin</span><strong>Four-seat light aircraft with two rear passenger seats</strong></div>
-            <div class="aircraft-fact"><span>Route profile</span><strong>Ideal for short scenic and coastal routes</strong></div>
-            <div class="aircraft-fact"><span>Comfort</span><strong>Personal cabin environment for relaxed regional flying</strong></div>
-            <div class="aircraft-fact"><span>Luggage</span><strong>One standard carry-on included, soft bags preferred</strong></div>
           </div>
           <div class="amenity-grid">
             <div class="amenity"><span class="starlink-mark" aria-hidden="true"><img src="/starlink-symbol.png" alt="" /></span>Wi-Fi</div>
@@ -9493,17 +9464,6 @@
         </div>
       </div>
 
-      <div class="booking-progress final-progress" aria-label="Booking completion">
-        <div class="progress-readiness"><span>Request readiness</span><strong data-readiness-value>0%</strong></div>
-        <div class="progress-steps">
-          <a href="#itinerarySection" data-progress-step="route"><i aria-hidden="true"></i>Itinerary</a>
-          <a href="#passengerSection" data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</a>
-          <a href="#luggageSection" data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</a>
-          <a href="#extrasSection" data-progress-step="extras"><i aria-hidden="true"></i>Cabin</a>
-          <a href="#reviewSection" data-progress-step="review"><i aria-hidden="true"></i>Review</a>
-        </div>
-      </div>
-
       <div id="reviewSection" class="card review-card">
         <div class="review-overview">
           <div class="section-heading"><div><span class="section-overline">Live request summary</span><h2 class="section-title">Trip details</h2></div><span class="section-sequence">06</span></div>
@@ -9528,16 +9488,6 @@
           <li class="total-cost"><span>Total flight cost</span><strong id="summaryCost">Flight team confirms</strong><em>Includes 1 standard carry-on bag. Extras charged separately.</em></li>
           <li class="summary-requests"><span>Cabin requests</span><div id="summaryRequests" class="request-pill-list"><span class="request-pill">None selected</span></div></li>
         </ul>
-      </div>
-
-      <div class="card preflight-card">
-        <h2 class="section-title">Before you fly</h2>
-        <div class="preflight-strip" aria-label="Before you fly checks">
-          <div class="preflight-item"><strong>Valid ID</strong><span>Bring the same passport or identity document used in the request.</span></div>
-          <div class="preflight-item"><strong>Arrival</strong><span>Plan to arrive 20 minutes before departure unless operations advises otherwise.</span></div>
-          <div class="preflight-item"><strong>Pilot review</strong><span>Weather, aircraft status, loading, and legal limits are checked before confirmation.</span></div>
-          <div class="preflight-item"><strong>Payment</strong><span>Payment instructions are issued only after the flight is approved.</span></div>
-        </div>
       </div>
 
       <details id="bookingLookup" class="card booking-lookup-card" aria-label="Passenger booking lookup">
@@ -10469,7 +10419,6 @@
         '.aircraft-feature',
         '.summary-card',
         '.baggage-request-grid',
-        '.preflight-card',
         '.booking-lookup-card'
       ];
       const sections = [...new Set(revealTargets.flatMap(selector => [...document.querySelectorAll(selector)]))];
