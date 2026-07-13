@@ -6352,6 +6352,17 @@
       margin-bottom: 18px;
     }
 
+    .luxury-booking .section-heading-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .luxury-booking .mobile-section-toggle,
+    .luxury-booking .mobile-section-summary {
+      display: none;
+    }
+
     .luxury-booking .section-overline {
       display: block;
       margin-bottom: 6px;
@@ -6459,96 +6470,6 @@
       color: #071d49;
       font-style: normal;
       font-weight: 700;
-    }
-
-    .luxury-booking .planner-live-brief {
-      margin-top: auto;
-      padding: 17px;
-      border-radius: 6px;
-      background: #071d49;
-      color: #fff;
-      box-shadow: 0 16px 34px rgba(7,29,73,0.16);
-    }
-
-    .luxury-booking .planner-live-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding-bottom: 11px;
-      border-bottom: 1px solid rgba(255,255,255,0.17);
-    }
-
-    .luxury-booking .planner-live-head span,
-    .luxury-booking .planner-live-grid span {
-      display: block;
-      color: rgba(255,255,255,0.58);
-      font: 700 9px/1.2 "Courier New", monospace;
-      text-transform: uppercase;
-    }
-
-    .luxury-booking .planner-live-head small {
-      color: #7ed795;
-      font: 700 9px/1.2 "Courier New", monospace;
-      text-transform: uppercase;
-    }
-
-    .luxury-booking .planner-live-route {
-      margin-top: 14px;
-      color: #fff;
-      font: 400 34px/0.95 "Computer Says No", "Courier New", monospace;
-      text-transform: uppercase;
-    }
-
-    .luxury-booking .planner-live-route i {
-      display: inline-block;
-      width: 34px;
-      height: 1px;
-      margin: 0 8px 6px;
-      background: rgba(255,255,255,0.52);
-    }
-
-    .luxury-booking .planner-live-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      margin-top: 15px;
-    }
-
-    .luxury-booking .planner-live-grid > div {
-      min-width: 0;
-      padding-right: 10px;
-      border-right: 1px solid rgba(255,255,255,0.14);
-    }
-
-    .luxury-booking .planner-live-grid > div:not(:first-child) {
-      padding-left: 10px;
-    }
-
-    .luxury-booking .planner-live-grid > div:nth-child(2) {
-      padding-right: 0;
-      border-right: 0;
-    }
-
-    .luxury-booking .planner-live-grid .planner-live-price {
-      grid-column: 1 / -1;
-      margin-top: 11px;
-      padding: 10px 0 0;
-      border-top: 1px solid rgba(255,255,255,0.14);
-      border-right: 0;
-    }
-
-    .luxury-booking .planner-live-grid .planner-live-price strong {
-      overflow-wrap: normal;
-    }
-
-    .luxury-booking .planner-live-grid strong {
-      display: block;
-      margin-top: 5px;
-      color: #fff;
-      font: 700 11px/1.28 "Courier New", monospace;
-      overflow-wrap: anywhere;
-      text-transform: uppercase;
     }
 
     .luxury-booking .route-map-head {
@@ -7341,6 +7262,60 @@
         font-size: 9px;
       }
 
+      .luxury-booking .mobile-section-toggle:not([hidden]) {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        border: 1px solid rgba(7,29,73,0.20);
+        border-radius: 4px;
+        background: #fff;
+        color: #071d49;
+        font: 700 9px/1 "Courier New", monospace;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .luxury-booking .mobile-section-summary:not([hidden]) {
+        display: grid;
+        gap: 5px;
+        min-height: 54px;
+        padding: 12px;
+        border: 1px solid rgba(7,29,73,0.12);
+        border-radius: 5px;
+        background: #f4f6f9;
+        color: #071d49;
+      }
+
+      .luxury-booking .mobile-section-summary strong {
+        min-width: 0;
+        font: 400 18px/1 "Computer Says No", "Courier New", monospace;
+        overflow-wrap: anywhere;
+        text-transform: uppercase;
+      }
+
+      .luxury-booking .mobile-section-summary span {
+        min-width: 0;
+        color: #66758a;
+        font: 700 9px/1.35 "Courier New", monospace;
+        overflow-wrap: anywhere;
+        text-align: left;
+        text-transform: uppercase;
+      }
+
+      .luxury-booking .mobile-collapsible.is-mobile-complete .section-sequence {
+        display: none;
+      }
+
+      .luxury-booking .mobile-collapsible.is-mobile-collapsed > :not(.section-heading):not(.mobile-section-summary) {
+        display: none !important;
+      }
+
+      .luxury-booking .mobile-collapsible.is-mobile-collapsed .section-heading {
+        margin-bottom: 12px;
+      }
+
       .luxury-booking .search-grid {
         grid-template-columns: repeat(7, minmax(0, 1fr));
         gap: 9px 6px;
@@ -7391,10 +7366,6 @@
       .luxury-booking .itinerary-assurance {
         grid-template-columns: 1fr;
         gap: 8px;
-      }
-
-      .luxury-booking .planner-live-brief {
-        display: none;
       }
 
       .luxury-booking .mobile-booking-bar {
@@ -8026,15 +7997,6 @@
       background: var(--nga-navy);
       color: #fff;
       font-size: 9px;
-    }
-
-    .luxury-booking .planner-live-brief {
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 4px;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.07), transparent 48%),
-        var(--nga-navy);
-      box-shadow: 0 20px 42px rgba(6,26,64,0.18);
     }
 
     .luxury-booking .journey-sequence-card {
@@ -9356,15 +9318,6 @@
           <span><i aria-hidden="true">✓</i> Personally reviewed by the flight team</span>
           <span><i aria-hidden="true">✓</i> No charge to submit a request</span>
         </div>
-        <div class="planner-live-brief" aria-label="Live selected flight brief">
-          <div class="planner-live-head"><span>Selected flight</span><small>Updates automatically</small></div>
-          <div id="plannerBriefRoute" class="planner-live-route">HYV <i aria-hidden="true"></i> HNK</div>
-          <div class="planner-live-grid">
-            <div><span>Flight time</span><strong id="plannerBriefTime">00H 40M</strong></div>
-            <div><span>Boarding</span><strong id="plannerBriefBoarding">09:40</strong></div>
-            <div class="planner-live-price"><span>Estimate</span><strong id="plannerBriefPrice">Approx. €129 EUR (1 PAX)</strong></div>
-          </div>
-        </div>
       </section>
 
       <section class="card aircraft-feature" aria-label="Piper Arrow PA-28R-200">
@@ -9392,8 +9345,9 @@
 
       <div class="layout">
         <section>
-          <div id="passengerSection" class="card passenger-section-card">
-            <div class="section-heading"><div><span class="section-overline">Passenger manifest</span><h2 class="section-title">Passenger details</h2></div><span class="section-sequence">02</span></div>
+          <div id="passengerSection" class="card passenger-section-card mobile-collapsible">
+            <div class="section-heading"><div><span class="section-overline">Passenger manifest</span><h2 class="section-title">Passenger details</h2></div><div class="section-heading-tools"><button class="mobile-section-toggle" type="button" data-mobile-collapse="passengers" aria-expanded="true" hidden>Collapse</button><span class="section-sequence">02</span></div></div>
+            <div class="mobile-section-summary" aria-live="polite" hidden><strong>Passenger details complete</strong><span id="passengerMobileSummary">Manifest ready</span></div>
             <div id="passengerList" class="passenger-list"></div>
             <p class="data-use-note">Identity details are used only for operational review and passenger flight documents.</p>
           </div>
@@ -9401,8 +9355,9 @@
         </section>
 
         <aside>
-          <div id="luggageSection" class="card">
-            <div class="section-heading"><div><span class="section-overline">Aircraft loading</span><h2 class="section-title">Luggage declaration</h2></div><span class="section-sequence">03</span></div>
+          <div id="luggageSection" class="card mobile-collapsible">
+            <div class="section-heading"><div><span class="section-overline">Aircraft loading</span><h2 class="section-title">Luggage declaration</h2></div><div class="section-heading-tools"><button class="mobile-section-toggle" type="button" data-mobile-collapse="luggage" aria-expanded="true" hidden>Collapse</button><span class="section-sequence">03</span></div></div>
+            <div class="mobile-section-summary" aria-live="polite" hidden><strong>Luggage reviewed</strong><span id="luggageMobileSummary">No carry-on bags</span></div>
             <div class="declaration">
               Declare all bags, total weight, power banks and lithium batteries. Dangerous goods and unsecured batteries are not permitted.
             </div>
@@ -9459,7 +9414,7 @@
             <div class="request-panel-header">
               <div>
                 <div class="request-panel-title">Onboard requests</div>
-                <div class="request-panel-copy">Select anything you would like to add. <strong>Approved requests are charged separately and added to your final flight bill.</strong></div>
+                <div class="request-panel-copy">Select anything you would like to add. <strong>Approved requests are charged separately and added to your final flight reimbursement statement.</strong></div>
               </div>
             </div>
 
@@ -10290,13 +10245,6 @@
       heroFlightTime.textContent = validRoute ? formatFlightTime(dep, arr) : '--H --M';
       heroPrice.textContent = validRoute ? routePrice(dep, arr) : 'Pilot confirms';
       updateJourneySequence(dep, arr);
-      if (el('plannerBriefRoute')) {
-        const destinationCode = isScenicExperienceSelected() ? 'SCN' : routeDisplayCode(arr);
-        el('plannerBriefRoute').textContent = validRoute ? `${routeDisplayCode(dep)} → ${destinationCode}` : '--- → ---';
-        el('plannerBriefTime').textContent = validRoute ? formatFlightTime(dep, arr) : '--H --M';
-        el('plannerBriefBoarding').textContent = validRoute ? boardingTimeSummary().split(' / ')[0] : '--:--';
-        el('plannerBriefPrice').textContent = validRoute ? routePrice(dep, arr) : 'Flight team confirms';
-      }
     }
 
     function fillPickerWheels() {
@@ -10629,6 +10577,22 @@
       });
     }
 
+    function updateMobileCollapsibleSection(sectionId, summaryId, ready, summaryText) {
+      const section = el(sectionId);
+      const summaryTextElement = el(summaryId);
+      const summary = section?.querySelector('.mobile-section-summary');
+      const toggle = section?.querySelector('[data-mobile-collapse]');
+      if (!section || !summary || !summaryTextElement || !toggle) return;
+      summaryTextElement.textContent = summaryText;
+      section.classList.toggle('is-mobile-complete', ready);
+      toggle.hidden = !ready;
+      if (ready) return;
+      section.classList.remove('is-mobile-collapsed');
+      summary.hidden = true;
+      toggle.textContent = 'Collapse';
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+
     function updateReadiness(dep, arr) {
       const passengers = collectPassengers(false);
       const passengerCount = Number(el('seats').value || 1);
@@ -10641,6 +10605,18 @@
       const extrasReady = extrasSectionViewed;
       const safetyReady = Boolean(el('safetyAgreement').checked);
       const reviewReady = routeReady && completePassengers && luggageReady && extrasReady && safetyReady;
+      const passengerNames = passengers
+        .slice(0, passengerCount)
+        .map(passenger => `${passenger.title || ''} ${passenger.name || ''}`.trim())
+        .filter(Boolean)
+        .join(' / ');
+      updateMobileCollapsibleSection(
+        'passengerSection',
+        'passengerMobileSummary',
+        completePassengers,
+        passengerNames || `${passengerCount} passenger${passengerCount === 1 ? '' : 's'} ready`
+      );
+      updateMobileCollapsibleSection('luggageSection', 'luggageMobileSummary', luggageReady, baggageSummary());
       setMobileMarker('route', routeReady);
       setMobileMarker('travellers', completePassengers);
       setMobileMarker('luggage', luggageReady);
@@ -11096,6 +11072,17 @@
       const collapsed = card.classList.toggle('is-collapsed');
       toggle.setAttribute('aria-expanded', String(!collapsed));
       toggle.querySelector('em').textContent = collapsed ? 'Edit' : 'Collapse';
+    });
+    form.querySelectorAll('[data-mobile-collapse]').forEach(button => {
+      button.addEventListener('click', () => {
+        const section = button.closest('.mobile-collapsible');
+        const summary = section?.querySelector('.mobile-section-summary');
+        if (!section?.classList.contains('is-mobile-complete') || !summary) return;
+        const collapsed = section.classList.toggle('is-mobile-collapsed');
+        summary.hidden = !collapsed;
+        button.textContent = collapsed ? 'Edit' : 'Collapse';
+        button.setAttribute('aria-expanded', String(!collapsed));
+      });
     });
     form.querySelectorAll('input[name="seatPreference"]').forEach(input => {
       input.addEventListener('change', () => setSeatPreference(input.value));
