@@ -9159,6 +9159,383 @@
         padding: 12px 14px;
       }
     }
+
+    /* Interactive aircraft, route discovery and final mobile polish. */
+    .luxury-booking .booking-status-dock {
+      margin: 14px 0;
+      border-left: 3px solid var(--nga-navy);
+      box-shadow: 0 12px 34px rgba(6,26,64,0.07);
+    }
+
+    .luxury-booking .route-highlights {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--nga-line);
+    }
+
+    .luxury-booking .route-highlights-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 9px;
+    }
+
+    .luxury-booking .route-highlights-head span,
+    .luxury-booking .route-highlights-head small,
+    .luxury-booking .route-highlights-track article > span {
+      font: 700 8px/1.25 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .route-highlights-head span {
+      color: var(--nga-navy);
+    }
+
+    .luxury-booking .route-highlights-head small {
+      color: #7b8798;
+      text-align: right;
+    }
+
+    .luxury-booking .route-highlights-track {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .luxury-booking .route-highlights-track article {
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid rgba(7,29,73,0.10);
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .luxury-booking .route-highlights-track article > span {
+      color: #7b8798;
+    }
+
+    .luxury-booking .route-highlights-track strong,
+    .luxury-booking .route-highlights-track p {
+      display: block;
+      margin: 0;
+    }
+
+    .luxury-booking .route-highlights-track strong {
+      margin-top: 5px;
+      color: var(--nga-navy);
+      font: 400 18px/1 "Computer Says No", "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .route-highlights-track p {
+      margin-top: 6px;
+      color: #66758a;
+      font: 9px/1.45 "Courier New", monospace;
+    }
+
+    .luxury-booking .aircraft-hotspots {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .luxury-booking .aircraft-photo {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .luxury-booking .aircraft-hotspot {
+      position: absolute;
+      display: grid;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.92);
+      border-radius: 50%;
+      background: var(--nga-navy);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(6,26,64,0.28), 0 0 0 5px rgba(255,255,255,0.72);
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .luxury-booking .aircraft-hotspot:hover,
+    .luxury-booking .aircraft-hotspot:focus-visible,
+    .luxury-booking .aircraft-hotspot.is-active {
+      z-index: 4;
+      background: #fff;
+      color: var(--nga-navy);
+      box-shadow: 0 10px 28px rgba(6,26,64,0.30), 0 0 0 7px rgba(7,29,73,0.16);
+      outline: none;
+      transform: scale(1.08);
+    }
+
+    .luxury-booking .aircraft-hotspot span {
+      font: 700 10px/1 "Courier New", monospace;
+    }
+
+    .luxury-booking .aircraft-hotspot.cabin { left: 39%; top: 34%; }
+    .luxury-booking .aircraft-hotspot.connectivity { left: 49%; top: 25%; }
+    .luxury-booking .aircraft-hotspot.performance { left: 57%; top: 57%; }
+
+    .luxury-booking .aircraft-hotspot-readout {
+      margin: 16px 0 4px;
+      padding: 14px;
+      border: 1px solid rgba(7,29,73,0.12);
+      border-left: 3px solid var(--nga-navy);
+      border-radius: 4px;
+      background: #f4f6f9;
+    }
+
+    .luxury-booking .aircraft-hotspot-readout span {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #718095;
+      font: 700 8px/1.2 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .aircraft-hotspot-readout i {
+      color: var(--nga-navy);
+      font-style: normal;
+    }
+
+    .luxury-booking .aircraft-hotspot-readout strong {
+      display: block;
+      margin-top: 7px;
+      color: var(--nga-navy);
+      font: 700 10px/1.45 "Courier New", monospace;
+    }
+
+    .luxury-booking .submit-footer #submitBooking {
+      display: inline-flex;
+      min-height: 58px;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .luxury-booking .submit-footer #submitBooking:not(.is-sending):not(.is-success):not(.is-error)::after,
+    .luxury-booking .mobile-booking-bar .btn:not(.is-sending):not(.is-success):not(.is-error)::after {
+      content: '→';
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    @media (max-width: 700px) {
+      .luxury-booking .booking-status-dock {
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+
+      .luxury-booking .booking-status-dock > summary {
+        min-height: 58px;
+        padding: 12px 13px;
+      }
+
+      .luxury-booking .booking-status-dock > summary strong {
+        font-size: 20px;
+      }
+
+      .luxury-booking .booking-status-dock .booking-lookup-content {
+        padding: 0 13px 13px;
+      }
+
+      .luxury-booking .search-grid .route-field:has(#dep) {
+        grid-column: 1 / 4;
+      }
+
+      .luxury-booking .search-grid .swap-field {
+        grid-column: 4 / 5;
+        display: flex;
+        margin: 0;
+        padding: 0;
+        align-self: end;
+        justify-content: stretch;
+      }
+
+      .luxury-booking .search-grid .route-field:has(#arr) {
+        grid-column: 5 / 8;
+      }
+
+      .luxury-booking .search-grid .swap-field .swap-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 46px;
+        margin: 0;
+        padding: 0;
+        transform: none;
+      }
+
+      .luxury-booking .search-grid .route-field select {
+        min-width: 0;
+        min-height: 46px;
+        padding-right: 20px;
+        padding-left: 8px;
+        font-size: 9px;
+      }
+
+      .luxury-booking .route-highlights-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .luxury-booking .route-highlights-head small {
+        text-align: left;
+      }
+
+      .luxury-booking .route-highlights-track {
+        display: flex;
+        gap: 7px;
+        padding-bottom: 4px;
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+      }
+
+      .luxury-booking .route-highlights-track::-webkit-scrollbar {
+        display: none;
+      }
+
+      .luxury-booking .route-highlights-track article {
+        width: 76%;
+        min-width: 210px;
+        flex: 0 0 76%;
+        scroll-snap-align: start;
+      }
+
+      .luxury-booking .aircraft-hotspot {
+        width: 28px;
+        height: 28px;
+        box-shadow: 0 7px 18px rgba(6,26,64,0.26), 0 0 0 4px rgba(255,255,255,0.74);
+      }
+
+      .luxury-booking .aircraft-hotspot.cabin { left: 37%; top: 33%; }
+      .luxury-booking .aircraft-hotspot.connectivity { left: 49%; top: 23%; }
+      .luxury-booking .aircraft-hotspot.performance { left: 58%; top: 56%; }
+
+      .luxury-booking .aircraft-hotspot-readout {
+        margin-top: 12px;
+        padding: 12px;
+      }
+
+      .luxury-booking #extrasSection .extras-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .luxury-booking #extrasSection .extra-option {
+        display: grid;
+        grid-template-columns: 94px minmax(0, 1fr);
+        grid-template-rows: auto auto auto;
+        gap: 5px 10px;
+        min-height: 112px;
+        padding: 8px;
+        border-radius: 5px;
+      }
+
+      .luxury-booking #extrasSection .extra-visual {
+        grid-column: 1;
+        grid-row: 1 / 4;
+        width: 94px;
+        height: 96px;
+        min-height: 96px;
+        margin: 0;
+        border-radius: 4px;
+      }
+
+      .luxury-booking #extrasSection .extra-visual::after {
+        border-radius: 3px;
+      }
+
+      .luxury-booking #extrasSection .extra-visual-copy {
+        inset: auto 7px 7px;
+      }
+
+      .luxury-booking #extrasSection .extra-visual-copy em {
+        display: none;
+      }
+
+      .luxury-booking #extrasSection .extra-visual-copy b {
+        font-size: 18px;
+      }
+
+      .luxury-booking #extrasSection .extra-figure {
+        transform: scale(0.72);
+        transform-origin: 72% 48%;
+      }
+
+      .luxury-booking #extrasSection .extra-option-head,
+      .luxury-booking #extrasSection .extra-option > span,
+      .luxury-booking #extrasSection .request-status {
+        grid-column: 2;
+        width: auto;
+        margin: 0;
+      }
+
+      .luxury-booking #extrasSection .extra-option-head {
+        align-items: center;
+        align-self: end;
+      }
+
+      .luxury-booking #extrasSection .extra-option-head strong {
+        font-size: 12px;
+        line-height: 1.2;
+      }
+
+      .luxury-booking #extrasSection .extra-option > span {
+        color: #5f6f85;
+        font-size: 8px;
+        line-height: 1.35;
+      }
+
+      .luxury-booking #extrasSection .request-status {
+        align-self: start;
+        justify-self: start;
+        padding: 5px 7px;
+        font-size: 7px;
+      }
+
+      .luxury-booking .mobile-booking-bar {
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        padding: 8px 8px 8px 11px;
+        border: 1px solid rgba(7,29,73,0.20);
+        border-radius: 6px;
+        background: rgba(255,255,255,0.97);
+        box-shadow: 0 18px 48px rgba(6,26,64,0.22);
+      }
+
+      .luxury-booking .mobile-booking-bar .btn {
+        display: inline-flex;
+        min-width: 130px;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--nga-navy);
+        border-radius: 4px;
+        background: var(--nga-navy);
+        color: #fff;
+        box-shadow: none;
+        font-size: 10px;
+      }
+
+      .luxury-booking .submit-footer #submitBooking {
+        width: 100%;
+        min-height: 58px;
+        border-radius: 4px;
+      }
+    }
   </style>
 </head>
 <body class="luxury-booking">
@@ -9237,6 +9614,19 @@
       </div>
     </div>
 
+    <details id="bookingLookup" class="card booking-lookup-card booking-status-dock" aria-label="Passenger booking lookup">
+      <summary><span><small class="booking-lookup-kicker">Already requested?</small><strong>Track your flight request</strong></span><i aria-hidden="true">+</i></summary>
+      <div class="booking-lookup-content">
+        <p>Enter the booking reference and a passenger email to view the latest safe status. Sensitive passenger details are never shown here.</p>
+        <div class="booking-lookup-form">
+          <div><label for="lookupReference">Reference</label><input id="lookupReference" type="text" placeholder="HYV-HNK-001" autocomplete="off" /></div>
+          <div><label for="lookupEmail">Passenger email</label><input id="lookupEmail" type="email" placeholder="name@example.com" autocomplete="email" /></div>
+          <button id="lookupBookingBtn" class="btn" type="button">Check request</button>
+          <div id="lookupStatus" class="booking-lookup-result" aria-live="polite"></div>
+        </div>
+      </div>
+    </details>
+
     <form id="bookingForm" class="booking-workspace">
       <input id="flightExperience" type="hidden" value="" />
       <input id="scenicVariant" type="hidden" value="" />
@@ -9251,6 +9641,14 @@
           <button id="locateMeBtn" class="locate-me-btn" type="button" aria-label="Locate me" title="Locate me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7.8 18-3.5-7.7L3 9.8 21 3Z"/><path d="m9.5 13.5 4-4"/></svg><span class="sr-only">Locate me</span></button>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
           <div id="routeMapLabel" class="route-map-label"></div>
+        </div>
+        <div class="route-highlights" aria-live="polite">
+          <div class="route-highlights-head"><span>Potential route highlights</span><small>Final routing remains at pilot discretion</small></div>
+          <div class="route-highlights-track">
+            <article><span id="routeHighlightLabel1">Departure</span><strong id="routeHighlightTitle1">Hyvinkää landscape</strong><p id="routeHighlightCopy1">Southern Finland opens beneath the aircraft after departure.</p></article>
+            <article><span id="routeHighlightLabel2">En route</span><strong id="routeHighlightTitle2">Lakes and coastline</strong><p id="routeHighlightCopy2">Potential views across the lake district and southern coastline.</p></article>
+            <article><span id="routeHighlightLabel3">Arrival</span><strong id="routeHighlightTitle3">Hanko peninsula</strong><p id="routeHighlightCopy3">The peninsula and archipelago may appear during the arrival profile.</p></article>
+          </div>
         </div>
       </section>
 
@@ -9324,6 +9722,11 @@
       <section id="aircraftSection" class="card aircraft-feature" aria-label="Piper Arrow PA-28R-200">
         <div class="aircraft-photo">
           <img src="/piper-hangar-customer.png" alt="PA-28R aircraft in hangar-style studio view" />
+          <div class="aircraft-hotspots" aria-label="Explore aircraft features">
+            <button class="aircraft-hotspot is-active cabin" type="button" data-aircraft-hotspot="cabin" aria-label="Explore passenger cabin" aria-pressed="true"><span>1</span></button>
+            <button class="aircraft-hotspot connectivity" type="button" data-aircraft-hotspot="connectivity" aria-label="Explore onboard connectivity" aria-pressed="false"><span>2</span></button>
+            <button class="aircraft-hotspot performance" type="button" data-aircraft-hotspot="performance" aria-label="Explore aircraft performance" aria-pressed="false"><span>3</span></button>
+          </div>
         </div>
         <div class="aircraft-feature-copy">
           <div>
@@ -9331,6 +9734,10 @@
             <div class="booking-kicker">Piper Arrow PA-28R-200</div>
           </div>
           <p>A private four-seat cabin designed for scenic coastlines and regional journeys, with direct boarding and a personal flight experience.</p>
+          <div class="aircraft-hotspot-readout" aria-live="polite">
+            <span><i aria-hidden="true">01</i><b id="aircraftHotspotTitle">Passenger cabin</b></span>
+            <strong id="aircraftHotspotCopy">Two rear window seats create a personal cabin with clear sightseeing views.</strong>
+          </div>
           <div class="aircraft-performance" aria-label="Aircraft performance profile">
             <div><strong>115 KT</strong><span>Typical cruise</span></div>
             <div><strong>2</strong><span>Rear cabin seats</span></div>
@@ -9499,19 +9906,6 @@
         </ul>
       </div>
 
-      <details id="bookingLookup" class="card booking-lookup-card" aria-label="Passenger booking lookup">
-        <summary><span><small class="booking-lookup-kicker">Already requested?</small><strong>Open flight request status</strong></span><i aria-hidden="true">+</i></summary>
-        <div class="booking-lookup-content">
-          <p>Enter the booking reference and a passenger email to see the safe public status view. Sensitive passenger details are never shown here.</p>
-          <div class="booking-lookup-form">
-          <div><label for="lookupReference">Reference</label><input id="lookupReference" type="text" placeholder="HYV-HNK-001" autocomplete="off" /></div>
-          <div><label for="lookupEmail">Passenger email</label><input id="lookupEmail" type="email" placeholder="name@example.com" autocomplete="email" /></div>
-          <button id="lookupBookingBtn" class="btn" type="button">Check request</button>
-          <div id="lookupStatus" class="booking-lookup-result" aria-live="polite"></div>
-          </div>
-        </div>
-      </details>
-
       <div class="submit-footer">
         <button id="submitBooking" class="btn" type="submit">Submit flight request</button>
         <div class="submit-result-stack" aria-live="polite">
@@ -9679,6 +10073,23 @@
       'EFHN-EFHN': { oneWay: 30, roundtrip: 30, label: 'Hanko Regatta scenic overflight', estimated: true },
       'EFHV-EFHV': { oneWay: 125, roundtrip: 125, label: 'Helsinki city scenic overflight', estimated: true },
       'EFNU-EFNU': { oneWay: 125, roundtrip: 125, label: 'Helsinki city scenic overflight', estimated: true }
+    };
+    const AIRCRAFT_HOTSPOT_DETAILS = {
+      cabin: {
+        number: '01',
+        title: 'Passenger cabin',
+        copy: 'Two rear window seats create a personal cabin with clear sightseeing views.'
+      },
+      connectivity: {
+        number: '02',
+        title: 'Onboard connectivity',
+        copy: 'USB-C charging and onboard Wi-Fi are available subject to equipment and service coverage.'
+      },
+      performance: {
+        number: '03',
+        title: 'Touring performance',
+        copy: 'A typical 115 KT cruise profile supports efficient regional journeys and scenic routes.'
+      }
     };
 
     let airports = [];
@@ -10232,6 +10643,83 @@
       routeExpPrice.textContent = validRoute ? routePrice(dep, arr) : 'Flight team confirms';
     }
 
+    function routeHighlightProfile(dep, arr) {
+      const departureName = routeDisplayName(dep) || 'Departure region';
+      const arrivalName = routeDisplayName(arr) || 'Destination region';
+      if (isHelsinkiCityScenicSelected()) {
+        const lightProfile = el('scenicVariant').value === HELSINKI_NIGHT_VARIANT
+          ? ['City lights', 'Helsinki after dark may form the visual focus when conditions allow.']
+          : ['Skyline light', 'Daylight and golden-hour views may frame the Helsinki skyline.'];
+        return [
+          ['Scenic departure', departureName, 'The route begins with changing views across southern Finland.'],
+          ['Maritime Helsinki', 'Archipelago and Suomenlinna', 'Potential views include Helsinki harbour, Suomenlinna and nearby islands.'],
+          ['Light profile', lightProfile[0], lightProfile[1]]
+        ];
+      }
+      if (el('flightExperience').value === HANKO_SCENIC_EXPERIENCE) {
+        return [
+          ['Event view', 'Hanko harbour', 'The harbour and Regatta activity may be visible from the approved scenic route.'],
+          ['Coastline', 'Hanko peninsula', 'Potential views stretch along the distinctive shoreline and beaches.'],
+          ['Archipelago', 'Coastal islands', 'Small islands and maritime approaches shape the local flying experience.']
+        ];
+      }
+      const routeKey = `${dep?.icao || ''}-${arr?.icao || ''}`;
+      if (['EFHV-EFHN', 'EFHN-EFHV'].includes(routeKey)) {
+        return [
+          ['Departure', departureName, 'Southern Finland opens beneath the aircraft after departure.'],
+          ['En route', 'Lakes and coastline', 'Potential views transition from inland lakes toward the southern coast.'],
+          ['Arrival', arrivalName, 'The Hanko peninsula or Hyvinkää landscape may define the arrival profile.']
+        ];
+      }
+      if (['EFHK-EFHN', 'EFHN-EFHK'].includes(routeKey)) {
+        return [
+          ['Departure', departureName, 'Airport and city views may appear shortly after departure.'],
+          ['En route', 'Gulf coastline', 'The southern coastline and maritime landscape may remain in view.'],
+          ['Arrival', arrivalName, 'The arrival may reveal the Hanko peninsula or Helsinki region.']
+        ];
+      }
+      if (dep?.country && arr?.country && dep.country !== arr.country) {
+        return [
+          ['Departure', departureName, `The journey begins above ${dep.country}.`],
+          ['En route', 'Baltic region', 'Coastlines, islands and open water may shape the international routing.'],
+          ['Arrival', arrivalName, `The destination landscape introduces ${arr.country} from the air.`]
+        ];
+      }
+      return [
+        ['Departure', departureName, 'Local landscapes develop as the aircraft settles into the route.'],
+        ['En route', 'Regional perspective', 'Lakes, forests, towns and coastline may appear along the approved routing.'],
+        ['Arrival', arrivalName, 'The destination approach completes the journey from a new perspective.']
+      ];
+    }
+
+    function updateRouteHighlights(dep, arr) {
+      routeHighlightProfile(dep, arr).forEach((highlight, index) => {
+        const suffix = index + 1;
+        el(`routeHighlightLabel${suffix}`).textContent = highlight[0];
+        el(`routeHighlightTitle${suffix}`).textContent = highlight[1];
+        el(`routeHighlightCopy${suffix}`).textContent = highlight[2];
+      });
+    }
+
+    function setAircraftHotspot(key) {
+      const detail = AIRCRAFT_HOTSPOT_DETAILS[key];
+      if (!detail) return;
+      document.querySelectorAll('[data-aircraft-hotspot]').forEach(button => {
+        const active = button.dataset.aircraftHotspot === key;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+      el('aircraftHotspotTitle').textContent = detail.title;
+      el('aircraftHotspotCopy').textContent = detail.copy;
+      el('aircraftHotspotTitle').previousElementSibling.textContent = detail.number;
+    }
+
+    function setupAircraftHotspots() {
+      document.querySelectorAll('[data-aircraft-hotspot]').forEach(button => {
+        button.addEventListener('click', () => setAircraftHotspot(button.dataset.aircraftHotspot));
+      });
+    }
+
     function updateHeroFlightDesk(dep, arr) {
       if (!heroRouteLine || !heroRouteMeta || !heroFlightTime || !heroPrice) return;
       const validRoute = Boolean(dep && arr && (dep.icao !== arr.icao || isScenicExperienceSelected()));
@@ -10704,6 +11192,7 @@
       el('summaryBaggage').textContent = baggageSummary();
       el('summaryCost').textContent = routePrice(dep, arr);
       updateRouteExperience(dep, arr);
+      updateRouteHighlights(dep, arr);
       updateHeroFlightDesk(dep, arr);
       requestSummary();
       updateReadiness(dep, arr);
@@ -11192,6 +11681,7 @@
     setupLuxuryReveal();
     setupLuxuryScrollMotion();
     setupTopNavigation();
+    setupAircraftHotspots();
     loadBookingAvailability().catch(() => {});
     loadAirports().catch(() => {
       setStatus('Route selector ready / Complete passenger manifest', 'ok');
