@@ -8287,7 +8287,15 @@
     }
 
     .luxury-booking .aircraft-photo img {
-      transform: scale(1.12);
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      max-height: none;
+      padding: clamp(16px, 2.2vw, 34px);
+      box-sizing: border-box;
+      object-fit: contain;
+      object-position: center;
+      transform: none;
       filter: drop-shadow(0 32px 38px rgba(6,26,64,0.22));
     }
 
@@ -9079,300 +9087,60 @@
       }
     }
 
-    /* 360-degree network explorer. */
-    .luxury-booking .operating-globe-section {
-      position: relative;
-      grid-column: 1 / -1;
-      min-width: 0;
-      margin: 4px 0;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 5px;
-      background: #020b1d;
-      box-shadow: 0 24px 64px rgba(6,26,64,0.19);
+    .luxury-booking [id$="Section"],
+    .luxury-booking #bookingLookup {
+      scroll-margin-top: 18px;
+    }
+
+    .luxury-booking .luxury-hero-nav a.is-active {
+      border-bottom-color: #fff;
       color: #fff;
     }
 
-    .luxury-booking .operating-globe-head {
-      position: relative;
-      z-index: 4;
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 24px;
-      padding: 25px 28px 18px;
-      border-bottom: 1px solid rgba(255,255,255,0.12);
-      background: rgba(2,11,29,0.88);
-    }
+    @media (max-width: 900px) {
+      .luxury-booking .luxury-hero-top {
+        flex-wrap: wrap;
+      }
 
-    .luxury-booking .operating-globe-head .section-overline {
-      color: rgba(255,255,255,0.5);
-    }
+      .luxury-booking .luxury-hero-nav {
+        position: static;
+        order: 3;
+        display: flex;
+        width: 100%;
+        margin-top: 10px;
+        padding: 9px 0 0;
+        overflow-x: auto;
+        border-top: 1px solid rgba(255,255,255,0.16);
+        transform: none;
+        scrollbar-width: none;
+      }
 
-    .luxury-booking .operating-globe-title {
-      margin-top: 7px;
-      color: #fff;
-      font: 46px/0.92 "Computer Says No", "Courier New", monospace;
-      letter-spacing: 0;
-    }
+      .luxury-booking .luxury-hero-nav::-webkit-scrollbar {
+        display: none;
+      }
 
-    .luxury-booking .operating-globe-head p {
-      max-width: 410px;
-      margin: 0;
-      color: rgba(255,255,255,0.58);
-      font: 10px/1.55 "Courier New", monospace;
-      text-align: right;
-    }
-
-    .luxury-booking .operating-globe-stage {
-      position: relative;
-      height: 580px;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 45%, rgba(49,78,127,0.27), transparent 39%),
-        linear-gradient(145deg, #020918, #061733 72%, #020817);
-      isolation: isolate;
-    }
-
-    .luxury-booking .operating-globe-stage::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      opacity: 0.18;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px) 0 0 / 72px 72px,
-        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px) 0 0 / 72px 72px;
-      mask-image: radial-gradient(circle at 50% 48%, #000, transparent 73%);
-      pointer-events: none;
-    }
-
-    .luxury-booking .operating-globe {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      cursor: grab;
-      touch-action: none;
-      user-select: none;
-    }
-
-    .luxury-booking .operating-globe.is-dragging {
-      cursor: grabbing;
-    }
-
-    .luxury-booking .operating-globe canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    .luxury-booking .globe-network-count,
-    .luxury-booking .globe-airport-info,
-    .luxury-booking .globe-gesture-hint,
-    .luxury-booking .globe-route-legend {
-      position: absolute;
-      z-index: 3;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 3px;
-      background: rgba(2,11,29,0.8);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 18px 44px rgba(0,0,0,0.2);
-    }
-
-    .luxury-booking .globe-network-count {
-      top: 22px;
-      left: 24px;
-      display: grid;
-      gap: 3px;
-      min-width: 156px;
-      padding: 13px 15px;
-    }
-
-    .luxury-booking .globe-network-count strong {
-      color: #fff;
-      font: 31px/0.9 "Computer Says No", "Courier New", monospace;
-    }
-
-    .luxury-booking .globe-network-count span,
-    .luxury-booking .globe-airport-info span,
-    .luxury-booking .globe-airport-info small,
-    .luxury-booking .globe-gesture-hint,
-    .luxury-booking .globe-route-legend {
-      color: rgba(255,255,255,0.58);
-      font: 8px/1.4 "Courier New", monospace;
-      text-transform: uppercase;
-    }
-
-    .luxury-booking .globe-airport-info {
-      right: 24px;
-      bottom: 22px;
-      display: grid;
-      gap: 4px;
-      width: min(280px, calc(100% - 48px));
-      padding: 15px 17px;
-    }
-
-    .luxury-booking .globe-airport-info strong {
-      overflow: hidden;
-      color: #fff;
-      font: 31px/1 "Computer Says No", "Courier New", monospace;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .luxury-booking .globe-route-legend {
-      top: 22px;
-      right: 24px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 11px 13px;
-    }
-
-    .luxury-booking .globe-route-legend span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .luxury-booking .globe-route-legend i {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #d9e1ec;
-      box-shadow: 0 0 12px rgba(217,225,236,0.7);
-    }
-
-    .luxury-booking .globe-route-legend .is-departure i {
-      background: #ff7a2f;
-      box-shadow: 0 0 14px rgba(255,122,47,0.78);
-    }
-
-    .luxury-booking .globe-route-legend .is-destination i {
-      background: #36c77b;
-      box-shadow: 0 0 14px rgba(54,199,123,0.78);
-    }
-
-    .luxury-booking .globe-gesture-hint {
-      left: 24px;
-      bottom: 22px;
-      padding: 10px 12px;
-    }
-
-    .luxury-booking .globe-loading,
-    .luxury-booking .globe-fallback {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      display: grid;
-      place-items: center;
-      padding: 30px;
-      color: rgba(255,255,255,0.62);
-      font: 10px/1.5 "Courier New", monospace;
-      text-align: center;
-      pointer-events: none;
-    }
-
-    .luxury-booking .globe-loading[hidden],
-    .luxury-booking .globe-fallback[hidden] {
-      display: none;
-    }
-
-    .luxury-booking .globe-airport-rail {
-      position: relative;
-      z-index: 4;
-      display: flex;
-      gap: 7px;
-      padding: 12px 14px 14px;
-      overflow-x: auto;
-      border-top: 1px solid rgba(255,255,255,0.11);
-      background: #020b1d;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,0.24) transparent;
-    }
-
-    .luxury-booking .globe-airport-button {
-      min-width: max-content;
-      padding: 10px 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 3px;
-      background: rgba(255,255,255,0.035);
-      color: rgba(255,255,255,0.66);
-      font: 8px/1 "Courier New", monospace;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
-    }
-
-    .luxury-booking .globe-airport-button:hover,
-    .luxury-booking .globe-airport-button:focus-visible,
-    .luxury-booking .globe-airport-button.is-active {
-      border-color: rgba(255,255,255,0.48);
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      outline: none;
+      .luxury-booking .luxury-hero-nav a {
+        flex: 0 0 auto;
+        padding: 9px 11px;
+        font-size: 9px;
+      }
     }
 
     @media (max-width: 700px) {
-      .luxury-booking .operating-globe-head {
-        align-items: start;
-        flex-direction: column;
-        gap: 8px;
-        padding: 18px 16px 14px;
+      .luxury-booking .luxury-hero-nav {
+        justify-content: space-between;
+        gap: 0;
       }
 
-      .luxury-booking .operating-globe-title {
-        font-size: 34px;
+      .luxury-booking .luxury-hero-nav a {
+        padding: 8px 6px;
+        font-size: 8px;
       }
 
-      .luxury-booking .operating-globe-head p {
-        max-width: none;
-        text-align: left;
-      }
-
-      .luxury-booking .operating-globe-stage {
-        height: 440px;
-      }
-
-      .luxury-booking .globe-network-count {
-        top: 12px;
-        left: 12px;
-        min-width: 128px;
-        padding: 10px 11px;
-      }
-
-      .luxury-booking .globe-network-count strong {
-        font-size: 25px;
-      }
-
-      .luxury-booking .globe-route-legend {
-        top: 12px;
-        right: 12px;
-        gap: 8px;
-        padding: 8px 9px;
-      }
-
-      .luxury-booking .globe-route-legend span:first-child {
-        display: none;
-      }
-
-      .luxury-booking .globe-airport-info {
-        right: 12px;
-        bottom: 12px;
-        width: calc(100% - 24px);
+      .luxury-booking .aircraft-photo img {
+        min-height: 0;
+        max-height: none;
         padding: 12px 14px;
-      }
-
-      .luxury-booking .globe-airport-info strong {
-        font-size: 26px;
-      }
-
-      .luxury-booking .globe-gesture-hint {
-        display: none;
-      }
-
-      .luxury-booking .globe-airport-rail {
-        padding: 9px 10px 11px;
       }
     }
   </style>
@@ -9386,10 +9154,12 @@
           <div><span>Private flight desk</span><strong>NGA Private Aviation</strong></div>
         </div>
         <nav class="luxury-hero-nav" aria-label="Booking page sections">
-          <a href="#routeMapShell">Route</a>
-          <a href="#bookingForm">Request</a>
-          <a href="#luggageSection">Luggage</a>
-          <a href="#extrasSection">Cabin</a>
+          <a class="is-active" href="#itinerarySection" data-section-nav>Flight</a>
+          <a href="#passengerSection" data-section-nav>Passengers</a>
+          <a href="#luggageSection" data-section-nav>Luggage</a>
+          <a href="#cabinSection" data-section-nav>Seating</a>
+          <a href="#extrasSection" data-section-nav>Requests</a>
+          <a href="#bookingLookup" data-section-nav>Track status</a>
         </nav>
       </div>
       <div class="luxury-hero-center">
@@ -9543,23 +9313,6 @@
         </div>
       </section>
 
-      <section class="operating-globe-section" aria-label="360 degree operating network">
-        <div class="operating-globe-head">
-          <div><span class="section-overline">Operating network</span><h2 class="operating-globe-title">Explore in 360°</h2></div>
-          <p>Drag or swipe to rotate the globe. Pinch or scroll to zoom and select an airport below to bring it into view.</p>
-        </div>
-        <div class="operating-globe-stage">
-          <div id="operatingGlobe" class="operating-globe" aria-label="Interactive globe showing airports currently available to request"></div>
-          <div id="globeLoading" class="globe-loading">Preparing the operating network...</div>
-          <div id="globeFallback" class="globe-fallback" hidden>The 360° view is unavailable on this device. The airport selectors above remain fully available.</div>
-          <div class="globe-network-count"><strong id="globeAirportCount">12</strong><span>Airports currently available to request</span></div>
-          <div class="globe-route-legend" aria-label="Globe marker legend"><span><i></i>Available</span><span class="is-departure"><i></i>From</span><span class="is-destination"><i></i>To</span></div>
-          <div id="globeAirportInfo" class="globe-airport-info" aria-live="polite"><span>Network airport</span><strong>Hyvinkää</strong><small>HYV / Finland</small></div>
-          <div class="globe-gesture-hint">Drag to rotate / pinch to explore</div>
-        </div>
-        <div id="globeAirportRail" class="globe-airport-rail" aria-label="Airports currently available to request"></div>
-      </section>
-
       <section class="journey-sequence-card" aria-label="Live journey sequence">
         <div class="journey-sequence-head">
           <div><span class="section-overline">Your day of travel</span><h2 class="section-title">Journey sequence</h2></div>
@@ -9645,7 +9398,7 @@
         </aside>
       </div>
 
-      <div class="card summary-card">
+      <div id="cabinSection" class="card summary-card">
         <div class="cabin-preference-head">
           <div>
             <span class="section-overline light">Cabin layout</span><h2 class="section-title">Cabin preference</h2>
@@ -10751,6 +10504,53 @@
       window.addEventListener('scroll', requestUpdate, { passive: true });
     }
 
+    function setupTopNavigation() {
+      const nav = document.querySelector('.luxury-hero-nav');
+      const links = nav ? [...nav.querySelectorAll('a[data-section-nav]')] : [];
+      const sections = links
+        .map(link => ({ link, target: document.querySelector(link.getAttribute('href')) }))
+        .filter(item => item.target);
+      if (!sections.length) return;
+
+      let activeId = '';
+      let ticking = false;
+      const setActive = id => {
+        if (!id || id === activeId) return;
+        activeId = id;
+        sections.forEach(({ link, target }) => {
+          const active = target.id === id;
+          link.classList.toggle('is-active', active);
+          if (active) link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
+        });
+      };
+
+      const update = () => {
+        const guide = Math.max(140, window.innerHeight * 0.34);
+        const closest = sections.reduce((best, item) => {
+          const distance = Math.abs(item.target.getBoundingClientRect().top - guide);
+          return distance < best.distance ? { id: item.target.id, distance } : best;
+        }, { id: sections[0].target.id, distance: Number.POSITIVE_INFINITY });
+        setActive(closest.id);
+        ticking = false;
+      };
+
+      links.forEach(link => {
+        link.addEventListener('click', () => {
+          const target = document.querySelector(link.getAttribute('href'));
+          if (target instanceof HTMLDetailsElement) target.open = true;
+          if (target?.id) setActive(target.id);
+        });
+      });
+
+      window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(update);
+      }, { passive: true });
+      update();
+    }
+
     function passengerHasRequiredDetails(passenger) {
       return Boolean(
         passenger?.title &&
@@ -11347,11 +11147,11 @@
     setupMobileBookingBar();
     setupLuxuryReveal();
     setupLuxuryScrollMotion();
+    setupTopNavigation();
     loadBookingAvailability().catch(() => {});
     loadAirports().catch(() => {
       setStatus('Route selector ready / Complete passenger manifest', 'ok');
     });
   </script>
-  <script type="module" src="/booking-globe.js"></script>
 </body>
 </html>
