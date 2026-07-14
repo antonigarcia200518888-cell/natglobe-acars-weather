@@ -10263,6 +10263,24 @@
       box-shadow: 0 8px 20px rgba(6,26,64,0.22);
     }
 
+    @media (min-width: 981px) {
+      .luxury-booking .luxury-hero {
+        background:
+          linear-gradient(90deg, rgba(2,11,30,0.96) 0%, rgba(3,17,43,0.88) 34%, rgba(3,17,43,0.52) 63%, rgba(255,255,255,0.16) 82%, rgba(255,255,255,0.48) 100%),
+          linear-gradient(0deg, rgba(2,12,31,0.72) 0%, rgba(2,12,31,0.16) 42%, rgba(255,255,255,0.18) 100%),
+          url('/nga-coastal-flight-hero.jpg') center 32% / cover no-repeat;
+      }
+
+      .luxury-booking .luxury-hero::before {
+        opacity: 1;
+        -webkit-mask-image: none;
+        mask-image: none;
+        background:
+          radial-gradient(circle at 93% 42%, rgba(255,255,255,0.34), transparent 34%),
+          linear-gradient(105deg, transparent 0%, transparent 60%, rgba(255,255,255,0.06) 76%, rgba(255,255,255,0.26) 100%);
+      }
+    }
+
     @media (max-width: 980px) {
       .luxury-booking .luxury-hero {
         background:
