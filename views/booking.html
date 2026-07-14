@@ -10008,6 +10008,290 @@
         font-size: 7px;
       }
     }
+
+    /* Preserve the portrait flight photograph and refine the cabin selection. */
+    .luxury-booking .luxury-hero {
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 82% 28%, rgba(33,77,123,0.42), transparent 31%),
+        linear-gradient(115deg, #020b1e 0%, #061c42 58%, #092954 100%);
+    }
+
+    .luxury-booking .luxury-hero::before {
+      opacity: 1;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 58%, #000 72%, #000 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, transparent 58%, #000 72%, #000 100%);
+      background:
+        linear-gradient(90deg, rgba(2,11,30,0.99) 0%, rgba(3,17,43,0.92) 36%, rgba(3,17,43,0.34) 66%, rgba(3,17,43,0.06) 100%),
+        linear-gradient(0deg, rgba(2,12,31,0.58) 0%, transparent 34%),
+        url('/nga-coastal-flight-hero.jpg') right center / auto 100% no-repeat;
+    }
+
+    .luxury-booking .aircraft-cabin-gallery {
+      grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    }
+
+    .luxury-booking .aircraft-cabin-photo-detail {
+      border-left: 1px solid rgba(255,255,255,0.36);
+      box-shadow: inset 18px 0 30px -28px rgba(255,255,255,0.72);
+    }
+
+    .luxury-booking .aircraft-cabin-photo-detail figcaption strong {
+      font-size: 24px;
+    }
+
+    .luxury-booking .summary-card {
+      border: 1px solid rgba(255,255,255,0.14);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.055), transparent 38%),
+        #061a40;
+      box-shadow: 0 24px 58px rgba(6,26,64,0.19);
+    }
+
+    .luxury-booking .cabin-preference-head {
+      margin-bottom: 20px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .luxury-booking .cabin-selected-badge {
+      min-width: 154px;
+      padding: 11px 14px;
+      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: 4px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    }
+
+    .luxury-booking .cabin-selected-badge span {
+      color: #697991;
+    }
+
+    .luxury-booking .cabin-selected-badge strong {
+      color: var(--nga-navy);
+      font-size: 20px;
+    }
+
+    .luxury-booking .summary-card .seat-map {
+      grid-template-columns: minmax(0, 1.12fr) minmax(330px, 0.88fr);
+      gap: 20px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .luxury-booking .summary-card .seat-map > .declaration {
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-left: 3px solid rgba(255,255,255,0.76);
+      border-radius: 3px;
+      background: rgba(255,255,255,0.055);
+      color: rgba(255,255,255,0.74);
+    }
+
+    .luxury-booking .summary-card .seat-map-shell {
+      min-height: 304px;
+      border: 1px solid rgba(255,255,255,0.52);
+      border-radius: 4px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.98), rgba(232,237,244,0.96));
+      box-shadow: inset 0 1px 0 #fff, 0 16px 36px rgba(0,0,0,0.18);
+    }
+
+    .luxury-booking .summary-card .seat-map-image {
+      filter: drop-shadow(0 16px 22px rgba(4,18,44,0.20));
+    }
+
+    .luxury-booking .summary-card .seat-options {
+      gap: 7px;
+    }
+
+    .luxury-booking .summary-card .seat-option {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) auto;
+      min-height: 94px;
+      padding: 13px 14px;
+      align-items: center;
+      column-gap: 12px;
+      row-gap: 4px;
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.045);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .luxury-booking .summary-card .seat-option:hover {
+      border-color: rgba(255,255,255,0.48);
+      background: rgba(255,255,255,0.085);
+      transform: translateX(3px);
+    }
+
+    .luxury-booking .summary-card .seat-option small {
+      min-width: 42px;
+      padding: 8px 7px;
+      border: 1px solid rgba(255,255,255,0.34);
+      border-radius: 3px;
+      background: transparent;
+      color: #fff;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    .luxury-booking .summary-card .seat-option strong {
+      color: #fff;
+      font: 400 19px/1 "Computer Says No", "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .luxury-booking .summary-card .seat-option span {
+      color: rgba(255,255,255,0.62);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .luxury-booking .summary-card .seat-option .seat-select-control {
+      width: max-content;
+      justify-self: end;
+      padding: 0 0 3px;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.54);
+      border-radius: 0;
+      background: transparent;
+      color: rgba(255,255,255,0.84);
+      box-shadow: none;
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked),
+    .luxury-booking .summary-card .seat-option.is-selected {
+      border-color: #fff;
+      background: #fff;
+      color: var(--nga-navy);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.17);
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked) small,
+    .luxury-booking .summary-card .seat-option.is-selected small {
+      border-color: var(--nga-navy);
+      background: var(--nga-navy);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked) strong,
+    .luxury-booking .summary-card .seat-option:has(input:checked) span,
+    .luxury-booking .summary-card .seat-option.is-selected strong,
+    .luxury-booking .summary-card .seat-option.is-selected span {
+      color: var(--nga-navy);
+    }
+
+    .luxury-booking .summary-card .seat-option:has(input:checked) .seat-select-control,
+    .luxury-booking .summary-card .seat-option.is-selected .seat-select-control {
+      border-bottom-color: var(--nga-navy);
+      background: transparent;
+      color: var(--nga-navy);
+      box-shadow: none;
+    }
+
+    .luxury-booking .rear-seat-marker.is-selected {
+      border-color: var(--nga-navy);
+      background: var(--nga-navy);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(6,26,64,0.22);
+    }
+
+    @media (max-width: 980px) {
+      .luxury-booking .luxury-hero {
+        background:
+          radial-gradient(circle at 72% 26%, rgba(33,77,123,0.38), transparent 34%),
+          linear-gradient(180deg, #020b1e 0%, #061c42 62%, #092954 100%);
+      }
+
+      .luxury-booking .luxury-hero::before {
+        background:
+          linear-gradient(90deg, rgba(2,11,30,0.94) 0%, rgba(3,17,43,0.68) 48%, rgba(3,17,43,0.12) 100%),
+          linear-gradient(0deg, rgba(2,12,31,0.70) 0%, transparent 42%),
+          url('/nga-coastal-flight-hero.jpg') right center / auto 100% no-repeat;
+      }
+
+      .luxury-booking .summary-card .seat-map {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .summary-card .seat-map-shell,
+      .luxury-booking .summary-card .seat-options {
+        grid-column: 1;
+      }
+
+      .luxury-booking .summary-card .seat-map-shell {
+        grid-row: 2;
+      }
+
+      .luxury-booking .summary-card .seat-options {
+        grid-row: 3;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .luxury-booking .summary-card .seat-option {
+        grid-template-columns: 42px minmax(0, 1fr);
+        grid-template-areas:
+          "badge title"
+          "copy copy"
+          "control control";
+      }
+    }
+
+    @media (max-width: 700px) {
+      .luxury-booking .luxury-hero {
+        background: linear-gradient(180deg, #020b1e 0%, #061c42 58%, #092954 100%);
+      }
+
+      .luxury-booking .luxury-hero::before {
+        -webkit-mask-image: none;
+        mask-image: none;
+        background:
+          linear-gradient(180deg, rgba(2,11,30,0.82) 0%, rgba(3,17,43,0.30) 32%, rgba(3,17,43,0.66) 68%, #03112b 100%),
+          url('/nga-coastal-flight-hero.jpg') center top / 100% auto no-repeat;
+      }
+
+      .luxury-booking .aircraft-cabin-gallery {
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      }
+
+      .luxury-booking .aircraft-cabin-photo-detail figcaption strong {
+        font-size: 17px;
+      }
+
+      .luxury-booking .cabin-preference-head {
+        align-items: stretch;
+      }
+
+      .luxury-booking .cabin-selected-badge {
+        min-width: 0;
+      }
+
+      .luxury-booking .summary-card .seat-map-shell {
+        min-height: 230px;
+      }
+
+      .luxury-booking .summary-card .seat-options {
+        grid-template-columns: 1fr;
+      }
+
+      .luxury-booking .summary-card .seat-option {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        grid-template-areas:
+          "badge title control"
+          "badge copy control";
+        min-height: 86px;
+      }
+
+      .luxury-booking .summary-card .seat-option span {
+        max-width: 26ch;
+      }
+    }
   </style>
 </head>
 <body class="luxury-booking">
