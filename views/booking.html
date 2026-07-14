@@ -10468,9 +10468,9 @@
 
     /* Keep the opening screen focused: brand, route and one clear action. */
     .luxury-booking .luxury-hero {
-      min-height: 650px;
+      min-height: 570px;
       grid-template-rows: auto 1fr;
-      padding-bottom: 30px;
+      padding-bottom: 24px;
     }
 
     .luxury-booking .luxury-hero-top {
@@ -10483,7 +10483,7 @@
 
     .luxury-booking .luxury-hero-center {
       max-width: 920px;
-      padding: 38px 0 18px;
+      padding: 30px 0 12px;
     }
 
     .luxury-booking .luxury-title {
@@ -10500,7 +10500,7 @@
     .luxury-booking .hero-route-console {
       grid-template-columns: minmax(330px, 1.2fr) minmax(230px, 0.8fr);
       width: min(760px, 100%);
-      margin-top: 22px;
+      margin-top: 18px;
     }
 
     .luxury-booking .hero-route-primary,
@@ -10535,7 +10535,7 @@
 
     @media (max-width: 980px) {
       .luxury-booking .luxury-hero {
-        min-height: 620px;
+        min-height: 540px;
       }
 
       .luxury-booking .hero-route-console {
@@ -10563,41 +10563,46 @@
       }
 
       .luxury-booking .luxury-hero-center {
-        padding: 26px 0 8px;
-      }
-
-      .luxury-booking .luxury-copy {
-        max-width: 38ch;
-        margin-top: 14px;
+        padding: 22px 0 6px;
       }
 
       .luxury-booking .hero-route-console {
-        grid-template-columns: 1fr;
-        margin-top: 18px;
+        grid-template-columns: minmax(0, 1fr) minmax(145px, 0.68fr);
+        margin-top: 15px;
       }
 
       .luxury-booking .hero-route-primary {
-        padding: 14px 15px;
-        border-right: 0;
-        border-bottom: 1px solid rgba(255,255,255,0.16);
+        padding: 12px 14px;
+        border-right: 1px solid rgba(255,255,255,0.16);
+        border-bottom: 0;
       }
 
       .luxury-booking .hero-flight-quote {
-        grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.3fr);
-        align-items: center;
-        padding: 12px 15px;
+        display: grid;
+        grid-template-columns: 1fr;
+        align-content: center;
+        gap: 4px;
+        padding: 11px 12px;
       }
 
       .luxury-booking .hero-flight-quote span:not(:first-child) {
-        margin-top: 0;
+        margin-top: 6px;
       }
 
       .luxury-booking .hero-airport-pair strong {
-        font-size: 32px;
+        font-size: 29px;
       }
 
       .luxury-booking .flight-desk-route {
-        font-size: 21px;
+        font-size: 18px;
+      }
+
+      .luxury-booking .flight-desk-meta {
+        display: none;
+      }
+
+      .luxury-booking .hero-flight-quote strong {
+        font-size: 11px;
       }
 
       .luxury-booking .luxury-hero-actions {
@@ -10625,7 +10630,6 @@
           <span style="--i:0">Private Flight</span>
           <span style="--i:1">Booking</span>
         </h1>
-        <p class="luxury-copy">Choose your route, timing and passenger details. Every request is reviewed by the flight team before confirmation.</p>
         <div class="hero-route-console" aria-label="Live selected flight summary">
           <div class="hero-route-primary">
             <span class="flight-desk-label"><i aria-hidden="true"></i> Selected flight</span>
@@ -10641,7 +10645,7 @@
           </div>
         </div>
         <div class="luxury-hero-actions">
-          <a class="luxury-cta" href="#itinerarySection">Compose your flight <span aria-hidden="true">→</span></a>
+          <a class="luxury-cta" href="#itinerarySection">Start booking <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </section>
