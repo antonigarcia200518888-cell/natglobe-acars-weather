@@ -10465,6 +10465,145 @@
         content: none;
       }
     }
+
+    /* Keep the opening screen focused: brand, route and one clear action. */
+    .luxury-booking .luxury-hero {
+      min-height: 650px;
+      grid-template-rows: auto 1fr;
+      padding-bottom: 30px;
+    }
+
+    .luxury-booking .luxury-hero-top {
+      padding-bottom: 14px;
+    }
+
+    .luxury-booking .luxury-hero-logo {
+      width: 58px;
+    }
+
+    .luxury-booking .luxury-hero-center {
+      max-width: 920px;
+      padding: 38px 0 18px;
+    }
+
+    .luxury-booking .luxury-title {
+      max-width: 680px;
+      font-size: clamp(60px, 6.5vw, 88px);
+    }
+
+    .luxury-booking .luxury-copy {
+      max-width: 540px;
+      margin-top: 14px;
+      line-height: 1.5;
+    }
+
+    .luxury-booking .hero-route-console {
+      grid-template-columns: minmax(330px, 1.2fr) minmax(230px, 0.8fr);
+      width: min(760px, 100%);
+      margin-top: 22px;
+    }
+
+    .luxury-booking .hero-route-primary,
+    .luxury-booking .hero-flight-quote {
+      padding: 16px 20px;
+    }
+
+    .luxury-booking .hero-route-primary {
+      border-right: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .luxury-booking .hero-airport-pair {
+      margin-top: 12px;
+    }
+
+    .luxury-booking .hero-airport-pair strong {
+      font-size: 36px;
+    }
+
+    .luxury-booking .flight-desk-route {
+      margin-top: 8px;
+      font-size: 23px;
+    }
+
+    .luxury-booking .luxury-hero-actions {
+      margin-top: 16px;
+    }
+
+    .luxury-booking .luxury-cta {
+      min-height: 46px;
+    }
+
+    @media (max-width: 980px) {
+      .luxury-booking .luxury-hero {
+        min-height: 620px;
+      }
+
+      .luxury-booking .hero-route-console {
+        grid-template-columns: minmax(300px, 1.15fr) minmax(210px, 0.85fr);
+      }
+
+      .luxury-booking .hero-route-primary {
+        border-right: 1px solid rgba(255,255,255,0.16);
+        border-bottom: 0;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .luxury-booking .luxury-hero {
+        min-height: auto;
+        padding: 14px 16px 20px;
+      }
+
+      .luxury-booking .luxury-hero-top {
+        padding-bottom: 10px;
+      }
+
+      .luxury-booking .luxury-hero-logo {
+        width: 44px;
+      }
+
+      .luxury-booking .luxury-hero-center {
+        padding: 26px 0 8px;
+      }
+
+      .luxury-booking .luxury-copy {
+        max-width: 38ch;
+        margin-top: 14px;
+      }
+
+      .luxury-booking .hero-route-console {
+        grid-template-columns: 1fr;
+        margin-top: 18px;
+      }
+
+      .luxury-booking .hero-route-primary {
+        padding: 14px 15px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255,255,255,0.16);
+      }
+
+      .luxury-booking .hero-flight-quote {
+        grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.3fr);
+        align-items: center;
+        padding: 12px 15px;
+      }
+
+      .luxury-booking .hero-flight-quote span:not(:first-child) {
+        margin-top: 0;
+      }
+
+      .luxury-booking .hero-airport-pair strong {
+        font-size: 32px;
+      }
+
+      .luxury-booking .flight-desk-route {
+        font-size: 21px;
+      }
+
+      .luxury-booking .luxury-hero-actions {
+        margin-top: 14px;
+      }
+    }
   </style>
 </head>
 <body class="luxury-booking">
@@ -10473,15 +10612,11 @@
       <div class="luxury-hero-top">
         <div class="luxury-hero-brand">
           <img class="luxury-hero-logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation logo" />
-          <div><span>Private flight request</span><strong>NGA Private Aviation</strong></div>
         </div>
         <nav class="luxury-hero-nav" aria-label="Booking page sections">
           <a class="is-active" href="#itinerarySection" data-section-nav>Flight</a>
           <a href="#aircraftSection" data-section-nav>Aircraft</a>
           <a href="#passengerSection" data-section-nav>Passengers</a>
-          <a href="#luggageSection" data-section-nav>Luggage</a>
-          <a href="#cabinSection" data-section-nav>Seating</a>
-          <a href="#extrasSection" data-section-nav>Requests</a>
           <a href="#bookingLookup" data-section-nav>Track &amp; manage</a>
         </nav>
       </div>
@@ -10490,40 +10625,24 @@
           <span style="--i:0">Private Flight</span>
           <span style="--i:1">Booking</span>
         </h1>
-        <p class="luxury-copy">Compose the route, timing, cabin and passenger details in one calm journey. Every request is personally reviewed by the flight team before confirmation.</p>
+        <p class="luxury-copy">Choose your route, timing and passenger details. Every request is reviewed by the flight team before confirmation.</p>
         <div class="hero-route-console" aria-label="Live selected flight summary">
           <div class="hero-route-primary">
-            <span class="flight-desk-label"><i aria-hidden="true"></i> Live flight composition</span>
+            <span class="flight-desk-label"><i aria-hidden="true"></i> Selected flight</span>
             <div class="hero-airport-pair" aria-hidden="true">
               <strong id="heroDepCode">HYV</strong><span><i></i></span><strong id="heroArrCode">HNK</strong>
             </div>
             <div id="heroRouteLine" class="flight-desk-route">Hyvinkää to Hanko</div>
             <span id="heroRouteMeta" class="flight-desk-meta">One way / 1 passenger / 20 min before 10:00</span>
           </div>
-          <div class="hero-sequence" aria-label="Selected flight timing">
-            <div><span>Board</span><strong id="heroBoardingTime">09:40</strong></div>
-            <div><span>Depart</span><strong id="heroDepartureTime">10:00</strong></div>
-            <div><span>Arrive</span><strong id="heroArrivalTime">10:40</strong></div>
-          </div>
           <div class="hero-flight-quote">
             <span>Flight time</span><strong id="heroFlightTime">00H 40M</strong>
             <span>Estimated contribution</span><strong id="heroPrice">Approx. €129 EUR (1 PAX)</strong>
-            <small>Request only / no charge today</small>
           </div>
         </div>
         <div class="luxury-hero-actions">
           <a class="luxury-cta" href="#itinerarySection">Compose your flight <span aria-hidden="true">→</span></a>
-          <a class="luxury-secondary" href="#routeMapShell">Explore the route</a>
         </div>
-      </div>
-      <div class="luxury-hero-bottom">
-        <div class="luxury-stats">
-          <div class="luxury-stat"><strong>BESPOKE</strong><span>Routes and timing built by request</span></div>
-          <div class="luxury-stat"><strong>3-5H</strong><span>Regional aircraft endurance profile</span></div>
-          <div class="luxury-stat"><strong>20 MIN</strong><span>Boarding target at any airport</span></div>
-          <div class="luxury-stat"><strong>NCO</strong><span>Private non-commercial operation</span></div>
-        </div>
-        <div class="luxury-scroll-hint">Scroll to request</div>
       </div>
     </section>
     <div class="luxury-content">
