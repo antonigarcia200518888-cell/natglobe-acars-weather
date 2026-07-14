@@ -3934,6 +3934,48 @@
       text-transform: uppercase;
     }
 
+    .lookup-manage-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 16px 16px;
+      border-top: 1px solid rgba(7,29,73,0.10);
+      background: #f7f9fc;
+    }
+
+    .lookup-manage-actions span {
+      color: #6e7b8f;
+      font: 10px/1.45 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .lookup-manage-btn {
+      min-height: 42px;
+      flex: 0 0 auto;
+      border: 1px solid var(--navy);
+      background: var(--navy);
+      color: #fff;
+      padding: 10px 14px;
+      font: 700 10px/1 "Courier New", monospace;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .lookup-manage-btn:disabled { cursor: wait; opacity: .55; }
+
+    .lookup-manage-message {
+      padding: 10px 16px;
+      border-top: 1px solid rgba(40,115,72,.18);
+      background: #eef8f2;
+      color: #1d5f3a;
+      font: 700 10px/1.45 "Courier New", monospace;
+      text-transform: uppercase;
+    }
+
+    .lookup-manage-message.error { background: #fff4f4; color: var(--danger); }
+
     .luxury-booking .title-row {
       display: none;
     }
@@ -9159,6 +9201,9 @@
         max-height: none;
         padding: 12px 14px;
       }
+
+      .lookup-manage-actions { align-items: stretch; flex-direction: column; }
+      .lookup-manage-btn { width: 100%; }
     }
 
     /* Interactive aircraft, route discovery and final mobile polish. */
@@ -10437,7 +10482,7 @@
           <a href="#luggageSection" data-section-nav>Luggage</a>
           <a href="#cabinSection" data-section-nav>Seating</a>
           <a href="#extrasSection" data-section-nav>Requests</a>
-          <a href="#bookingLookup" data-section-nav>Track status</a>
+          <a href="#bookingLookup" data-section-nav>Track &amp; manage</a>
         </nav>
       </div>
       <div class="luxury-hero-center">
@@ -10498,9 +10543,9 @@
     </div>
 
     <details id="bookingLookup" class="card booking-lookup-card booking-status-dock" aria-label="Passenger booking lookup">
-      <summary><span><small class="booking-lookup-kicker">Already requested?</small><strong>Track your flight request <span class="tracking-live-dot" role="img" aria-label="Tracking service active"></span></strong></span><i aria-hidden="true">+</i></summary>
+      <summary><span><small class="booking-lookup-kicker">Already requested?</small><strong>Track &amp; manage your flight <span class="tracking-live-dot" role="img" aria-label="Tracking service active"></span></strong></span><i aria-hidden="true">+</i></summary>
       <div class="booking-lookup-content">
-        <p>Enter the booking reference and a passenger email to view the latest safe status. Sensitive passenger details are never shown here.</p>
+        <p>Enter the booking reference and passenger email to view the latest safe status. A private management link can then be sent to the named passenger by email.</p>
         <div class="booking-lookup-form">
           <div><label for="lookupReference">Reference</label><input id="lookupReference" type="text" placeholder="HYV-HNK-001" autocomplete="off" /></div>
           <div><label for="lookupEmail">Passenger email</label><input id="lookupEmail" type="email" placeholder="name@example.com" autocomplete="email" /></div>
@@ -12370,6 +12415,15 @@
       const passLink = request.flightPassUrl
         ? `<a href="${escapeHtml(request.flightPassUrl)}">Open Private Flight Information Pass</a>`
         : 'Available after approval and final confirmation';
+      const managementStatus = request.managementRequestStatus
+        ? `<div><span>Manage request</span><strong>${escapeHtml(request.managementRequestStatus)}</strong></div>`
+        : '';
+      const manageActions = request.canManage ? `
+        <div class="lookup-manage-actions">
+          <span>Changes open from a personal link sent to your passenger email.</span>
+          <button id="sendManageLinkBtn" class="lookup-manage-btn" type="button">Email secure manage link</button>
+        </div>
+        <div id="lookupManageMessage"></div>` : '';
       lookupStatus.innerHTML = `
         <div class="lookup-status-head"><strong>${escapeHtml(request.reference)}</strong><span>${escapeHtml(request.statusLabel)}</span></div>
         <div class="lookup-status-lines">
@@ -12379,7 +12433,36 @@
           <div><span>Payment</span><strong>${escapeHtml(request.paymentStatus)}</strong></div>
           <div><span>Agreements</span><strong>${escapeHtml(request.agreementStatus)}</strong></div>
           <div><span>Passenger pass</span><strong>${passLink}</strong></div>
-        </div>`;
+          ${managementStatus}
+        </div>
+        ${manageActions}`;
+    }
+
+    async function sendManageBookingLink() {
+      const button = el('sendManageLinkBtn');
+      const message = el('lookupManageMessage');
+      if (!button || !message) return;
+      button.disabled = true;
+      button.textContent = 'Sending secure link...';
+      message.className = '';
+      message.textContent = '';
+      try {
+        const response = await fetch('/api/booking-manage-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reference: lookupReference.value.trim(), email: lookupEmail.value.trim() })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'Unable to send manage booking link');
+        message.className = 'lookup-manage-message';
+        message.textContent = data.message || 'Secure manage booking link sent by email.';
+        button.textContent = 'Link sent';
+      } catch (error) {
+        message.className = 'lookup-manage-message error';
+        message.textContent = error.message || 'Unable to send manage booking link.';
+        button.disabled = false;
+        button.textContent = 'Try again';
+      }
     }
 
     async function lookupBookingRequest() {
@@ -12478,6 +12561,9 @@
     });
     locateMeBtn.addEventListener('click', locateUserOnMap);
     if (lookupBookingBtn) lookupBookingBtn.addEventListener('click', lookupBookingRequest);
+    if (lookupStatus) lookupStatus.addEventListener('click', event => {
+      if (event.target.closest('#sendManageLinkBtn')) sendManageBookingLink();
+    });
     [lookupReference, lookupEmail].forEach(input => {
       input?.addEventListener('keydown', event => {
         if (event.key !== 'Enter') return;

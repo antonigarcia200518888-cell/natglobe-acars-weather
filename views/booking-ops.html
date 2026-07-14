@@ -785,6 +785,15 @@
       font-size: 13px;
     }
 
+    .management-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .management-actions .btn { margin: 0; }
+
     .ops-mini-status {
       color: #8d8d8d;
       font-size: 11px;
@@ -924,7 +933,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
@@ -966,7 +975,7 @@
         <div class="panel-title">OPERATIONS QUEUE</div>
         <div class="queue-filters">
           <input id="filterQuery" type="search" placeholder="Search route or passenger" />
-          <select id="filterStatus"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option></select>
+          <select id="filterStatus"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option><option value="CANCELLED">Cancelled</option></select>
           <input id="filterDate" type="date" aria-label="Filter by departure date" />
           <select id="filterSort" aria-label="Sort request queue"><option value="PRIORITY">Sort: operational priority</option><option value="DEPARTURE">Sort: departure soonest</option><option value="NEWEST">Sort: newest request</option><option value="ROUTE">Sort: route</option></select>
           <div class="quick-filters" aria-label="Quick filters">
@@ -1080,6 +1089,18 @@
               <div class="contact-compose">
                 <input id="additionalEmailContacts" type="text" placeholder="extra@email.com, operations@email.com" />
                 <button id="saveEmailContactsBtn" class="btn ghost" type="button">SAVE EMAIL CONTACTS</button>
+              </div>
+            </div>
+            <div id="managementRequestCard" class="brief-card full" hidden>
+              <div class="brief-title">Passenger management request</div>
+              <div class="brief-line"><span>Type</span><strong id="managementRequestType">.....</strong></div>
+              <div class="brief-line"><span>Passenger</span><strong id="managementRequestPassenger">.....</strong></div>
+              <div class="brief-line"><span>Submitted</span><strong id="managementRequestSubmitted">.....</strong></div>
+              <div class="brief-line"><span>Requested change</span><strong id="managementRequestDetail">.....</strong></div>
+              <div class="brief-line"><span>Passenger note</span><strong id="managementRequestNote">.....</strong></div>
+              <div class="management-actions">
+                <button id="applyManagementRequestBtn" class="btn" type="button">APPLY PASSENGER REQUEST</button>
+                <button id="declineManagementRequestBtn" class="btn ghost danger" type="button">DECLINE PASSENGER REQUEST</button>
               </div>
             </div>
             <div class="brief-card full">
@@ -1196,6 +1217,14 @@ END OF MESSAGE</pre>
     const sendProposalBtn = el('sendProposalBtn');
     const additionalEmailContacts = el('additionalEmailContacts');
     const saveEmailContactsBtn = el('saveEmailContactsBtn');
+    const managementRequestCard = el('managementRequestCard');
+    const managementRequestType = el('managementRequestType');
+    const managementRequestPassenger = el('managementRequestPassenger');
+    const managementRequestSubmitted = el('managementRequestSubmitted');
+    const managementRequestDetail = el('managementRequestDetail');
+    const managementRequestNote = el('managementRequestNote');
+    const applyManagementRequestBtn = el('applyManagementRequestBtn');
+    const declineManagementRequestBtn = el('declineManagementRequestBtn');
     const correctDep = el('correctDep');
     const correctArr = el('correctArr');
     const correctExperience = el('correctExperience');
@@ -1350,7 +1379,7 @@ END OF MESSAGE</pre>
     }
 
     function isOperationallyActive(req) {
-      if (!req || req.status === 'DECLINED' || req.pilotDecision === 'DECLINED') return false;
+      if (!req || ['DECLINED', 'CANCELLED'].includes(req.status) || ['DECLINED', 'CANCELLED'].includes(req.pilotDecision)) return false;
       const schedule = requestSchedule(req);
       return !schedule || schedule.end.getTime() > Date.now() - (12 * 3600000);
     }
@@ -1384,7 +1413,7 @@ END OF MESSAGE</pre>
     }
 
     function priorityData(req) {
-      if (req.status === 'DECLINED' || req.pilotDecision === 'DECLINED') return { score: -100, label: 'CLOSED', tone: 'good' };
+      if (['DECLINED', 'CANCELLED'].includes(req.status) || ['DECLINED', 'CANCELLED'].includes(req.pilotDecision)) return { score: -100, label: 'CLOSED', tone: 'good' };
       let score = 0;
       const remainingHours = hoursUntil(req);
       if (conflictsFor(req).length) score += 60;
@@ -1403,6 +1432,7 @@ END OF MESSAGE</pre>
       if (req.status === 'CONFIRMED' && agreementCount(req) < passengerList(req).length) score += 15;
       if (req.paymentStatus !== 'PAID') score += 8;
       if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(String(req.timeProposal.responseStatus || '').toUpperCase())) score += 12;
+      if (req.managementRequest?.status === 'PENDING') score += 55;
       if (score >= 90) return { score, label: 'CRITICAL PRIORITY', tone: 'danger' };
       if (score >= 55) return { score, label: 'HIGH PRIORITY', tone: 'warn' };
       if (score >= 25) return { score, label: 'ACTIVE REVIEW', tone: 'info' };
@@ -1413,6 +1443,7 @@ END OF MESSAGE</pre>
       if (!requestSchedule(req)) return 'Complete the departure date and time.';
       const conflicts = conflictsFor(req);
       if (conflicts.length) return `Resolve potential schedule overlap with ${conflicts.map(item => item.id).join(', ')}.`;
+      if (req.managementRequest?.status === 'PENDING') return `Review passenger ${String(req.managementRequest.type || 'change').toLowerCase()} request.`;
       if (!passengerManifestComplete(req)) return 'Complete and verify all passenger manifest fields.';
       if (!req.crew?.commander || req.crew.commander === 'UNASSIGNED') return 'Assign the commander and confirm crew availability.';
       if (!req.reimbursementStatement) return 'Prepare and save the reimbursement statement.';
@@ -1483,7 +1514,8 @@ END OF MESSAGE</pre>
 
     function needsOpsAction(req) {
       if (!req) return false;
-      if (req.status === 'DECLINED' || req.pilotDecision === 'DECLINED') return false;
+      if (['DECLINED', 'CANCELLED'].includes(req.status) || ['DECLINED', 'CANCELLED'].includes(req.pilotDecision)) return false;
+      if (req.managementRequest?.status === 'PENDING') return true;
       if (req.status === 'REQUESTED') return true;
       if (req.pilotDecision !== 'APPROVED') return true;
       if (!req.reimbursementStatement) return true;
@@ -1518,7 +1550,7 @@ END OF MESSAGE</pre>
       opsNeedsAction.textContent = requests.filter(needsOpsAction).length;
       opsConfirmed.textContent = requests.filter(req => req.status === 'CONFIRMED').length;
       opsUnpaid.textContent = requests.filter(req => isOperationallyActive(req) && req.paymentStatus !== 'PAID').length;
-      opsToday.textContent = requests.filter(req => req.requestDate === today).length;
+      opsToday.textContent = requests.filter(req => isOperationallyActive(req) && req.requestDate === today).length;
       renderOpsWatch();
     }
 
@@ -1543,7 +1575,7 @@ END OF MESSAGE</pre>
     function matchesQuickFilter(req) {
       if (quickFilter === 'ACTION') return needsOpsAction(req);
       if (quickFilter === 'CONFIRMED') return req.status === 'CONFIRMED';
-      if (quickFilter === 'UNPAID') return req.paymentStatus !== 'PAID';
+      if (quickFilter === 'UNPAID') return isOperationallyActive(req) && req.paymentStatus !== 'PAID';
       if (quickFilter === 'TODAY') return req.requestDate === todayIso();
       if (quickFilter === 'PROPOSAL') return Boolean(req.timeProposal);
       return true;
@@ -1589,6 +1621,31 @@ END OF MESSAGE</pre>
         : 'Send a proposed new departure time to the booker for acceptance.';
     }
 
+    function managementRequestText(request) {
+      if (!request?.requested) return request?.type === 'CANCELLATION' ? 'CANCEL FLIGHT REQUEST' : 'NO STRUCTURED CHANGE DETAILS';
+      const change = request.requested;
+      return [
+        `PHONE ${change.phone || 'UNCHANGED'}`,
+        `BAG ${change.carryOnBags === 'YES' ? `${change.bagType || 'BAG'} / ${change.baggageWeightKg || '0'}KG` : 'NONE'}`,
+        `PWRBANK ${change.powerBanks || 'NO'}`,
+        `SEAT ${change.seatPreference || 'NO PREFERENCE'}`,
+        `EXTRAS ${Array.isArray(change.extras) && change.extras.length ? change.extras.join(', ') : 'NONE'}`
+      ].join(' / ');
+    }
+
+    function renderManagementRequest(req) {
+      const request = req.managementRequest;
+      const pending = request?.status === 'PENDING';
+      managementRequestCard.hidden = !pending;
+      if (!pending) return;
+      managementRequestType.textContent = request.type || 'CHANGE';
+      managementRequestPassenger.textContent = `${request.passengerName || 'PASSENGER'} / ${request.submittedBy || 'EMAIL NIL'}`;
+      managementRequestSubmitted.textContent = request.submittedAt ? new Date(request.submittedAt).toLocaleString('en-GB', { hour12: false }) : '.....';
+      managementRequestDetail.textContent = managementRequestText(request);
+      managementRequestNote.textContent = request.note || 'NO PASSENGER NOTE';
+      applyManagementRequestBtn.textContent = request.type === 'CANCELLATION' ? 'CONFIRM CANCELLATION' : 'APPLY PASSENGER CHANGES';
+    }
+
     function syncItineraryCorrectionControls(req) {
       correctDep.value = OPS_AIRPORTS.some(airport => airport.icao === req.dep) ? req.dep : 'EFHV';
       correctArr.value = OPS_AIRPORTS.some(airport => airport.icao === req.arr) ? req.arr : 'EFHN';
@@ -1631,6 +1688,7 @@ END OF MESSAGE</pre>
       if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(req.timeProposal.responseStatus)) alerts.push({ tone: 'warn', label: `TIME PROPOSAL PENDING ${proposalLabel(req.timeProposal)}` });
       if (req.additionalEmailContacts?.length) alerts.push({ tone: 'good', label: `EXTRA EMAILS ${req.additionalEmailContacts.length}` });
       if (req.contractAccepted) alerts.push({ tone: 'good', label: 'SAFETY ACCEPTED' });
+      if (req.managementRequest?.status === 'PENDING') alerts.push({ tone: 'danger', label: `PASSENGER ${req.managementRequest.type || 'CHANGE'} REQUEST` });
       if (conflicts.length) alerts.push({ tone: 'danger', label: `SCHEDULE OVERLAP WATCH ${conflicts.map(item => item.id).join(', ')}` });
       if (declaredLoadTone(req) !== 'good') alerts.push({ tone: declaredLoadTone(req), label: `DECLARED LOAD ${load.totalKg}KG / W&B REVIEW` });
       const passengers = req.passengers?.length ? req.passengers : [];
@@ -1883,6 +1941,7 @@ END OF MESSAGE</pre>
       secondary.value = req.crew?.secondary || 'NONE';
       syncItineraryCorrectionControls(req);
       renderProposal(req);
+      renderManagementRequest(req);
       renderAlerts(req);
       renderDispatchBoard(req);
       renderDispatchIntelligence(req);
@@ -2026,6 +2085,38 @@ END OF MESSAGE</pre>
       loadTimeline(selected.id).catch(() => {});
     });
     saveEmailContactsBtn.addEventListener('click', () => updateSelected({ additionalEmailContacts: additionalEmailContacts.value }));
+    async function resolveManagementRequest(decision) {
+      if (!selected?.managementRequest || selected.managementRequest.status !== 'PENDING') {
+        mode.textContent = 'MODE: NO PENDING PASSENGER MANAGEMENT REQUEST';
+        return;
+      }
+      const actionLabel = decision === 'APPLY'
+        ? (selected.managementRequest.type === 'CANCELLATION' ? 'confirm this cancellation' : 'apply these passenger changes')
+        : 'decline this passenger request';
+      if (!window.confirm(`Are you sure you want to ${actionLabel} for ${selected.id}? The passenger will be notified by email.`)) return;
+      applyManagementRequestBtn.disabled = true;
+      declineManagementRequestBtn.disabled = true;
+      mode.textContent = 'MODE: RESOLVING PASSENGER MANAGEMENT REQUEST';
+      try {
+        const response = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/management-request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ decision })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'MANAGEMENT REQUEST UPDATE FAILED');
+        replaceRequest(data.request);
+        loadTimeline(selected.id).catch(() => {});
+        mode.textContent = `MODE: PASSENGER REQUEST ${decision === 'APPLY' ? 'APPLIED' : 'DECLINED'}`;
+      } catch (error) {
+        mode.textContent = `MODE: ${error.message || 'MANAGEMENT REQUEST UPDATE FAILED'}`;
+      } finally {
+        applyManagementRequestBtn.disabled = false;
+        declineManagementRequestBtn.disabled = false;
+      }
+    }
+    applyManagementRequestBtn.addEventListener('click', () => resolveManagementRequest('APPLY'));
+    declineManagementRequestBtn.addEventListener('click', () => resolveManagementRequest('DECLINE'));
     sendProposalBtn.addEventListener('click', async () => {
       if (!selected) {
         mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';

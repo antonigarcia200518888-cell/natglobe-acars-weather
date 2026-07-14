@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Booking / NGA Private Aviation</title>
+  <style>
+    @font-face { font-family: "Computer Says No"; src: url("/fonts/computer-says-no.woff2") format("woff2"); font-display: swap; }
+    :root { --navy:#031c45; --navy-2:#0d3769; --paper:#f7f9fc; --white:#fff; --silver:#dfe5ed; --muted:#66758b; --green:#287348; --red:#a52a2a; --shadow:0 24px 70px rgba(3,28,69,.13); }
+    * { box-sizing: border-box; }
+    html { background: var(--paper); color: var(--navy); font-family: "Courier New", Courier, monospace; }
+    body { margin:0; min-height:100vh; background:linear-gradient(180deg,#fff 0,#f7f9fc 38%,#eef2f7 100%); }
+    button,input,select,textarea { font:inherit; }
+    button { cursor:pointer; }
+    .shell { width:min(1120px,calc(100% - 32px)); margin:0 auto; padding:24px 0 54px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:0 0 22px; border-bottom:1px solid var(--silver); }
+    .logo { width:150px; height:auto; display:block; }
+    .secure { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+    .secure::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(40,115,72,.12); }
+    .hero { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr); gap:24px; align-items:end; padding:44px 0 28px; }
+    .eyebrow { color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+    h1 { margin:10px 0 0; font:400 clamp(42px,7vw,78px)/.88 "Computer Says No","Courier New",monospace; letter-spacing:.03em; text-transform:uppercase; }
+    .hero p { margin:0; color:var(--muted); font-size:12px; line-height:1.7; }
+    .status-banner { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); overflow:hidden; border:1px solid var(--navy); background:var(--navy); color:#fff; box-shadow:var(--shadow); }
+    .status-item { min-width:0; padding:16px 18px; border-right:1px solid rgba(255,255,255,.18); }
+    .status-item:last-child { border-right:0; }
+    .status-item span { display:block; color:#b8c8da; font-size:9px; letter-spacing:.12em; text-transform:uppercase; }
+    .status-item strong { display:block; margin-top:7px; color:#fff; font-size:12px; line-height:1.35; overflow-wrap:anywhere; }
+    .management-notice { display:none; margin-top:14px; padding:13px 15px; border-left:3px solid var(--green); background:#eef8f2; color:#1d5f3a; font-size:11px; font-weight:700; line-height:1.55; text-transform:uppercase; }
+    .management-notice.show { display:block; }
+    .content { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(300px,.7fr); gap:18px; margin-top:18px; align-items:start; }
+    .card { border:1px solid rgba(3,28,69,.13); background:rgba(255,255,255,.94); box-shadow:0 18px 50px rgba(3,28,69,.07); }
+    .card-head { padding:20px 22px; border-bottom:1px solid var(--silver); }
+    .card-head h2 { margin:7px 0 0; font:400 30px/1 "Computer Says No","Courier New",monospace; text-transform:uppercase; }
+    .card-body { padding:22px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .field { min-width:0; }
+    .field.full { grid-column:1/-1; }
+    label,.label { display:block; margin-bottom:7px; color:var(--muted); font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    input,select,textarea { width:100%; min-height:48px; border:1px solid #c9d2de; border-radius:0; background:#fff; color:var(--navy); padding:11px 12px; outline:none; }
+    input:focus,select:focus,textarea:focus { border-color:var(--navy); box-shadow:0 0 0 3px rgba(3,28,69,.08); }
+    textarea { min-height:94px; resize:vertical; line-height:1.5; }
+    .bag-fields { display:grid; grid-template-columns:1fr .7fr .7fr; gap:10px; }
+    .section { margin-top:24px; padding-top:20px; border-top:1px solid var(--silver); }
+    .section:first-child { margin-top:0; padding-top:0; border-top:0; }
+    .section-title { margin:0 0 13px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+    .choice-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+    .choice { position:relative; display:block; min-width:0; }
+    .choice input { position:absolute; opacity:0; pointer-events:none; }
+    .choice span { display:flex; min-height:78px; flex-direction:column; justify-content:space-between; border:1px solid #c9d2de; padding:12px; background:#fff; color:var(--navy); transition:150ms ease; }
+    .choice span strong { font-size:11px; text-transform:uppercase; }
+    .choice span small { color:var(--muted); font-size:9px; line-height:1.4; text-transform:uppercase; }
+    .choice input:checked + span { border-color:var(--navy); background:var(--navy); color:#fff; box-shadow:0 8px 20px rgba(3,28,69,.18); }
+    .choice input:checked + span small { color:#c5d2e1; }
+    .extras { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .extra { position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:52px; border:1px solid #c9d2de; padding:10px 12px; background:#fff; color:var(--navy); }
+    .extra input { position:absolute; opacity:0; pointer-events:none; }
+    .extra strong { font-size:10px; text-transform:uppercase; }
+    .switch { width:38px; height:21px; flex:0 0 auto; border-radius:999px; background:#cfd6df; padding:3px; transition:150ms ease; }
+    .switch::after { content:""; display:block; width:15px; height:15px; border-radius:50%; background:#fff; transition:150ms ease; }
+    .extra:has(input:checked) { border-color:var(--navy); }
+    .extra:has(input:checked) .switch { background:var(--green); }
+    .extra:has(input:checked) .switch::after { transform:translateX(17px); }
+    .actions { display:grid; gap:10px; margin-top:22px; }
+    .btn { min-height:52px; border:1px solid var(--navy); background:var(--navy); color:#fff; padding:12px 16px; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .btn:hover { background:var(--navy-2); }
+    .btn.secondary { background:#fff; color:var(--navy); }
+    .btn.danger { border-color:#d9b2b2; background:#fff; color:var(--red); }
+    .btn:disabled { cursor:wait; opacity:.55; }
+    .side-card { position:sticky; top:18px; }
+    .side-lines { display:grid; gap:0; }
+    .side-line { padding:13px 0; border-bottom:1px solid var(--silver); }
+    .side-line:last-child { border-bottom:0; }
+    .side-line span { display:block; color:var(--muted); font-size:9px; letter-spacing:.11em; text-transform:uppercase; }
+    .side-line strong { display:block; margin-top:5px; color:var(--navy); font-size:12px; line-height:1.4; }
+    .privacy { margin-top:18px; padding:14px; border:1px solid #d8e0e9; background:#f5f7fa; color:var(--muted); font-size:10px; line-height:1.6; }
+    .message { display:none; margin-top:14px; padding:13px 15px; border:1px solid var(--green); color:var(--green); background:#eef8f2; font-size:11px; font-weight:700; line-height:1.5; text-transform:uppercase; }
+    .message.show { display:block; }
+    .message.error { border-color:var(--red); background:#fff4f4; color:var(--red); }
+    .loading { min-height:240px; display:grid; place-items:center; color:var(--muted); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+    [hidden] { display:none !important; }
+    footer { margin-top:26px; text-align:center; color:var(--muted); font-size:10px; line-height:1.6; }
+    footer a { color:var(--navy); }
+    @media (max-width:800px) {
+      .shell { width:min(100% - 20px,680px); padding-top:14px; }
+      .topbar { padding-bottom:14px; }
+      .logo { width:118px; }
+      .hero,.content { grid-template-columns:1fr; }
+      .hero { gap:13px; padding:28px 4px 20px; }
+      h1 { font-size:48px; }
+      .status-banner { grid-template-columns:repeat(2,1fr); }
+      .status-item:nth-child(2) { border-right:0; }
+      .status-item:nth-child(-n+2) { border-bottom:1px solid rgba(255,255,255,.18); }
+      .grid,.bag-fields,.choice-grid,.extras { grid-template-columns:1fr; }
+      .side-card { position:static; }
+      .card-head,.card-body { padding:18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a href="/bookings" aria-label="Return to flight bookings"><img class="logo" src="/nga-private-aviation-logo.png" alt="NGA Private Aviation" /></a>
+      <div class="secure">Private passenger access</div>
+    </header>
+
+    <section class="hero">
+      <div><div class="eyebrow">Private flight request</div><h1>Manage booking</h1></div>
+      <p>Review the latest flight status and update the permitted parts of your request. Confirmed-flight changes are sent to operations for review.</p>
+    </section>
+
+    <div id="loading" class="loading">Opening secure flight file...</div>
+    <div id="page" hidden>
+      <section class="status-banner" aria-label="Booking overview">
+        <div class="status-item"><span>Reference</span><strong id="reference">---</strong></div>
+        <div class="status-item"><span>Status</span><strong id="status">---</strong></div>
+        <div class="status-item"><span>Pilot decision</span><strong id="decision">---</strong></div>
+        <div class="status-item"><span>Payment</span><strong id="payment">---</strong></div>
+      </section>
+      <div id="managementNotice" class="management-notice"></div>
+
+      <div class="content">
+        <section class="card">
+          <div class="card-head"><div class="eyebrow">Permitted details</div><h2 id="formTitle">Update request</h2></div>
+          <form id="manageForm" class="card-body">
+            <div class="section">
+              <h3 class="section-title">Passenger contact</h3>
+              <div class="grid">
+                <div class="field"><label for="passengerName">Passenger</label><input id="passengerName" disabled /></div>
+                <div class="field"><label for="phone">Contact telephone</label><input id="phone" type="tel" autocomplete="tel" /></div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3 class="section-title">Luggage declaration</h3>
+              <div class="grid">
+                <div class="field"><label for="carryOnBags">Baggage</label><select id="carryOnBags"><option value="NO">No baggage</option><option value="YES">Add declared baggage</option></select></div>
+                <div class="field"><label for="powerBanks">Power bank / lithium battery</label><select id="powerBanks"><option value="NO">No</option><option value="YES">Yes / declare to pilot</option></select></div>
+                <div id="bagFields" class="field full bag-fields">
+                  <div><label for="bagType">Bag type</label><select id="bagType"><option>CARRY-ON SUITCASE</option><option>SOFT DUFFLE BAG</option><option>WEEKEND HOLDALL</option><option>SMALL BACKPACK</option><option>GARMENT BAG</option><option>OTHER BAG - PILOT REVIEW</option></select></div>
+                  <div><label for="baggageWeightKg">Weight / KG</label><input id="baggageWeightKg" type="number" min="1" max="20" step="1" inputmode="decimal" /></div>
+                  <div><span class="label">Review</span><div class="privacy">All baggage remains subject to aircraft loading and pilot approval.</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3 class="section-title">Cabin preference</h3>
+              <div class="choice-grid">
+                <label class="choice"><input type="radio" name="manageSeat" value="REAR LEFT WINDOW" /><span><strong>Seat 2A</strong><small>Rear left window</small></span></label>
+                <label class="choice"><input type="radio" name="manageSeat" value="REAR RIGHT WINDOW" /><span><strong>Seat 2B</strong><small>Rear right window</small></span></label>
+                <label class="choice"><input type="radio" name="manageSeat" value="NO PREFERENCE" /><span><strong>Pilot assigned</strong><small>Operational seating</small></span></label>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3 class="section-title">Onboard requests</h3>
+              <div class="extras">
+                <label class="extra"><input type="checkbox" name="manageExtras" value="WINE" /><strong>Wine</strong><i class="switch"></i></label>
+                <label class="extra"><input type="checkbox" name="manageExtras" value="CHAMPAGNE" /><strong>Champagne</strong><i class="switch"></i></label>
+                <label class="extra"><input type="checkbox" name="manageExtras" value="BEER" /><strong>Beer / long drink</strong><i class="switch"></i></label>
+                <label class="extra"><input type="checkbox" name="manageExtras" value="SOFT DRINKS / WATER" /><strong>Soft drinks / water</strong><i class="switch"></i></label>
+                <label class="extra"><input type="checkbox" name="manageExtras" value="SNACKS" /><strong>Light snacks</strong><i class="switch"></i></label>
+                <label class="extra"><input type="checkbox" name="manageExtras" value="AIRPORT TRANSFERS" /><strong>Airport transfer</strong><i class="switch"></i></label>
+              </div>
+              <div class="field" style="margin-top:12px"><label for="extrasNotes">Preferences or change message</label><textarea id="extrasNotes" placeholder="Brand, bottle type, transfer details, or another request for operations."></textarea></div>
+            </div>
+
+            <div class="actions">
+              <button id="saveBtn" class="btn" type="submit">Save booking details</button>
+              <button id="cancelRequestBtn" class="btn danger" type="button">Request cancellation review</button>
+            </div>
+            <div id="message" class="message" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <aside class="card side-card">
+          <div class="card-head"><div class="eyebrow">Current itinerary</div><h2>Flight file</h2></div>
+          <div class="card-body">
+            <div class="side-lines">
+              <div class="side-line"><span>Route</span><strong id="route">---</strong></div>
+              <div class="side-line"><span>Date</span><strong id="date">---</strong></div>
+              <div class="side-line"><span>Departure</span><strong id="departure">---</strong></div>
+              <div class="side-line"><span>Change handling</span><strong id="changeMode">---</strong></div>
+            </div>
+            <div class="privacy">This page never displays passport, identity, medical, or payment details. The personal access link should not be forwarded.</div>
+            <a class="btn secondary" href="/bookings" style="display:grid;place-items:center;margin-top:14px;text-decoration:none">Return to bookings</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+    <footer>Questions about your flight? <a href="mailto:info.ngaprivateaviation@gmail.com">info.ngaprivateaviation@gmail.com</a></footer>
+  </main>
+
+  <script>
+    const el = id => document.getElementById(id);
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const reference = decodeURIComponent(parts[1] || '');
+    const token = decodeURIComponent(parts[2] || '');
+    let booking = null;
+
+    function showMessage(text, error = false) {
+      el('message').textContent = text;
+      el('message').className = `message show${error ? ' error' : ''}`;
+    }
+
+    function selectedSeat() {
+      return document.querySelector('input[name="manageSeat"]:checked')?.value || 'NO PREFERENCE';
+    }
+
+    function selectedExtras() {
+      return [...document.querySelectorAll('input[name="manageExtras"]:checked')].map(input => input.value);
+    }
+
+    function syncBagFields() {
+      const enabled = el('carryOnBags').value === 'YES';
+      el('bagFields').hidden = !enabled;
+      el('baggageWeightKg').required = enabled;
+      const limits = { 'CARRY-ON SUITCASE':15, 'SOFT DUFFLE BAG':20, 'WEEKEND HOLDALL':15, 'SMALL BACKPACK':8, 'GARMENT BAG':10, 'OTHER BAG - PILOT REVIEW':20 };
+      el('baggageWeightKg').max = limits[el('bagType').value] || 20;
+    }
+
+    function render(data) {
+      booking = data;
+      el('reference').textContent = data.reference;
+      el('status').textContent = data.statusLabel;
+      el('decision').textContent = data.pilotDecision;
+      el('payment').textContent = data.paymentStatus;
+      el('route').textContent = data.route;
+      el('date').textContent = data.date;
+      el('departure').textContent = data.departureTime;
+      el('passengerName').value = data.passengerName;
+      el('phone').value = data.phone || '';
+      el('carryOnBags').value = data.carryOnBags;
+      el('bagType').value = data.bagType;
+      el('baggageWeightKg').value = data.baggageWeightKg || '';
+      el('powerBanks').value = data.powerBanks;
+      document.querySelectorAll('input[name="manageSeat"]').forEach(input => { input.checked = input.value === data.seatPreference; });
+      document.querySelectorAll('input[name="manageExtras"]').forEach(input => { input.checked = data.extras.includes(input.value); });
+      el('extrasNotes').value = data.extrasNotes || '';
+      el('formTitle').textContent = data.canDirectEdit ? 'Update request' : 'Request a change';
+      el('saveBtn').textContent = data.canDirectEdit ? 'Save booking details' : 'Send changes for operations review';
+      el('changeMode').textContent = data.isClosed ? 'Flight file closed' : data.canDirectEdit ? 'Changes save directly before pilot approval' : 'Changes require operations review';
+      const pending = data.managementRequest?.status === 'PENDING';
+      const notice = data.isClosed ? 'THIS FLIGHT FILE IS CLOSED' : pending ? `${data.managementRequest.type} REQUEST RECEIVED / OPERATIONS REVIEW PENDING` : '';
+      el('managementNotice').className = `management-notice${notice ? ' show' : ''}`;
+      el('managementNotice').textContent = notice;
+      el('saveBtn').disabled = data.isClosed || pending;
+      el('cancelRequestBtn').disabled = data.isClosed || pending;
+      syncBagFields();
+      el('loading').hidden = true;
+      el('page').hidden = false;
+    }
+
+    async function loadBooking() {
+      try {
+        const response = await fetch(`/api/manage-booking/${encodeURIComponent(reference)}/${encodeURIComponent(token)}`, { cache:'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'Unable to open booking');
+        render(data.booking);
+      } catch (error) {
+        el('loading').textContent = error.message || 'This manage booking link is not valid.';
+        el('loading').style.color = '#a52a2a';
+      }
+    }
+
+    function payload(action = 'UPDATE') {
+      return {
+        action,
+        phone:el('phone').value.trim(),
+        carryOnBags:el('carryOnBags').value,
+        bagType:el('bagType').value,
+        baggageWeightKg:el('baggageWeightKg').value,
+        powerBanks:el('powerBanks').value,
+        seatPreference:selectedSeat(),
+        extras:selectedExtras(),
+        extrasNotes:el('extrasNotes').value.trim(),
+        note:el('extrasNotes').value.trim()
+      };
+    }
+
+    async function submit(action) {
+      el('saveBtn').disabled = true;
+      el('cancelRequestBtn').disabled = true;
+      showMessage(action === 'REQUEST_CANCELLATION' ? 'Sending cancellation request...' : 'Updating your flight file...');
+      try {
+        const response = await fetch(`/api/manage-booking/${encodeURIComponent(reference)}/${encodeURIComponent(token)}`, {
+          method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload(action))
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'Unable to update booking');
+        render(data.booking);
+        showMessage(data.message || 'Booking updated.');
+      } catch (error) {
+        showMessage(error.message || 'Unable to update booking.', true);
+      } finally {
+        const pending = booking?.managementRequest?.status === 'PENDING';
+        el('saveBtn').disabled = Boolean(booking?.isClosed || pending);
+        el('cancelRequestBtn').disabled = Boolean(booking?.isClosed || pending);
+      }
+    }
+
+    el('carryOnBags').addEventListener('change', syncBagFields);
+    el('bagType').addEventListener('change', syncBagFields);
+    el('manageForm').addEventListener('submit', event => { event.preventDefault(); submit('UPDATE'); });
+    el('cancelRequestBtn').addEventListener('click', () => {
+      if (window.confirm('Send a cancellation request to operations? Your flight is not cancelled until operations confirms it.')) submit('REQUEST_CANCELLATION');
+    });
+    loadBooking();
+  </script>
+</body>
+</html>

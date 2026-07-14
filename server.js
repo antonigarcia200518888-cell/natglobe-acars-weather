@@ -122,6 +122,7 @@ const costShareFlights = [
 const bookingRequests = [];
 const bookingAvailability = new Map();
 const bookingTimeline = new Map();
+const bookingManageLinkThrottle = new Map();
 let bookingPool = null;
 
 async function initializeBookingStore() {
@@ -1047,6 +1048,10 @@ function createReimbursementStatementToken() {
 }
 
 function createTimeProposalToken() {
+  return randomUUID().replace(/-/g, '');
+}
+
+function createBookingManagementToken() {
   return randomUUID().replace(/-/g, '');
 }
 
@@ -3068,6 +3073,11 @@ app.get('/booking-confirmation', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'booking-confirmation.html'));
 });
 
+app.get('/manage-booking/:reference/:token', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'manage-booking.html'));
+});
+
 app.get('/booking-start', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'booking-login.html'));
@@ -3353,29 +3363,152 @@ app.get('/api/booking-availability', async (req, res) => {
   });
 });
 
-app.post('/api/booking-status', async (req, res) => {
-  await bookingStoreReady;
-  const reference = normalizeBookingText(req.body?.reference, 40).toUpperCase();
-  const email = normalizeBookingEmail(req.body?.email);
-  if (!reference || !email || !email.includes('@')) {
-    return res.status(400).json({ error: 'REFERENCE AND PASSENGER EMAIL REQUIRED' });
-  }
-
+function bookingAccessByEmail(referenceInput, emailInput) {
+  const reference = normalizeBookingText(referenceInput, 40).toUpperCase();
+  const email = normalizeBookingEmail(emailInput);
+  if (!reference || !email || !email.includes('@')) return { error: 'REFERENCE AND PASSENGER EMAIL REQUIRED', status: 400 };
   const request = bookingRequests.find(item => item.id === reference || item.flightId === reference);
-  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
-
+  if (!request) return { error: 'BOOKING REQUEST NOT FOUND', status: 404 };
   const passengers = getRequestPassengers(request);
   const matchingPassenger = passengers.find(passenger => normalizeBookingEmail(passenger.email) === email) || null;
   const extraEmails = normalizeAdditionalEmailContacts(request.additionalEmailContacts).map(item => normalizeBookingEmail(item));
   const payerEmail = normalizeBookingEmail(request.reimbursementStatement?.payerEmail);
   const requestEmail = normalizeBookingEmail(request.email);
-  const allowed = Boolean(
-    matchingPassenger ||
-    requestEmail === email ||
-    extraEmails.includes(email) ||
-    (payerEmail && payerEmail === email)
-  );
-  if (!allowed) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND FOR THIS EMAIL' });
+  const allowed = Boolean(matchingPassenger || requestEmail === email || extraEmails.includes(email) || (payerEmail && payerEmail === email));
+  if (!allowed) return { error: 'BOOKING REQUEST NOT FOUND FOR THIS EMAIL', status: 404 };
+  return { reference, email, request, passengers, matchingPassenger, requestEmail };
+}
+
+function managementAccessByToken(referenceInput, tokenInput) {
+  const reference = normalizeBookingText(referenceInput, 40).toUpperCase();
+  const token = normalizeBookingText(tokenInput, 80);
+  const request = bookingRequests.find(item => item.id === reference || item.flightId === reference);
+  if (!request || !token) return null;
+  const passengers = getRequestPassengers(request);
+  const passenger = passengers.find(item => item.managementToken === token) || null;
+  return passenger ? { request, passengers, passenger } : null;
+}
+
+const MANAGE_BAG_LIMITS = {
+  'CARRY-ON SUITCASE': 15,
+  'SOFT DUFFLE BAG': 20,
+  'WEEKEND HOLDALL': 15,
+  'SMALL BACKPACK': 8,
+  'GARMENT BAG': 10,
+  'OTHER BAG - PILOT REVIEW': 20
+};
+const MANAGE_SEATS = new Set(['REAR LEFT WINDOW', 'REAR RIGHT WINDOW', 'NO PREFERENCE']);
+const MANAGE_EXTRAS = ['WINE', 'CHAMPAGNE', 'BEER', 'SOFT DRINKS / WATER', 'SNACKS', 'AIRPORT TRANSFERS'];
+
+function selectedManageExtras(request) {
+  const source = String(request.extras || '').toUpperCase();
+  return MANAGE_EXTRAS.filter(item => source.includes(item));
+}
+
+function bookingManagementView(request, passenger) {
+  const isLeadPassenger = Number(passenger.number || 1) === 1 || normalizeBookingEmail(passenger.email) === normalizeBookingEmail(request.email);
+  const pendingStage = ['REQUESTED', 'NEEDS INFO', 'WAITLIST'].includes(String(request.status || '').toUpperCase()) && request.pilotDecision !== 'APPROVED';
+  const managementRequest = request.managementRequest || null;
+  const isClosed = ['DECLINED', 'CANCELLED'].includes(String(request.status || '').toUpperCase());
+  return {
+    reference: request.id,
+    statusLabel: request.status || 'REQUESTED',
+    pilotDecision: request.pilotDecision || 'PENDING',
+    paymentStatus: request.paymentStatus || 'UNPAID',
+    route: `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`,
+    date: emailDate(request.requestDate),
+    departureTime: `${formatBoardingPassTime(request.requestTime)} Local Time`,
+    passengerName: passenger.name || 'Passenger',
+    phone: passenger.phone || '',
+    carryOnBags: request.carryOnBags === 'YES' ? 'YES' : 'NO',
+    bagType: request.bagType || 'CARRY-ON SUITCASE',
+    baggageWeightKg: request.carryOnBags === 'YES' ? String(request.baggageWeightKg || '') : '',
+    powerBanks: request.powerBanks === 'YES' ? 'YES' : 'NO',
+    seatPreference: MANAGE_SEATS.has(request.seatPreference) ? request.seatPreference : 'NO PREFERENCE',
+    extras: selectedManageExtras(request),
+    extrasNotes: request.extrasNotes || '',
+    canDirectEdit: Boolean(isLeadPassenger && pendingStage),
+    isClosed,
+    managementRequest: managementRequest ? {
+      type: managementRequest.type,
+      status: managementRequest.status,
+      submittedAt: managementRequest.submittedAt,
+      resolvedAt: managementRequest.resolvedAt || ''
+    } : null
+  };
+}
+
+function normalizeManagementPatch(body) {
+  const phone = normalizeBookingText(body?.phone, 40);
+  const carryOnBags = body?.carryOnBags === 'YES' ? 'YES' : 'NO';
+  const bagType = Object.hasOwn(MANAGE_BAG_LIMITS, body?.bagType) ? body.bagType : 'CARRY-ON SUITCASE';
+  const baggageWeight = Number(String(body?.baggageWeightKg || '').replace(',', '.'));
+  if (carryOnBags === 'YES' && (!Number.isFinite(baggageWeight) || baggageWeight <= 0 || baggageWeight > MANAGE_BAG_LIMITS[bagType])) {
+    return { error: `BAGGAGE WEIGHT MUST BE BETWEEN 1 AND ${MANAGE_BAG_LIMITS[bagType]} KG FOR THIS BAG TYPE` };
+  }
+  const seatPreference = MANAGE_SEATS.has(body?.seatPreference) ? body.seatPreference : 'NO PREFERENCE';
+  const extrasInput = Array.isArray(body?.extras) ? body.extras : [];
+  const extras = MANAGE_EXTRAS.filter(item => extrasInput.includes(item));
+  return {
+    patch: {
+      phone,
+      carryOnBags,
+      bagType: carryOnBags === 'YES' ? bagType : '',
+      baggageWeightKg: carryOnBags === 'YES' ? String(baggageWeight) : '',
+      powerBanks: body?.powerBanks === 'YES' ? 'YES' : 'NO',
+      seatPreference,
+      extras,
+      extrasNotes: normalizeBookingText(body?.extrasNotes, 260)
+    }
+  };
+}
+
+function applyManagementPatch(request, passenger, patch) {
+  passenger.phone = patch.phone || passenger.phone || '';
+  if (Number(passenger.number || 1) === 1) request.phone = passenger.phone;
+  request.carryOnBags = patch.carryOnBags;
+  request.bagType = patch.bagType;
+  request.baggageWeightKg = patch.baggageWeightKg;
+  request.powerBanks = patch.powerBanks;
+  request.seatPreference = patch.seatPreference;
+  request.extras = patch.extras.join(' / ');
+  request.extrasNotes = patch.extrasNotes;
+  request.lastPassengerUpdateAt = new Date().toISOString();
+}
+
+function managementPatchSummary(patch) {
+  return [
+    `PHONE ${patch.phone || 'UNCHANGED'}`,
+    `BAGGAGE ${patch.carryOnBags === 'YES' ? `${patch.bagType} / ${patch.baggageWeightKg}KG` : 'NONE'}`,
+    `POWER BANK ${patch.powerBanks}`,
+    `SEAT ${patch.seatPreference}`,
+    `EXTRAS ${patch.extras.length ? patch.extras.join(', ') : 'NONE'}`,
+    patch.extrasNotes ? `NOTES ${patch.extrasNotes}` : ''
+  ].filter(Boolean).join(' / ');
+}
+
+async function notifyPilotOfBookingManagement(request, label, detail) {
+  const recipient = String(process.env.PILOT_NOTIFICATION_EMAIL || '').trim();
+  if (!recipient) return false;
+  return sendBookingEmail({
+    to: recipient,
+    subject: `${label} ${request.id}`,
+    text: [
+      `Reference: ${request.id}`,
+      `Route: ${request.depName || request.dep} to ${request.arrName || request.arr}`,
+      `Departure: ${request.requestDate} ${request.requestTime}`,
+      detail,
+      '',
+      'Open Booking Operations to review the flight file.'
+    ].join('\n')
+  });
+}
+
+app.post('/api/booking-status', async (req, res) => {
+  await bookingStoreReady;
+  const access = bookingAccessByEmail(req.body?.reference, req.body?.email);
+  if (access.error) return res.status(access.status).json({ error: access.error });
+  const { request, passengers, matchingPassenger, requestEmail } = access;
 
   const signedCount = passengers.filter(passenger => passenger.agreementSignedAt).length;
   const agreementStatus = passengers.length
@@ -3399,9 +3532,120 @@ app.post('/api/booking-status', async (req, res) => {
       agreementStatus,
       passengerCount: passengers.length,
       flightTime: emailFlightTime(request),
-      flightPassUrl
+      flightPassUrl,
+      canManage: Boolean(matchingPassenger),
+      managementRequestStatus: request.managementRequest?.status || ''
     }
   });
+});
+
+app.post('/api/booking-manage-link', async (req, res) => {
+  await bookingStoreReady;
+  const access = bookingAccessByEmail(req.body?.reference, req.body?.email);
+  if (access.error) return res.status(access.status).json({ error: access.error });
+  const { request, matchingPassenger } = access;
+  if (!matchingPassenger) return res.status(403).json({ error: 'MANAGE BOOKING ACCESS IS AVAILABLE TO NAMED PASSENGERS ONLY' });
+  const throttleKey = `${request.id}:${normalizeBookingEmail(matchingPassenger.email)}`;
+  const lastSentAt = bookingManageLinkThrottle.get(throttleKey) || 0;
+  if (Date.now() - lastSentAt < 60000) return res.status(429).json({ error: 'A MANAGE BOOKING LINK WAS JUST SENT. PLEASE CHECK YOUR EMAIL.' });
+  bookingManageLinkThrottle.set(throttleKey, Date.now());
+  if (!matchingPassenger.managementToken) matchingPassenger.managementToken = createBookingManagementToken();
+  await persistBookingRequest(request);
+  const url = `${PUBLIC_SITE_URL}/manage-booking/${encodeURIComponent(request.id)}/${matchingPassenger.managementToken}`;
+  const html = privateFlightEmailHtml({
+    status: 'MANAGE BOOKING',
+    reference: request.id,
+    greeting: emailPassengerName(matchingPassenger),
+    intro: 'Use the private link below to review and manage the permitted parts of your flight request.',
+    details: [
+      ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`],
+      ['Date', emailDate(request.requestDate)],
+      ['Departure', `${formatBoardingPassTime(request.requestTime)} Local Time`],
+      ['Status', request.status || 'REQUESTED']
+    ],
+    sections: [{
+      title: 'SECURE BOOKING ACCESS',
+      html: `<p style="margin:8px 0 14px;line-height:1.6;color:#031c45">This link is personal to you. Do not forward it.</p><a href="${url}" style="display:inline-block;padding:12px 16px;background:#031c45;color:#ffffff;text-decoration:none;font-weight:700">OPEN MANAGE BOOKING</a>`
+    }],
+    closing: ['Best regards,', 'NGA Private Aviation Team', 'info.ngaprivateaviation@gmail.com']
+  });
+  try {
+    const sent = await sendBookingEmail({
+      to: matchingPassenger.email,
+      subject: `Manage booking ${request.id}`,
+      text: `Open your secure booking management page:\n${url}\n\nDo not forward this personal link.`,
+      html
+    });
+    if (!sent) return res.status(503).json({ error: 'BOOKING EMAIL SERVICE IS NOT CONFIGURED' });
+  } catch (error) {
+    console.error('MANAGE BOOKING LINK:', error.message);
+    return res.status(502).json({ error: 'UNABLE TO SEND MANAGE BOOKING LINK' });
+  }
+  await addBookingTimelineEvent(request.id, 'MANAGE LINK SENT', `Secure manage link sent to passenger ${matchingPassenger.number || 1}.`);
+  res.json({ message: 'SECURE MANAGE BOOKING LINK SENT BY EMAIL' });
+});
+
+app.get('/api/manage-booking/:reference/:token', async (req, res) => {
+  await bookingStoreReady;
+  const access = managementAccessByToken(req.params.reference, req.params.token);
+  if (!access) return res.status(404).json({ error: 'MANAGE BOOKING LINK IS NOT VALID' });
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({ booking: bookingManagementView(access.request, access.passenger) });
+});
+
+app.patch('/api/manage-booking/:reference/:token', async (req, res) => {
+  await bookingStoreReady;
+  const access = managementAccessByToken(req.params.reference, req.params.token);
+  if (!access) return res.status(404).json({ error: 'MANAGE BOOKING LINK IS NOT VALID' });
+  const { request, passenger } = access;
+  const action = String(req.body?.action || 'UPDATE').trim().toUpperCase();
+  const note = normalizeBookingText(req.body?.note, 300);
+  const currentView = bookingManagementView(request, passenger);
+  if (currentView.isClosed) return res.status(409).json({ error: 'THIS BOOKING IS CLOSED' });
+  if (request.managementRequest?.status === 'PENDING') return res.status(409).json({ error: 'A PASSENGER REQUEST IS ALREADY AWAITING OPERATIONS REVIEW' });
+
+  if (action === 'REQUEST_CANCELLATION') {
+    request.managementRequest = {
+      id: `MNG-${randomUUID().slice(0, 8).toUpperCase()}`,
+      type: 'CANCELLATION',
+      status: 'PENDING',
+      passengerNumber: passenger.number || 1,
+      passengerName: passenger.name || 'Passenger',
+      submittedBy: passenger.email || '',
+      note: note || 'Passenger requested cancellation review.',
+      submittedAt: new Date().toISOString()
+    };
+    await persistBookingRequest(request);
+    await addBookingTimelineEvent(request.id, 'CANCELLATION REQUESTED', `Passenger ${passenger.number || 1}: ${request.managementRequest.note}`);
+    void notifyPilotOfBookingManagement(request, 'Cancellation request', request.managementRequest.note).catch(error => console.error('MANAGEMENT EMAIL:', error.message));
+    return res.json({ message: 'CANCELLATION REQUEST SENT TO OPERATIONS', booking: bookingManagementView(request, passenger) });
+  }
+
+  const normalized = normalizeManagementPatch(req.body);
+  if (normalized.error) return res.status(400).json({ error: normalized.error });
+  if (currentView.canDirectEdit) {
+    applyManagementPatch(request, passenger, normalized.patch);
+    await persistBookingRequest(request);
+    await addBookingTimelineEvent(request.id, 'PASSENGER UPDATE', `Passenger ${passenger.number || 1} updated permitted booking details. ${managementPatchSummary(normalized.patch)}`);
+    void notifyPilotOfBookingManagement(request, 'Passenger booking updated', managementPatchSummary(normalized.patch)).catch(error => console.error('MANAGEMENT EMAIL:', error.message));
+    return res.json({ message: 'BOOKING DETAILS UPDATED', booking: bookingManagementView(request, passenger) });
+  }
+
+  request.managementRequest = {
+    id: `MNG-${randomUUID().slice(0, 8).toUpperCase()}`,
+    type: 'CHANGE',
+    status: 'PENDING',
+    passengerNumber: passenger.number || 1,
+    passengerName: passenger.name || 'Passenger',
+    submittedBy: passenger.email || '',
+    requested: normalized.patch,
+    note,
+    submittedAt: new Date().toISOString()
+  };
+  await persistBookingRequest(request);
+  await addBookingTimelineEvent(request.id, 'CHANGE REQUESTED', `Passenger ${passenger.number || 1}: ${managementPatchSummary(normalized.patch)}${note ? ` / ${note}` : ''}`);
+  void notifyPilotOfBookingManagement(request, 'Passenger change request', `${managementPatchSummary(normalized.patch)}${note ? ` / ${note}` : ''}`).catch(error => console.error('MANAGEMENT EMAIL:', error.message));
+  res.json({ message: 'CHANGE REQUEST SENT TO OPERATIONS', booking: bookingManagementView(request, passenger) });
 });
 
 app.get('/api/booking-ops/availability', requirePilotAccess, async (req, res) => {
@@ -3848,6 +4092,66 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
   }
 });
 
+app.post('/api/booking-ops/requests/:id/management-request', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  const managementRequest = request.managementRequest;
+  if (!managementRequest || managementRequest.status !== 'PENDING') return res.status(409).json({ error: 'NO PENDING PASSENGER MANAGEMENT REQUEST' });
+  const decision = String(req.body?.decision || '').trim().toUpperCase();
+  if (!['APPLY', 'DECLINE'].includes(decision)) return res.status(400).json({ error: 'SELECT APPLY OR DECLINE' });
+  const passenger = getRequestPassengers(request).find(item => Number(item.number || 1) === Number(managementRequest.passengerNumber || 1)) || getRequestPassengers(request)[0];
+  const isCancellation = managementRequest.type === 'CANCELLATION';
+
+  if (decision === 'APPLY') {
+    if (isCancellation) {
+      request.status = 'CANCELLED';
+      request.pilotDecision = 'CANCELLED';
+      request.cancelledAt = new Date().toISOString();
+    } else if (managementRequest.requested) {
+      applyManagementPatch(request, passenger, managementRequest.requested);
+    }
+    managementRequest.status = 'APPLIED';
+  } else {
+    managementRequest.status = 'DECLINED';
+  }
+  managementRequest.resolvedAt = new Date().toISOString();
+  managementRequest.resolvedBy = 'FLIGHT OPERATIONS';
+  await persistBookingRequest(request);
+  const outcome = decision === 'APPLY' ? (isCancellation ? 'CANCELLATION CONFIRMED' : 'CHANGE APPLIED') : 'REQUEST DECLINED';
+  await addBookingTimelineEvent(request.id, 'MANAGEMENT REQUEST DECISION', `${outcome} / ${managementRequest.type}`);
+
+  const recipient = normalizeBookingEmail(managementRequest.submittedBy || passenger?.email);
+  if (recipient) {
+    const emailHtml = privateFlightEmailHtml({
+      status: outcome,
+      reference: request.id,
+      greeting: emailPassengerName(passenger),
+      intro: isCancellation && decision === 'APPLY'
+        ? 'Operations has confirmed the cancellation of this flight request.'
+        : decision === 'APPLY'
+          ? 'Operations has reviewed and applied your requested booking changes.'
+          : 'Operations reviewed the request but could not apply it to the current flight file.',
+      details: [
+        ['Route', `${boardingPassAirportLabel(request.dep, request.depName)} to ${boardingPassAirportLabel(request.arr, request.arrName)}`],
+        ['Date', emailDate(request.requestDate)],
+        ['Departure', `${formatBoardingPassTime(request.requestTime)} Local Time`],
+        ['Request', managementRequest.type],
+        ['Outcome', outcome]
+      ],
+      closing: ['Best regards,', 'NGA Private Aviation Team', 'info.ngaprivateaviation@gmail.com']
+    });
+    void sendBookingEmail({
+      to: recipient,
+      subject: `${outcome} / ${request.id}`,
+      text: `${outcome}\nReference: ${request.id}\nRoute: ${request.depName || request.dep} to ${request.arrName || request.arr}\n\nNGA Private Aviation Team`,
+      html: emailHtml
+    }).catch(error => console.error('MANAGEMENT DECISION EMAIL:', error.message));
+  }
+
+  res.json({ request: { ...request, bookingMessage: formatBookingMessage(request) } });
+});
+
 app.delete('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   const requestId = String(req.params.id || '').trim().toUpperCase();
@@ -4017,7 +4321,8 @@ app.post('/api/booking-requests', async (req, res) => {
     passportCountry: normalizeBookingText(passenger?.passportCountry, 40),
     nationalId: normalizeBookingText(passenger?.nationalId, 60),
     boardingPassToken: createBoardingPassToken(),
-    agreementToken: createAgreementToken()
+    agreementToken: createAgreementToken(),
+    managementToken: createBookingManagementToken()
   })) : [{
     number: 1,
     title: normalizeBookingText(req.body?.title, 8).toUpperCase(),
@@ -4029,11 +4334,12 @@ app.post('/api/booking-requests', async (req, res) => {
     passportCountry: normalizeBookingText(req.body?.passportCountry, 40),
     nationalId: normalizeBookingText(req.body?.nationalId, 60),
     boardingPassToken: createBoardingPassToken(),
-    agreementToken: createAgreementToken()
+    agreementToken: createAgreementToken(),
+    managementToken: createBookingManagementToken()
   }];
 
   while (passengers.length < seats) {
-    passengers.push({ number: passengers.length + 1, title: '', name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '', boardingPassToken: createBoardingPassToken(), agreementToken: createAgreementToken() });
+    passengers.push({ number: passengers.length + 1, title: '', name: '', email: '', phone: '', dob: '', weightKg: '', passportCountry: '', nationalId: '', boardingPassToken: createBoardingPassToken(), agreementToken: createAgreementToken(), managementToken: createBookingManagementToken() });
   }
 
   const leadPassenger = passengers[0] || {};
