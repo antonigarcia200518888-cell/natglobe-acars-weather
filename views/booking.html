@@ -10295,6 +10295,7 @@
       .luxury-booking .luxury-title {
         display: flex;
         max-width: 360px;
+        margin: 0;
         flex-direction: column;
         align-items: flex-start;
         gap: 0;
@@ -10314,20 +10315,14 @@
       }
 
       .luxury-booking .luxury-title span:nth-child(2) {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        margin: 9px 0 0 24px;
+        display: block;
+        margin: 8px 0 0;
         font-size: 0.92em;
-        letter-spacing: 0.11em;
+        letter-spacing: 0.095em;
       }
 
       .luxury-booking .luxury-title span:nth-child(2)::before {
-        content: '';
-        width: 26px;
-        height: 1px;
-        flex: 0 0 auto;
-        background: rgba(255,255,255,0.62);
+        content: none;
       }
     }
   </style>
@@ -10351,7 +10346,6 @@
         </nav>
       </div>
       <div class="luxury-hero-center">
-        <div class="luxury-eyebrow">Private aviation, composed around you</div>
         <h1 class="luxury-title" aria-label="Private flight booking">
           <span style="--i:0">Private Flight</span>
           <span style="--i:1">Booking</span>
