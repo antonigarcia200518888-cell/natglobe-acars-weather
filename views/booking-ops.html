@@ -31,13 +31,18 @@
       justify-content: center;
       align-items: flex-start;
       padding: 32px 18px;
+      background-image:
+        linear-gradient(rgba(142,197,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(142,197,255,0.025) 1px, transparent 1px);
+      background-size: 32px 32px;
     }
 
     .frame {
       width: min(1320px, 100%);
       border: 2px solid var(--line);
       padding: 22px 20px 18px;
-      background: #000;
+      background: rgba(0,0,0,0.97);
+      box-shadow: 0 0 48px rgba(142,197,255,0.08);
     }
 
     .title-row {
@@ -123,6 +128,60 @@
       color: #fff;
       font-size: clamp(18px, 2vw, 26px);
       line-height: 1;
+    }
+
+    .ops-watch {
+      display: grid;
+      grid-template-columns: 1.35fr repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .ops-watch-card {
+      position: relative;
+      min-width: 0;
+      min-height: 74px;
+      border: 1px solid #3f4d5a;
+      background: linear-gradient(135deg, #071019 0%, #030608 100%);
+      padding: 10px 11px;
+      overflow: hidden;
+      text-transform: uppercase;
+    }
+
+    .ops-watch-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 2px;
+      background: var(--accent);
+    }
+
+    .ops-watch-card.warn::before { background: var(--warn); }
+    .ops-watch-card.danger::before { background: var(--danger); }
+    .ops-watch-card.good::before { background: var(--live); }
+
+    .ops-watch-card span {
+      display: block;
+      color: #7f929f;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    .ops-watch-card strong {
+      display: block;
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .ops-watch-card small {
+      display: block;
+      margin-top: 4px;
+      color: #85929c;
+      font-size: 9px;
+      line-height: 1.25;
     }
 
     .layout {
@@ -215,6 +274,7 @@
     .state-good { color: var(--live); }
     .state-danger { color: var(--danger); }
     .state-warn { color: var(--warn); }
+    .state-info { color: var(--accent); }
 
     .meta-grid {
       display: grid;
@@ -412,6 +472,159 @@
       font-size: 13px;
       line-height: 1.3;
     }
+
+    .dispatch-intelligence {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.8fr) minmax(0, 2.2fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .readiness-console,
+    .intelligence-console {
+      border: 1px solid #4f6679;
+      background: linear-gradient(145deg, #071019 0%, #020405 72%);
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .console-kicker {
+      color: #8196a6;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .readiness-dial-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .readiness-dial {
+      --readiness: 0deg;
+      width: 92px;
+      aspect-ratio: 1;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--live) var(--readiness), #1c252b 0);
+      box-shadow: 0 0 24px rgba(102,255,153,0.12);
+      position: relative;
+    }
+
+    .readiness-dial::after {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border-radius: 50%;
+      background: #030608;
+      border: 1px solid #33434f;
+    }
+
+    .readiness-dial strong {
+      position: relative;
+      z-index: 1;
+      color: #fff;
+      font-size: 21px;
+    }
+
+    .readiness-copy strong {
+      display: block;
+      color: #fff;
+      font-size: 13px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .readiness-copy strong.state-good { color: var(--live); }
+    .readiness-copy strong.state-warn { color: var(--warn); }
+    .readiness-copy strong.state-danger { color: var(--danger); }
+    .readiness-copy strong.state-info { color: var(--accent); }
+
+    .readiness-copy span {
+      color: #92a2ad;
+      font-size: 10px;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .intelligence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .intelligence-item {
+      border: 1px solid #31404b;
+      background: rgba(0,0,0,0.45);
+      padding: 9px;
+      min-width: 0;
+      text-transform: uppercase;
+    }
+
+    .intelligence-item span {
+      display: block;
+      color: #728694;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      margin-bottom: 5px;
+    }
+
+    .intelligence-item strong {
+      display: block;
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .intelligence-item strong.good { color: var(--live); }
+    .intelligence-item strong.warn { color: var(--warn); }
+    .intelligence-item strong.danger { color: var(--danger); }
+
+    .next-action {
+      grid-column: 1 / -1;
+      border: 1px solid var(--accent);
+      border-left-width: 3px;
+      padding: 9px 10px;
+      background: rgba(142,197,255,0.06);
+      color: #fff;
+      font-size: 11px;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .next-action span { color: var(--accent); font-weight: 700; }
+
+    .ops-quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+
+    .ops-tool {
+      min-height: 42px;
+      border: 1px solid #50606d;
+      background: #05090c;
+      color: #dce8ef;
+      font: 700 11px "Courier New", monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .ops-tool:hover,
+    .ops-tool:focus-visible {
+      border-color: var(--accent);
+      color: var(--accent);
+      outline: none;
+    }
+
+    .calendar-flight.conflict { color: var(--danger); }
+    .calendar-conflict { display: inline-block; margin-top: 3px; color: var(--danger); font-weight: 700; }
 
     .ops-readiness {
       margin-bottom: 10px;
@@ -711,13 +924,14 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose, .ops-command-strip, .dispatch-board, .ops-readiness-grid { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
       .badge { white-space: normal; }
       .queue-panel { position: static; max-height: none; }
       .calendar-grid { grid-template-columns: 1fr; }
+      .readiness-dial-wrap { align-items: flex-start; }
     }
   </style>
 </head>
@@ -725,11 +939,11 @@
   <main class="frame">
     <div class="title-row">
       <div class="title">PRIVATE FLIGHT OPERATIONS</div>
-      <div class="badge">PILOT / DISPATCH</div>
+      <div class="badge">PILOT / DISPATCH / LIVE</div>
     </div>
 
     <div id="clock" class="clock">UTC --:--:--</div>
-    <div class="intro">Customer-facing booking requests converted into structured pilot and dispatch messages.</div>
+    <div class="intro">Live operational control for flight review, crew assignment, passenger files, schedule monitoring, and pilot decision.</div>
     <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
     <section class="ops-command-strip" aria-label="Operations queue totals">
       <div class="ops-command-card"><span>Total requests</span><strong id="opsTotal">0</strong></div>
@@ -738,15 +952,23 @@
       <div class="ops-command-card"><span>Unpaid</span><strong id="opsUnpaid">0</strong></div>
       <div class="ops-command-card"><span>Today</span><strong id="opsToday">0</strong></div>
     </section>
-    <section class="ops-calendar"><div class="panel-title">OPERATIONS CALENDAR</div><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></section>
+    <section class="ops-watch" aria-label="Live operations watch">
+      <div id="opsNextDepartureCard" class="ops-watch-card good"><span>Next movement</span><strong id="opsNextDeparture">NO UPCOMING FLIGHT</strong><small id="opsNextDepartureMeta">Schedule watch clear</small></div>
+      <div id="opsConflictsCard" class="ops-watch-card"><span>Schedule conflicts</span><strong id="opsConflicts">0</strong><small>Potential overlap watch</small></div>
+      <div id="opsUnsignedCard" class="ops-watch-card"><span>Unsigned agreements</span><strong id="opsUnsigned">0</strong><small>Confirmed passenger files</small></div>
+      <div id="opsCrewOpenCard" class="ops-watch-card"><span>Crew open</span><strong id="opsCrewOpen">0</strong><small>Commander not assigned</small></div>
+      <div id="opsLoadWatchCard" class="ops-watch-card"><span>Load watch</span><strong id="opsLoadWatch">0</strong><small>W&amp;B review queue</small></div>
+    </section>
+    <section class="ops-calendar"><div class="panel-title">MOVEMENT CALENDAR</div><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></section>
 
     <div class="layout">
       <aside class="panel queue-panel">
-        <div class="panel-title">ACTIVE REQUESTS</div>
+        <div class="panel-title">OPERATIONS QUEUE</div>
         <div class="queue-filters">
           <input id="filterQuery" type="search" placeholder="Search route or passenger" />
           <select id="filterStatus"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option></select>
           <input id="filterDate" type="date" aria-label="Filter by departure date" />
+          <select id="filterSort" aria-label="Sort request queue"><option value="PRIORITY">Sort: operational priority</option><option value="DEPARTURE">Sort: departure soonest</option><option value="NEWEST">Sort: newest request</option><option value="ROUTE">Sort: route</option></select>
           <div class="quick-filters" aria-label="Quick filters">
             <button class="quick-filter active" type="button" data-quick-filter="ALL">All</button>
             <button class="quick-filter" type="button" data-quick-filter="ACTION">Needs action</button>
@@ -761,7 +983,7 @@
 
       <section>
         <div class="panel">
-          <div class="panel-title">REQUEST SUMMARY</div>
+          <div class="panel-title">ACTIVE FLIGHT FILE</div>
           <div class="meta-grid">
             <div class="meta"><span>REF</span><strong id="ref">.....</strong></div>
             <div class="meta"><span>ROUTE</span><strong id="route">.....</strong></div>
@@ -777,6 +999,33 @@
             <div class="dispatch-metric"><span>Passengers</span><strong id="dispatchPax">.....</strong></div>
             <div class="dispatch-metric"><span>Luggage</span><strong id="dispatchLuggage">.....</strong></div>
             <div class="dispatch-metric"><span>Cost estimate</span><strong id="dispatchCost">.....</strong></div>
+          </div>
+          <div class="dispatch-intelligence" aria-label="Automated dispatch intelligence">
+            <div class="readiness-console">
+              <div class="console-kicker">Automated dispatch intelligence</div>
+              <div class="readiness-dial-wrap">
+                <div id="dispatchReadinessDial" class="readiness-dial"><strong id="dispatchReadinessPercent">0%</strong></div>
+                <div class="readiness-copy"><strong id="dispatchPriority">Select request</strong><span id="dispatchDocumentState">No active flight loaded.</span></div>
+              </div>
+            </div>
+            <div class="intelligence-console">
+              <div class="console-kicker">Selected movement watch</div>
+              <div class="intelligence-grid">
+                <div class="intelligence-item"><span>Departure countdown</span><strong id="dispatchCountdown">NO SCHEDULE</strong></div>
+                <div class="intelligence-item"><span>Declared cabin load</span><strong id="dispatchLoad">.....</strong></div>
+                <div class="intelligence-item"><span>Schedule watch</span><strong id="dispatchConflict">.....</strong></div>
+                <div class="intelligence-item"><span>Crew state</span><strong id="dispatchCrewState">.....</strong></div>
+                <div class="intelligence-item"><span>Passenger files</span><strong id="dispatchFiles">.....</strong></div>
+                <div class="intelligence-item"><span>Commercial state</span><strong id="dispatchCommercial">.....</strong></div>
+                <div id="dispatchNextAction" class="next-action"><span>Next action:</span> Select a request.</div>
+              </div>
+            </div>
+          </div>
+          <div class="ops-quick-actions" aria-label="Operations quick actions">
+            <button id="openWeatherOpsBtn" class="ops-tool" type="button">OPEN WEATHER OPS</button>
+            <button id="copyBriefBtn" class="ops-tool" type="button">COPY DISPATCH BRIEF</button>
+            <button id="emailPassengerBtn" class="ops-tool" type="button">EMAIL LEAD PASSENGER</button>
+            <button id="callPassengerBtn" class="ops-tool" type="button">CALL LEAD PASSENGER</button>
           </div>
           <div class="ops-readiness" aria-label="Ready for flight checklist">
             <div class="ops-readiness-head"><strong>Ready for flight checklist</strong><span id="readinessScore">0/8 complete</span></div>
@@ -934,6 +1183,7 @@ END OF MESSAGE</pre>
     const filterQuery = el('filterQuery');
     const filterStatus = el('filterStatus');
     const filterDate = el('filterDate');
+    const filterSort = el('filterSort');
     const commander = el('commander');
     const secondary = el('secondary');
     const saveCrewBtn = el('saveCrewBtn');
@@ -956,6 +1206,17 @@ END OF MESSAGE</pre>
     const opsConfirmed = el('opsConfirmed');
     const opsUnpaid = el('opsUnpaid');
     const opsToday = el('opsToday');
+    const opsNextDeparture = el('opsNextDeparture');
+    const opsNextDepartureMeta = el('opsNextDepartureMeta');
+    const opsNextDepartureCard = el('opsNextDepartureCard');
+    const opsConflicts = el('opsConflicts');
+    const opsConflictsCard = el('opsConflictsCard');
+    const opsUnsigned = el('opsUnsigned');
+    const opsUnsignedCard = el('opsUnsignedCard');
+    const opsCrewOpen = el('opsCrewOpen');
+    const opsCrewOpenCard = el('opsCrewOpenCard');
+    const opsLoadWatch = el('opsLoadWatch');
+    const opsLoadWatchCard = el('opsLoadWatchCard');
     const dispatchRoute = el('dispatchRoute');
     const dispatchSchedule = el('dispatchSchedule');
     const dispatchFlightTime = el('dispatchFlightTime');
@@ -964,6 +1225,21 @@ END OF MESSAGE</pre>
     const dispatchCost = el('dispatchCost');
     const opsReadinessList = el('opsReadinessList');
     const readinessScore = el('readinessScore');
+    const dispatchReadinessDial = el('dispatchReadinessDial');
+    const dispatchReadinessPercent = el('dispatchReadinessPercent');
+    const dispatchPriority = el('dispatchPriority');
+    const dispatchDocumentState = el('dispatchDocumentState');
+    const dispatchCountdown = el('dispatchCountdown');
+    const dispatchLoad = el('dispatchLoad');
+    const dispatchConflict = el('dispatchConflict');
+    const dispatchCrewState = el('dispatchCrewState');
+    const dispatchFiles = el('dispatchFiles');
+    const dispatchCommercial = el('dispatchCommercial');
+    const dispatchNextAction = el('dispatchNextAction');
+    const openWeatherOpsBtn = el('openWeatherOpsBtn');
+    const copyBriefBtn = el('copyBriefBtn');
+    const emailPassengerBtn = el('emailPassengerBtn');
+    const callPassengerBtn = el('callPassengerBtn');
 
     const OPS_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', label: '(HEL) Helsinki-Vantaa' },
@@ -986,9 +1262,19 @@ END OF MESSAGE</pre>
     let requests = [];
     let selected = null;
     let quickFilter = 'ALL';
+    let autoSyncing = false;
 
     function tick() {
-      clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;
+      const now = new Date();
+      const helsinkiTime = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/Helsinki',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }).format(now);
+      clock.textContent = `UTC ${now.toISOString().slice(11, 19)} / HEL ${helsinkiTime}`;
+      renderLiveTiming();
     }
 
     function escapeHtml(value) {
@@ -1015,6 +1301,151 @@ END OF MESSAGE</pre>
 
     function todayIso() {
       return new Date().toISOString().slice(0, 10);
+    }
+
+    function requestSchedule(req) {
+      if (!req?.requestDate || !req?.requestTime) return null;
+      const normalizedTime = String(req.requestTime).slice(0, 5);
+      const start = new Date(`${req.requestDate}T${normalizedTime}:00`);
+      if (Number.isNaN(start.getTime())) return null;
+      const flightMinutes = Math.max(20, Number(req.estimatedFlightMinutes) || 60);
+      const occupiedMinutes = req.tripType === 'ROUNDTRIP'
+        ? (flightMinutes * 2) + 90
+        : flightMinutes + 45;
+      return {
+        start,
+        end: new Date(start.getTime() + occupiedMinutes * 60000),
+        occupiedMinutes
+      };
+    }
+
+    function hoursUntil(req, now = new Date()) {
+      const schedule = requestSchedule(req);
+      return schedule ? (schedule.start.getTime() - now.getTime()) / 3600000 : Number.POSITIVE_INFINITY;
+    }
+
+    function formatCountdown(req, now = new Date()) {
+      const schedule = requestSchedule(req);
+      if (!schedule) return 'NO SCHEDULE';
+      const difference = schedule.start.getTime() - now.getTime();
+      const absoluteMinutes = Math.max(0, Math.floor(Math.abs(difference) / 60000));
+      const days = Math.floor(absoluteMinutes / 1440);
+      const hours = Math.floor((absoluteMinutes % 1440) / 60);
+      const minutes = absoluteMinutes % 60;
+      if (difference < 0) return `PAST ${days ? `${days}D ` : ''}${String(hours).padStart(2, '0')}H ${String(minutes).padStart(2, '0')}M`;
+      return `T-${days ? `${days}D ` : ''}${String(hours).padStart(2, '0')}H ${String(minutes).padStart(2, '0')}M`;
+    }
+
+    function declaredLoad(req) {
+      const passengerKg = passengerList(req).reduce((sum, passenger) => sum + (Number(passenger.weightKg) || 0), 0);
+      const baggageKg = req.carryOnBags === 'YES' ? (Number(req.baggageWeightKg) || 0) : 0;
+      return { passengerKg, baggageKg, totalKg: passengerKg + baggageKg };
+    }
+
+    function declaredLoadTone(req) {
+      const total = declaredLoad(req).totalKg;
+      if (total >= 260) return 'danger';
+      if (total >= 220) return 'warn';
+      return 'good';
+    }
+
+    function isOperationallyActive(req) {
+      if (!req || req.status === 'DECLINED' || req.pilotDecision === 'DECLINED') return false;
+      const schedule = requestSchedule(req);
+      return !schedule || schedule.end.getTime() > Date.now() - (12 * 3600000);
+    }
+
+    function requestsConflict(first, second) {
+      if (!first || !second || first.id === second.id || !isOperationallyActive(first) || !isOperationallyActive(second)) return false;
+      const firstSchedule = requestSchedule(first);
+      const secondSchedule = requestSchedule(second);
+      if (!firstSchedule || !secondSchedule) return false;
+      const firstCommander = first.crew?.commander || 'UNASSIGNED';
+      const secondCommander = second.crew?.commander || 'UNASSIGNED';
+      const sameCommander = firstCommander !== 'UNASSIGNED' && firstCommander === secondCommander;
+      const firstAircraft = String(first.aircraft || '').trim().toUpperCase();
+      const secondAircraft = String(second.aircraft || '').trim().toUpperCase();
+      const sameAircraft = !firstAircraft || !secondAircraft || firstAircraft === secondAircraft;
+      return (sameAircraft || sameCommander) && firstSchedule.start < secondSchedule.end && secondSchedule.start < firstSchedule.end;
+    }
+
+    function conflictsFor(req) {
+      return requests.filter(other => requestsConflict(req, other));
+    }
+
+    function conflictPairs() {
+      const pairs = [];
+      for (let firstIndex = 0; firstIndex < requests.length; firstIndex += 1) {
+        for (let secondIndex = firstIndex + 1; secondIndex < requests.length; secondIndex += 1) {
+          if (requestsConflict(requests[firstIndex], requests[secondIndex])) pairs.push([requests[firstIndex], requests[secondIndex]]);
+        }
+      }
+      return pairs;
+    }
+
+    function priorityData(req) {
+      if (req.status === 'DECLINED' || req.pilotDecision === 'DECLINED') return { score: -100, label: 'CLOSED', tone: 'good' };
+      let score = 0;
+      const remainingHours = hoursUntil(req);
+      if (conflictsFor(req).length) score += 60;
+      if (remainingHours >= 0) {
+        if (remainingHours <= 6) score += 55;
+        else if (remainingHours <= 24) score += 40;
+        else if (remainingHours <= 72) score += 18;
+      } else if (Number.isFinite(remainingHours)) {
+        score += 20;
+      }
+      if (req.status === 'REQUESTED') score += 35;
+      if (!passengerManifestComplete(req)) score += 25;
+      if (!req.reimbursementStatement) score += 20;
+      if (!req.crew?.commander || req.crew.commander === 'UNASSIGNED') score += 18;
+      if (req.pilotDecision !== 'APPROVED') score += 15;
+      if (req.status === 'CONFIRMED' && agreementCount(req) < passengerList(req).length) score += 15;
+      if (req.paymentStatus !== 'PAID') score += 8;
+      if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(String(req.timeProposal.responseStatus || '').toUpperCase())) score += 12;
+      if (score >= 90) return { score, label: 'CRITICAL PRIORITY', tone: 'danger' };
+      if (score >= 55) return { score, label: 'HIGH PRIORITY', tone: 'warn' };
+      if (score >= 25) return { score, label: 'ACTIVE REVIEW', tone: 'info' };
+      return { score, label: 'MONITORED', tone: 'good' };
+    }
+
+    function nextOperationalAction(req) {
+      if (!requestSchedule(req)) return 'Complete the departure date and time.';
+      const conflicts = conflictsFor(req);
+      if (conflicts.length) return `Resolve potential schedule overlap with ${conflicts.map(item => item.id).join(', ')}.`;
+      if (!passengerManifestComplete(req)) return 'Complete and verify all passenger manifest fields.';
+      if (!req.crew?.commander || req.crew.commander === 'UNASSIGNED') return 'Assign the commander and confirm crew availability.';
+      if (!req.reimbursementStatement) return 'Prepare and save the reimbursement statement.';
+      if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(String(req.timeProposal.responseStatus || '').toUpperCase())) return 'Monitor the passenger response to the proposed departure time.';
+      if (req.pilotDecision !== 'APPROVED') return 'Complete pilot review and record the operational decision.';
+      if (agreementCount(req) < passengerList(req).length) return 'Monitor outstanding passenger agreement signatures.';
+      if (req.paymentStatus !== 'PAID') return 'Monitor reimbursement payment status.';
+      return 'Flight file is administratively ready; complete day-of-flight checks.';
+    }
+
+    function setCardTone(card, tone) {
+      card.classList.remove('good', 'warn', 'danger');
+      if (tone) card.classList.add(tone);
+    }
+
+    function renderLiveTiming() {
+      const now = new Date();
+      const upcoming = requests
+        .filter(isOperationallyActive)
+        .filter(req => Boolean(requestSchedule(req)))
+        .filter(req => hoursUntil(req, now) >= 0)
+        .sort((first, second) => requestSchedule(first).start - requestSchedule(second).start)[0];
+      if (upcoming) {
+        const remainingHours = hoursUntil(upcoming, now);
+        opsNextDeparture.textContent = `${formatCountdown(upcoming, now)} / ${upcoming.id}`;
+        opsNextDepartureMeta.textContent = `${upcoming.route || 'ROUTE'} / ${upcoming.requestDate} ${upcoming.requestTime}`;
+        setCardTone(opsNextDepartureCard, remainingHours <= 6 ? 'danger' : remainingHours <= 24 ? 'warn' : 'good');
+      } else {
+        opsNextDeparture.textContent = 'NO UPCOMING FLIGHT';
+        opsNextDepartureMeta.textContent = 'Schedule watch clear';
+        setCardTone(opsNextDepartureCard, 'good');
+      }
+      if (selected) dispatchCountdown.textContent = formatCountdown(selected, now);
     }
 
     function opsFlightTime(req) {
@@ -1052,6 +1483,7 @@ END OF MESSAGE</pre>
 
     function needsOpsAction(req) {
       if (!req) return false;
+      if (req.status === 'DECLINED' || req.pilotDecision === 'DECLINED') return false;
       if (req.status === 'REQUESTED') return true;
       if (req.pilotDecision !== 'APPROVED') return true;
       if (!req.reimbursementStatement) return true;
@@ -1061,13 +1493,51 @@ END OF MESSAGE</pre>
       return false;
     }
 
+    function renderOpsWatch() {
+      const active = requests.filter(isOperationallyActive);
+      const conflicts = conflictPairs().length;
+      const unsigned = active
+        .filter(req => req.status === 'CONFIRMED')
+        .reduce((sum, req) => sum + Math.max(0, passengerList(req).length - agreementCount(req)), 0);
+      const crewOpen = active.filter(req => !req.crew?.commander || req.crew.commander === 'UNASSIGNED').length;
+      const loadWatch = active.filter(req => declaredLoadTone(req) !== 'good').length;
+      opsConflicts.textContent = conflicts;
+      opsUnsigned.textContent = unsigned;
+      opsCrewOpen.textContent = crewOpen;
+      opsLoadWatch.textContent = loadWatch;
+      setCardTone(opsConflictsCard, conflicts ? 'danger' : 'good');
+      setCardTone(opsUnsignedCard, unsigned ? 'warn' : 'good');
+      setCardTone(opsCrewOpenCard, crewOpen ? 'warn' : 'good');
+      setCardTone(opsLoadWatchCard, loadWatch ? 'warn' : 'good');
+      renderLiveTiming();
+    }
+
     function renderOpsTotals() {
       const today = todayIso();
       opsTotal.textContent = requests.length;
       opsNeedsAction.textContent = requests.filter(needsOpsAction).length;
       opsConfirmed.textContent = requests.filter(req => req.status === 'CONFIRMED').length;
-      opsUnpaid.textContent = requests.filter(req => req.paymentStatus !== 'PAID').length;
+      opsUnpaid.textContent = requests.filter(req => isOperationallyActive(req) && req.paymentStatus !== 'PAID').length;
       opsToday.textContent = requests.filter(req => req.requestDate === today).length;
+      renderOpsWatch();
+    }
+
+    function sortQueue(items) {
+      const sorted = [...items];
+      if (filterSort.value === 'DEPARTURE') {
+        return sorted.sort((first, second) => (requestSchedule(first)?.start?.getTime() || Number.MAX_SAFE_INTEGER) - (requestSchedule(second)?.start?.getTime() || Number.MAX_SAFE_INTEGER));
+      }
+      if (filterSort.value === 'NEWEST') {
+        return sorted.sort((first, second) => new Date(second.createdAt || 0) - new Date(first.createdAt || 0));
+      }
+      if (filterSort.value === 'ROUTE') {
+        return sorted.sort((first, second) => String(first.route || '').localeCompare(String(second.route || '')));
+      }
+      return sorted.sort((first, second) => {
+        const priorityDifference = priorityData(second).score - priorityData(first).score;
+        if (priorityDifference) return priorityDifference;
+        return (requestSchedule(first)?.start?.getTime() || Number.MAX_SAFE_INTEGER) - (requestSchedule(second)?.start?.getTime() || Number.MAX_SAFE_INTEGER);
+      });
     }
 
     function matchesQuickFilter(req) {
@@ -1147,6 +1617,8 @@ END OF MESSAGE</pre>
 
     function renderAlerts(req) {
       const alerts = [];
+      const conflicts = conflictsFor(req);
+      const load = declaredLoad(req);
       alerts.push({ tone: req.status === 'CONFIRMED' ? 'good' : 'warn', label: `STATUS ${req.status || 'REQUESTED'}` });
       alerts.push({ tone: req.pilotDecision === 'APPROVED' ? 'good' : 'danger', label: req.pilotDecision === 'APPROVED' ? 'PILOT APPROVED' : 'PILOT NOT APPROVED' });
       alerts.push({ tone: req.paymentStatus === 'PAID' ? 'good' : 'danger', label: req.paymentStatus === 'PAID' ? 'PAYMENT PAID' : `PAYMENT ${req.paymentStatus || 'UNPAID'}` });
@@ -1159,6 +1631,8 @@ END OF MESSAGE</pre>
       if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(req.timeProposal.responseStatus)) alerts.push({ tone: 'warn', label: `TIME PROPOSAL PENDING ${proposalLabel(req.timeProposal)}` });
       if (req.additionalEmailContacts?.length) alerts.push({ tone: 'good', label: `EXTRA EMAILS ${req.additionalEmailContacts.length}` });
       if (req.contractAccepted) alerts.push({ tone: 'good', label: 'SAFETY ACCEPTED' });
+      if (conflicts.length) alerts.push({ tone: 'danger', label: `SCHEDULE OVERLAP WATCH ${conflicts.map(item => item.id).join(', ')}` });
+      if (declaredLoadTone(req) !== 'good') alerts.push({ tone: declaredLoadTone(req), label: `DECLARED LOAD ${load.totalKg}KG / W&B REVIEW` });
       const passengers = req.passengers?.length ? req.passengers : [];
       if (passengers.length) {
         const signed = passengers.filter(passenger => passenger.agreementSignedAt).length;
@@ -1225,6 +1699,56 @@ END OF MESSAGE</pre>
       dispatchCost.textContent = req.estimatedTotalEur ? `${money(req.estimatedTotalEur)} TOTAL` : 'PILOT CONFIRMS';
     }
 
+    function setIntelligenceValue(node, value, tone = '') {
+      node.textContent = value;
+      node.className = tone;
+    }
+
+    function renderDispatchIntelligence(req) {
+      const readiness = readinessItems(req);
+      const complete = readiness.filter(item => item.tone === 'good').length;
+      const percent = Math.round((complete / readiness.length) * 100);
+      const priority = priorityData(req);
+      const load = declaredLoad(req);
+      const loadTone = declaredLoadTone(req);
+      const conflicts = conflictsFor(req);
+      const passengers = passengerList(req);
+      const signed = agreementCount(req);
+      const crewAssigned = req.crew?.commander && req.crew.commander !== 'UNASSIGNED';
+      dispatchReadinessPercent.textContent = `${percent}%`;
+      dispatchReadinessDial.style.setProperty('--readiness', `${percent * 3.6}deg`);
+      dispatchPriority.textContent = `${priority.label} / AUTO TRIAGE`;
+      dispatchPriority.className = priority.tone === 'info' ? 'state-info' : `state-${priority.tone}`;
+      dispatchDocumentState.textContent = `${complete}/${readiness.length} administrative checks complete`;
+      setIntelligenceValue(dispatchCountdown, formatCountdown(req), hoursUntil(req) >= 0 && hoursUntil(req) <= 6 ? 'danger' : hoursUntil(req) <= 24 ? 'warn' : 'good');
+      setIntelligenceValue(dispatchLoad, `${load.totalKg} KG / PAX ${load.passengerKg} + BAG ${load.baggageKg}`, loadTone);
+      setIntelligenceValue(dispatchConflict, conflicts.length ? `${conflicts.length} POTENTIAL / ${conflicts.map(item => item.id).join(', ')}` : 'NO OVERLAP DETECTED', conflicts.length ? 'danger' : 'good');
+      setIntelligenceValue(dispatchCrewState, crewAssigned ? `CMD ${req.crew.commander}${req.crew.secondary && req.crew.secondary !== 'NONE' ? ` / SIC ${req.crew.secondary}` : ''}` : 'COMMANDER UNASSIGNED', crewAssigned ? 'good' : 'warn');
+      setIntelligenceValue(dispatchFiles, `${signed}/${passengers.length} AGREEMENTS / ${req.reimbursementStatement ? 'STATEMENT READY' : 'STATEMENT OPEN'}`, signed === passengers.length && req.reimbursementStatement ? 'good' : 'warn');
+      setIntelligenceValue(dispatchCommercial, `${req.paymentStatus || 'UNPAID'} / ${req.estimatedTotalEur ? money(req.estimatedTotalEur) : 'COST TBD'}`, req.paymentStatus === 'PAID' ? 'good' : 'warn');
+      dispatchNextAction.innerHTML = `<span>Next action:</span> ${escapeHtml(nextOperationalAction(req))}`;
+    }
+
+    function buildDispatchBrief(req) {
+      const passengers = passengerList(req);
+      const load = declaredLoad(req);
+      const conflicts = conflictsFor(req);
+      return [
+        'NGA PRIVATE FLIGHT / DISPATCH BRIEF',
+        '-----------------------------------',
+        `REF ${req.id || 'NIL'} / ${req.route || 'ROUTE NIL'}`,
+        `SCHEDULE ${req.requestDate || 'DATE NIL'} ${req.requestTime || 'TIME NIL'} / ${formatCountdown(req)}`,
+        `TRIP ${req.tripType || 'ONE_WAY'} / FLIGHT TIME ${opsFlightTime(req)}`,
+        `CREW CMD ${req.crew?.commander || 'UNASSIGNED'} / SIC ${req.crew?.secondary || 'NONE'}`,
+        `PAX ${passengers.length} / DECLARED LOAD ${load.totalKg}KG INCLUDING ${load.baggageKg}KG BAGGAGE`,
+        `STATUS ${req.status || 'REQUESTED'} / PILOT ${req.pilotDecision || 'PENDING'} / PAYMENT ${req.paymentStatus || 'UNPAID'}`,
+        `SCHEDULE WATCH ${conflicts.length ? `POTENTIAL OVERLAP ${conflicts.map(item => item.id).join(', ')}` : 'CLEAR'}`,
+        `NEXT ACTION ${nextOperationalAction(req)}`,
+        '-----------------------------------',
+        'DAY-OF-FLIGHT WEATHER, AIRCRAFT SERVICEABILITY, PERFORMANCE, FUEL, WEIGHT AND BALANCE, AND PIC GO/NO-GO CHECKS REMAIN REQUIRED.'
+      ].join('\n');
+    }
+
     function renderReadiness(req) {
       const items = readinessItems(req);
       const complete = items.filter(item => item.tone === 'good').length;
@@ -1284,13 +1808,14 @@ END OF MESSAGE</pre>
     function renderList() {
       const query = filterQuery.value.trim().toUpperCase();
       renderQuickFilterState();
-      const visible = requests.filter(req => {
+      const visible = sortQueue(requests.filter(req => {
         const matchesQuery = !query || `${req.id} ${req.route} ${req.name}`.toUpperCase().includes(query);
         return matchesQuery && matchesQuickFilter(req) && (filterStatus.value === 'ALL' || req.status === filterStatus.value) && (!filterDate.value || req.requestDate === filterDate.value);
-      });
+      }));
       requestList.innerHTML = visible.map(req => {
         const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
         const paid = req.paymentStatus === 'PAID';
+        const priority = priorityData(req);
         const proposal = String(req.timeProposal?.responseStatus || '').toUpperCase();
         const proposalClass = proposal === 'ACCEPTED' ? 'state-good' : proposal === 'DENIED' ? 'state-danger' : 'state-warn';
         const actionClass = needsOpsAction(req) ? 'state-warn' : 'state-good';
@@ -1299,19 +1824,22 @@ END OF MESSAGE</pre>
           <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
           ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
           ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
-          <div class="request-state-row"><span class="request-state ${actionClass}">${needsOpsAction(req) ? 'ACTION' : 'READY'}</span><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span>${req.timeProposal ? `<span class="request-state ${proposalClass}">TIME ${escapeHtml(proposal || 'PENDING')}</span>` : ''}</div>
+          <div class="request-state-row"><span class="request-state ${priority.tone === 'info' ? 'state-info' : `state-${priority.tone}`}">${escapeHtml(priority.label.replace(' PRIORITY', ''))}</span><span class="request-state ${actionClass}">${needsOpsAction(req) ? 'ACTION' : 'READY'}</span><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span>${req.timeProposal ? `<span class="request-state ${proposalClass}">TIME ${escapeHtml(proposal || 'PENDING')}</span>` : ''}</div>
         </div>
       `;
       }).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
     }
 
     function renderCalendar() {
-      const grouped = requests.filter(req => req.requestDate).reduce((map, req) => {
+      const grouped = requests.filter(req => req.requestDate && isOperationallyActive(req)).reduce((map, req) => {
         (map.get(req.requestDate) || map.set(req.requestDate, []).get(req.requestDate)).push(req);
         return map;
       }, new Map());
       const days = [...grouped.keys()].sort().slice(0, 12);
-      opsCalendar.innerHTML = days.length ? days.map(date => `<div class="calendar-day"><strong>${escapeHtml(date)}</strong>${grouped.get(date).sort((a,b) => String(a.requestTime).localeCompare(String(b.requestTime))).map(req => `<div class="calendar-flight" data-calendar-id="${escapeHtml(req.id)}">${escapeHtml(req.requestTime || '--:--')} / ${escapeHtml(req.route)}<br>${escapeHtml(req.crew?.commander || 'CMD UNASSIGNED')} / ${escapeHtml(req.status)}</div>`).join('')}</div>`).join('') : '<div class="calendar-day">No scheduled booking requests yet.</div>';
+      opsCalendar.innerHTML = days.length ? days.map(date => `<div class="calendar-day"><strong>${escapeHtml(date)}</strong>${grouped.get(date).sort((a,b) => String(a.requestTime).localeCompare(String(b.requestTime))).map(req => {
+        const conflicts = conflictsFor(req);
+        return `<div class="calendar-flight ${conflicts.length ? 'conflict' : ''}" data-calendar-id="${escapeHtml(req.id)}">${escapeHtml(req.requestTime || '--:--')} / ${escapeHtml(req.route)}<br>${escapeHtml(req.crew?.commander || 'CMD UNASSIGNED')} / ${escapeHtml(req.status)}${conflicts.length ? `<br><span class="calendar-conflict">OVERLAP WATCH / ${escapeHtml(conflicts.map(item => item.id).join(', '))}</span>` : ''}</div>`;
+      }).join('')}</div>`).join('') : '<div class="calendar-day">No scheduled booking requests yet.</div>';
     }
 
     function selectRequest(req) {
@@ -1357,6 +1885,7 @@ END OF MESSAGE</pre>
       renderProposal(req);
       renderAlerts(req);
       renderDispatchBoard(req);
+      renderDispatchIntelligence(req);
       renderReadiness(req);
       renderManifest(req);
       updateWalletControls(req);
@@ -1367,6 +1896,7 @@ END OF MESSAGE</pre>
     function replaceRequest(req) {
       requests = requests.map(item => item.id === req.id ? req : item);
       renderOpsTotals();
+      renderCalendar();
       selectRequest(req);
     }
 
@@ -1404,8 +1934,9 @@ END OF MESSAGE</pre>
       renderOpsTotals();
       renderList();
       renderCalendar();
-      if (requests[0]) selectRequest(requests[0]);
-      mode.textContent = 'MODE: BOOKING OPS LIVE';
+      const firstOperationalRequest = sortQueue(requests)[0];
+      if (firstOperationalRequest) selectRequest(firstOperationalRequest);
+      mode.textContent = 'MODE: BOOKING OPS LIVE / AUTO SYNC 30S';
     }
 
     async function refreshSelectedRequest() {
@@ -1416,9 +1947,25 @@ END OF MESSAGE</pre>
       if (!res.ok) return selected;
       requests = data.requests || [];
       renderOpsTotals();
+      renderCalendar();
       const latest = requests.find(request => request.id === selectedId) || null;
       if (latest) selectRequest(latest);
       return latest;
+    }
+
+    async function autoSyncOps() {
+      const activeElement = document.activeElement;
+      const editing = activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName);
+      if (autoSyncing || document.hidden || editing || !selected?.id) return;
+      autoSyncing = true;
+      try {
+        await refreshSelectedRequest();
+        mode.textContent = `MODE: BOOKING OPS LIVE / AUTO SYNC ${new Date().toISOString().slice(11, 19)}Z`;
+      } catch {
+        mode.textContent = 'MODE: AUTO SYNC DEGRADED / MANUAL REFRESH AVAILABLE';
+      } finally {
+        autoSyncing = false;
+      }
     }
 
     requestList.addEventListener('click', (event) => {
@@ -1441,6 +1988,7 @@ END OF MESSAGE</pre>
 
     [filterQuery, filterStatus, filterDate].forEach(input => input.addEventListener('input', renderList));
     filterStatus.addEventListener('change', renderList);
+    filterSort.addEventListener('change', renderList);
     document.querySelectorAll('[data-quick-filter]').forEach(button => {
       button.addEventListener('click', () => {
         quickFilter = button.dataset.quickFilter || 'ALL';
@@ -1510,6 +2058,53 @@ END OF MESSAGE</pre>
       renderCalendar();
       loadTimeline(selected.id).catch(() => {});
       mode.textContent = 'MODE: TIME PROPOSAL SENT';
+    });
+
+    openWeatherOpsBtn.addEventListener('click', () => {
+      const weatherWindow = window.open('/acars', '_blank', 'noopener');
+      if (!weatherWindow) mode.textContent = 'MODE: POP-UP BLOCKED / ALLOW POP-UPS TO OPEN WEATHER OPS';
+    });
+
+    copyBriefBtn.addEventListener('click', async () => {
+      if (!selected) {
+        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
+        return;
+      }
+      const brief = buildDispatchBrief(selected);
+      try {
+        await navigator.clipboard.writeText(brief);
+        mode.textContent = `MODE: ${selected.id} DISPATCH BRIEF COPIED`;
+      } catch {
+        window.prompt('Copy dispatch brief:', brief);
+        mode.textContent = 'MODE: DISPATCH BRIEF READY TO COPY';
+      }
+    });
+
+    emailPassengerBtn.addEventListener('click', () => {
+      if (!selected) {
+        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
+        return;
+      }
+      const email = passengerList(selected)[0]?.email || selected.email;
+      if (!email) {
+        mode.textContent = 'MODE: LEAD PASSENGER EMAIL IS MISSING';
+        return;
+      }
+      const subject = encodeURIComponent(`Private flight ${selected.id} / ${selected.route || 'flight request'}`);
+      window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subject}`;
+    });
+
+    callPassengerBtn.addEventListener('click', () => {
+      if (!selected) {
+        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
+        return;
+      }
+      const phone = passengerList(selected)[0]?.phone || selected.phone;
+      if (!phone) {
+        mode.textContent = 'MODE: LEAD PASSENGER PHONE IS MISSING';
+        return;
+      }
+      window.location.href = `tel:${String(phone).replace(/[^+\d]/g, '')}`;
     });
 
     openPdfBtn.addEventListener('click', () => {
@@ -1603,6 +2198,7 @@ END OF MESSAGE</pre>
 
     tick();
     setInterval(tick, 1000);
+    setInterval(autoSyncOps, 30000);
     loadRequests().catch(() => {
       mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE';
     });
