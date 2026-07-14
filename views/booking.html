@@ -10013,22 +10013,84 @@
     .luxury-booking .luxury-hero {
       isolation: isolate;
       background:
-        radial-gradient(circle at 82% 28%, rgba(33,77,123,0.42), transparent 31%),
-        linear-gradient(115deg, #020b1e 0%, #061c42 58%, #092954 100%);
+        radial-gradient(circle at 78% 26%, rgba(33,77,123,0.38), transparent 34%),
+        linear-gradient(115deg, #020b1e 0%, #061c42 62%, #092954 100%);
     }
 
     .luxury-booking .luxury-hero::before {
       opacity: 1;
-      -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 58%, #000 72%, #000 100%);
-      mask-image: linear-gradient(90deg, transparent 0%, transparent 58%, #000 72%, #000 100%);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 69%, rgba(0,0,0,0.08) 73%, rgba(0,0,0,0.58) 81%, #000 88%, #000 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, transparent 69%, rgba(0,0,0,0.08) 73%, rgba(0,0,0,0.58) 81%, #000 88%, #000 100%);
       background:
-        linear-gradient(90deg, rgba(2,11,30,0.99) 0%, rgba(3,17,43,0.92) 36%, rgba(3,17,43,0.34) 66%, rgba(3,17,43,0.06) 100%),
-        linear-gradient(0deg, rgba(2,12,31,0.58) 0%, transparent 34%),
+        linear-gradient(90deg, rgba(2,11,30,0.88) 0%, rgba(3,17,43,0.54) 48%, rgba(3,17,43,0.05) 100%),
+        linear-gradient(0deg, rgba(2,12,31,0.52) 0%, transparent 38%),
         url('/nga-coastal-flight-hero.jpg') right center / auto 100% no-repeat;
     }
 
+    .luxury-booking .aircraft-explorer[data-aircraft-view="cabin"] .aircraft-stage {
+      min-height: 500px;
+    }
+
     .luxury-booking .aircraft-cabin-gallery {
-      grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .luxury-booking .aircraft-cabin-photo::before {
+      content: '';
+      position: absolute;
+      z-index: 0;
+      inset: -22px;
+      background-position: center;
+      background-size: cover;
+      filter: blur(18px) saturate(0.8);
+      opacity: 0.42;
+      transform: scale(1.08);
+      pointer-events: none;
+    }
+
+    .luxury-booking .aircraft-cabin-photo-primary::before {
+      background-image:
+        linear-gradient(rgba(4,17,40,0.28), rgba(4,17,40,0.58)),
+        url('/nga-cabin-doorway.jpg');
+    }
+
+    .luxury-booking .aircraft-cabin-photo-detail::before {
+      background-image:
+        linear-gradient(rgba(4,17,40,0.22), rgba(4,17,40,0.54)),
+        url('/nga-cabin-detail.jpg');
+    }
+
+    .luxury-booking .aircraft-cabin-photo::after {
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(1,9,27,0.05) 52%, rgba(1,9,27,0.72) 100%);
+    }
+
+    .luxury-booking .aircraft-cabin-gallery img {
+      position: relative;
+      z-index: 1;
+      box-sizing: border-box;
+      padding: 12px 10px 74px;
+      object-fit: contain;
+      object-position: center;
+      filter: drop-shadow(0 18px 28px rgba(0,0,0,0.26));
+      transform: none;
+    }
+
+    .luxury-booking .aircraft-cabin-view.is-active .aircraft-cabin-photo:hover img {
+      filter: drop-shadow(0 18px 28px rgba(0,0,0,0.26));
+      transform: none;
+    }
+
+    .luxury-booking .aircraft-cabin-photo figcaption {
+      z-index: 3;
+      right: auto;
+      bottom: 77px;
+      width: max-content;
+      max-width: calc(100% - 32px);
+      padding: 7px 9px;
+      border-left: 2px solid rgba(255,255,255,0.82);
+      background: rgba(3,17,43,0.68);
+      backdrop-filter: blur(8px);
     }
 
     .luxury-booking .aircraft-cabin-photo-detail {
@@ -10256,7 +10318,23 @@
       }
 
       .luxury-booking .aircraft-cabin-gallery {
-        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .luxury-booking .aircraft-explorer[data-aircraft-view="cabin"] .aircraft-stage {
+        min-height: 360px;
+      }
+
+      .luxury-booking .aircraft-cabin-gallery img {
+        padding: 8px 5px 62px;
+      }
+
+      .luxury-booking .aircraft-cabin-photo figcaption {
+        right: auto;
+        bottom: 64px;
+        left: 7px;
+        max-width: calc(100% - 14px);
+        padding: 5px 6px;
       }
 
       .luxury-booking .aircraft-cabin-photo-detail figcaption strong {
