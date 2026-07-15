@@ -3,7 +3,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { degrees, PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import { airports as bundledAirports } from './data/airports.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -4066,216 +4067,239 @@ function ofpPdfDuration(minutes) {
 async function createOperationalFlightPlanPdf(request) {
   const plan = normalizeOperationalFlightPlan(request.operationalFlightPlan || operationalFlightPlanDefaults(request), request);
   const pdfDoc = await PDFDocument.create();
-  const courier = await pdfDoc.embedFont(StandardFonts.Courier);
+  pdfDoc.registerFontkit(fontkit);
+  const courier = await pdfDoc.embedFont(fs.readFileSync(path.join(__dirname, 'cour.ttf')), { subset: true });
   const courierBold = await pdfDoc.embedFont(StandardFonts.CourierBold);
-  const ink = rgb(18 / 255, 18 / 255, 18 / 255);
-  const muted = rgb(74 / 255, 74 / 255, 74 / 255);
+  const sansBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const ink = rgb(20 / 255, 20 / 255, 20 / 255);
+  const muted = rgb(96 / 255, 96 / 255, 96 / 255);
   const navy = rgb(3 / 255, 28 / 255, 69 / 255);
-  const red = rgb(175 / 255, 35 / 255, 35 / 255);
-  const pale = rgb(243 / 255, 246 / 255, 249 / 255);
-  let logo = null;
-  try {
-    logo = await pdfDoc.embedPng(fs.readFileSync(path.join(__dirname, 'public', 'nga-private-aviation-logo.png')));
-  } catch {}
+  const green = rgb(25 / 255, 190 / 255, 23 / 255);
+  const lightGrid = rgb(210 / 255, 210 / 255, 210 / 255);
+  const width = 595.5;
+  const height = 842.25;
+  const templateImages = await Promise.all([1, 2, 3].map(pageNumber => (
+    pdfDoc.embedPng(fs.readFileSync(path.join(__dirname, 'data', `ofp-template-page-${pageNumber}.png`)))
+  )));
+  const pages = templateImages.map(image => {
+    const page = pdfDoc.addPage([width, height]);
+    page.drawImage(image, { x: 0, y: 0, width, height });
+    return page;
+  });
+  const [page1, page2, page3] = pages;
+  const clean = (value, fallback = '......', max = 96) => ofpPdfText(value, fallback, max).toUpperCase();
+  const fitSize = (font, value, size, maxWidth) => {
+    if (!maxWidth) return size;
+    const measured = font.widthOfTextAtSize(value, size);
+    return measured > maxWidth ? Math.max(6.8, size * (maxWidth / measured)) : size;
+  };
+  const drawTop = (page, value, x, top, size = 10.8, options = {}) => {
+    const font = options.font || courier;
+    const text = clean(value, options.fallback ?? '......', options.maxChars || 96);
+    const actualSize = fitSize(font, text, size, options.maxWidth);
+    page.drawText(text, { x, y: height - top - actualSize, size: actualSize, font, color: options.color || ink });
+    return actualSize;
+  };
+  const drawRightTop = (page, value, right, top, size = 10.8, options = {}) => {
+    const font = options.font || courier;
+    const text = clean(value, options.fallback ?? '......', options.maxChars || 96);
+    const actualSize = fitSize(font, text, size, options.maxWidth);
+    page.drawText(text, {
+      x: right - font.widthOfTextAtSize(text, actualSize),
+      y: height - top - actualSize,
+      size: actualSize,
+      font,
+      color: options.color || ink
+    });
+  };
+  const formatDate = value => {
+    const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return match ? `${match[3]}/${match[2]}/${match[1]}` : 'DD/MM/YYYY';
+  };
+  const utcPart = value => String(value || '').toUpperCase().match(/\d{4}Z/)?.[0] || '----Z';
+  const timeValue = value => clean(value, '......Z', 18);
+  const fuelTime = minutes => {
+    const total = Math.max(0, Math.round(Number(minutes) || 0));
+    return `${String(Math.floor(total / 60)).padStart(total >= 60 ? 2 : 1, '0')}.${String(total % 60).padStart(2, '0')}`;
+  };
+  const fuelMinutes = gallons => (Number(gallons || 0) / Math.max(Number(plan.fuelFlowGph || 0), 0.1)) * 60;
+  const airportDisplay = code => {
+    const airport = bookingAirports.find(item => item.icao === code);
+    return airport?.short ? `${code}/${airport.short}` : code;
+  };
+  const registration = plan.aircraftRegistration || 'REG TBD';
+  const model = plan.aircraftModel || 'PA28-200R';
+  const routePair = `${plan.departure || 'DEP'}-${plan.destination || 'ARR'}`;
+  const headerDate = `${formatDate(plan.dateUtc)}/${utcPart(plan.estimatedOff || plan.scheduledOff)}`;
+  const pageFooter = (page, pageNumber, top = 785.7) => {
+    drawTop(page, `${registration}  - ${model}`, pageNumber === 3 ? 242.2 : 253.3, top, 11, { maxWidth: 160 });
+    drawTop(page, `Page ${pageNumber} of 3`, pageNumber === 3 ? 468.8 : 463.5, pageNumber === 3 ? 762.8 : 797.8, 10.5, { maxWidth: 82, fallback: '' });
+  };
 
-  const width = 595.28;
-  const height = 841.89;
-  const left = 44;
-  const right = width - 44;
-  const draw = (page, value, x, y, size = 9.5, font = courier, color = ink, limit = 92) => {
-    page.drawText(ofpPdfText(value, '.....', limit), { x, y, size, font, color });
-  };
-  const line = (page, y, start = left, end = right, thickness = 0.7, color = ink) => {
-    page.drawLine({ start: { x: start, y }, end: { x: end, y }, thickness, color });
-  };
-  const wrap = (page, value, x, y, maxChars = 78, lineHeight = 13, size = 9.2, font = courier, color = ink, maxLines = 4) => {
-    const words = ofpPdfText(value, '', 500).split(/\s+/).filter(Boolean);
-    const rows = [];
-    let current = '';
-    for (const word of words) {
-      const next = current ? `${current} ${word}` : word;
-      if (next.length > maxChars && current) {
-        rows.push(current);
-        current = word;
-      } else current = next;
-    }
-    if (current) rows.push(current);
-    rows.slice(0, maxLines).forEach((row, index) => draw(page, row, x, y - (index * lineHeight), size, font, color, maxChars));
-    return y - (Math.min(rows.length, maxLines) * lineHeight);
-  };
-  const pageHeader = (page, title, pageNumber) => {
-    const identity = plan.aircraftRegistration || 'REGISTRATION NOT ENTERED';
-    draw(page, plan.aircraftRegistration || 'REG TBD', left, 804, 10.5, courierBold, ink, 14);
-    draw(page, plan.aircraftModel, 145, 804, 10.5, courierBold, ink, 18);
-    draw(page, `${plan.departure}-${plan.destination}`, 270, 804, 10.5, courierBold, ink, 18);
-    draw(page, `${plan.dateUtc || 'DATE'}`, 370, 804, 10.5, courierBold, ink, 14);
-    if (logo) {
-      const scaled = logo.scaleToFit(92, 64);
-      page.drawImage(logo, { x: 462, y: 751, width: scaled.width, height: scaled.height });
-    } else draw(page, 'NGA PRIVATE AVIATION', 438, 772, 8, courierBold, navy, 24);
-    draw(page, title, 210, 760, 10.5, courier, ink, 36);
-    line(page, 744);
-    draw(page, `${identity} - ${plan.aircraftModel}`, 214, 34, 9.5, courier, muted, 36);
-    draw(page, `PAGE ${pageNumber} OF 3`, 478, 21, 8.5, courier, muted, 16);
-  };
-
-  const page1 = pdfDoc.addPage([width, height]);
-  pageHeader(page1, 'OPERATIONAL FLIGHT PLAN', 1);
-  draw(page1, `${plan.aircraftModel}  ${plan.aircraftCode}`, left, 718, 9.5);
-  draw(page1, `DATE ${plan.dateUtc || '.....'}  RULES ${plan.flightRules}`, left, 703, 9.5);
-  draw(page1, `${plan.departure} - ${plan.destination}`, 346, 718, 9.5, courierBold);
-  draw(page1, `PIC ${plan.commanderName || '.....'}`, 346, 703, 9.5);
-  draw(page1, `${plan.commanderPhone || 'PHONE NOT ENTERED'}`, 346, 688, 9.5);
-  draw(page1, `${plan.callsign || 'NGA PRIVATE AVIATION'}`, 346, 673, 9.5);
-
-  draw(page1, 'TIMESHEET', 265, 642, 10.5, courierBold);
-  line(page1, 632);
-  draw(page1, 'ESTIMATED', 164, 608, 9.5, courierBold);
-  draw(page1, 'SCHEDULED', 305, 608, 9.5, courierBold);
-  draw(page1, 'ACTUAL', 448, 608, 9.5, courierBold);
+  drawTop(page1, registration, 48.6, 28.7, 11.2, { font: courierBold, maxWidth: 68 });
+  drawTop(page1, model, 126.3, 28.7, 11.2, { font: courierBold, maxWidth: 88 });
+  drawTop(page1, routePair, 226.7, 28.7, 11.2, { font: courierBold, maxWidth: 86 });
+  drawTop(page1, headerDate, 321.2, 28.7, 11.2, { font: courierBold, maxWidth: 120 });
+  drawTop(page1, `${registration} ${formatDate(plan.dateUtc)}`, 51, 92, 10.5, { maxWidth: 120 });
+  drawTop(page1, `${model} ${plan.aircraftCode || 'PA28'}`, 51, 104, 10.5, { maxWidth: 122 });
+  drawTop(page1, `ICAO FIN ${registration}`, 51, 116, 10.5, { maxWidth: 125 });
+  drawRightTop(page1, `${airportDisplay(plan.departure)} - ${airportDisplay(plan.destination)}`, 570.6, 87.2, 10.5, { maxWidth: 142 });
+  drawRightTop(page1, `(PIC)-${plan.commanderName || 'NOT ASSIGNED'}`, 570.6, 99.2, 10.5, { maxWidth: 142 });
+  drawRightTop(page1, `FIN ${plan.commanderPhone || 'PHONE NOT ENTERED'}`, 570.6, 111.2, 10.5, { maxWidth: 142 });
+  drawRightTop(page1, plan.callsign || 'NGA PRIVATE AVIATION', 570.6, 123.2, 10.5, { maxWidth: 142 });
   const timeRows = [
-    ['OUT', plan.estimatedOut, plan.scheduledOut, plan.actualOut],
-    ['OFF', plan.estimatedOff, plan.scheduledOff, plan.actualOff],
-    ['ON', plan.estimatedOn, plan.scheduledOn, plan.actualOn],
-    ['IN', plan.estimatedIn, plan.scheduledIn, plan.actualIn]
+    [plan.estimatedOut, plan.scheduledOut, plan.actualOut],
+    [plan.estimatedOff, plan.scheduledOff, plan.actualOff],
+    [plan.estimatedOn, plan.scheduledOn, plan.actualOn],
+    [plan.estimatedIn, plan.scheduledIn, plan.actualIn]
   ];
-  timeRows.forEach((row, index) => {
-    const y = 580 - (index * 29);
-    draw(page1, row[0], left, y, 9.5);
-    draw(page1, row[1], 164, y, 9.5, courier, ink, 22);
-    draw(page1, row[2], 305, y, 9.5, courier, ink, 22);
-    draw(page1, row[3], 448, y, 9.5, courier, ink, 16);
+  [199.7, 224.8, 250, 275].forEach((top, index) => {
+    drawTop(page1, timeValue(timeRows[index][0]), 147.6, top, 10.5, { maxWidth: 78 });
+    drawTop(page1, timeValue(timeRows[index][1]), 260, top, 10.5, { maxWidth: 78 });
+    drawTop(page1, timeValue(timeRows[index][2]), 378.7, top, 10.5, { maxWidth: 54 });
   });
-  draw(page1, `BLOCK TIME  ${ofpPdfDuration(plan.estimatedEnrouteMinutes + 15)}`, left, 457, 9.5, courierBold);
-  line(page1, 438);
+  drawTop(page1, ofpPdfDuration(plan.estimatedEnrouteMinutes + 15), 147.6, 300.2, 10.5, { maxWidth: 42 });
+  drawTop(page1, '......', 378.7, 300.2, 10.5, { maxWidth: 42 });
+  drawTop(page1, 'BRIEF', 189.1, 393.2, 10.5, { fallback: '' });
+  drawTop(page1, 'FL', 237.2, 393.2, 10.5, { fallback: '' });
+  drawTop(page1, String(plan.cruiseFlightLevel || 'VFR').replace(/^FL/, ''), 275.1, 393.2, 10.5, { maxWidth: 28 });
+  drawTop(page1, 'SPD', 313.7, 393.2, 10.5, { fallback: '' });
+  drawTop(page1, plan.cruiseSpeedKt, 340.2, 393.2, 10.5, { maxWidth: 30 });
+  drawTop(page1, 'EET', 382.4, 393.2, 10.5, { fallback: '' });
+  drawTop(page1, plan.estimatedEnrouteMinutes, 418.4, 393.2, 10.5, { maxWidth: 28 });
+  drawTop(page1, 'ICAO', 237.2, 405.2, 10.5, { fallback: '' });
+  drawTop(page1, plan.flightRules || 'VFR', 270.1, 405.2, 10.5, { maxWidth: 28 });
+  drawTop(page1, 'DIST', 307.7, 405.2, 10.5, { fallback: '' });
+  drawTop(page1, `${plan.distanceNm}NM`, 343.3, 405.2, 10.5, { maxWidth: 36 });
+  drawTop(page1, 'BURN', 382.4, 405.2, 10.5, { fallback: '' });
+  drawTop(page1, plan.tripFuelGal, 420.1, 405.2, 10.5, { maxWidth: 28 });
+  const routeText = clean(plan.route || `${plan.departure} DCT ${plan.destination}`, 'PILOT ROUTE REQUIRED', 68);
+  drawTop(page1, `DEP ${plan.departure} RWY ${plan.depRunway || 'TBD'} ROUTE ${routeText}`, 49.5, 457.6, 10.2, { maxWidth: 480 });
+  drawTop(page1, `ARR ${plan.destination} RWY ${plan.arrRunway || 'TBD'}`, 49.5, 471.1, 10.2, { maxWidth: 475 });
+  if (plan.clearance) drawTop(page1, plan.clearance, 49.5, 526, 10.2, { maxWidth: 475, maxChars: 76 });
+  drawTop(page1, '---------------------', 207, 588.1, 10.5, { fallback: '' });
+  drawTop(page1, `ALTN     ${airportDisplay(plan.alternate || 'TBD')}     FL${String(plan.cruiseFlightLevel || 'VFR').replace(/^FL/, '')}   DIS ${plan.alternateDistanceNm}NM  EET ${plan.alternateEetMinutes}MIN  BURN ${plan.alternateFuelGal}`, 48.6, 601.2, 10.2, { maxWidth: 470 });
+  drawTop(page1, `ROUTE ${plan.alternateRoute || 'PILOT ALTERNATE REVIEW REQUIRED'}`, 41.4, 619, 10.2, { maxWidth: 490, maxChars: 78 });
+  pageFooter(page1, 1);
 
-  draw(page1, 'PLANNING SUMMARY', left, 410, 10, courierBold);
-  draw(page1, `BRIEF ${plan.cruiseFlightLevel || 'VFR'}  SPD ${plan.cruiseSpeedKt}KT  EET ${ofpPdfDuration(plan.estimatedEnrouteMinutes)}  DIST ${plan.distanceNm}NM  TRIP ${plan.tripFuelGal}USG`, left, 388, 9.2, courier, ink, 86);
-  draw(page1, 'FLIGHT PLAN ROUTE', left, 357, 10, courierBold);
-  line(page1, 347, left, 186);
-  let routeY = wrap(page1, `DEP ${plan.departure} RWY ${plan.depRunway || 'TBD'}  ROUTE ${plan.route || 'PILOT ROUTE REQUIRED'}  ARR ${plan.destination} RWY ${plan.arrRunway || 'TBD'}`, left, 326, 82, 13, 9.2, courier, ink, 4);
-  draw(page1, 'CLEARANCES', left, routeY - 6, 10, courierBold);
-  line(page1, routeY - 16, left, 140);
-  routeY = wrap(page1, plan.clearance || ' ', left, routeY - 34, 82, 13, 9.2, courier, ink, 3);
-  line(page1, 168);
-  draw(page1, 'ALTERNATE INFORMATION', 225, 148, 10, courierBold);
-  draw(page1, `ALTN ${plan.alternate || 'TBD'}  FL ${plan.cruiseFlightLevel || 'VFR'}  DIST ${plan.alternateDistanceNm || 0}NM  EET ${ofpPdfDuration(plan.alternateEetMinutes)}  BURN ${plan.alternateFuelGal || 0}USG`, left, 124, 9.2, courier, ink, 86);
-  wrap(page1, `ROUTE ${plan.alternateRoute || 'PILOT ALTERNATE REVIEW REQUIRED'}`, left, 104, 82, 13, 9.2, courier, ink, 3);
-
-  const page2 = pdfDoc.addPage([width, height]);
-  pageHeader(page2, 'FUEL RELEASE / LOADSHEET', 2);
-  draw(page2, 'FUEL RELEASE', 256, 716, 10.5, courierBold);
-  line(page2, 706);
-  draw(page2, 'PLANNED FUEL', left, 680, 10, courierBold);
-  draw(page2, 'ITEM', left, 655, 9, courierBold);
-  draw(page2, 'US GAL', 250, 655, 9, courierBold);
-  draw(page2, 'TIME', 370, 655, 9, courierBold);
+  drawTop(page2, registration, 58.2, 26.5, 11.2, { font: courierBold, maxWidth: 72 });
+  drawTop(page2, model, 141.2, 26.7, 11.2, { font: courierBold, maxWidth: 82 });
+  drawTop(page2, 'ARPT', 169.7, 136.1, 10.5, { fallback: '' });
+  drawTop(page2, 'FUEL', 219.5, 136.1, 10.5, { fallback: '' });
+  drawTop(page2, 'TIME', 264.9, 136, 10.5, { fallback: '' });
+  drawTop(page2, 'ACTUAL', 480.3, 136.3, 10.5, { fallback: '' });
   const fuelRows = [
-    ['TAXI / START', plan.taxiFuelGal, Math.round((plan.taxiFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)],
-    [`TRIP ${plan.departure}-${plan.destination}`, plan.tripFuelGal, plan.estimatedEnrouteMinutes],
-    ['CONTINGENCY', plan.contingencyFuelGal, Math.round((plan.contingencyFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)],
-    [`ALTERNATE ${plan.alternate || 'TBD'}`, plan.alternateFuelGal, plan.alternateEetMinutes],
-    ['FINAL RESERVE', plan.finalReserveFuelGal, Math.round((plan.finalReserveFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)],
-    ['EXTRA', plan.extraFuelGal, Math.round((plan.extraFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)],
-    ['BLOCK FUEL', plan.blockFuelGal, Math.round((plan.blockFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)]
+    [plan.departure, plan.taxiFuelGal, fuelMinutes(plan.taxiFuelGal), 156.4],
+    [plan.destination, plan.tripFuelGal, plan.estimatedEnrouteMinutes, 172.8],
+    ['', plan.contingencyFuelGal, fuelMinutes(plan.contingencyFuelGal), 188.1],
+    [plan.alternate || 'TBD', plan.alternateFuelGal, plan.alternateEetMinutes, 203.9],
+    ['', plan.finalReserveFuelGal, fuelMinutes(plan.finalReserveFuelGal), 220.5],
+    ['', plan.extraFuelGal, fuelMinutes(plan.extraFuelGal), 236.6]
   ];
-  fuelRows.forEach((row, index) => {
-    const y = 630 - (index * 25);
-    if (index === fuelRows.length - 1) page2.drawRectangle({ x: left - 4, y: y - 7, width: 390, height: 21, color: pale });
-    draw(page2, row[0], left, y, 9.2, index === fuelRows.length - 1 ? courierBold : courier, ink, 34);
-    draw(page2, String(row[1]), 250, y, 9.2, index === fuelRows.length - 1 ? courierBold : courier);
-    draw(page2, ofpPdfDuration(row[2]), 370, y, 9.2, courier);
+  fuelRows.forEach(([airport, gallons, minutes, top]) => {
+    if (airport) drawTop(page2, airport, 176.8, top, 10.5, { maxWidth: 34 });
+    drawTop(page2, gallons, 219.5, top, 10.5, { maxWidth: 32 });
+    drawTop(page2, fuelTime(minutes), 266.3, top, 10.5, { maxWidth: 34 });
   });
-  draw(page2, `FUEL FLOW USED FOR PLANNING: ${plan.fuelFlowGph} USG/H`, left, 445, 8.7, courierBold, muted, 58);
-  line(page2, 426);
-
-  draw(page2, 'WEIGHT MANIFEST', 245, 402, 10.5, courierBold);
-  draw(page2, 'ITEM', left, 376, 9, courierBold);
-  draw(page2, 'WEIGHT LB', 262, 376, 9, courierBold);
-  draw(page2, 'LIMIT / NOTE', 395, 376, 9, courierBold);
-  const weightRows = [
-    ['BASIC EMPTY MASS', plan.bemLb, `ARM ${plan.bemArmIn}`],
-    ['CREW', plan.crewWeightLb, `${plan.crew1Lb} + ${plan.crew2Lb}`],
-    [`PASSENGERS (${getRequestPassengers(request).length})`, plan.passengerWeightLb, `ARM ${plan.passengerArmIn}`],
-    ['BAGGAGE', plan.baggageWeightLb, `ARM ${plan.baggageArmIn}`],
-    ['ZERO FUEL WEIGHT', plan.zeroFuelWeightLb, 'CALCULATED'],
-    ['BLOCK FUEL', plan.fuelWeightLb, `${plan.blockFuelGal} USG`],
-    ['RAMP WEIGHT', plan.rampWeightLb, `MAX ${plan.maxRampWeightLb}`],
-    ['TAKEOFF WEIGHT', plan.takeoffWeightLb, `MAX ${plan.maxTakeoffWeightLb}`],
-    ['LANDING WEIGHT', plan.landingWeightLb, `MAX ${plan.maxLandingWeightLb}`],
-    ['TAKEOFF CG', plan.takeoffCgIn, plan.cgForwardLimitIn && plan.cgAftLimitIn ? `${plan.cgForwardLimitIn}-${plan.cgAftLimitIn} IN` : 'ENTER APPROVED LIMITS']
+  drawTop(page2, plan.blockFuelGal, 214, 267, 10.5, { maxWidth: 38 });
+  drawTop(page2, fuelTime(plan.blockFuelGal / Math.max(plan.fuelFlowGph, 0.1) * 60), 266.3, 267, 10.5, { maxWidth: 42 });
+  const departureFuelLb = ofpRound(Math.max(0, plan.fuelWeightLb - (plan.taxiFuelGal * 6)), 1);
+  const tripBurnLb = ofpRound(plan.tripFuelGal * 6, 1);
+  const arrivalFuelLb = ofpRound(Math.max(0, departureFuelLb - tripBurnLb), 1);
+  drawTop(page2, `${plan.fuelWeightLb} LB`, 480.3, 161.6, 10.5, { maxWidth: 62 });
+  drawTop(page2, `${departureFuelLb} LB`, 480.3, 186.3, 10.5, { maxWidth: 62 });
+  drawTop(page2, `${tripBurnLb} LB`, 480.3, 211.7, 10.5, { maxWidth: 62 });
+  drawTop(page2, `${arrivalFuelLb} LB`, 480.3, 237.1, 10.5, { maxWidth: 62 });
+  const passengerCount = getRequestPassengers(request).length;
+  const manifestRows = [
+    [plan.releaseAccepted ? '1' : '0', '', plan.releaseAccepted ? utcPart(plan.actualOut || plan.estimatedOut) : '......', 367.3],
+    [plan.bemLb, '-----', plan.bemLb, 392.4],
+    [passengerCount, '3', passengerCount, 417.8],
+    [plan.baggageWeightLb, '200', plan.baggageWeightLb, 441.2],
+    [plan.zeroFuelWeightLb, plan.maxTakeoffWeightLb, plan.zeroFuelWeightLb, 467.6],
+    [plan.fuelWeightLb, '290', plan.fuelWeightLb, 491.1],
+    [plan.rampWeightLb, plan.maxRampWeightLb, plan.rampWeightLb, 514.7],
+    [plan.takeoffWeightLb, plan.maxTakeoffWeightLb, plan.takeoffWeightLb, 539.9],
+    [plan.stabTrim || '------', '+/-5', plan.stabTrim || '......', 565],
+    [plan.landingWeightLb, plan.maxLandingWeightLb, plan.landingWeightLb, 590.1]
   ];
-  weightRows.forEach((row, index) => {
-    const y = 353 - (index * 23);
-    if (index >= 6) page2.drawRectangle({ x: left - 4, y: y - 6, width: 480, height: 20, color: pale });
-    draw(page2, row[0], left, y, 8.8, index >= 6 ? courierBold : courier, ink, 34);
-    draw(page2, String(row[1]), 262, y, 8.8, index >= 6 ? courierBold : courier);
-    draw(page2, row[2], 395, y, 8.8, courier, ink, 26);
+  manifestRows.forEach(([estimated, maximum, actual, top]) => {
+    drawTop(page2, estimated, 147.9, top, 10.2, { maxWidth: 48 });
+    if (String(maximum || '').trim()) drawTop(page2, maximum, 214.3, top, 10.2, { maxWidth: 42 });
+    drawTop(page2, actual, 260.6, top, 10.2, { maxWidth: 48 });
   });
-  draw(page2, 'ALL WEIGHTS IN LBS. FUEL CONVERSION USED: 6.0 LB/USG.', left, 112, 8.3, courierBold, red, 72);
-  wrap(page2, 'PILOT MUST VERIFY AIRCRAFT DATA, FUEL, MASS, CG, PERFORMANCE AND LEGAL RESERVES AGAINST THE CURRENT AFM/POH.', left, 94, 78, 11, 7.8, courierBold, red, 2);
-  draw(page2, `PILOT RELEASE: ${plan.releaseName || 'NOT SIGNED'}  STATUS: ${plan.releaseAccepted ? 'RELEASE ACKNOWLEDGED' : 'DRAFT / NOT RELEASED'}`, left, 66, 8.8, courierBold, plan.releaseAccepted ? navy : red, 88);
+  drawTop(page2, 'DISPATCHER, EFIN HELSINKI', 56.2, 669.7, 10.5, { fallback: '', maxWidth: 190 });
+  drawTop(page2, `CAPTAIN ${plan.releaseAccepted ? (plan.releaseName || plan.commanderName || 'SIGNED') : '..............'}`, 56.2, 702.4, 10.5, { maxWidth: 170 });
+  drawTop(page2, `PIC ${plan.commanderName || '...............'}`, 241.3, 702.4, 10.5, { maxWidth: 145 });
+  pageFooter(page2, 2, 762.8);
 
-  const page3 = pdfDoc.addPage([width, height]);
-  pageHeader(page3, 'WEIGHT AND BALANCE REPORT', 3);
-  draw(page3, 'WEIGHT AND BALANCE', 225, 710, 10.5, courierBold);
-  line(page3, 700);
-  draw(page3, 'STATION', left, 676, 9, courierBold);
-  draw(page3, 'WEIGHT LB', 204, 676, 9, courierBold);
-  draw(page3, 'ARM IN', 310, 676, 9, courierBold);
-  draw(page3, 'MOMENT', 418, 676, 9, courierBold);
+  drawTop(page3, registration, 55.1, 25.7, 11.2, { font: courierBold, maxWidth: 72 });
+  drawTop(page3, model, 141.2, 26.7, 11.2, { font: courierBold, maxWidth: 82 });
+  const takeoffFuelLb = ofpRound(Math.max(0, plan.fuelWeightLb - (plan.taxiFuelGal * 6)), 1);
   const wbRows = [
-    ['BASIC EMPTY MASS', plan.bemLb, plan.bemArmIn],
-    ['CREW', plan.crewWeightLb, plan.crewArmIn],
-    ['PASSENGERS', plan.passengerWeightLb, plan.passengerArmIn],
-    ['FUEL AT TAKEOFF', ofpRound(Math.max(0, plan.fuelWeightLb - (plan.taxiFuelGal * 6)), 1), plan.fuelArmIn],
-    ['BAGGAGE', plan.baggageWeightLb, plan.baggageArmIn]
+    [plan.bemLb, plan.bemLb, plan.bemArmIn, ofpRound(plan.bemLb * plan.bemArmIn, 2), 133.7],
+    [plan.crewWeightLb, '----', plan.crewArmIn, ofpRound(plan.crewWeightLb * plan.crewArmIn, 2), 160.7],
+    [plan.passengerWeightLb, '----', plan.passengerArmIn, ofpRound(plan.passengerWeightLb * plan.passengerArmIn, 2), 187.8],
+    [takeoffFuelLb, 48, plan.fuelArmIn, ofpRound(takeoffFuelLb * plan.fuelArmIn, 2), 214.8],
+    [plan.baggageWeightLb, 200, plan.baggageArmIn, ofpRound(plan.baggageWeightLb * plan.baggageArmIn, 2), 241.8],
+    ['----', '----', '------', '83.2', 268.9]
   ];
-  wbRows.forEach((row, index) => {
-    const y = 650 - (index * 28);
-    const moment = ofpRound(Number(row[1]) * Number(row[2]), 0);
-    draw(page3, row[0], left, y, 9.2, courier, ink, 30);
-    draw(page3, String(row[1]), 204, y, 9.2);
-    draw(page3, String(row[2]), 310, y, 9.2);
-    draw(page3, String(moment), 418, y, 9.2);
+  wbRows.forEach(([weight, maximum, arm, moment, top]) => {
+    drawTop(page3, weight, 163.7, top, 10.5, { maxWidth: 52 });
+    drawTop(page3, maximum, 227.7, top, 10.5, { maxWidth: 42 });
+    drawTop(page3, arm, 277.4, top, 10.5, { maxWidth: 45 });
+    drawTop(page3, moment, 334.6, top, 10.5, { maxWidth: 67 });
   });
-  line(page3, 492);
-  draw(page3, `TAKEOFF WEIGHT ${plan.takeoffWeightLb} LB`, left, 466, 10, courierBold);
-  draw(page3, `TAKEOFF CG ${plan.takeoffCgIn} IN`, 260, 466, 10, courierBold);
-  draw(page3, `STAB TRIM ${plan.stabTrim || 'TBD'}`, 425, 466, 9, courierBold);
+  drawTop(page3, plan.takeoffWeightLb, 163.7, 295.9, 10.5, { maxWidth: 52 });
+  drawTop(page3, plan.maxTakeoffWeightLb, 227.7, 295.9, 10.5, { maxWidth: 42 });
+  drawTop(page3, 'TOTAL', 277.4, 295.9, 10.5, { fallback: '' });
+  drawTop(page3, '=', 406.8, 295.9, 10.5, { fallback: '' });
+  drawTop(page3, `${plan.takeoffCgIn} IN`, 424.6, 295.9, 10.5, { maxWidth: 72 });
 
-  const graph = { x: 78, y: 160, w: 435, h: 250 };
-  page3.drawRectangle({ x: graph.x, y: graph.y, width: graph.w, height: graph.h, borderColor: ink, borderWidth: 0.8 });
-  draw(page3, 'TAKEOFF CG PLANNING VIEW', 206, 426, 9.5, courierBold);
-  const minCg = 75;
-  const maxCg = 100;
-  const minWeight = 1200;
-  const maxWeight = Math.max(2800, Number(plan.maxTakeoffWeightLb || 0));
-  for (let cg = 75; cg <= 100; cg += 5) {
-    const x = graph.x + ((cg - minCg) / (maxCg - minCg)) * graph.w;
-    page3.drawLine({ start: { x, y: graph.y }, end: { x, y: graph.y + graph.h }, thickness: 0.25, color: muted, opacity: 0.35 });
-    draw(page3, String(cg), x - 7, graph.y - 15, 7.5, courier, muted);
+  const graph = { x: 164, y: 166, w: 295, h: 310 };
+  const plot = { x: 178, y: 185, w: 268, h: 282 };
+  page3.drawRectangle({ x: graph.x, y: graph.y, width: graph.w, height: graph.h, borderColor: lightGrid, borderWidth: 1.2 });
+  const minCg = 80;
+  const maxCg = 93;
+  const minWeight = 1400;
+  const maxWeight = 2700;
+  const graphX = cg => plot.x + ((cg - minCg) / (maxCg - minCg)) * plot.w;
+  const graphY = weight => plot.y + ((weight - minWeight) / (maxWeight - minWeight)) * plot.h;
+  for (let cg = minCg; cg <= maxCg; cg += 1) {
+    const x = graphX(cg);
+    page3.drawLine({ start: { x, y: plot.y }, end: { x, y: plot.y + plot.h }, thickness: cg % 2 === 0 ? 0.5 : 0.25, color: lightGrid });
+    if (cg % 2 === 0) page3.drawText(String(cg), { x: x - 5, y: plot.y - 15, size: 6.5, font: sansBold, color: ink });
   }
-  for (let weight = 1400; weight <= maxWeight; weight += 200) {
-    const y = graph.y + ((weight - minWeight) / (maxWeight - minWeight)) * graph.h;
-    page3.drawLine({ start: { x: graph.x, y }, end: { x: graph.x + graph.w, y }, thickness: 0.25, color: muted, opacity: 0.35 });
-    draw(page3, String(weight), graph.x - 34, y - 3, 7.5, courier, muted);
+  for (let weight = minWeight; weight <= 2600; weight += 100) {
+    const y = graphY(weight);
+    page3.drawLine({ start: { x: plot.x, y }, end: { x: plot.x + plot.w, y }, thickness: weight % 200 === 0 ? 0.5 : 0.25, color: lightGrid });
+    if (weight % 200 === 0) page3.drawText(String(weight), { x: plot.x - 31, y: y - 2.5, size: 6.5, font: sansBold, color: ink });
   }
-  if (plan.cgForwardLimitIn && plan.cgAftLimitIn) {
-    const forwardX = graph.x + ((plan.cgForwardLimitIn - minCg) / (maxCg - minCg)) * graph.w;
-    const aftX = graph.x + ((plan.cgAftLimitIn - minCg) / (maxCg - minCg)) * graph.w;
-    page3.drawRectangle({ x: forwardX, y: graph.y, width: Math.max(1, aftX - forwardX), height: graph.h, borderColor: navy, borderWidth: 1.2, opacity: 0.08 });
+  const envelope = [[80, 1400], [80, 1800], [82, 2300], [87.4, 2650], [93, 2650], [93, 1400], [80, 1400]];
+  envelope.slice(0, -1).forEach((point, index) => {
+    const next = envelope[index + 1];
+    page3.drawLine({ start: { x: graphX(point[0]), y: graphY(point[1]) }, end: { x: graphX(next[0]), y: graphY(next[1]) }, thickness: 1.4, color: ink });
+  });
+  const zeroFuelMoment = (plan.bemLb * plan.bemArmIn) + (plan.crewWeightLb * plan.crewArmIn) + (plan.passengerWeightLb * plan.passengerArmIn) + (plan.baggageWeightLb * plan.baggageArmIn);
+  const zeroFuelCg = plan.zeroFuelWeightLb > 0 ? zeroFuelMoment / plan.zeroFuelWeightLb : 0;
+  const zfwX = graphX(zeroFuelCg);
+  const zfwY = graphY(plan.zeroFuelWeightLb);
+  const towX = graphX(plan.takeoffCgIn);
+  const towY = graphY(plan.takeoffWeightLb);
+  if (Number.isFinite(zfwX) && Number.isFinite(zfwY)) {
+    page3.drawLine({ start: { x: zfwX, y: zfwY + 6 }, end: { x: zfwX + 6, y: zfwY }, thickness: 1, color: muted });
+    page3.drawLine({ start: { x: zfwX + 6, y: zfwY }, end: { x: zfwX, y: zfwY - 6 }, thickness: 1, color: muted });
+    page3.drawLine({ start: { x: zfwX, y: zfwY - 6 }, end: { x: zfwX - 6, y: zfwY }, thickness: 1, color: muted });
+    page3.drawLine({ start: { x: zfwX - 6, y: zfwY }, end: { x: zfwX, y: zfwY + 6 }, thickness: 1, color: muted });
+    page3.drawText('ZFM', { x: zfwX + 9, y: zfwY - 3, size: 6.5, font: sansBold, color: muted });
   }
-  const pointX = graph.x + ((plan.takeoffCgIn - minCg) / (maxCg - minCg)) * graph.w;
-  const pointY = graph.y + ((plan.takeoffWeightLb - minWeight) / (maxWeight - minWeight)) * graph.h;
-  if (Number.isFinite(pointX) && Number.isFinite(pointY) && pointX >= graph.x && pointX <= graph.x + graph.w && pointY >= graph.y && pointY <= graph.y + graph.h) {
-    page3.drawCircle({ x: pointX, y: pointY, size: 5, color: red, borderColor: ink, borderWidth: 1 });
-    draw(page3, 'TOW', pointX + 8, pointY - 2, 7.5, courierBold, red);
+  if (Number.isFinite(towX) && Number.isFinite(towY)) {
+    page3.drawRectangle({ x: towX - 6, y: towY - 6, width: 12, height: 12, borderColor: green, borderWidth: 1.6 });
+    page3.drawText('STRUCTURAL MTOM', { x: Math.max(plot.x + 120, towX - 92), y: Math.min(plot.y + plot.h - 8, towY + 9), size: 6.2, font: sansBold, color: ink });
   }
-  draw(page3, 'CG (INCHES AFT OF DATUM)', 221, 126, 8.5, courierBold);
-  draw(page3, 'PLANNING VISUAL ONLY - USE THE CURRENT APPROVED AFM/POH ENVELOPE FOR LIMIT DETERMINATION.', 70, 95, 8.2, courierBold, red, 92);
-  const warningText = plan.warnings.length ? plan.warnings.join(' / ') : 'NO ADMINISTRATIVE WARNINGS - PILOT VERIFICATION STILL REQUIRED';
-  wrap(page3, `OFP STATUS: ${warningText}`, left, 70, 92, 12, 8.2, courierBold, plan.warnings.length ? red : navy, 3);
+  page3.drawText('CG (in)', { x: graph.x + 135, y: graph.y - 14, size: 6.5, font: sansBold, color: ink });
+  page3.drawText('Mass (lbs)', { x: graph.x - 24, y: graph.y + 126, size: 6.5, font: sansBold, color: ink, rotate: degrees(90) });
+  pageFooter(page3, 3, 762.8);
 
   return Buffer.from(await pdfDoc.save());
 }
