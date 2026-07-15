@@ -10635,6 +10635,20 @@
       padding-top: 16px;
     }
 
+    .luxury-booking .journey-moment > .journey-icon svg {
+      width: 17px;
+      height: 17px;
+      overflow: visible;
+    }
+
+    .luxury-booking .journey-icon.is-takeoff svg {
+      transform: rotate(55deg);
+    }
+
+    .luxury-booking .journey-icon.is-landing svg {
+      transform: rotate(125deg);
+    }
+
     @media (max-width: 980px) {
       .luxury-booking .booking-workspace > .journey-sequence-card {
         grid-row: 1;
@@ -10683,6 +10697,18 @@
         border-left: 0;
       }
 
+      .luxury-booking .journey-moment > .journey-icon {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        margin-bottom: 7px;
+      }
+
+      .luxury-booking .journey-moment > .journey-icon svg {
+        width: 14px;
+        height: 14px;
+      }
+
       .luxury-booking .journey-moment small {
         font-size: 7px;
       }
@@ -10693,7 +10719,8 @@
       }
 
       .luxury-booking .journey-moment em,
-      .luxury-booking .journey-line {
+      .luxury-booking .journey-line,
+      .luxury-booking .journey-line.is-flight {
         display: none;
       }
 
@@ -10781,22 +10808,30 @@
         </div>
         <div class="journey-sequence-track" aria-live="polite">
           <div class="journey-moment">
-            <span aria-hidden="true">01</span>
+            <span class="journey-icon is-airport" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/><path d="M8 10h2M14 10h2"/></svg>
+            </span>
             <div><small>Board</small><strong id="timelineArrive">09:40</strong><em>Ready at departure point</em></div>
           </div>
           <div class="journey-line"><i aria-hidden="true"></i></div>
           <div class="journey-moment">
-            <span aria-hidden="true">02</span>
+            <span class="journey-icon is-takeoff" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M22 16.2V14l-8-5V3.5A1.5 1.5 0 0 0 12.5 2 1.5 1.5 0 0 0 11 3.5V9l-8 5v2.2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.3l8 2.5Z"/></svg>
+            </span>
             <div><small>Takeoff</small><strong id="timelineDepart">10:00</strong><em id="timelineDepAirport">Hyvinkää</em></div>
           </div>
           <div class="journey-line is-flight"><i aria-hidden="true"></i><b id="timelineFlightTime">00H 40M</b></div>
           <div class="journey-moment">
-            <span aria-hidden="true">03</span>
+            <span class="journey-icon is-landing" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M22 16.2V14l-8-5V3.5A1.5 1.5 0 0 0 12.5 2 1.5 1.5 0 0 0 11 3.5V9l-8 5v2.2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.3l8 2.5Z"/></svg>
+            </span>
             <div><small>Landing</small><strong id="timelineArrival">10:40</strong><em id="timelineArrAirport">Hanko</em></div>
           </div>
           <div class="journey-line"><i aria-hidden="true"></i></div>
           <div class="journey-moment">
-            <span aria-hidden="true">04</span>
+            <span class="journey-icon is-airport" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/><path d="M8 10h2M14 10h2"/></svg>
+            </span>
             <div><small>Deboard</small><strong id="timelineDeboard">10:50</strong><em>Estimated</em></div>
           </div>
         </div>
