@@ -993,6 +993,82 @@ function normalizeReimbursementStatement(input) {
   };
 }
 
+function operationalPlanNumber(input, fallback = 0, min = -100000, max = 100000) {
+  const value = Number(String(input ?? '').replace(',', '.'));
+  if (!Number.isFinite(value)) return fallback;
+  return Math.max(min, Math.min(max, Math.round(value * 100) / 100));
+}
+
+function normalizeOperationalFlightPlan(input, request) {
+  if (!input || typeof input !== 'object') return null;
+  const defaults = operationalFlightPlanDefaults(request);
+  const textField = (name, max = 80) => normalizeBookingText(input[name] ?? defaults[name], max);
+  const numberField = (name, min = 0, max = 10000) => operationalPlanNumber(input[name], defaults[name], min, max);
+  const plan = {
+    version: 'NGA-OFP-2026-07',
+    updatedAt: new Date().toISOString(),
+    dateUtc: textField('dateUtc', 20),
+    aircraftRegistration: textField('aircraftRegistration', 16).toUpperCase(),
+    aircraftModel: textField('aircraftModel', 40).toUpperCase(),
+    aircraftCode: textField('aircraftCode', 24).toUpperCase(),
+    commanderName: textField('commanderName', 60).toUpperCase(),
+    commanderPhone: textField('commanderPhone', 40),
+    callsign: textField('callsign', 40).toUpperCase(),
+    departure: textField('departure', 8).toUpperCase(),
+    destination: textField('destination', 8).toUpperCase(),
+    depRunway: textField('depRunway', 12).toUpperCase(),
+    arrRunway: textField('arrRunway', 12).toUpperCase(),
+    route: textField('route', 240).toUpperCase(),
+    clearance: textField('clearance', 240).toUpperCase(),
+    alternate: textField('alternate', 16).toUpperCase(),
+    alternateRoute: textField('alternateRoute', 180).toUpperCase(),
+    flightRules: textField('flightRules', 16).toUpperCase() || 'VFR',
+    cruiseFlightLevel: textField('cruiseFlightLevel', 12).toUpperCase(),
+    cruiseSpeedKt: numberField('cruiseSpeedKt', 0, 300),
+    distanceNm: numberField('distanceNm', 0, 3000),
+    estimatedEnrouteMinutes: numberField('estimatedEnrouteMinutes', 0, 1440),
+    estimatedOut: textField('estimatedOut', 24).toUpperCase(),
+    estimatedOff: textField('estimatedOff', 24).toUpperCase(),
+    estimatedOn: textField('estimatedOn', 24).toUpperCase(),
+    estimatedIn: textField('estimatedIn', 24).toUpperCase(),
+    scheduledOut: textField('scheduledOut', 24).toUpperCase(),
+    scheduledOff: textField('scheduledOff', 24).toUpperCase(),
+    scheduledOn: textField('scheduledOn', 24).toUpperCase(),
+    scheduledIn: textField('scheduledIn', 24).toUpperCase(),
+    actualOut: textField('actualOut', 24).toUpperCase(),
+    actualOff: textField('actualOff', 24).toUpperCase(),
+    actualOn: textField('actualOn', 24).toUpperCase(),
+    actualIn: textField('actualIn', 24).toUpperCase(),
+    fuelFlowGph: numberField('fuelFlowGph', 0, 40),
+    taxiFuelGal: numberField('taxiFuelGal', 0, 100),
+    tripFuelGal: numberField('tripFuelGal', 0, 100),
+    contingencyFuelGal: numberField('contingencyFuelGal', 0, 100),
+    alternateFuelGal: numberField('alternateFuelGal', 0, 100),
+    finalReserveFuelGal: numberField('finalReserveFuelGal', 0, 100),
+    extraFuelGal: numberField('extraFuelGal', 0, 100),
+    alternateDistanceNm: numberField('alternateDistanceNm', 0, 1000),
+    alternateEetMinutes: numberField('alternateEetMinutes', 0, 1440),
+    bemLb: numberField('bemLb', 0, 4000),
+    bemArmIn: numberField('bemArmIn', 0, 200),
+    crew1Lb: numberField('crew1Lb', 0, 600),
+    crew2Lb: numberField('crew2Lb', 0, 600),
+    crewArmIn: numberField('crewArmIn', 0, 200),
+    passengerArmIn: numberField('passengerArmIn', 0, 200),
+    fuelArmIn: numberField('fuelArmIn', 0, 200),
+    baggageArmIn: numberField('baggageArmIn', 0, 250),
+    maxRampWeightLb: numberField('maxRampWeightLb', 0, 5000),
+    maxTakeoffWeightLb: numberField('maxTakeoffWeightLb', 0, 5000),
+    maxLandingWeightLb: numberField('maxLandingWeightLb', 0, 5000),
+    cgForwardLimitIn: numberField('cgForwardLimitIn', 0, 200),
+    cgAftLimitIn: numberField('cgAftLimitIn', 0, 200),
+    stabTrim: textField('stabTrim', 20).toUpperCase(),
+    releaseName: textField('releaseName', 60).toUpperCase(),
+    releaseAccepted: input.releaseAccepted === true || input.releaseAccepted === 'true'
+  };
+  const calculations = operationalFlightPlanCalculations(plan, request);
+  return { ...plan, ...calculations };
+}
+
 function normalizeBookingEmail(input) {
   return String(input || '')
     .trim()
@@ -3106,6 +3182,11 @@ app.get('/booking-ops/requests/:id/reimbursement-statement', requirePilotAccess,
   res.sendFile(path.join(__dirname, 'views', 'reimbursement-statement.html'));
 });
 
+app.get('/booking-ops/requests/:id/operational-flight-plan', requirePilotAccess, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.sendFile(path.join(__dirname, 'views', 'operational-flight-plan.html'));
+});
+
 function sendBoardingPassPage(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'boarding-pass.html'));
@@ -3694,6 +3775,153 @@ function reimbursementPdfMoney(value) {
   return `EUR ${reimbursementPdfNumber(value).toFixed(2)}`;
 }
 
+function ofpRound(value, digits = 1) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  const factor = 10 ** digits;
+  return Math.round(number * factor) / factor;
+}
+
+function ofpClock(value, minutes = 0) {
+  const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return '----';
+  const total = ((Number(match[1]) * 60) + Number(match[2]) + minutes + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}${String(total % 60).padStart(2, '0')}`;
+}
+
+function operationalFlightPlanDefaults(request) {
+  const depAirport = bookingAirports.find(item => item.icao === request?.dep);
+  const arrAirport = bookingAirports.find(item => item.icao === request?.arr);
+  const minutes = Math.max(10, Number(request?.estimatedFlightMinutes) || estimateBoardingPassFlightMinutes(request?.dep, request?.arr) || 60);
+  const distance = depAirport && arrAirport && depAirport.icao !== arrAirport.icao
+    ? ofpRound(kmToNm(haversineKm(depAirport, arrAirport)), 0)
+    : ofpRound((minutes / 60) * AIRCRAFT_PROFILE.cruiseTasKt, 0);
+  const fuelFlowGph = 10;
+  const tripFuelGal = ofpRound((minutes / 60) * fuelFlowGph, 1);
+  const taxiFuelGal = ofpRound(AIRCRAFT_PROFILE.startTaxiTakeoffFuelGal, 1);
+  const contingencyFuelGal = ofpRound(Math.max(0.5, tripFuelGal * 0.05), 1);
+  const finalReserveFuelGal = ofpRound(fuelFlowGph * 0.5, 1);
+  const localOut = ofpClock(request?.requestTime, 0);
+  const localOff = ofpClock(request?.requestTime, 10);
+  const localOn = ofpClock(request?.requestTime, 10 + minutes);
+  const localIn = ofpClock(request?.requestTime, 15 + minutes);
+  const commander = request?.crew?.commander && request.crew.commander !== 'UNASSIGNED'
+    ? request.crew.commander
+    : '';
+  return {
+    dateUtc: request?.requestDate || '',
+    aircraftRegistration: '',
+    aircraftModel: 'PA28-200R',
+    aircraftCode: 'PA28',
+    commanderName: commander,
+    commanderPhone: '',
+    callsign: 'NGA PRIVATE AVIATION',
+    departure: request?.dep || '',
+    destination: request?.arr || '',
+    depRunway: '',
+    arrRunway: '',
+    route: request?.dep && request?.arr ? `${request.dep} DCT ${request.arr}` : '',
+    clearance: '',
+    alternate: '',
+    alternateRoute: '',
+    flightRules: 'VFR',
+    cruiseFlightLevel: 'VFR',
+    cruiseSpeedKt: AIRCRAFT_PROFILE.cruiseTasKt,
+    distanceNm: distance,
+    estimatedEnrouteMinutes: minutes,
+    estimatedOut: `----Z/${localOut}L`,
+    estimatedOff: `----Z/${localOff}L`,
+    estimatedOn: `----Z/${localOn}L`,
+    estimatedIn: `----Z/${localIn}L`,
+    scheduledOut: '',
+    scheduledOff: '',
+    scheduledOn: '',
+    scheduledIn: '',
+    actualOut: '',
+    actualOff: '',
+    actualOn: '',
+    actualIn: '',
+    fuelFlowGph,
+    taxiFuelGal,
+    tripFuelGal,
+    contingencyFuelGal,
+    alternateFuelGal: 0,
+    finalReserveFuelGal,
+    extraFuelGal: 0,
+    alternateDistanceNm: 0,
+    alternateEetMinutes: 0,
+    bemLb: AIRCRAFT_PROFILE.basicEmptyWeightLbs,
+    bemArmIn: 86.32,
+    crew1Lb: 0,
+    crew2Lb: 0,
+    crewArmIn: 80.5,
+    passengerArmIn: 118.11,
+    fuelArmIn: 94.98,
+    baggageArmIn: 142.87,
+    maxRampWeightLb: AIRCRAFT_PROFILE.maxRampWeightLbs,
+    maxTakeoffWeightLb: AIRCRAFT_PROFILE.maxTakeoffWeightLbs,
+    maxLandingWeightLb: AIRCRAFT_PROFILE.maxLandingWeightLbs,
+    cgForwardLimitIn: 0,
+    cgAftLimitIn: 0,
+    stabTrim: '',
+    releaseName: commander,
+    releaseAccepted: false
+  };
+}
+
+function operationalFlightPlanCalculations(plan, request) {
+  const passengerWeightLb = ofpRound(getRequestPassengers(request).reduce((sum, passenger) => sum + (Number(passenger.weightKg) || 0), 0) * 2.20462, 1);
+  const baggageWeightLb = request?.carryOnBags === 'YES' ? ofpRound((Number(request.baggageWeightKg) || 0) * 2.20462, 1) : 0;
+  const blockFuelGal = ofpRound(
+    Number(plan.taxiFuelGal || 0)
+      + Number(plan.tripFuelGal || 0)
+      + Number(plan.contingencyFuelGal || 0)
+      + Number(plan.alternateFuelGal || 0)
+      + Number(plan.finalReserveFuelGal || 0)
+      + Number(plan.extraFuelGal || 0),
+    1
+  );
+  const fuelWeightLb = ofpRound(blockFuelGal * 6, 1);
+  const crewWeightLb = ofpRound(Number(plan.crew1Lb || 0) + Number(plan.crew2Lb || 0), 1);
+  const zeroFuelWeightLb = ofpRound(Number(plan.bemLb || 0) + crewWeightLb + passengerWeightLb + baggageWeightLb, 1);
+  const rampWeightLb = ofpRound(zeroFuelWeightLb + fuelWeightLb, 1);
+  const taxiBurnLb = ofpRound(Number(plan.taxiFuelGal || 0) * 6, 1);
+  const tripBurnLb = ofpRound(Number(plan.tripFuelGal || 0) * 6, 1);
+  const takeoffWeightLb = ofpRound(Math.max(0, rampWeightLb - taxiBurnLb), 1);
+  const landingWeightLb = ofpRound(Math.max(0, takeoffWeightLb - tripBurnLb), 1);
+  const bemMoment = Number(plan.bemLb || 0) * Number(plan.bemArmIn || 0);
+  const crewMoment = crewWeightLb * Number(plan.crewArmIn || 0);
+  const passengerMoment = passengerWeightLb * Number(plan.passengerArmIn || 0);
+  const baggageMoment = baggageWeightLb * Number(plan.baggageArmIn || 0);
+  const takeoffFuelWeight = Math.max(0, fuelWeightLb - taxiBurnLb);
+  const takeoffMoment = bemMoment + crewMoment + passengerMoment + baggageMoment + (takeoffFuelWeight * Number(plan.fuelArmIn || 0));
+  const takeoffCgIn = takeoffWeightLb > 0 ? ofpRound(takeoffMoment / takeoffWeightLb, 2) : 0;
+  const warnings = [];
+  if (!crewWeightLb) warnings.push('ENTER CREW WEIGHTS');
+  if (rampWeightLb > Number(plan.maxRampWeightLb || 0)) warnings.push('RAMP WEIGHT EXCEEDS ENTERED LIMIT');
+  if (takeoffWeightLb > Number(plan.maxTakeoffWeightLb || 0)) warnings.push('TAKEOFF WEIGHT EXCEEDS ENTERED LIMIT');
+  if (landingWeightLb > Number(plan.maxLandingWeightLb || 0)) warnings.push('LANDING WEIGHT EXCEEDS ENTERED LIMIT');
+  if (!plan.cgForwardLimitIn || !plan.cgAftLimitIn) warnings.push('ENTER APPROVED CG LIMITS');
+  if (plan.cgForwardLimitIn && takeoffCgIn < Number(plan.cgForwardLimitIn)) warnings.push('CG FORWARD OF ENTERED LIMIT');
+  if (plan.cgAftLimitIn && takeoffCgIn > Number(plan.cgAftLimitIn)) warnings.push('CG AFT OF ENTERED LIMIT');
+  if (!String(plan.route || '').trim()) warnings.push('ENTER PILOT ROUTE');
+  if (!String(plan.alternate || '').trim()) warnings.push('ALTERNATE REVIEW OPEN');
+  return {
+    passengerWeightLb,
+    baggageWeightLb,
+    blockFuelGal,
+    fuelWeightLb,
+    crewWeightLb,
+    zeroFuelWeightLb,
+    rampWeightLb,
+    takeoffWeightLb,
+    landingWeightLb,
+    takeoffCgIn,
+    warnings,
+    calculationStatus: warnings.length ? 'REVIEW REQUIRED' : 'CALCULATED / VERIFY POH'
+  };
+}
+
 function reimbursementStatementDefaults(request) {
   const flightHours = Math.max(1, Math.round(Number(request.estimatedFlightMinutes || 60) / 60));
   return {
@@ -3825,6 +4053,233 @@ async function createReimbursementStatementPdf(request) {
   return Buffer.from(await pdfDoc.save());
 }
 
+function ofpPdfText(value, fallback = '.....', limit = 90) {
+  const text = String(value ?? '').replace(/\s+/g, ' ').trim() || fallback;
+  return text.length > limit ? `${text.slice(0, Math.max(0, limit - 3))}...` : text;
+}
+
+function ofpPdfDuration(minutes) {
+  const total = Math.max(0, Math.round(Number(minutes) || 0));
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}${String(total % 60).padStart(2, '0')}`;
+}
+
+async function createOperationalFlightPlanPdf(request) {
+  const plan = normalizeOperationalFlightPlan(request.operationalFlightPlan || operationalFlightPlanDefaults(request), request);
+  const pdfDoc = await PDFDocument.create();
+  const courier = await pdfDoc.embedFont(StandardFonts.Courier);
+  const courierBold = await pdfDoc.embedFont(StandardFonts.CourierBold);
+  const ink = rgb(18 / 255, 18 / 255, 18 / 255);
+  const muted = rgb(74 / 255, 74 / 255, 74 / 255);
+  const navy = rgb(3 / 255, 28 / 255, 69 / 255);
+  const red = rgb(175 / 255, 35 / 255, 35 / 255);
+  const pale = rgb(243 / 255, 246 / 255, 249 / 255);
+  let logo = null;
+  try {
+    logo = await pdfDoc.embedPng(fs.readFileSync(path.join(__dirname, 'public', 'nga-private-aviation-logo.png')));
+  } catch {}
+
+  const width = 595.28;
+  const height = 841.89;
+  const left = 44;
+  const right = width - 44;
+  const draw = (page, value, x, y, size = 9.5, font = courier, color = ink, limit = 92) => {
+    page.drawText(ofpPdfText(value, '.....', limit), { x, y, size, font, color });
+  };
+  const line = (page, y, start = left, end = right, thickness = 0.7, color = ink) => {
+    page.drawLine({ start: { x: start, y }, end: { x: end, y }, thickness, color });
+  };
+  const wrap = (page, value, x, y, maxChars = 78, lineHeight = 13, size = 9.2, font = courier, color = ink, maxLines = 4) => {
+    const words = ofpPdfText(value, '', 500).split(/\s+/).filter(Boolean);
+    const rows = [];
+    let current = '';
+    for (const word of words) {
+      const next = current ? `${current} ${word}` : word;
+      if (next.length > maxChars && current) {
+        rows.push(current);
+        current = word;
+      } else current = next;
+    }
+    if (current) rows.push(current);
+    rows.slice(0, maxLines).forEach((row, index) => draw(page, row, x, y - (index * lineHeight), size, font, color, maxChars));
+    return y - (Math.min(rows.length, maxLines) * lineHeight);
+  };
+  const pageHeader = (page, title, pageNumber) => {
+    const identity = plan.aircraftRegistration || 'REGISTRATION NOT ENTERED';
+    draw(page, plan.aircraftRegistration || 'REG TBD', left, 804, 10.5, courierBold, ink, 14);
+    draw(page, plan.aircraftModel, 145, 804, 10.5, courierBold, ink, 18);
+    draw(page, `${plan.departure}-${plan.destination}`, 270, 804, 10.5, courierBold, ink, 18);
+    draw(page, `${plan.dateUtc || 'DATE'}`, 370, 804, 10.5, courierBold, ink, 14);
+    if (logo) {
+      const scaled = logo.scaleToFit(92, 64);
+      page.drawImage(logo, { x: 462, y: 751, width: scaled.width, height: scaled.height });
+    } else draw(page, 'NGA PRIVATE AVIATION', 438, 772, 8, courierBold, navy, 24);
+    draw(page, title, 210, 760, 10.5, courier, ink, 36);
+    line(page, 744);
+    draw(page, `${identity} - ${plan.aircraftModel}`, 214, 34, 9.5, courier, muted, 36);
+    draw(page, `PAGE ${pageNumber} OF 3`, 478, 21, 8.5, courier, muted, 16);
+  };
+
+  const page1 = pdfDoc.addPage([width, height]);
+  pageHeader(page1, 'OPERATIONAL FLIGHT PLAN', 1);
+  draw(page1, `${plan.aircraftModel}  ${plan.aircraftCode}`, left, 718, 9.5);
+  draw(page1, `DATE ${plan.dateUtc || '.....'}  RULES ${plan.flightRules}`, left, 703, 9.5);
+  draw(page1, `${plan.departure} - ${plan.destination}`, 346, 718, 9.5, courierBold);
+  draw(page1, `PIC ${plan.commanderName || '.....'}`, 346, 703, 9.5);
+  draw(page1, `${plan.commanderPhone || 'PHONE NOT ENTERED'}`, 346, 688, 9.5);
+  draw(page1, `${plan.callsign || 'NGA PRIVATE AVIATION'}`, 346, 673, 9.5);
+
+  draw(page1, 'TIMESHEET', 265, 642, 10.5, courierBold);
+  line(page1, 632);
+  draw(page1, 'ESTIMATED', 164, 608, 9.5, courierBold);
+  draw(page1, 'SCHEDULED', 305, 608, 9.5, courierBold);
+  draw(page1, 'ACTUAL', 448, 608, 9.5, courierBold);
+  const timeRows = [
+    ['OUT', plan.estimatedOut, plan.scheduledOut, plan.actualOut],
+    ['OFF', plan.estimatedOff, plan.scheduledOff, plan.actualOff],
+    ['ON', plan.estimatedOn, plan.scheduledOn, plan.actualOn],
+    ['IN', plan.estimatedIn, plan.scheduledIn, plan.actualIn]
+  ];
+  timeRows.forEach((row, index) => {
+    const y = 580 - (index * 29);
+    draw(page1, row[0], left, y, 9.5);
+    draw(page1, row[1], 164, y, 9.5, courier, ink, 22);
+    draw(page1, row[2], 305, y, 9.5, courier, ink, 22);
+    draw(page1, row[3], 448, y, 9.5, courier, ink, 16);
+  });
+  draw(page1, `BLOCK TIME  ${ofpPdfDuration(plan.estimatedEnrouteMinutes + 15)}`, left, 457, 9.5, courierBold);
+  line(page1, 438);
+
+  draw(page1, 'PLANNING SUMMARY', left, 410, 10, courierBold);
+  draw(page1, `BRIEF ${plan.cruiseFlightLevel || 'VFR'}  SPD ${plan.cruiseSpeedKt}KT  EET ${ofpPdfDuration(plan.estimatedEnrouteMinutes)}  DIST ${plan.distanceNm}NM  TRIP ${plan.tripFuelGal}USG`, left, 388, 9.2, courier, ink, 86);
+  draw(page1, 'FLIGHT PLAN ROUTE', left, 357, 10, courierBold);
+  line(page1, 347, left, 186);
+  let routeY = wrap(page1, `DEP ${plan.departure} RWY ${plan.depRunway || 'TBD'}  ROUTE ${plan.route || 'PILOT ROUTE REQUIRED'}  ARR ${plan.destination} RWY ${plan.arrRunway || 'TBD'}`, left, 326, 82, 13, 9.2, courier, ink, 4);
+  draw(page1, 'CLEARANCES', left, routeY - 6, 10, courierBold);
+  line(page1, routeY - 16, left, 140);
+  routeY = wrap(page1, plan.clearance || ' ', left, routeY - 34, 82, 13, 9.2, courier, ink, 3);
+  line(page1, 168);
+  draw(page1, 'ALTERNATE INFORMATION', 225, 148, 10, courierBold);
+  draw(page1, `ALTN ${plan.alternate || 'TBD'}  FL ${plan.cruiseFlightLevel || 'VFR'}  DIST ${plan.alternateDistanceNm || 0}NM  EET ${ofpPdfDuration(plan.alternateEetMinutes)}  BURN ${plan.alternateFuelGal || 0}USG`, left, 124, 9.2, courier, ink, 86);
+  wrap(page1, `ROUTE ${plan.alternateRoute || 'PILOT ALTERNATE REVIEW REQUIRED'}`, left, 104, 82, 13, 9.2, courier, ink, 3);
+
+  const page2 = pdfDoc.addPage([width, height]);
+  pageHeader(page2, 'FUEL RELEASE / LOADSHEET', 2);
+  draw(page2, 'FUEL RELEASE', 256, 716, 10.5, courierBold);
+  line(page2, 706);
+  draw(page2, 'PLANNED FUEL', left, 680, 10, courierBold);
+  draw(page2, 'ITEM', left, 655, 9, courierBold);
+  draw(page2, 'US GAL', 250, 655, 9, courierBold);
+  draw(page2, 'TIME', 370, 655, 9, courierBold);
+  const fuelRows = [
+    ['TAXI / START', plan.taxiFuelGal, Math.round((plan.taxiFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)],
+    [`TRIP ${plan.departure}-${plan.destination}`, plan.tripFuelGal, plan.estimatedEnrouteMinutes],
+    ['CONTINGENCY', plan.contingencyFuelGal, Math.round((plan.contingencyFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)],
+    [`ALTERNATE ${plan.alternate || 'TBD'}`, plan.alternateFuelGal, plan.alternateEetMinutes],
+    ['FINAL RESERVE', plan.finalReserveFuelGal, Math.round((plan.finalReserveFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)],
+    ['EXTRA', plan.extraFuelGal, Math.round((plan.extraFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)],
+    ['BLOCK FUEL', plan.blockFuelGal, Math.round((plan.blockFuelGal / Math.max(plan.fuelFlowGph, 0.1)) * 60)]
+  ];
+  fuelRows.forEach((row, index) => {
+    const y = 630 - (index * 25);
+    if (index === fuelRows.length - 1) page2.drawRectangle({ x: left - 4, y: y - 7, width: 390, height: 21, color: pale });
+    draw(page2, row[0], left, y, 9.2, index === fuelRows.length - 1 ? courierBold : courier, ink, 34);
+    draw(page2, String(row[1]), 250, y, 9.2, index === fuelRows.length - 1 ? courierBold : courier);
+    draw(page2, ofpPdfDuration(row[2]), 370, y, 9.2, courier);
+  });
+  draw(page2, `FUEL FLOW USED FOR PLANNING: ${plan.fuelFlowGph} USG/H`, left, 445, 8.7, courierBold, muted, 58);
+  line(page2, 426);
+
+  draw(page2, 'WEIGHT MANIFEST', 245, 402, 10.5, courierBold);
+  draw(page2, 'ITEM', left, 376, 9, courierBold);
+  draw(page2, 'WEIGHT LB', 262, 376, 9, courierBold);
+  draw(page2, 'LIMIT / NOTE', 395, 376, 9, courierBold);
+  const weightRows = [
+    ['BASIC EMPTY MASS', plan.bemLb, `ARM ${plan.bemArmIn}`],
+    ['CREW', plan.crewWeightLb, `${plan.crew1Lb} + ${plan.crew2Lb}`],
+    [`PASSENGERS (${getRequestPassengers(request).length})`, plan.passengerWeightLb, `ARM ${plan.passengerArmIn}`],
+    ['BAGGAGE', plan.baggageWeightLb, `ARM ${plan.baggageArmIn}`],
+    ['ZERO FUEL WEIGHT', plan.zeroFuelWeightLb, 'CALCULATED'],
+    ['BLOCK FUEL', plan.fuelWeightLb, `${plan.blockFuelGal} USG`],
+    ['RAMP WEIGHT', plan.rampWeightLb, `MAX ${plan.maxRampWeightLb}`],
+    ['TAKEOFF WEIGHT', plan.takeoffWeightLb, `MAX ${plan.maxTakeoffWeightLb}`],
+    ['LANDING WEIGHT', plan.landingWeightLb, `MAX ${plan.maxLandingWeightLb}`],
+    ['TAKEOFF CG', plan.takeoffCgIn, plan.cgForwardLimitIn && plan.cgAftLimitIn ? `${plan.cgForwardLimitIn}-${plan.cgAftLimitIn} IN` : 'ENTER APPROVED LIMITS']
+  ];
+  weightRows.forEach((row, index) => {
+    const y = 353 - (index * 23);
+    if (index >= 6) page2.drawRectangle({ x: left - 4, y: y - 6, width: 480, height: 20, color: pale });
+    draw(page2, row[0], left, y, 8.8, index >= 6 ? courierBold : courier, ink, 34);
+    draw(page2, String(row[1]), 262, y, 8.8, index >= 6 ? courierBold : courier);
+    draw(page2, row[2], 395, y, 8.8, courier, ink, 26);
+  });
+  draw(page2, 'ALL WEIGHTS IN LBS. FUEL CONVERSION USED: 6.0 LB/USG.', left, 112, 8.3, courierBold, red, 72);
+  wrap(page2, 'PILOT MUST VERIFY AIRCRAFT DATA, FUEL, MASS, CG, PERFORMANCE AND LEGAL RESERVES AGAINST THE CURRENT AFM/POH.', left, 94, 78, 11, 7.8, courierBold, red, 2);
+  draw(page2, `PILOT RELEASE: ${plan.releaseName || 'NOT SIGNED'}  STATUS: ${plan.releaseAccepted ? 'RELEASE ACKNOWLEDGED' : 'DRAFT / NOT RELEASED'}`, left, 66, 8.8, courierBold, plan.releaseAccepted ? navy : red, 88);
+
+  const page3 = pdfDoc.addPage([width, height]);
+  pageHeader(page3, 'WEIGHT AND BALANCE REPORT', 3);
+  draw(page3, 'WEIGHT AND BALANCE', 225, 710, 10.5, courierBold);
+  line(page3, 700);
+  draw(page3, 'STATION', left, 676, 9, courierBold);
+  draw(page3, 'WEIGHT LB', 204, 676, 9, courierBold);
+  draw(page3, 'ARM IN', 310, 676, 9, courierBold);
+  draw(page3, 'MOMENT', 418, 676, 9, courierBold);
+  const wbRows = [
+    ['BASIC EMPTY MASS', plan.bemLb, plan.bemArmIn],
+    ['CREW', plan.crewWeightLb, plan.crewArmIn],
+    ['PASSENGERS', plan.passengerWeightLb, plan.passengerArmIn],
+    ['FUEL AT TAKEOFF', ofpRound(Math.max(0, plan.fuelWeightLb - (plan.taxiFuelGal * 6)), 1), plan.fuelArmIn],
+    ['BAGGAGE', plan.baggageWeightLb, plan.baggageArmIn]
+  ];
+  wbRows.forEach((row, index) => {
+    const y = 650 - (index * 28);
+    const moment = ofpRound(Number(row[1]) * Number(row[2]), 0);
+    draw(page3, row[0], left, y, 9.2, courier, ink, 30);
+    draw(page3, String(row[1]), 204, y, 9.2);
+    draw(page3, String(row[2]), 310, y, 9.2);
+    draw(page3, String(moment), 418, y, 9.2);
+  });
+  line(page3, 492);
+  draw(page3, `TAKEOFF WEIGHT ${plan.takeoffWeightLb} LB`, left, 466, 10, courierBold);
+  draw(page3, `TAKEOFF CG ${plan.takeoffCgIn} IN`, 260, 466, 10, courierBold);
+  draw(page3, `STAB TRIM ${plan.stabTrim || 'TBD'}`, 425, 466, 9, courierBold);
+
+  const graph = { x: 78, y: 160, w: 435, h: 250 };
+  page3.drawRectangle({ x: graph.x, y: graph.y, width: graph.w, height: graph.h, borderColor: ink, borderWidth: 0.8 });
+  draw(page3, 'TAKEOFF CG PLANNING VIEW', 206, 426, 9.5, courierBold);
+  const minCg = 75;
+  const maxCg = 100;
+  const minWeight = 1200;
+  const maxWeight = Math.max(2800, Number(plan.maxTakeoffWeightLb || 0));
+  for (let cg = 75; cg <= 100; cg += 5) {
+    const x = graph.x + ((cg - minCg) / (maxCg - minCg)) * graph.w;
+    page3.drawLine({ start: { x, y: graph.y }, end: { x, y: graph.y + graph.h }, thickness: 0.25, color: muted, opacity: 0.35 });
+    draw(page3, String(cg), x - 7, graph.y - 15, 7.5, courier, muted);
+  }
+  for (let weight = 1400; weight <= maxWeight; weight += 200) {
+    const y = graph.y + ((weight - minWeight) / (maxWeight - minWeight)) * graph.h;
+    page3.drawLine({ start: { x: graph.x, y }, end: { x: graph.x + graph.w, y }, thickness: 0.25, color: muted, opacity: 0.35 });
+    draw(page3, String(weight), graph.x - 34, y - 3, 7.5, courier, muted);
+  }
+  if (plan.cgForwardLimitIn && plan.cgAftLimitIn) {
+    const forwardX = graph.x + ((plan.cgForwardLimitIn - minCg) / (maxCg - minCg)) * graph.w;
+    const aftX = graph.x + ((plan.cgAftLimitIn - minCg) / (maxCg - minCg)) * graph.w;
+    page3.drawRectangle({ x: forwardX, y: graph.y, width: Math.max(1, aftX - forwardX), height: graph.h, borderColor: navy, borderWidth: 1.2, opacity: 0.08 });
+  }
+  const pointX = graph.x + ((plan.takeoffCgIn - minCg) / (maxCg - minCg)) * graph.w;
+  const pointY = graph.y + ((plan.takeoffWeightLb - minWeight) / (maxWeight - minWeight)) * graph.h;
+  if (Number.isFinite(pointX) && Number.isFinite(pointY) && pointX >= graph.x && pointX <= graph.x + graph.w && pointY >= graph.y && pointY <= graph.y + graph.h) {
+    page3.drawCircle({ x: pointX, y: pointY, size: 5, color: red, borderColor: ink, borderWidth: 1 });
+    draw(page3, 'TOW', pointX + 8, pointY - 2, 7.5, courierBold, red);
+  }
+  draw(page3, 'CG (INCHES AFT OF DATUM)', 221, 126, 8.5, courierBold);
+  draw(page3, 'PLANNING VISUAL ONLY - USE THE CURRENT APPROVED AFM/POH ENVELOPE FOR LIMIT DETERMINATION.', 70, 95, 8.2, courierBold, red, 92);
+  const warningText = plan.warnings.length ? plan.warnings.join(' / ') : 'NO ADMINISTRATIVE WARNINGS - PILOT VERIFICATION STILL REQUIRED';
+  wrap(page3, `OFP STATUS: ${warningText}`, left, 70, 92, 12, 8.2, courierBold, plan.warnings.length ? red : navy, 3);
+
+  return Buffer.from(await pdfDoc.save());
+}
+
 async function createSignedAgreementPdf(request, passenger) {
   const pdfDoc = await PDFDocument.create();
   const courier = await pdfDoc.embedFont(StandardFonts.Courier);
@@ -3931,6 +4386,30 @@ app.get('/api/booking-ops/requests/:id/reimbursement-statement/pdf', requirePilo
   const pdf = await createReimbursementStatementPdf(request);
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `inline; filename="${request.id}-REIMBURSEMENT-STATEMENT.pdf"`);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.send(pdf);
+});
+
+app.get('/api/booking-ops/requests/:id/operational-flight-plan', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  const operationalFlightPlan = normalizeOperationalFlightPlan(
+    request.operationalFlightPlan || operationalFlightPlanDefaults(request),
+    request
+  );
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({ request, operationalFlightPlan, saved: Boolean(request.operationalFlightPlan) });
+});
+
+app.get('/api/booking-ops/requests/:id/operational-flight-plan/pdf', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  if (!request.operationalFlightPlan) return res.status(400).json({ error: 'SAVE THE OPERATIONAL FLIGHT PLAN DRAFT FIRST' });
+  const pdf = await createOperationalFlightPlanPdf(request);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="${request.id}-OPERATIONAL-FLIGHT-PLAN.pdf"`);
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.send(pdf);
 });
@@ -4077,6 +4556,20 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
       request.reimbursementStatement = statement;
       ensureReimbursementStatementToken(request);
       await addBookingTimelineEvent(request.id, 'REIMBURSEMENT STATEMENT SAVED', 'Statement draft updated in Pilot Ops.');
+    }
+  }
+  if (req.body?.operationalFlightPlan && typeof req.body.operationalFlightPlan === 'object') {
+    const flightPlan = normalizeOperationalFlightPlan(req.body.operationalFlightPlan, request);
+    if (flightPlan) {
+      if (flightPlan.releaseAccepted && flightPlan.warnings.length) {
+        return res.status(400).json({ error: `OFP RELEASE BLOCKED: ${flightPlan.warnings.join(' / ')}` });
+      }
+      request.operationalFlightPlan = flightPlan;
+      await addBookingTimelineEvent(
+        request.id,
+        flightPlan.releaseAccepted ? 'OFP RELEASE ACKNOWLEDGED' : 'OFP DRAFT SAVED',
+        `${flightPlan.departure}-${flightPlan.destination} / ${flightPlan.calculationStatus}`
+      );
     }
   }
   await persistBookingRequest(request);

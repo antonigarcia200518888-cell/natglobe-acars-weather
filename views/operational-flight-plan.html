@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Operational Flight Plan</title>
+  <style>
+    :root { --bg:#030506; --panel:#071019; --panel2:#0b151d; --line:#40505c; --ink:#f4f7f9; --muted:#91a0aa; --blue:#8ec5ff; --green:#66ff99; --amber:#ffcc66; --red:#ff7777; }
+    * { box-sizing:border-box; }
+    html, body { margin:0; min-height:100%; background:var(--bg); color:var(--ink); font-family:"Courier New", monospace; }
+    body { padding:20px; background-image:linear-gradient(rgba(142,197,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(142,197,255,.025) 1px,transparent 1px); background-size:30px 30px; }
+    button, input, select, textarea { font:inherit; }
+    .shell { width:min(1480px,100%); margin:auto; border:1px solid #fff; background:rgba(0,0,0,.97); box-shadow:0 24px 80px rgba(0,0,0,.55); }
+    .topbar { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; padding:20px; border-bottom:1px solid var(--line); }
+    .eyebrow { color:var(--blue); font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:5px 0 4px; font-size:clamp(22px,3vw,36px); line-height:1; text-transform:uppercase; }
+    .sub { color:var(--muted); font-size:12px; line-height:1.5; }
+    .top-actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+    .btn { min-height:40px; border:1px solid var(--blue); background:#000; color:var(--blue); padding:9px 13px; cursor:pointer; font-weight:700; text-transform:uppercase; }
+    .btn.primary { border-color:var(--green); color:#001007; background:var(--green); }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+    .statusline { display:grid; grid-template-columns:repeat(5,1fr); border-bottom:1px solid var(--line); }
+    .statusbox { min-width:0; padding:12px 14px; border-right:1px solid var(--line); }
+    .statusbox:last-child { border-right:0; }
+    .statusbox span { display:block; color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.12em; }
+    .statusbox strong { display:block; margin-top:5px; color:#fff; font-size:14px; overflow-wrap:anywhere; }
+    .workspace { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(310px,.65fr); gap:12px; padding:12px; }
+    .editor { display:grid; gap:10px; }
+    details { border:1px solid var(--line); background:var(--panel); }
+    summary { padding:13px 14px; cursor:pointer; color:#fff; font-weight:700; text-transform:uppercase; list-style:none; }
+    summary::-webkit-details-marker { display:none; }
+    summary::after { content:"+"; float:right; color:var(--blue); }
+    details[open] summary::after { content:"-"; }
+    .detail-body { padding:0 14px 14px; border-top:1px solid #24313a; }
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .field.wide { grid-column:span 2; }
+    label { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
+    input, select, textarea { width:100%; min-height:40px; margin-top:5px; border:1px solid #50606b; background:#000; color:#fff; padding:8px 9px; }
+    textarea { min-height:76px; resize:vertical; }
+    input:focus, select:focus, textarea:focus { outline:2px solid rgba(142,197,255,.25); border-color:var(--blue); }
+    .inline-action { margin-top:12px; }
+    .checkline { display:flex; gap:10px; align-items:flex-start; padding:12px; border:1px solid #47535b; background:#020405; color:#dce3e7; font-size:12px; line-height:1.45; }
+    .checkline input { width:18px; min-height:18px; margin:1px 0 0; accent-color:var(--green); flex:0 0 auto; }
+    .console { position:sticky; top:12px; align-self:start; display:grid; gap:10px; }
+    .console-card { border:1px solid var(--line); background:linear-gradient(145deg,var(--panel2),#030607); padding:14px; }
+    .console-title { color:var(--blue); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; margin-bottom:12px; }
+    .metric-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .metric { border:1px solid #33424d; background:#020405; padding:10px; min-width:0; }
+    .metric span { display:block; color:var(--muted); font-size:9px; text-transform:uppercase; }
+    .metric strong { display:block; margin-top:5px; font-size:18px; overflow-wrap:anywhere; }
+    .metric.good strong { color:var(--green); }
+    .metric.warn strong { color:var(--amber); }
+    .metric.danger strong { color:var(--red); }
+    .warning-list { display:grid; gap:6px; }
+    .warning { border-left:3px solid var(--amber); padding:7px 9px; background:#151208; color:var(--amber); font-size:10px; line-height:1.35; }
+    .warning.good { border-color:var(--green); background:#07150c; color:var(--green); }
+    .notice { border:1px solid var(--red); padding:12px; color:#ffd1d1; background:#150707; font-size:10px; line-height:1.55; text-transform:uppercase; }
+    .save-state { min-height:18px; color:var(--muted); font-size:11px; }
+    @media (max-width:1050px) { .workspace { grid-template-columns:1fr; } .console { position:static; grid-template-columns:repeat(2,1fr); } .notice, .save-state { grid-column:1/-1; } }
+    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .console { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><div class="eyebrow">Pilot Flight Control / Document Workspace</div><h1>Operational Flight Plan</h1><div class="sub">Route, time, fuel, mass and balance, release, and a three-page OFP matching the NGA operations format.</div></div>
+      <div class="top-actions"><button id="backBtn" class="btn" type="button">Back to Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather Ops</button><button id="saveBtn" class="btn primary" type="button">Save OFP Draft</button><button id="pdfBtn" class="btn" type="button">Open OFP PDF</button></div>
+    </header>
+    <section class="statusline">
+      <div class="statusbox"><span>Reference</span><strong id="refStatus">...</strong></div>
+      <div class="statusbox"><span>Route</span><strong id="routeStatus">...</strong></div>
+      <div class="statusbox"><span>Schedule</span><strong id="scheduleStatus">...</strong></div>
+      <div class="statusbox"><span>Commander</span><strong id="crewStatus">...</strong></div>
+      <div class="statusbox"><span>Document</span><strong id="documentStatus">DRAFT</strong></div>
+    </section>
+    <div class="workspace">
+      <section class="editor">
+        <details open>
+          <summary>01 / Flight identity and routing</summary>
+          <div class="detail-body">
+            <div class="grid">
+              <label>Date<input data-field="dateUtc" type="date" /></label>
+              <label>Aircraft registration<input data-field="aircraftRegistration" placeholder="Internal use / optional" /></label>
+              <label>Aircraft model<input data-field="aircraftModel" /></label>
+              <label>Aircraft code<input data-field="aircraftCode" /></label>
+              <label>Departure<input data-field="departure" maxlength="4" /></label>
+              <label>Destination<input data-field="destination" maxlength="4" /></label>
+              <label>Departure runway<input data-field="depRunway" placeholder="Pilot entry" /></label>
+              <label>Arrival runway<input data-field="arrRunway" placeholder="Pilot entry" /></label>
+              <label class="field wide">Pilot route<textarea data-field="route" placeholder="DCT, VFR reporting points, airways, or pilot routing"></textarea></label>
+              <label class="field wide">Clearance / operational note<textarea data-field="clearance"></textarea></label>
+              <label>Flight rules<select data-field="flightRules"><option>VFR</option><option>IFR</option><option>Y</option><option>Z</option></select></label>
+              <label>Cruise level<input data-field="cruiseFlightLevel" placeholder="VFR / FL055 / 2500FT" /></label>
+              <label>Cruise TAS (KT)<input data-field="cruiseSpeedKt" type="number" min="0" step="1" /></label>
+              <label>Distance (NM)<input data-field="distanceNm" type="number" min="0" step="1" /></label>
+              <label>Alternate<input data-field="alternate" maxlength="8" placeholder="Pilot review" /></label>
+              <label>Alternate distance (NM)<input data-field="alternateDistanceNm" type="number" min="0" step="1" /></label>
+              <label>Alternate EET (MIN)<input data-field="alternateEetMinutes" type="number" min="0" step="1" /></label>
+              <label class="field wide">Alternate route<textarea data-field="alternateRoute"></textarea></label>
+            </div>
+          </div>
+        </details>
+
+        <details open>
+          <summary>02 / Timesheet</summary>
+          <div class="detail-body">
+            <div class="grid">
+              <label>Estimated OUT<input data-field="estimatedOut" placeholder="1420Z/1720L" /></label><label>Scheduled OUT<input data-field="scheduledOut" /></label><label>Actual OUT<input data-field="actualOut" /></label><span></span>
+              <label>Estimated OFF<input data-field="estimatedOff" /></label><label>Scheduled OFF<input data-field="scheduledOff" /></label><label>Actual OFF<input data-field="actualOff" /></label><span></span>
+              <label>Estimated ON<input data-field="estimatedOn" /></label><label>Scheduled ON<input data-field="scheduledOn" /></label><label>Actual ON<input data-field="actualOn" /></label><span></span>
+              <label>Estimated IN<input data-field="estimatedIn" /></label><label>Scheduled IN<input data-field="scheduledIn" /></label><label>Actual IN<input data-field="actualIn" /></label><span></span>
+              <label>Planned EET (MIN)<input data-field="estimatedEnrouteMinutes" type="number" min="0" step="1" /></label>
+            </div>
+            <button id="actualNowBtn" class="btn inline-action" type="button">Stamp current UTC into next empty actual time</button>
+          </div>
+        </details>
+
+        <details open>
+          <summary>03 / Fuel release</summary>
+          <div class="detail-body">
+            <div class="grid">
+              <label>Planning fuel flow (USG/H)<input data-field="fuelFlowGph" type="number" min="0" step="0.1" /></label>
+              <label>Taxi / start (USG)<input data-field="taxiFuelGal" type="number" min="0" step="0.1" /></label>
+              <label>Trip (USG)<input data-field="tripFuelGal" type="number" min="0" step="0.1" /></label>
+              <label>Contingency (USG)<input data-field="contingencyFuelGal" type="number" min="0" step="0.1" /></label>
+              <label>Alternate (USG)<input data-field="alternateFuelGal" type="number" min="0" step="0.1" /></label>
+              <label>Final reserve (USG)<input data-field="finalReserveFuelGal" type="number" min="0" step="0.1" /></label>
+              <label>Extra fuel (USG)<input data-field="extraFuelGal" type="number" min="0" step="0.1" /></label>
+            </div>
+            <button id="fuelCalcBtn" class="btn inline-action" type="button">Recalculate fuel from EET</button>
+          </div>
+        </details>
+
+        <details open>
+          <summary>04 / Mass and balance inputs</summary>
+          <div class="detail-body">
+            <div class="grid">
+              <label>Basic empty mass (LB)<input data-field="bemLb" type="number" min="0" step="0.1" /></label>
+              <label>BEM arm (IN)<input data-field="bemArmIn" type="number" min="0" step="0.01" /></label>
+              <label>Crew 1 (LB)<input data-field="crew1Lb" type="number" min="0" step="1" /></label>
+              <label>Crew 2 (LB)<input data-field="crew2Lb" type="number" min="0" step="1" /></label>
+              <label>Crew arm (IN)<input data-field="crewArmIn" type="number" min="0" step="0.01" /></label>
+              <label>Passenger arm (IN)<input data-field="passengerArmIn" type="number" min="0" step="0.01" /></label>
+              <label>Fuel arm (IN)<input data-field="fuelArmIn" type="number" min="0" step="0.01" /></label>
+              <label>Baggage arm (IN)<input data-field="baggageArmIn" type="number" min="0" step="0.01" /></label>
+              <label>Max ramp weight (LB)<input data-field="maxRampWeightLb" type="number" min="0" step="1" /></label>
+              <label>Max takeoff weight (LB)<input data-field="maxTakeoffWeightLb" type="number" min="0" step="1" /></label>
+              <label>Max landing weight (LB)<input data-field="maxLandingWeightLb" type="number" min="0" step="1" /></label>
+              <label>Stabilizer trim<input data-field="stabTrim" placeholder="Pilot entry" /></label>
+              <label>Approved forward CG limit (IN)<input data-field="cgForwardLimitIn" type="number" min="0" step="0.01" placeholder="From current POH" /></label>
+              <label>Approved aft CG limit (IN)<input data-field="cgAftLimitIn" type="number" min="0" step="0.01" placeholder="From current POH" /></label>
+            </div>
+          </div>
+        </details>
+
+        <details open>
+          <summary>05 / Pilot release</summary>
+          <div class="detail-body">
+            <div class="grid two"><label>Commander / release name<input data-field="releaseName" /></label><label>Commander phone<input data-field="commanderPhone" /></label></div>
+            <label class="checkline"><input data-field="releaseAccepted" type="checkbox" />I have independently verified the route, weather, NOTAMs, runway suitability, fuel policy, aircraft status, performance, mass and balance, legal requirements, and all entered limits against current approved operational sources and the aircraft AFM/POH.</label>
+          </div>
+        </details>
+      </section>
+
+      <aside class="console">
+        <section class="console-card"><div class="console-title">Live planning output</div><div class="metric-grid">
+          <div class="metric"><span>Block fuel</span><strong id="blockFuel">0.0 USG</strong></div>
+          <div class="metric"><span>Fuel weight</span><strong id="fuelWeight">0 LB</strong></div>
+          <div class="metric"><span>Passenger weight</span><strong id="paxWeight">0 LB</strong></div>
+          <div class="metric"><span>Baggage weight</span><strong id="bagWeight">0 LB</strong></div>
+          <div id="rampMetric" class="metric"><span>Ramp weight</span><strong id="rampWeight">0 LB</strong></div>
+          <div id="towMetric" class="metric"><span>Takeoff weight</span><strong id="takeoffWeight">0 LB</strong></div>
+          <div id="landingMetric" class="metric"><span>Landing weight</span><strong id="landingWeight">0 LB</strong></div>
+          <div id="cgMetric" class="metric"><span>Takeoff CG</span><strong id="takeoffCg">0.00 IN</strong></div>
+        </div></section>
+        <section class="console-card"><div class="console-title">Flight document readiness</div><div id="warningList" class="warning-list"></div></section>
+        <div class="notice">Planning aid only. Calculated values do not replace the current AFM/POH, approved weight-and-balance data, weather and NOTAM briefing, performance calculations, fuel policy, or pilot-in-command judgement.</div>
+        <div id="saveState" class="save-state">Loading flight file...</div>
+      </aside>
+    </div>
+  </main>
+  <script>
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    const requestId = decodeURIComponent(pathParts[2] || '');
+    const el = id => document.getElementById(id);
+    const fields = () => [...document.querySelectorAll('[data-field]')];
+    const num = value => Number(String(value ?? '').replace(',', '.')) || 0;
+    const round = (value, digits = 1) => { const factor = 10 ** digits; return Math.round(value * factor) / factor; };
+    let request = null;
+    let plan = null;
+    let saved = false;
+
+    function inputFor(name) { return document.querySelector(`[data-field="${name}"]`); }
+    function populate() {
+      fields().forEach(input => {
+        const value = plan[input.dataset.field];
+        if (input.type === 'checkbox') input.checked = value === true;
+        else input.value = value ?? '';
+      });
+      el('refStatus').textContent = request.id;
+      el('routeStatus').textContent = `${request.dep}-${request.arr}`;
+      el('scheduleStatus').textContent = `${request.requestDate || 'DATE'} ${request.requestTime || 'TIME'}L`;
+      el('crewStatus').textContent = plan.commanderName || 'UNASSIGNED';
+      render();
+    }
+
+    function readPlan() {
+      fields().forEach(input => { plan[input.dataset.field] = input.type === 'checkbox' ? input.checked : input.value; });
+      return plan;
+    }
+
+    function calculations() {
+      readPlan();
+      const blockFuelGal = round(['taxiFuelGal','tripFuelGal','contingencyFuelGal','alternateFuelGal','finalReserveFuelGal','extraFuelGal'].reduce((sum, key) => sum + num(plan[key]), 0), 1);
+      const fuelWeightLb = round(blockFuelGal * 6, 1);
+      const crewWeightLb = round(num(plan.crew1Lb) + num(plan.crew2Lb), 1);
+      const passengerWeightLb = num(plan.passengerWeightLb);
+      const baggageWeightLb = num(plan.baggageWeightLb);
+      const zfw = round(num(plan.bemLb) + crewWeightLb + passengerWeightLb + baggageWeightLb, 1);
+      const ramp = round(zfw + fuelWeightLb, 1);
+      const tow = round(Math.max(0, ramp - (num(plan.taxiFuelGal) * 6)), 1);
+      const landing = round(Math.max(0, tow - (num(plan.tripFuelGal) * 6)), 1);
+      const takeoffFuelLb = Math.max(0, fuelWeightLb - (num(plan.taxiFuelGal) * 6));
+      const moment = (num(plan.bemLb) * num(plan.bemArmIn)) + (crewWeightLb * num(plan.crewArmIn)) + (passengerWeightLb * num(plan.passengerArmIn)) + (baggageWeightLb * num(plan.baggageArmIn)) + (takeoffFuelLb * num(plan.fuelArmIn));
+      const cg = tow ? round(moment / tow, 2) : 0;
+      const warnings = [];
+      if (!crewWeightLb) warnings.push('Enter actual crew weights.');
+      if (ramp > num(plan.maxRampWeightLb)) warnings.push('Ramp weight exceeds the entered limit.');
+      if (tow > num(plan.maxTakeoffWeightLb)) warnings.push('Takeoff weight exceeds the entered limit.');
+      if (landing > num(plan.maxLandingWeightLb)) warnings.push('Landing weight exceeds the entered limit.');
+      if (!num(plan.cgForwardLimitIn) || !num(plan.cgAftLimitIn)) warnings.push('Enter current approved CG limits from the aircraft POH.');
+      if (num(plan.cgForwardLimitIn) && cg < num(plan.cgForwardLimitIn)) warnings.push('Calculated CG is forward of the entered limit.');
+      if (num(plan.cgAftLimitIn) && cg > num(plan.cgAftLimitIn)) warnings.push('Calculated CG is aft of the entered limit.');
+      if (!String(plan.route || '').trim()) warnings.push('Pilot route is not complete.');
+      if (!String(plan.alternate || '').trim()) warnings.push('Alternate review remains open.');
+      return { blockFuelGal, fuelWeightLb, crewWeightLb, passengerWeightLb, baggageWeightLb, ramp, tow, landing, cg, warnings };
+    }
+
+    function setMetric(id, value, danger, warning = false) {
+      el(id).textContent = value;
+      const card = el(id).closest('.metric');
+      card.className = `metric ${danger ? 'danger' : warning ? 'warn' : 'good'}`;
+    }
+
+    function render() {
+      const calc = calculations();
+      el('blockFuel').textContent = `${calc.blockFuelGal.toFixed(1)} USG`;
+      el('fuelWeight').textContent = `${calc.fuelWeightLb.toFixed(1)} LB`;
+      el('paxWeight').textContent = `${calc.passengerWeightLb.toFixed(1)} LB`;
+      el('bagWeight').textContent = `${calc.baggageWeightLb.toFixed(1)} LB`;
+      setMetric('rampWeight', `${calc.ramp.toFixed(1)} LB`, calc.ramp > num(plan.maxRampWeightLb));
+      setMetric('takeoffWeight', `${calc.tow.toFixed(1)} LB`, calc.tow > num(plan.maxTakeoffWeightLb));
+      setMetric('landingWeight', `${calc.landing.toFixed(1)} LB`, calc.landing > num(plan.maxLandingWeightLb));
+      const cgOut = num(plan.cgForwardLimitIn) && calc.cg < num(plan.cgForwardLimitIn);
+      const cgAft = num(plan.cgAftLimitIn) && calc.cg > num(plan.cgAftLimitIn);
+      setMetric('takeoffCg', `${calc.cg.toFixed(2)} IN`, cgOut || cgAft, !num(plan.cgForwardLimitIn) || !num(plan.cgAftLimitIn));
+      el('warningList').innerHTML = calc.warnings.length ? calc.warnings.map(item => `<div class="warning">${item}</div>`).join('') : '<div class="warning good">Administrative calculations complete. Pilot verification remains required.</div>';
+      const released = inputFor('releaseAccepted').checked;
+      el('documentStatus').textContent = released ? 'RELEASE ACKNOWLEDGED' : saved ? 'DRAFT SAVED' : 'UNSAVED DRAFT';
+      el('documentStatus').style.color = released ? 'var(--green)' : 'var(--amber)';
+      el('crewStatus').textContent = inputFor('releaseName').value || inputFor('commanderName')?.value || plan.commanderName || 'UNASSIGNED';
+    }
+
+    async function load() {
+      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/operational-flight-plan`, { cache:'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Unable to load OFP');
+      request = data.request;
+      plan = data.operationalFlightPlan;
+      saved = data.saved;
+      populate();
+      el('saveState').textContent = saved ? `Saved OFP loaded / ${plan.updatedAt ? new Date(plan.updatedAt).toLocaleString('en-GB', { hour12:false }) : ''}` : 'New OFP draft created from booking data.';
+    }
+
+    async function save() {
+      readPlan();
+      const current = calculations();
+      if (plan.releaseAccepted && current.warnings.length) {
+        throw new Error('Resolve the OFP readiness warnings before acknowledging pilot release.');
+      }
+      el('saveState').textContent = 'Saving operational flight plan...';
+      el('saveBtn').disabled = true;
+      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ operationalFlightPlan:plan }) });
+      const data = await res.json().catch(() => ({}));
+      el('saveBtn').disabled = false;
+      if (!res.ok) throw new Error(data.error || 'Unable to save OFP');
+      request = data.request;
+      plan = request.operationalFlightPlan;
+      saved = true;
+      populate();
+      el('saveState').textContent = `OFP saved at ${new Date().toLocaleTimeString('en-GB', { hour12:false })}.`;
+      return true;
+    }
+
+    fields().forEach(input => input.addEventListener('input', () => {
+      if (input.dataset.field !== 'releaseAccepted' && inputFor('releaseAccepted').checked) {
+        inputFor('releaseAccepted').checked = false;
+        el('saveState').textContent = 'Pilot release cleared because the OFP was changed.';
+      }
+      saved = false;
+      render();
+    }));
+    el('fuelCalcBtn').addEventListener('click', () => {
+      readPlan();
+      const flow = Math.max(0, num(plan.fuelFlowGph));
+      const minutes = Math.max(0, num(plan.estimatedEnrouteMinutes));
+      inputFor('tripFuelGal').value = round((minutes / 60) * flow, 1).toFixed(1);
+      inputFor('contingencyFuelGal').value = round(Math.max(.5, num(inputFor('tripFuelGal').value) * .05), 1).toFixed(1);
+      inputFor('finalReserveFuelGal').value = round(flow * .5, 1).toFixed(1);
+      saved = false;
+      render();
+    });
+    el('actualNowBtn').addEventListener('click', () => {
+      const stamp = `${new Date().toISOString().slice(11,16).replace(':','')}Z`;
+      const next = ['actualOut','actualOff','actualOn','actualIn'].map(inputFor).find(input => !input.value.trim());
+      if (next) { next.value = stamp; saved = false; render(); next.focus(); }
+      else el('saveState').textContent = 'All actual movement times are already populated.';
+    });
+    el('saveBtn').addEventListener('click', () => save().catch(error => { el('saveState').textContent = error.message; }));
+    el('pdfBtn').addEventListener('click', async () => {
+      try { await save(); window.open(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/operational-flight-plan/pdf`, '_blank', 'noopener'); }
+      catch (error) { el('saveState').textContent = error.message; }
+    });
+    el('backBtn').addEventListener('click', () => { location.href = '/booking-ops'; });
+    el('weatherBtn').addEventListener('click', () => { window.open('/acars', '_blank', 'noopener'); });
+    load().catch(error => { el('saveState').textContent = error.message; });
+  </script>
+</body>
+</html>

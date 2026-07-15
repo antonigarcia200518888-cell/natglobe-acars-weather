@@ -623,6 +623,80 @@
       outline: none;
     }
 
+    .pilot-flight-control {
+      margin-bottom: 10px;
+      border: 1px solid #5d7180;
+      background: linear-gradient(145deg, #08141d 0%, #020405 72%);
+      padding: 12px;
+    }
+
+    .flight-control-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .flight-control-head strong { display: block; color: #fff; font-size: 14px; }
+    .flight-control-head span { display: block; margin-top: 4px; color: #7f929f; font-size: 9px; line-height: 1.35; }
+    .flight-control-head em { color: var(--accent); font-size: 11px; font-style: normal; white-space: nowrap; }
+
+    .flight-control-sequence {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+
+    .control-phase {
+      min-height: 66px;
+      border: 1px solid #3d4b55;
+      background: rgba(0,0,0,.46);
+      padding: 9px;
+      color: #83929c;
+      text-transform: uppercase;
+      font-size: 10px;
+      line-height: 1.3;
+    }
+
+    .control-phase strong { display: block; margin-bottom: 5px; color: #fff; font-size: 11px; }
+    .control-phase.good { border-color: var(--live); color: var(--live); }
+    .control-phase.good strong { color: var(--live); }
+    .control-phase.warn { border-color: var(--warn); color: var(--warn); }
+    .control-phase.warn strong { color: var(--warn); }
+    .control-phase.danger { border-color: var(--danger); color: var(--danger); }
+    .control-phase.danger strong { color: var(--danger); }
+
+    .document-dashboard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+
+    .document-card {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      min-height: 130px;
+      border: 1px solid #394955;
+      padding: 10px;
+      background: #020405;
+      text-transform: uppercase;
+    }
+
+    .document-card span { color: #718591; font-size: 9px; letter-spacing: .1em; }
+    .document-card strong { margin: 6px 0; color: #fff; font-size: 12px; }
+    .document-card small { color: #8999a3; font-size: 9px; line-height: 1.4; }
+    .document-card button { min-height: 34px; margin-top: 10px; border: 1px solid var(--accent); background:#000; color:var(--accent); cursor:pointer; font:700 10px "Courier New", monospace; text-transform:uppercase; }
+    .document-card button:disabled { opacity:.42; cursor:not-allowed; }
+    .document-card.good { border-color: var(--live); }
+    .document-card.good strong { color: var(--live); }
+    .document-card.warn { border-color: var(--warn); }
+    .document-card.warn strong { color: var(--warn); }
+    .document-card.danger { border-color: var(--danger); }
+    .document-card.danger strong { color: var(--danger); }
+
     .calendar-flight.conflict { color: var(--danger); }
     .calendar-conflict { display: inline-block; margin-top: 3px; color: var(--danger); font-weight: 700; }
 
@@ -933,7 +1007,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .document-dashboard { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
@@ -941,6 +1015,8 @@
       .queue-panel { position: static; max-height: none; }
       .calendar-grid { grid-template-columns: 1fr; }
       .readiness-dial-wrap { align-items: flex-start; }
+      .flight-control-head { display: block; }
+      .flight-control-head em { display: block; margin-top: 8px; }
     }
   </style>
 </head>
@@ -1036,6 +1112,25 @@
             <button id="emailPassengerBtn" class="ops-tool" type="button">EMAIL LEAD PASSENGER</button>
             <button id="callPassengerBtn" class="ops-tool" type="button">CALL LEAD PASSENGER</button>
           </div>
+          <section class="pilot-flight-control" aria-label="Pilot flight control and document dashboard">
+            <div class="flight-control-head">
+              <div><strong>Pilot Flight Control</strong><span>Selected-flight operational sequence and controlled document workspace.</span></div>
+              <em id="flightControlSummary">SELECT A FLIGHT FILE</em>
+            </div>
+            <div class="flight-control-sequence">
+              <div id="controlFlight" class="control-phase danger"><strong>01 / Flight</strong>Load and verify route</div>
+              <div id="controlCrew" class="control-phase warn"><strong>02 / Crew</strong>Commander assignment</div>
+              <div id="controlOfp" class="control-phase warn"><strong>03 / OFP</strong>Planning document</div>
+              <div id="controlDocuments" class="control-phase danger"><strong>04 / Documents</strong>Passenger and cost files</div>
+              <div id="controlDecision" class="control-phase danger"><strong>05 / Decision</strong>Pilot disposition</div>
+            </div>
+            <div class="document-dashboard" aria-label="Document dashboard">
+              <article id="ofpDocumentCard" class="document-card warn"><span>Operational flight plan</span><strong id="ofpDocumentStatus">NOT STARTED</strong><small id="ofpDocumentDetail">Route, fuel, mass and balance, times, and pilot release.</small><button id="openOfpBtn" type="button">BUILD / EDIT OFP</button></article>
+              <article id="statementDocumentCard" class="document-card danger"><span>Reimbursement statement</span><strong id="statementDocumentStatus">REQUIRED</strong><small>Cost allocation and payment document for the selected flight.</small><button id="openStatementControlBtn" type="button">OPEN STATEMENT</button></article>
+              <article id="agreementDocumentCard" class="document-card warn"><span>Passenger agreements</span><strong id="agreementDocumentStatus">0 / 0 SIGNED</strong><small>Individual agreement state for every passenger on the manifest.</small><button id="jumpManifestBtn" type="button">VIEW MANIFEST</button></article>
+              <article id="flightFileDocumentCard" class="document-card"><span>Operations flight file</span><strong id="flightFileDocumentStatus">AVAILABLE</strong><small>Booking request message and internal operations record.</small><button id="openFlightFileControlBtn" type="button">OPEN FLIGHT FILE PDF</button></article>
+            </div>
+          </section>
           <div class="ops-readiness" aria-label="Ready for flight checklist">
             <div class="ops-readiness-head"><strong>Ready for flight checklist</strong><span id="readinessScore">0/8 complete</span></div>
             <div id="opsReadinessList" class="ops-readiness-grid">
@@ -1269,6 +1364,25 @@ END OF MESSAGE</pre>
     const copyBriefBtn = el('copyBriefBtn');
     const emailPassengerBtn = el('emailPassengerBtn');
     const callPassengerBtn = el('callPassengerBtn');
+    const flightControlSummary = el('flightControlSummary');
+    const controlFlight = el('controlFlight');
+    const controlCrew = el('controlCrew');
+    const controlOfp = el('controlOfp');
+    const controlDocuments = el('controlDocuments');
+    const controlDecision = el('controlDecision');
+    const ofpDocumentCard = el('ofpDocumentCard');
+    const ofpDocumentStatus = el('ofpDocumentStatus');
+    const ofpDocumentDetail = el('ofpDocumentDetail');
+    const statementDocumentCard = el('statementDocumentCard');
+    const statementDocumentStatus = el('statementDocumentStatus');
+    const agreementDocumentCard = el('agreementDocumentCard');
+    const agreementDocumentStatus = el('agreementDocumentStatus');
+    const flightFileDocumentCard = el('flightFileDocumentCard');
+    const flightFileDocumentStatus = el('flightFileDocumentStatus');
+    const openOfpBtn = el('openOfpBtn');
+    const openStatementControlBtn = el('openStatementControlBtn');
+    const jumpManifestBtn = el('jumpManifestBtn');
+    const openFlightFileControlBtn = el('openFlightFileControlBtn');
 
     const OPS_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', label: '(HEL) Helsinki-Vantaa' },
@@ -1446,6 +1560,8 @@ END OF MESSAGE</pre>
       if (req.managementRequest?.status === 'PENDING') return `Review passenger ${String(req.managementRequest.type || 'change').toLowerCase()} request.`;
       if (!passengerManifestComplete(req)) return 'Complete and verify all passenger manifest fields.';
       if (!req.crew?.commander || req.crew.commander === 'UNASSIGNED') return 'Assign the commander and confirm crew availability.';
+      if (!req.operationalFlightPlan) return 'Build the operational flight plan and verify route, fuel, and loading.';
+      if (!req.operationalFlightPlan.releaseAccepted) return 'Complete pilot verification and acknowledge the OFP release.';
       if (!req.reimbursementStatement) return 'Prepare and save the reimbursement statement.';
       if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(String(req.timeProposal.responseStatus || '').toUpperCase())) return 'Monitor the passenger response to the proposed departure time.';
       if (req.pilotDecision !== 'APPROVED') return 'Complete pilot review and record the operational decision.';
@@ -1740,11 +1856,61 @@ END OF MESSAGE</pre>
           detail: req.crew?.commander && req.crew.commander !== 'UNASSIGNED' ? `CMD ${req.crew.commander}` : 'Commander not assigned'
         },
         {
+          label: 'OFP',
+          tone: req.operationalFlightPlan?.releaseAccepted ? 'good' : req.operationalFlightPlan ? 'warn' : 'danger',
+          detail: req.operationalFlightPlan?.releaseAccepted ? 'Pilot release acknowledged' : req.operationalFlightPlan ? 'Draft saved / pilot verification open' : 'Operational flight plan not started'
+        },
+        {
           label: 'Time proposal',
           tone: !req.timeProposal ? 'good' : req.timeProposal.responseStatus === 'ACCEPTED' ? 'good' : req.timeProposal.responseStatus === 'DENIED' ? 'danger' : 'warn',
           detail: req.timeProposal ? `${proposalLabel(req.timeProposal)} / ${req.timeProposal.responseStatus || 'PENDING'}` : 'No active proposal'
         }
       ];
+    }
+
+    function setControlTone(node, tone) {
+      node.classList.remove('good', 'warn', 'danger');
+      node.classList.add(tone);
+    }
+
+    function renderFlightControl(req) {
+      const passengers = passengerList(req);
+      const signed = agreementCount(req);
+      const routeReady = Boolean(req.dep && req.arr && req.requestDate && req.requestTime);
+      const crewReady = Boolean(req.crew?.commander && req.crew.commander !== 'UNASSIGNED');
+      const ofp = req.operationalFlightPlan || null;
+      const ofpReleased = Boolean(ofp?.releaseAccepted);
+      const statementReady = Boolean(req.reimbursementStatement);
+      const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
+      const agreementsReady = passengers.length > 0 && signed === passengers.length;
+
+      setControlTone(controlFlight, routeReady ? 'good' : 'danger');
+      controlFlight.innerHTML = `<strong>01 / Flight</strong>${escapeHtml(routeReady ? `${req.route} / ${req.requestDate} ${req.requestTime}` : 'Route or schedule incomplete')}`;
+      setControlTone(controlCrew, crewReady ? 'good' : 'warn');
+      controlCrew.innerHTML = `<strong>02 / Crew</strong>${escapeHtml(crewReady ? `CMD ${req.crew.commander}` : 'Commander assignment open')}`;
+      setControlTone(controlOfp, ofpReleased ? 'good' : ofp ? 'warn' : 'danger');
+      controlOfp.innerHTML = `<strong>03 / OFP</strong>${escapeHtml(ofpReleased ? 'Release acknowledged' : ofp ? 'Draft / verification open' : 'Not started')}`;
+      setControlTone(controlDocuments, statementReady && (!approved || agreementsReady) ? 'good' : statementReady ? 'warn' : 'danger');
+      controlDocuments.innerHTML = `<strong>04 / Documents</strong>${escapeHtml(statementReady ? `Statement ready / agreements ${signed}/${passengers.length}` : 'Reimbursement statement required')}`;
+      setControlTone(controlDecision, approved ? 'good' : req.pilotDecision === 'NEEDS INFO' ? 'warn' : 'danger');
+      controlDecision.innerHTML = `<strong>05 / Decision</strong>${escapeHtml(approved ? 'Approved / confirmed' : req.pilotDecision || 'Pending')}`;
+
+      const complete = [routeReady, crewReady, ofpReleased, statementReady, approved].filter(Boolean).length;
+      flightControlSummary.textContent = `${complete}/5 PRIMARY CONTROLS COMPLETE`;
+
+      setControlTone(ofpDocumentCard, ofpReleased ? 'good' : ofp ? 'warn' : 'danger');
+      ofpDocumentStatus.textContent = ofpReleased ? 'RELEASE ACKNOWLEDGED' : ofp ? 'DRAFT SAVED' : 'NOT STARTED';
+      ofpDocumentDetail.textContent = ofp
+        ? `${ofp.departure || req.dep}-${ofp.destination || req.arr} / BLOCK ${ofp.blockFuelGal || 0}USG / TOW ${ofp.takeoffWeightLb || 0}LB / ${ofp.calculationStatus || 'REVIEW'}`
+        : 'Route, fuel, mass and balance, times, and pilot release.';
+      openOfpBtn.textContent = ofp ? 'EDIT OFP / OPEN PDF' : 'BUILD OFP';
+
+      setControlTone(statementDocumentCard, statementReady ? 'good' : 'danger');
+      statementDocumentStatus.textContent = statementReady ? 'SAVED' : 'REQUIRED';
+      setControlTone(agreementDocumentCard, agreementsReady ? 'good' : approved ? 'warn' : 'danger');
+      agreementDocumentStatus.textContent = approved ? `${signed} / ${passengers.length} SIGNED` : 'ISSUED AFTER APPROVAL';
+      setControlTone(flightFileDocumentCard, routeReady ? 'good' : 'warn');
+      flightFileDocumentStatus.textContent = routeReady ? 'AVAILABLE' : 'INCOMPLETE';
     }
 
     function renderDispatchBoard(req) {
@@ -1945,6 +2111,7 @@ END OF MESSAGE</pre>
       renderAlerts(req);
       renderDispatchBoard(req);
       renderDispatchIntelligence(req);
+      renderFlightControl(req);
       renderReadiness(req);
       renderManifest(req);
       updateWalletControls(req);
@@ -2209,6 +2376,23 @@ END OF MESSAGE</pre>
     openStatementBtn.addEventListener('click', () => {
       if (!selected?.id) return;
       window.open(`/booking-ops/requests/${encodeURIComponent(selected.id)}/reimbursement-statement`, '_blank', 'noopener');
+    });
+    openOfpBtn.addEventListener('click', () => {
+      if (!selected?.id) {
+        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
+        return;
+      }
+      const ofpWindow = window.open(`/booking-ops/requests/${encodeURIComponent(selected.id)}/operational-flight-plan`, '_blank', 'noopener');
+      if (!ofpWindow) mode.textContent = 'MODE: POP-UP BLOCKED / ALLOW POP-UPS TO OPEN OFP WORKSPACE';
+    });
+    openStatementControlBtn.addEventListener('click', () => {
+      if (!selected?.id) return;
+      window.open(`/booking-ops/requests/${encodeURIComponent(selected.id)}/reimbursement-statement`, '_blank', 'noopener');
+    });
+    jumpManifestBtn.addEventListener('click', () => manifestList.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    openFlightFileControlBtn.addEventListener('click', () => {
+      if (!selected?.id) return;
+      window.open(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/pdf`, '_blank', 'noopener');
     });
 
     paymentStatus.addEventListener('change', () => updateSelected({ paymentStatus: paymentStatus.value }));
