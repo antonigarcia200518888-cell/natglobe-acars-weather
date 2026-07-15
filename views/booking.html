@@ -10609,6 +10609,99 @@
         margin-top: 14px;
       }
     }
+
+    .luxury-booking .booking-workspace > .journey-sequence-card {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      margin: 0;
+      padding: 18px 22px;
+    }
+
+    .luxury-booking .booking-workspace > .search-card,
+    .luxury-booking .booking-workspace > .route-map-card {
+      grid-row: 2;
+    }
+
+    .luxury-booking .journey-sequence-head {
+      align-items: center;
+      padding-bottom: 12px;
+    }
+
+    .luxury-booking .journey-sequence-head .booking-kicker {
+      font-size: clamp(21px, 2vw, 28px);
+    }
+
+    .luxury-booking .journey-sequence-track {
+      padding-top: 16px;
+    }
+
+    @media (max-width: 980px) {
+      .luxury-booking .booking-workspace > .journey-sequence-card {
+        grid-row: 1;
+      }
+
+      .luxury-booking .booking-workspace > .search-card {
+        grid-row: 2;
+      }
+
+      .luxury-booking .booking-workspace > .route-map-card {
+        grid-row: 3;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .luxury-booking .booking-workspace > .journey-sequence-card {
+        padding: 15px 14px;
+      }
+
+      .luxury-booking .journey-sequence-head {
+        align-items: center;
+        padding-bottom: 10px;
+      }
+
+      .luxury-booking .journey-sequence-head p {
+        max-width: 125px;
+      }
+
+      .luxury-booking .journey-sequence-track {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        padding-top: 13px;
+        background: transparent;
+      }
+
+      .luxury-booking .journey-moment {
+        display: block;
+        min-height: 0;
+        padding: 0 7px 0 9px;
+        border-left: 1px solid var(--nga-line);
+        background: transparent;
+      }
+
+      .luxury-booking .journey-moment:first-child {
+        padding-left: 0;
+        border-left: 0;
+      }
+
+      .luxury-booking .journey-moment small {
+        font-size: 7px;
+      }
+
+      .luxury-booking .journey-moment strong {
+        margin-top: 5px;
+        font-size: 18px;
+      }
+
+      .luxury-booking .journey-moment em,
+      .luxury-booking .journey-line {
+        display: none;
+      }
+
+      .luxury-booking .return-journey-sequence {
+        margin-top: 13px;
+        padding: 10px 11px;
+      }
+    }
   </style>
 </head>
 <body class="luxury-booking">
@@ -10681,6 +10774,37 @@
     <form id="bookingForm" class="booking-workspace">
       <input id="flightExperience" type="hidden" value="" />
       <input id="scenicVariant" type="hidden" value="" />
+      <section class="journey-sequence-card" aria-label="Selected flight timing">
+        <div class="journey-sequence-head">
+          <div><span class="section-overline">Live journey timing</span><div class="booking-kicker">Your flight sequence</div></div>
+          <p id="journeySequenceDate">Selected date / local times</p>
+        </div>
+        <div class="journey-sequence-track" aria-live="polite">
+          <div class="journey-moment">
+            <span aria-hidden="true">01</span>
+            <div><small>Board</small><strong id="timelineArrive">09:40</strong><em>Ready at departure point</em></div>
+          </div>
+          <div class="journey-line"><i aria-hidden="true"></i></div>
+          <div class="journey-moment">
+            <span aria-hidden="true">02</span>
+            <div><small>Takeoff</small><strong id="timelineDepart">10:00</strong><em id="timelineDepAirport">Hyvinkää</em></div>
+          </div>
+          <div class="journey-line is-flight"><i aria-hidden="true"></i><b id="timelineFlightTime">00H 40M</b></div>
+          <div class="journey-moment">
+            <span aria-hidden="true">03</span>
+            <div><small>Landing</small><strong id="timelineArrival">10:40</strong><em id="timelineArrAirport">Hanko</em></div>
+          </div>
+          <div class="journey-line"><i aria-hidden="true"></i></div>
+          <div class="journey-moment">
+            <span aria-hidden="true">04</span>
+            <div><small>Deboard</small><strong id="timelineDeboard">10:50</strong><em>Estimated</em></div>
+          </div>
+        </div>
+        <div id="returnJourneySequence" class="return-journey-sequence" hidden>
+          <span>Return flight sequence</span>
+          <strong id="timelineReturnSummary">Select return date and time</strong>
+        </div>
+      </section>
       <section class="route-map-card" aria-label="Selected flight route map">
         <div class="route-map-head">
           <div><span class="section-overline">Live route canvas</span><div class="route-map-title">Your flight, in view</div></div>
@@ -11662,6 +11786,7 @@
       const validMinutes = Number.isFinite(minutes);
       const boarding = timeWithOffset(departure, -20);
       const arrival = validMinutes ? timeWithOffset(departure, minutes) : '--:--';
+      const deboarding = validMinutes ? timeWithOffset(departure, minutes + 10) : '--:--';
       const destinationName = isScenicExperienceSelected() ? 'Scenic route' : routeDisplayName(arr);
 
       if (el('heroDepCode')) el('heroDepCode').textContent = dep ? routeDisplayCode(dep) : '---';
@@ -11674,6 +11799,7 @@
       if (el('timelineArrive')) el('timelineArrive').textContent = boarding;
       if (el('timelineDepart')) el('timelineDepart').textContent = departure || '--:--';
       if (el('timelineArrival')) el('timelineArrival').textContent = arrival;
+      if (el('timelineDeboard')) el('timelineDeboard').textContent = deboarding;
       if (el('timelineFlightTime')) el('timelineFlightTime').textContent = dep && arr ? formatFlightTime(dep, arr) : '--H --M';
       if (el('timelineDepAirport')) el('timelineDepAirport').textContent = routeDisplayName(dep) || 'Departure airport';
       if (el('timelineArrAirport')) el('timelineArrAirport').textContent = destinationName || 'Arrival airport';
@@ -12078,6 +12204,7 @@
       const revealTargets = [
         '.luxury-desk',
         '.guided-journey-card',
+        '.journey-sequence-card',
         '.route-map-card',
         '.search-card',
         '.aircraft-feature',
