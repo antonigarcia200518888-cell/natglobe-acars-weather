@@ -37,6 +37,7 @@
     .field.wide { grid-column:span 2; }
     label { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
     input, select, textarea { width:100%; min-height:40px; margin-top:5px; border:1px solid #50606b; background:#000; color:#fff; padding:8px 9px; }
+    input[readonly] { border-color:#314653; background:#081018; color:var(--blue); cursor:not-allowed; }
     textarea { min-height:76px; resize:vertical; }
     input:focus, select:focus, textarea:focus { outline:2px solid rgba(142,197,255,.25); border-color:var(--blue); }
     .inline-action { margin-top:12px; }
@@ -57,8 +58,17 @@
     .warning.good { border-color:var(--green); background:#07150c; color:var(--green); }
     .notice { border:1px solid var(--red); padding:12px; color:#ffd1d1; background:#150707; font-size:10px; line-height:1.55; text-transform:uppercase; }
     .save-state { min-height:18px; color:var(--muted); font-size:11px; }
+    .locked-profile { display:flex; justify-content:space-between; gap:16px; align-items:center; margin-top:12px; border:1px solid #31536a; background:#07131d; padding:11px 12px; }
+    .locked-profile strong { display:block; color:var(--blue); font-size:12px; text-transform:uppercase; }
+    .locked-profile small { display:block; margin-top:4px; color:var(--muted); font-size:9px; line-height:1.45; text-transform:uppercase; }
+    .lock-badge { flex:0 0 auto; border:1px solid var(--green); color:var(--green); padding:6px 8px; font-size:9px; font-weight:700; letter-spacing:.12em; }
+    .envelope { grid-column:1/-1; border:1px solid #314653; background:#020609; padding:11px; }
+    .envelope-title { color:var(--blue); font-size:10px; font-weight:700; text-transform:uppercase; }
+    .envelope-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; margin-top:8px; }
+    .envelope-point { border:1px solid #263742; padding:7px; color:#fff; font-size:10px; }
+    .envelope-point span { display:block; color:var(--muted); font-size:8px; margin-bottom:3px; }
     @media (max-width:1050px) { .workspace { grid-template-columns:1fr; } .console { position:static; grid-template-columns:repeat(2,1fr); } .notice, .save-state { grid-column:1/-1; } }
-    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .console { grid-template-columns:1fr; } }
+    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
   </style>
 </head>
 <body>
@@ -133,23 +143,35 @@
         </details>
 
         <details open>
-          <summary>04 / Mass and balance inputs</summary>
+          <summary>04 / Mass and balance / locked profile</summary>
           <div class="detail-body">
+            <div class="locked-profile"><div><strong>ForeFlight aircraft profile</strong><small id="profileVersion">Authoritative station and structural limits are protected by the server.</small></div><span class="lock-badge">LOCKED</span></div>
             <div class="grid">
-              <label>Basic empty mass (LB)<input data-field="bemLb" type="number" min="0" step="0.1" /></label>
-              <label>BEM arm (IN)<input data-field="bemArmIn" type="number" min="0" step="0.01" /></label>
+              <label>Basic empty mass (LB)<input data-field="bemLb" type="number" readonly /></label>
+              <label>BEM arm (IN)<input data-field="bemArmIn" type="number" readonly /></label>
               <label>Crew 1 (LB)<input data-field="crew1Lb" type="number" min="0" step="1" /></label>
               <label>Crew 2 (LB)<input data-field="crew2Lb" type="number" min="0" step="1" /></label>
-              <label>Crew arm (IN)<input data-field="crewArmIn" type="number" min="0" step="0.01" /></label>
-              <label>Passenger arm (IN)<input data-field="passengerArmIn" type="number" min="0" step="0.01" /></label>
-              <label>Fuel arm (IN)<input data-field="fuelArmIn" type="number" min="0" step="0.01" /></label>
-              <label>Baggage arm (IN)<input data-field="baggageArmIn" type="number" min="0" step="0.01" /></label>
-              <label>Max ramp weight (LB)<input data-field="maxRampWeightLb" type="number" min="0" step="1" /></label>
-              <label>Max takeoff weight (LB)<input data-field="maxTakeoffWeightLb" type="number" min="0" step="1" /></label>
-              <label>Max landing weight (LB)<input data-field="maxLandingWeightLb" type="number" min="0" step="1" /></label>
+              <label>Cockpit arm (IN)<input data-field="crewArmIn" type="number" readonly /></label>
+              <label>Rear seats arm (IN)<input data-field="passengerArmIn" type="number" readonly /></label>
+              <label>Fuel arm (IN)<input data-field="fuelArmIn" type="number" readonly /></label>
+              <label>Tail compartment arm (IN)<input data-field="baggageArmIn" type="number" readonly /></label>
+              <label>Fuel capacity (LB)<input data-field="fuelCapacityLb" type="number" readonly /></label>
+              <label>Fuel capacity (USG)<input data-field="fuelCapacityGal" type="number" readonly /></label>
+              <label>Tail compartment limit (LB)<input data-field="baggageLimitLb" type="number" readonly /></label>
+              <label>Gear retraction moment change (IN-LB)<input data-field="gearRetractionMomentChangeInLb" type="number" readonly /></label>
+              <label>Max zero fuel weight (LB)<input data-field="maxZeroFuelWeightLb" type="number" readonly /></label>
+              <label>Max ramp weight (LB)<input data-field="maxRampWeightLb" type="number" readonly /></label>
+              <label>Max takeoff weight (LB)<input data-field="maxTakeoffWeightLb" type="number" readonly /></label>
+              <label>Max landing weight (LB)<input data-field="maxLandingWeightLb" type="number" readonly /></label>
               <label>Stabilizer trim<input data-field="stabTrim" placeholder="Pilot entry" /></label>
-              <label>Approved forward CG limit (IN)<input data-field="cgForwardLimitIn" type="number" min="0" step="0.01" placeholder="From current POH" /></label>
-              <label>Approved aft CG limit (IN)<input data-field="cgAftLimitIn" type="number" min="0" step="0.01" placeholder="From current POH" /></label>
+              <div class="envelope"><div class="envelope-title">Approved CG envelope / fixed limits</div><div class="envelope-grid">
+                <div class="envelope-point"><span>Forward</span>80.00 IN / 1400 LB</div>
+                <div class="envelope-point"><span>Forward</span>80.00 IN / 1800 LB</div>
+                <div class="envelope-point"><span>Forward</span>82.00 IN / 2300 LB</div>
+                <div class="envelope-point"><span>Forward</span>87.30 IN / 2650 LB</div>
+                <div class="envelope-point"><span>Aft</span>93.00 IN / 1400 LB</div>
+                <div class="envelope-point"><span>Aft</span>93.00 IN / 2650 LB</div>
+              </div></div>
             </div>
           </div>
         </details>
@@ -158,7 +180,7 @@
           <summary>05 / Pilot release</summary>
           <div class="detail-body">
             <div class="grid two"><label>Commander / release name<input data-field="releaseName" /></label><label>Commander phone<input data-field="commanderPhone" /></label></div>
-            <label class="checkline"><input data-field="releaseAccepted" type="checkbox" />I have independently verified the route, weather, NOTAMs, runway suitability, fuel policy, aircraft status, performance, mass and balance, legal requirements, and all entered limits against current approved operational sources and the aircraft AFM/POH.</label>
+            <label class="checkline"><input data-field="releaseAccepted" type="checkbox" />I have independently verified the route, weather, NOTAMs, runway suitability, fuel policy, aircraft status, performance, mass and balance, legal requirements, and the locked aircraft profile against current approved operational sources and the aircraft AFM/POH.</label>
           </div>
         </details>
       </section>
@@ -169,10 +191,12 @@
           <div class="metric"><span>Fuel weight</span><strong id="fuelWeight">0 LB</strong></div>
           <div class="metric"><span>Passenger weight</span><strong id="paxWeight">0 LB</strong></div>
           <div class="metric"><span>Baggage weight</span><strong id="bagWeight">0 LB</strong></div>
+          <div id="zfwMetric" class="metric"><span>Zero fuel weight</span><strong id="zeroFuelWeight">0 LB</strong></div>
           <div id="rampMetric" class="metric"><span>Ramp weight</span><strong id="rampWeight">0 LB</strong></div>
           <div id="towMetric" class="metric"><span>Takeoff weight</span><strong id="takeoffWeight">0 LB</strong></div>
           <div id="landingMetric" class="metric"><span>Landing weight</span><strong id="landingWeight">0 LB</strong></div>
           <div id="cgMetric" class="metric"><span>Takeoff CG</span><strong id="takeoffCg">0.00 IN</strong></div>
+          <div id="gearCgMetric" class="metric"><span>Gear-up CG</span><strong id="gearUpCg">0.00 IN</strong></div>
         </div></section>
         <section class="console-card"><div class="console-title">Flight document readiness</div><div id="warningList" class="warning-list"></div></section>
         <div class="notice">Planning aid only. Calculated values do not replace the current AFM/POH, approved weight-and-balance data, weather and NOTAM briefing, performance calculations, fuel policy, or pilot-in-command judgement.</div>
@@ -202,6 +226,7 @@
       el('routeStatus').textContent = `${request.dep}-${request.arr}`;
       el('scheduleStatus').textContent = `${request.requestDate || 'DATE'} ${request.requestTime || 'TIME'}L`;
       el('crewStatus').textContent = plan.commanderName || 'UNASSIGNED';
+      el('profileVersion').textContent = `${plan.weightBalanceProfile?.profileVersion || 'LOCKED AIRCRAFT PROFILE'} / SERVER PROTECTED`;
       render();
     }
 
@@ -210,31 +235,72 @@
       return plan;
     }
 
+    function cgLimitAtWeight(points, weight) {
+      if (weight <= points[0].weightLbs) return points[0].cgIn;
+      if (weight >= points.at(-1).weightLbs) return points.at(-1).cgIn;
+      for (let index = 1; index < points.length; index += 1) {
+        const lower = points[index - 1];
+        const upper = points[index];
+        if (weight <= upper.weightLbs) {
+          const ratio = (weight - lower.weightLbs) / (upper.weightLbs - lower.weightLbs);
+          return lower.cgIn + ((upper.cgIn - lower.cgIn) * ratio);
+        }
+      }
+      return points.at(-1).cgIn;
+    }
+
+    function cgEnvelopeStatus(profile, weight, cg) {
+      const forward = cgLimitAtWeight(profile.forwardCgLimits, weight);
+      const aft = cgLimitAtWeight(profile.aftCgLimits, weight);
+      const minimumWeight = profile.forwardCgLimits[0].weightLbs;
+      const maximumWeight = profile.forwardCgLimits.at(-1).weightLbs;
+      return { forward, aft, valid: weight >= minimumWeight && weight <= maximumWeight && cg >= forward && cg <= aft };
+    }
+
     function calculations() {
       readPlan();
+      const profile = plan.weightBalanceProfile;
       const blockFuelGal = round(['taxiFuelGal','tripFuelGal','contingencyFuelGal','alternateFuelGal','finalReserveFuelGal','extraFuelGal'].reduce((sum, key) => sum + num(plan[key]), 0), 1);
-      const fuelWeightLb = round(blockFuelGal * 6, 1);
+      const fuelWeightLb = round(blockFuelGal * profile.fuelWeightPerGallonLbs, 1);
       const crewWeightLb = round(num(plan.crew1Lb) + num(plan.crew2Lb), 1);
       const passengerWeightLb = num(plan.passengerWeightLb);
       const baggageWeightLb = num(plan.baggageWeightLb);
-      const zfw = round(num(plan.bemLb) + crewWeightLb + passengerWeightLb + baggageWeightLb, 1);
+      const zfw = round(profile.basicEmptyWeightLbs + crewWeightLb + passengerWeightLb + baggageWeightLb, 1);
       const ramp = round(zfw + fuelWeightLb, 1);
-      const tow = round(Math.max(0, ramp - (num(plan.taxiFuelGal) * 6)), 1);
-      const landing = round(Math.max(0, tow - (num(plan.tripFuelGal) * 6)), 1);
-      const takeoffFuelLb = Math.max(0, fuelWeightLb - (num(plan.taxiFuelGal) * 6));
-      const moment = (num(plan.bemLb) * num(plan.bemArmIn)) + (crewWeightLb * num(plan.crewArmIn)) + (passengerWeightLb * num(plan.passengerArmIn)) + (baggageWeightLb * num(plan.baggageArmIn)) + (takeoffFuelLb * num(plan.fuelArmIn));
-      const cg = tow ? round(moment / tow, 2) : 0;
+      const taxiFuelLb = num(plan.taxiFuelGal) * profile.fuelWeightPerGallonLbs;
+      const tripFuelLb = num(plan.tripFuelGal) * profile.fuelWeightPerGallonLbs;
+      const tow = round(Math.max(0, ramp - taxiFuelLb), 1);
+      const landing = round(Math.max(0, tow - tripFuelLb), 1);
+      const takeoffFuelLb = Math.max(0, fuelWeightLb - taxiFuelLb);
+      const landingFuelLb = Math.max(0, takeoffFuelLb - tripFuelLb);
+      const zeroFuelMoment = (profile.basicEmptyWeightLbs * profile.basicEmptyCgIn)
+        + (crewWeightLb * profile.stations.cockpit.armIn)
+        + (passengerWeightLb * profile.stations.rearSeats.armIn)
+        + (baggageWeightLb * profile.stations.baggage.armIn);
+      const zfwCg = zfw ? round(zeroFuelMoment / zfw, 2) : 0;
+      const takeoffMoment = zeroFuelMoment + (takeoffFuelLb * profile.stations.fuel.armIn);
+      const cg = tow ? round(takeoffMoment / tow, 2) : 0;
+      const gearUpCg = tow ? round((takeoffMoment + profile.gearRetractionMomentChangeInLb) / tow, 2) : 0;
+      const landingCg = landing ? round((zeroFuelMoment + (landingFuelLb * profile.stations.fuel.armIn)) / landing, 2) : 0;
+      const zfwEnvelope = cgEnvelopeStatus(profile, zfw, zfwCg);
+      const takeoffEnvelope = cgEnvelopeStatus(profile, tow, cg);
+      const gearUpEnvelope = cgEnvelopeStatus(profile, tow, gearUpCg);
+      const landingEnvelope = cgEnvelopeStatus(profile, landing, landingCg);
       const warnings = [];
       if (!crewWeightLb) warnings.push('Enter actual crew weights.');
-      if (ramp > num(plan.maxRampWeightLb)) warnings.push('Ramp weight exceeds the entered limit.');
-      if (tow > num(plan.maxTakeoffWeightLb)) warnings.push('Takeoff weight exceeds the entered limit.');
-      if (landing > num(plan.maxLandingWeightLb)) warnings.push('Landing weight exceeds the entered limit.');
-      if (!num(plan.cgForwardLimitIn) || !num(plan.cgAftLimitIn)) warnings.push('Enter current approved CG limits from the aircraft POH.');
-      if (num(plan.cgForwardLimitIn) && cg < num(plan.cgForwardLimitIn)) warnings.push('Calculated CG is forward of the entered limit.');
-      if (num(plan.cgAftLimitIn) && cg > num(plan.cgAftLimitIn)) warnings.push('Calculated CG is aft of the entered limit.');
+      if (baggageWeightLb > profile.stations.baggage.weightLimitLbs) warnings.push('Baggage exceeds the locked 200 LB station limit.');
+      if (fuelWeightLb > profile.stations.fuel.weightLimitLbs) warnings.push('Fuel exceeds the locked 288 LB / 48 USG limit.');
+      if (zfw > profile.maxZeroFuelWeightLbs) warnings.push('Zero fuel weight exceeds the locked 2650 LB limit.');
+      if (ramp > profile.maxRampWeightLbs) warnings.push('Ramp weight exceeds the locked 2657 LB limit.');
+      if (tow > profile.maxTakeoffWeightLbs) warnings.push('Takeoff weight exceeds the locked 2650 LB limit.');
+      if (landing > profile.maxLandingWeightLbs) warnings.push('Landing weight exceeds the locked 2650 LB limit.');
+      if (!zfwEnvelope.valid) warnings.push('Zero fuel point is outside the approved CG envelope.');
+      if (!takeoffEnvelope.valid) warnings.push('Takeoff point is outside the approved CG envelope.');
+      if (!gearUpEnvelope.valid) warnings.push('Gear-up point is outside the approved CG envelope.');
+      if (!landingEnvelope.valid) warnings.push('Landing point is outside the approved CG envelope.');
       if (!String(plan.route || '').trim()) warnings.push('Pilot route is not complete.');
       if (!String(plan.alternate || '').trim()) warnings.push('Alternate review remains open.');
-      return { blockFuelGal, fuelWeightLb, crewWeightLb, passengerWeightLb, baggageWeightLb, ramp, tow, landing, cg, warnings };
+      return { profile, blockFuelGal, fuelWeightLb, crewWeightLb, passengerWeightLb, baggageWeightLb, zfw, ramp, tow, landing, cg, gearUpCg, zfwEnvelope, takeoffEnvelope, gearUpEnvelope, landingEnvelope, warnings };
     }
 
     function setMetric(id, value, danger, warning = false) {
@@ -246,15 +312,15 @@
     function render() {
       const calc = calculations();
       el('blockFuel').textContent = `${calc.blockFuelGal.toFixed(1)} USG`;
-      el('fuelWeight').textContent = `${calc.fuelWeightLb.toFixed(1)} LB`;
+      setMetric('fuelWeight', `${calc.fuelWeightLb.toFixed(1)} LB`, calc.fuelWeightLb > calc.profile.stations.fuel.weightLimitLbs);
       el('paxWeight').textContent = `${calc.passengerWeightLb.toFixed(1)} LB`;
-      el('bagWeight').textContent = `${calc.baggageWeightLb.toFixed(1)} LB`;
-      setMetric('rampWeight', `${calc.ramp.toFixed(1)} LB`, calc.ramp > num(plan.maxRampWeightLb));
-      setMetric('takeoffWeight', `${calc.tow.toFixed(1)} LB`, calc.tow > num(plan.maxTakeoffWeightLb));
-      setMetric('landingWeight', `${calc.landing.toFixed(1)} LB`, calc.landing > num(plan.maxLandingWeightLb));
-      const cgOut = num(plan.cgForwardLimitIn) && calc.cg < num(plan.cgForwardLimitIn);
-      const cgAft = num(plan.cgAftLimitIn) && calc.cg > num(plan.cgAftLimitIn);
-      setMetric('takeoffCg', `${calc.cg.toFixed(2)} IN`, cgOut || cgAft, !num(plan.cgForwardLimitIn) || !num(plan.cgAftLimitIn));
+      setMetric('bagWeight', `${calc.baggageWeightLb.toFixed(1)} LB`, calc.baggageWeightLb > calc.profile.stations.baggage.weightLimitLbs);
+      setMetric('zeroFuelWeight', `${calc.zfw.toFixed(1)} LB`, calc.zfw > calc.profile.maxZeroFuelWeightLbs || !calc.zfwEnvelope.valid);
+      setMetric('rampWeight', `${calc.ramp.toFixed(1)} LB`, calc.ramp > calc.profile.maxRampWeightLbs);
+      setMetric('takeoffWeight', `${calc.tow.toFixed(1)} LB`, calc.tow > calc.profile.maxTakeoffWeightLbs);
+      setMetric('landingWeight', `${calc.landing.toFixed(1)} LB`, calc.landing > calc.profile.maxLandingWeightLbs || !calc.landingEnvelope.valid);
+      setMetric('takeoffCg', `${calc.cg.toFixed(2)} IN`, !calc.takeoffEnvelope.valid);
+      setMetric('gearUpCg', `${calc.gearUpCg.toFixed(2)} IN`, !calc.gearUpEnvelope.valid);
       el('warningList').innerHTML = calc.warnings.length ? calc.warnings.map(item => `<div class="warning">${item}</div>`).join('') : '<div class="warning good">Administrative calculations complete. Pilot verification remains required.</div>';
       const released = inputFor('releaseAccepted').checked;
       el('documentStatus').textContent = released ? 'RELEASE ACKNOWLEDGED' : saved ? 'DRAFT SAVED' : 'UNSAVED DRAFT';

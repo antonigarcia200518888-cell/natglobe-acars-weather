@@ -789,6 +789,37 @@ const EUROPE_COUNTRIES = new Set([
 
 const RUNWAY_IDENT_RE = /^(0?[1-9]|[1-2][0-9]|3[0-6])([LCRT])?$/i;
 
+const AIRCRAFT_WEIGHT_BALANCE_PROFILE = Object.freeze({
+  profileVersion: 'FOREFLIGHT-2026-07-16',
+  locked: true,
+  weightUnits: 'LB',
+  armUnits: 'IN',
+  basicEmptyWeightLbs: 1727,
+  basicEmptyCgIn: 86.32,
+  gearRetractionMomentChangeInLb: 819,
+  maxZeroFuelWeightLbs: 2650,
+  maxRampWeightLbs: 2657,
+  maxTakeoffWeightLbs: 2650,
+  maxLandingWeightLbs: 2650,
+  fuelWeightPerGallonLbs: 6,
+  stations: Object.freeze({
+    cockpit: Object.freeze({ armIn: 80.5, seats: 2, weightLimitLbs: null }),
+    rearSeats: Object.freeze({ armIn: 118.1, seats: 2, weightLimitLbs: null }),
+    baggage: Object.freeze({ armIn: 142.8, weightLimitLbs: 200 }),
+    fuel: Object.freeze({ armIn: 95, weightLimitLbs: 288, usableGallons: 48 })
+  }),
+  forwardCgLimits: Object.freeze([
+    Object.freeze({ weightLbs: 1400, cgIn: 80 }),
+    Object.freeze({ weightLbs: 1800, cgIn: 80 }),
+    Object.freeze({ weightLbs: 2300, cgIn: 82 }),
+    Object.freeze({ weightLbs: 2650, cgIn: 87.3 })
+  ]),
+  aftCgLimits: Object.freeze([
+    Object.freeze({ weightLbs: 1400, cgIn: 93 }),
+    Object.freeze({ weightLbs: 2650, cgIn: 93 })
+  ])
+});
+
 const AIRCRAFT_PROFILE = {
   registration: 'OH-PMK',
   type: 'Piper PA-28R-200 Arrow II',
@@ -796,10 +827,10 @@ const AIRCRAFT_PROFILE = {
   bestGlideRatio: 9,
   defaultCruiseAltitudeFt: 8000,
   maxCeilingFt: 17000,
-  basicEmptyWeightLbs: 1727,
-  maxTakeoffWeightLbs: 2650,
-  maxLandingWeightLbs: 2650,
-  maxRampWeightLbs: 2657,
+  basicEmptyWeightLbs: AIRCRAFT_WEIGHT_BALANCE_PROFILE.basicEmptyWeightLbs,
+  maxTakeoffWeightLbs: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxTakeoffWeightLbs,
+  maxLandingWeightLbs: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxLandingWeightLbs,
+  maxRampWeightLbs: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxRampWeightLbs,
   fuelType: '100LL',
   startTaxiTakeoffFuelGal: 1.17,
   climbTasKt: 95,
@@ -1049,19 +1080,25 @@ function normalizeOperationalFlightPlan(input, request) {
     extraFuelGal: numberField('extraFuelGal', 0, 100),
     alternateDistanceNm: numberField('alternateDistanceNm', 0, 1000),
     alternateEetMinutes: numberField('alternateEetMinutes', 0, 1440),
-    bemLb: numberField('bemLb', 0, 4000),
-    bemArmIn: numberField('bemArmIn', 0, 200),
+    bemLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.basicEmptyWeightLbs,
+    bemArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.basicEmptyCgIn,
     crew1Lb: numberField('crew1Lb', 0, 600),
     crew2Lb: numberField('crew2Lb', 0, 600),
-    crewArmIn: numberField('crewArmIn', 0, 200),
-    passengerArmIn: numberField('passengerArmIn', 0, 200),
-    fuelArmIn: numberField('fuelArmIn', 0, 200),
-    baggageArmIn: numberField('baggageArmIn', 0, 250),
-    maxRampWeightLb: numberField('maxRampWeightLb', 0, 5000),
-    maxTakeoffWeightLb: numberField('maxTakeoffWeightLb', 0, 5000),
-    maxLandingWeightLb: numberField('maxLandingWeightLb', 0, 5000),
-    cgForwardLimitIn: numberField('cgForwardLimitIn', 0, 200),
-    cgAftLimitIn: numberField('cgAftLimitIn', 0, 200),
+    crewArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.cockpit.armIn,
+    passengerArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.rearSeats.armIn,
+    fuelArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.armIn,
+    baggageArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.baggage.armIn,
+    baggageLimitLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.baggage.weightLimitLbs,
+    fuelCapacityLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.weightLimitLbs,
+    fuelCapacityGal: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.usableGallons,
+    gearRetractionMomentChangeInLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.gearRetractionMomentChangeInLb,
+    maxZeroFuelWeightLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxZeroFuelWeightLbs,
+    maxRampWeightLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxRampWeightLbs,
+    maxTakeoffWeightLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxTakeoffWeightLbs,
+    maxLandingWeightLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxLandingWeightLbs,
+    cgForwardLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.forwardCgLimits.at(-1).cgIn,
+    cgAftLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.aftCgLimits.at(-1).cgIn,
+    weightBalanceProfile: AIRCRAFT_WEIGHT_BALANCE_PROFILE,
     stabTrim: textField('stabTrim', 20).toUpperCase(),
     releaseName: textField('releaseName', 60).toUpperCase(),
     releaseAccepted: input.releaseAccepted === true || input.releaseAccepted === 'true'
@@ -3851,26 +3888,64 @@ function operationalFlightPlanDefaults(request) {
     extraFuelGal: 0,
     alternateDistanceNm: 0,
     alternateEetMinutes: 0,
-    bemLb: AIRCRAFT_PROFILE.basicEmptyWeightLbs,
-    bemArmIn: 86.32,
+    bemLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.basicEmptyWeightLbs,
+    bemArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.basicEmptyCgIn,
     crew1Lb: 0,
     crew2Lb: 0,
-    crewArmIn: 80.5,
-    passengerArmIn: 118.11,
-    fuelArmIn: 94.98,
-    baggageArmIn: 142.87,
-    maxRampWeightLb: AIRCRAFT_PROFILE.maxRampWeightLbs,
-    maxTakeoffWeightLb: AIRCRAFT_PROFILE.maxTakeoffWeightLbs,
-    maxLandingWeightLb: AIRCRAFT_PROFILE.maxLandingWeightLbs,
-    cgForwardLimitIn: 0,
-    cgAftLimitIn: 0,
+    crewArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.cockpit.armIn,
+    passengerArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.rearSeats.armIn,
+    fuelArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.armIn,
+    baggageArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.baggage.armIn,
+    baggageLimitLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.baggage.weightLimitLbs,
+    fuelCapacityLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.weightLimitLbs,
+    fuelCapacityGal: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.usableGallons,
+    gearRetractionMomentChangeInLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.gearRetractionMomentChangeInLb,
+    maxZeroFuelWeightLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxZeroFuelWeightLbs,
+    maxRampWeightLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxRampWeightLbs,
+    maxTakeoffWeightLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxTakeoffWeightLbs,
+    maxLandingWeightLb: AIRCRAFT_WEIGHT_BALANCE_PROFILE.maxLandingWeightLbs,
+    cgForwardLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.forwardCgLimits.at(-1).cgIn,
+    cgAftLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.aftCgLimits.at(-1).cgIn,
+    weightBalanceProfile: AIRCRAFT_WEIGHT_BALANCE_PROFILE,
     stabTrim: '',
     releaseName: commander,
     releaseAccepted: false
   };
 }
 
+function operationalCgLimitAtWeight(points, weightLbs) {
+  const weight = Number(weightLbs);
+  if (!Number.isFinite(weight) || !points.length) return 0;
+  if (weight <= points[0].weightLbs) return points[0].cgIn;
+  const last = points.at(-1);
+  if (weight >= last.weightLbs) return last.cgIn;
+  for (let index = 1; index < points.length; index += 1) {
+    const upper = points[index];
+    const lower = points[index - 1];
+    if (weight <= upper.weightLbs) {
+      const ratio = (weight - lower.weightLbs) / (upper.weightLbs - lower.weightLbs);
+      return lower.cgIn + ((upper.cgIn - lower.cgIn) * ratio);
+    }
+  }
+  return last.cgIn;
+}
+
+function operationalCgEnvelopeStatus(weightLbs, cgIn) {
+  const profile = AIRCRAFT_WEIGHT_BALANCE_PROFILE;
+  const minimumWeight = profile.forwardCgLimits[0].weightLbs;
+  const maximumWeight = profile.forwardCgLimits.at(-1).weightLbs;
+  const forwardLimitIn = operationalCgLimitAtWeight(profile.forwardCgLimits, weightLbs);
+  const aftLimitIn = operationalCgLimitAtWeight(profile.aftCgLimits, weightLbs);
+  const weightInRange = weightLbs >= minimumWeight && weightLbs <= maximumWeight;
+  return {
+    forwardLimitIn: ofpRound(forwardLimitIn, 2),
+    aftLimitIn: ofpRound(aftLimitIn, 2),
+    withinEnvelope: weightInRange && cgIn >= forwardLimitIn && cgIn <= aftLimitIn
+  };
+}
+
 function operationalFlightPlanCalculations(plan, request) {
+  const profile = AIRCRAFT_WEIGHT_BALANCE_PROFILE;
   const passengerWeightLb = ofpRound(getRequestPassengers(request).reduce((sum, passenger) => sum + (Number(passenger.weightKg) || 0), 0) * 2.20462, 1);
   const baggageWeightLb = request?.carryOnBags === 'YES' ? ofpRound((Number(request.baggageWeightKg) || 0) * 2.20462, 1) : 0;
   const blockFuelGal = ofpRound(
@@ -3882,29 +3957,44 @@ function operationalFlightPlanCalculations(plan, request) {
       + Number(plan.extraFuelGal || 0),
     1
   );
-  const fuelWeightLb = ofpRound(blockFuelGal * 6, 1);
+  const fuelWeightLb = ofpRound(blockFuelGal * profile.fuelWeightPerGallonLbs, 1);
   const crewWeightLb = ofpRound(Number(plan.crew1Lb || 0) + Number(plan.crew2Lb || 0), 1);
-  const zeroFuelWeightLb = ofpRound(Number(plan.bemLb || 0) + crewWeightLb + passengerWeightLb + baggageWeightLb, 1);
+  const zeroFuelWeightLb = ofpRound(profile.basicEmptyWeightLbs + crewWeightLb + passengerWeightLb + baggageWeightLb, 1);
   const rampWeightLb = ofpRound(zeroFuelWeightLb + fuelWeightLb, 1);
-  const taxiBurnLb = ofpRound(Number(plan.taxiFuelGal || 0) * 6, 1);
-  const tripBurnLb = ofpRound(Number(plan.tripFuelGal || 0) * 6, 1);
+  const taxiBurnLb = ofpRound(Number(plan.taxiFuelGal || 0) * profile.fuelWeightPerGallonLbs, 1);
+  const tripBurnLb = ofpRound(Number(plan.tripFuelGal || 0) * profile.fuelWeightPerGallonLbs, 1);
   const takeoffWeightLb = ofpRound(Math.max(0, rampWeightLb - taxiBurnLb), 1);
   const landingWeightLb = ofpRound(Math.max(0, takeoffWeightLb - tripBurnLb), 1);
-  const bemMoment = Number(plan.bemLb || 0) * Number(plan.bemArmIn || 0);
-  const crewMoment = crewWeightLb * Number(plan.crewArmIn || 0);
-  const passengerMoment = passengerWeightLb * Number(plan.passengerArmIn || 0);
-  const baggageMoment = baggageWeightLb * Number(plan.baggageArmIn || 0);
+  const bemMoment = profile.basicEmptyWeightLbs * profile.basicEmptyCgIn;
+  const crewMoment = crewWeightLb * profile.stations.cockpit.armIn;
+  const passengerMoment = passengerWeightLb * profile.stations.rearSeats.armIn;
+  const baggageMoment = baggageWeightLb * profile.stations.baggage.armIn;
+  const zeroFuelMoment = bemMoment + crewMoment + passengerMoment + baggageMoment;
   const takeoffFuelWeight = Math.max(0, fuelWeightLb - taxiBurnLb);
-  const takeoffMoment = bemMoment + crewMoment + passengerMoment + baggageMoment + (takeoffFuelWeight * Number(plan.fuelArmIn || 0));
+  const landingFuelWeight = Math.max(0, takeoffFuelWeight - tripBurnLb);
+  const takeoffMoment = zeroFuelMoment + (takeoffFuelWeight * profile.stations.fuel.armIn);
+  const takeoffGearUpMoment = takeoffMoment + profile.gearRetractionMomentChangeInLb;
+  const landingMoment = zeroFuelMoment + (landingFuelWeight * profile.stations.fuel.armIn);
+  const zeroFuelCgIn = zeroFuelWeightLb > 0 ? ofpRound(zeroFuelMoment / zeroFuelWeightLb, 2) : 0;
   const takeoffCgIn = takeoffWeightLb > 0 ? ofpRound(takeoffMoment / takeoffWeightLb, 2) : 0;
+  const takeoffGearUpCgIn = takeoffWeightLb > 0 ? ofpRound(takeoffGearUpMoment / takeoffWeightLb, 2) : 0;
+  const landingCgIn = landingWeightLb > 0 ? ofpRound(landingMoment / landingWeightLb, 2) : 0;
+  const takeoffEnvelope = operationalCgEnvelopeStatus(takeoffWeightLb, takeoffCgIn);
+  const gearUpEnvelope = operationalCgEnvelopeStatus(takeoffWeightLb, takeoffGearUpCgIn);
+  const landingEnvelope = operationalCgEnvelopeStatus(landingWeightLb, landingCgIn);
+  const zeroFuelEnvelope = operationalCgEnvelopeStatus(zeroFuelWeightLb, zeroFuelCgIn);
   const warnings = [];
   if (!crewWeightLb) warnings.push('ENTER CREW WEIGHTS');
-  if (rampWeightLb > Number(plan.maxRampWeightLb || 0)) warnings.push('RAMP WEIGHT EXCEEDS ENTERED LIMIT');
-  if (takeoffWeightLb > Number(plan.maxTakeoffWeightLb || 0)) warnings.push('TAKEOFF WEIGHT EXCEEDS ENTERED LIMIT');
-  if (landingWeightLb > Number(plan.maxLandingWeightLb || 0)) warnings.push('LANDING WEIGHT EXCEEDS ENTERED LIMIT');
-  if (!plan.cgForwardLimitIn || !plan.cgAftLimitIn) warnings.push('ENTER APPROVED CG LIMITS');
-  if (plan.cgForwardLimitIn && takeoffCgIn < Number(plan.cgForwardLimitIn)) warnings.push('CG FORWARD OF ENTERED LIMIT');
-  if (plan.cgAftLimitIn && takeoffCgIn > Number(plan.cgAftLimitIn)) warnings.push('CG AFT OF ENTERED LIMIT');
+  if (baggageWeightLb > profile.stations.baggage.weightLimitLbs) warnings.push('BAGGAGE EXCEEDS 200 LB STATION LIMIT');
+  if (fuelWeightLb > profile.stations.fuel.weightLimitLbs) warnings.push('FUEL EXCEEDS 288 LB / 48 USG LIMIT');
+  if (zeroFuelWeightLb > profile.maxZeroFuelWeightLbs) warnings.push('ZERO FUEL WEIGHT EXCEEDS 2650 LB LIMIT');
+  if (rampWeightLb > profile.maxRampWeightLbs) warnings.push('RAMP WEIGHT EXCEEDS 2657 LB LIMIT');
+  if (takeoffWeightLb > profile.maxTakeoffWeightLbs) warnings.push('TAKEOFF WEIGHT EXCEEDS 2650 LB LIMIT');
+  if (landingWeightLb > profile.maxLandingWeightLbs) warnings.push('LANDING WEIGHT EXCEEDS 2650 LB LIMIT');
+  if (!zeroFuelEnvelope.withinEnvelope) warnings.push('ZERO FUEL POINT OUTSIDE APPROVED CG ENVELOPE');
+  if (!takeoffEnvelope.withinEnvelope) warnings.push('TAKEOFF POINT OUTSIDE APPROVED CG ENVELOPE');
+  if (!gearUpEnvelope.withinEnvelope) warnings.push('GEAR-UP POINT OUTSIDE APPROVED CG ENVELOPE');
+  if (!landingEnvelope.withinEnvelope) warnings.push('LANDING POINT OUTSIDE APPROVED CG ENVELOPE');
   if (!String(plan.route || '').trim()) warnings.push('ENTER PILOT ROUTE');
   if (!String(plan.alternate || '').trim()) warnings.push('ALTERNATE REVIEW OPEN');
   return {
@@ -3917,7 +4007,13 @@ function operationalFlightPlanCalculations(plan, request) {
     rampWeightLb,
     takeoffWeightLb,
     landingWeightLb,
+    zeroFuelCgIn,
     takeoffCgIn,
+    takeoffGearUpCgIn,
+    landingCgIn,
+    forwardCgLimitIn: takeoffEnvelope.forwardLimitIn,
+    aftCgLimitIn: takeoffEnvelope.aftLimitIn,
+    weightBalanceProfile: profile,
     warnings,
     calculationStatus: warnings.length ? 'REVIEW REQUIRED' : 'CALCULATED / VERIFY POH'
   };
@@ -4066,6 +4162,7 @@ function ofpPdfDuration(minutes) {
 
 async function createOperationalFlightPlanPdf(request) {
   const plan = normalizeOperationalFlightPlan(request.operationalFlightPlan || operationalFlightPlanDefaults(request), request);
+  const wbProfile = AIRCRAFT_WEIGHT_BALANCE_PROFILE;
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
   const courier = await pdfDoc.embedFont(fs.readFileSync(path.join(__dirname, 'cour.ttf')), { subset: true });
@@ -4203,8 +4300,8 @@ async function createOperationalFlightPlanPdf(request) {
   });
   drawTop(page2, plan.blockFuelGal, 214, 267, 10.5, { maxWidth: 38 });
   drawTop(page2, fuelTime(plan.blockFuelGal / Math.max(plan.fuelFlowGph, 0.1) * 60), 266.3, 267, 10.5, { maxWidth: 42 });
-  const departureFuelLb = ofpRound(Math.max(0, plan.fuelWeightLb - (plan.taxiFuelGal * 6)), 1);
-  const tripBurnLb = ofpRound(plan.tripFuelGal * 6, 1);
+  const departureFuelLb = ofpRound(Math.max(0, plan.fuelWeightLb - (plan.taxiFuelGal * wbProfile.fuelWeightPerGallonLbs)), 1);
+  const tripBurnLb = ofpRound(plan.tripFuelGal * wbProfile.fuelWeightPerGallonLbs, 1);
   const arrivalFuelLb = ofpRound(Math.max(0, departureFuelLb - tripBurnLb), 1);
   drawTop(page2, `${plan.fuelWeightLb} LB`, 480.3, 161.6, 10.5, { maxWidth: 62 });
   drawTop(page2, `${departureFuelLb} LB`, 480.3, 186.3, 10.5, { maxWidth: 62 });
@@ -4213,15 +4310,15 @@ async function createOperationalFlightPlanPdf(request) {
   const passengerCount = getRequestPassengers(request).length;
   const manifestRows = [
     [plan.releaseAccepted ? '1' : '0', '', plan.releaseAccepted ? utcPart(plan.actualOut || plan.estimatedOut) : '......', 367.3],
-    [plan.bemLb, '-----', plan.bemLb, 392.4],
+    [wbProfile.basicEmptyWeightLbs, '-----', wbProfile.basicEmptyWeightLbs, 392.4],
     [passengerCount, '3', passengerCount, 417.8],
-    [plan.baggageWeightLb, '200', plan.baggageWeightLb, 441.2],
-    [plan.zeroFuelWeightLb, plan.maxTakeoffWeightLb, plan.zeroFuelWeightLb, 467.6],
-    [plan.fuelWeightLb, '290', plan.fuelWeightLb, 491.1],
-    [plan.rampWeightLb, plan.maxRampWeightLb, plan.rampWeightLb, 514.7],
-    [plan.takeoffWeightLb, plan.maxTakeoffWeightLb, plan.takeoffWeightLb, 539.9],
+    [plan.baggageWeightLb, wbProfile.stations.baggage.weightLimitLbs, plan.baggageWeightLb, 441.2],
+    [plan.zeroFuelWeightLb, wbProfile.maxZeroFuelWeightLbs, plan.zeroFuelWeightLb, 467.6],
+    [plan.fuelWeightLb, wbProfile.stations.fuel.weightLimitLbs, plan.fuelWeightLb, 491.1],
+    [plan.rampWeightLb, wbProfile.maxRampWeightLbs, plan.rampWeightLb, 514.7],
+    [plan.takeoffWeightLb, wbProfile.maxTakeoffWeightLbs, plan.takeoffWeightLb, 539.9],
     [plan.stabTrim || '------', '+/-5', plan.stabTrim || '......', 565],
-    [plan.landingWeightLb, plan.maxLandingWeightLb, plan.landingWeightLb, 590.1]
+    [plan.landingWeightLb, wbProfile.maxLandingWeightLbs, plan.landingWeightLb, 590.1]
   ];
   manifestRows.forEach(([estimated, maximum, actual, top]) => {
     drawTop(page2, estimated, 147.9, top, 10.2, { maxWidth: 48 });
@@ -4235,14 +4332,14 @@ async function createOperationalFlightPlanPdf(request) {
 
   drawTop(page3, registration, 55.1, 25.7, 11.2, { font: courierBold, maxWidth: 72 });
   drawTop(page3, model, 141.2, 26.7, 11.2, { font: courierBold, maxWidth: 82 });
-  const takeoffFuelLb = ofpRound(Math.max(0, plan.fuelWeightLb - (plan.taxiFuelGal * 6)), 1);
+  const takeoffFuelLb = ofpRound(Math.max(0, plan.fuelWeightLb - (plan.taxiFuelGal * wbProfile.fuelWeightPerGallonLbs)), 1);
   const wbRows = [
-    [plan.bemLb, plan.bemLb, plan.bemArmIn, ofpRound(plan.bemLb * plan.bemArmIn, 2), 133.7],
-    [plan.crewWeightLb, '----', plan.crewArmIn, ofpRound(plan.crewWeightLb * plan.crewArmIn, 2), 160.7],
-    [plan.passengerWeightLb, '----', plan.passengerArmIn, ofpRound(plan.passengerWeightLb * plan.passengerArmIn, 2), 187.8],
-    [takeoffFuelLb, 48, plan.fuelArmIn, ofpRound(takeoffFuelLb * plan.fuelArmIn, 2), 214.8],
-    [plan.baggageWeightLb, 200, plan.baggageArmIn, ofpRound(plan.baggageWeightLb * plan.baggageArmIn, 2), 241.8],
-    ['----', '----', '------', '83.2', 268.9]
+    [wbProfile.basicEmptyWeightLbs, wbProfile.basicEmptyWeightLbs, wbProfile.basicEmptyCgIn, ofpRound(wbProfile.basicEmptyWeightLbs * wbProfile.basicEmptyCgIn, 2), 133.7],
+    [plan.crewWeightLb, '----', wbProfile.stations.cockpit.armIn, ofpRound(plan.crewWeightLb * wbProfile.stations.cockpit.armIn, 2), 160.7],
+    [plan.passengerWeightLb, '----', wbProfile.stations.rearSeats.armIn, ofpRound(plan.passengerWeightLb * wbProfile.stations.rearSeats.armIn, 2), 187.8],
+    [takeoffFuelLb, wbProfile.stations.fuel.weightLimitLbs, wbProfile.stations.fuel.armIn, ofpRound(takeoffFuelLb * wbProfile.stations.fuel.armIn, 2), 214.8],
+    [plan.baggageWeightLb, wbProfile.stations.baggage.weightLimitLbs, wbProfile.stations.baggage.armIn, ofpRound(plan.baggageWeightLb * wbProfile.stations.baggage.armIn, 2), 241.8],
+    ['----', '----', '------', wbProfile.gearRetractionMomentChangeInLb, 268.9]
   ];
   wbRows.forEach(([weight, maximum, arm, moment, top]) => {
     drawTop(page3, weight, 163.7, top, 10.5, { maxWidth: 52 });
@@ -4251,7 +4348,7 @@ async function createOperationalFlightPlanPdf(request) {
     drawTop(page3, moment, 334.6, top, 10.5, { maxWidth: 67 });
   });
   drawTop(page3, plan.takeoffWeightLb, 163.7, 295.9, 10.5, { maxWidth: 52 });
-  drawTop(page3, plan.maxTakeoffWeightLb, 227.7, 295.9, 10.5, { maxWidth: 42 });
+  drawTop(page3, wbProfile.maxTakeoffWeightLbs, 227.7, 295.9, 10.5, { maxWidth: 42 });
   drawTop(page3, 'TOTAL', 277.4, 295.9, 10.5, { fallback: '' });
   drawTop(page3, '=', 406.8, 295.9, 10.5, { fallback: '' });
   drawTop(page3, `${plan.takeoffCgIn} IN`, 424.6, 295.9, 10.5, { maxWidth: 72 });
@@ -4275,12 +4372,19 @@ async function createOperationalFlightPlanPdf(request) {
     page3.drawLine({ start: { x: plot.x, y }, end: { x: plot.x + plot.w, y }, thickness: weight % 200 === 0 ? 0.5 : 0.25, color: lightGrid });
     if (weight % 200 === 0) page3.drawText(String(weight), { x: plot.x - 31, y: y - 2.5, size: 6.5, font: sansBold, color: ink });
   }
-  const envelope = [[80, 1400], [80, 1800], [82, 2300], [87.4, 2650], [93, 2650], [93, 1400], [80, 1400]];
+  const envelope = [
+    ...wbProfile.forwardCgLimits.map(point => [point.cgIn, point.weightLbs]),
+    ...[...wbProfile.aftCgLimits].reverse().map(point => [point.cgIn, point.weightLbs]),
+    [wbProfile.forwardCgLimits[0].cgIn, wbProfile.forwardCgLimits[0].weightLbs]
+  ];
   envelope.slice(0, -1).forEach((point, index) => {
     const next = envelope[index + 1];
     page3.drawLine({ start: { x: graphX(point[0]), y: graphY(point[1]) }, end: { x: graphX(next[0]), y: graphY(next[1]) }, thickness: 1.4, color: ink });
   });
-  const zeroFuelMoment = (plan.bemLb * plan.bemArmIn) + (plan.crewWeightLb * plan.crewArmIn) + (plan.passengerWeightLb * plan.passengerArmIn) + (plan.baggageWeightLb * plan.baggageArmIn);
+  const zeroFuelMoment = (wbProfile.basicEmptyWeightLbs * wbProfile.basicEmptyCgIn)
+    + (plan.crewWeightLb * wbProfile.stations.cockpit.armIn)
+    + (plan.passengerWeightLb * wbProfile.stations.rearSeats.armIn)
+    + (plan.baggageWeightLb * wbProfile.stations.baggage.armIn);
   const zeroFuelCg = plan.zeroFuelWeightLb > 0 ? zeroFuelMoment / plan.zeroFuelWeightLb : 0;
   const zfwX = graphX(zeroFuelCg);
   const zfwY = graphY(plan.zeroFuelWeightLb);
