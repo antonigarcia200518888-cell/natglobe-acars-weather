@@ -67,8 +67,14 @@
     .envelope-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; margin-top:8px; }
     .envelope-point { border:1px solid #263742; padding:7px; color:#fff; font-size:10px; }
     .envelope-point span { display:block; color:var(--muted); font-size:8px; margin-bottom:3px; }
+    .load-source { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)) auto; gap:8px; align-items:stretch; border:1px solid #31536a; background:#03090d; padding:10px; }
+    .source-item { border:1px solid #263742; padding:9px 10px; min-width:0; }
+    .source-item span { display:block; color:var(--muted); font-size:8px; letter-spacing:.1em; text-transform:uppercase; }
+    .source-item strong { display:block; margin-top:5px; color:var(--green); font-size:11px; overflow-wrap:anywhere; }
+    .source-item.override strong { color:var(--amber); }
+    .load-help { grid-column:1/-1; color:var(--muted); font-size:9px; line-height:1.45; text-transform:uppercase; }
     @media (max-width:1050px) { .workspace { grid-template-columns:1fr; } .console { position:static; grid-template-columns:repeat(2,1fr); } .notice, .save-state { grid-column:1/-1; } }
-    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .load-source { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -151,6 +157,16 @@
               <label>BEM arm (IN)<input data-field="bemArmIn" type="number" readonly /></label>
               <label>Crew 1 (LB)<input data-field="crew1Lb" type="number" min="0" step="1" /></label>
               <label>Crew 2 (LB)<input data-field="crew2Lb" type="number" min="0" step="1" /></label>
+              <label>Booking passenger total (LB)<input data-field="bookingPassengerWeightLb" type="number" readonly /></label>
+              <label>Actual passenger total (LB)<input data-field="passengerWeightOverrideLb" type="number" min="0" max="1200" step="0.1" placeholder="Uses booking manifest" /></label>
+              <label>Booking baggage / cargo (LB)<input data-field="bookingBaggageWeightLb" type="number" readonly /></label>
+              <label>Actual baggage / cargo (LB)<input data-field="baggageWeightOverrideLb" type="number" min="0" max="600" step="0.1" placeholder="Uses booking manifest" /></label>
+              <div class="load-source">
+                <div id="passengerSourceCard" class="source-item"><span>Passenger load source</span><strong id="passengerSource">BOOKING MANIFEST</strong></div>
+                <div id="baggageSourceCard" class="source-item"><span>Baggage / cargo source</span><strong id="baggageSource">BOOKING MANIFEST</strong></div>
+                <button id="resetLoadBtn" class="btn" type="button">Reset to booking</button>
+                <div class="load-help">Leave actual-load fields blank to use the booking automatically. Enter the measured total only when the passenger or cargo load changes before flight.</div>
+              </div>
               <label>Cockpit arm (IN)<input data-field="crewArmIn" type="number" readonly /></label>
               <label>Rear seats arm (IN)<input data-field="passengerArmIn" type="number" readonly /></label>
               <label>Fuel arm (IN)<input data-field="fuelArmIn" type="number" readonly /></label>
@@ -210,6 +226,7 @@
     const el = id => document.getElementById(id);
     const fields = () => [...document.querySelectorAll('[data-field]')];
     const num = value => Number(String(value ?? '').replace(',', '.')) || 0;
+    const optionalNum = value => value === null || value === undefined || String(value).trim() === '' ? null : num(value);
     const round = (value, digits = 1) => { const factor = 10 ** digits; return Math.round(value * factor) / factor; };
     let request = null;
     let plan = null;
@@ -263,8 +280,10 @@
       const blockFuelGal = round(['taxiFuelGal','tripFuelGal','contingencyFuelGal','alternateFuelGal','finalReserveFuelGal','extraFuelGal'].reduce((sum, key) => sum + num(plan[key]), 0), 1);
       const fuelWeightLb = round(blockFuelGal * profile.fuelWeightPerGallonLbs, 1);
       const crewWeightLb = round(num(plan.crew1Lb) + num(plan.crew2Lb), 1);
-      const passengerWeightLb = num(plan.passengerWeightLb);
-      const baggageWeightLb = num(plan.baggageWeightLb);
+      const passengerOverride = optionalNum(plan.passengerWeightOverrideLb);
+      const baggageOverride = optionalNum(plan.baggageWeightOverrideLb);
+      const passengerWeightLb = passengerOverride === null ? num(plan.bookingPassengerWeightLb) : passengerOverride;
+      const baggageWeightLb = baggageOverride === null ? num(plan.bookingBaggageWeightLb) : baggageOverride;
       const zfw = round(profile.basicEmptyWeightLbs + crewWeightLb + passengerWeightLb + baggageWeightLb, 1);
       const ramp = round(zfw + fuelWeightLb, 1);
       const taxiFuelLb = num(plan.taxiFuelGal) * profile.fuelWeightPerGallonLbs;
@@ -300,7 +319,7 @@
       if (!landingEnvelope.valid) warnings.push('Landing point is outside the approved CG envelope.');
       if (!String(plan.route || '').trim()) warnings.push('Pilot route is not complete.');
       if (!String(plan.alternate || '').trim()) warnings.push('Alternate review remains open.');
-      return { profile, blockFuelGal, fuelWeightLb, crewWeightLb, passengerWeightLb, baggageWeightLb, zfw, ramp, tow, landing, cg, gearUpCg, zfwEnvelope, takeoffEnvelope, gearUpEnvelope, landingEnvelope, warnings };
+      return { profile, blockFuelGal, fuelWeightLb, crewWeightLb, passengerWeightLb, baggageWeightLb, passengerOverride, baggageOverride, zfw, ramp, tow, landing, cg, gearUpCg, zfwEnvelope, takeoffEnvelope, gearUpEnvelope, landingEnvelope, warnings };
     }
 
     function setMetric(id, value, danger, warning = false) {
@@ -315,6 +334,10 @@
       setMetric('fuelWeight', `${calc.fuelWeightLb.toFixed(1)} LB`, calc.fuelWeightLb > calc.profile.stations.fuel.weightLimitLbs);
       el('paxWeight').textContent = `${calc.passengerWeightLb.toFixed(1)} LB`;
       setMetric('bagWeight', `${calc.baggageWeightLb.toFixed(1)} LB`, calc.baggageWeightLb > calc.profile.stations.baggage.weightLimitLbs);
+      el('passengerSource').textContent = calc.passengerOverride === null ? 'BOOKING MANIFEST' : 'PILOT ACTUAL LOAD';
+      el('baggageSource').textContent = calc.baggageOverride === null ? 'BOOKING MANIFEST' : 'PILOT ACTUAL LOAD';
+      el('passengerSourceCard').classList.toggle('override', calc.passengerOverride !== null);
+      el('baggageSourceCard').classList.toggle('override', calc.baggageOverride !== null);
       setMetric('zeroFuelWeight', `${calc.zfw.toFixed(1)} LB`, calc.zfw > calc.profile.maxZeroFuelWeightLbs || !calc.zfwEnvelope.valid);
       setMetric('rampWeight', `${calc.ramp.toFixed(1)} LB`, calc.ramp > calc.profile.maxRampWeightLbs);
       setMetric('takeoffWeight', `${calc.tow.toFixed(1)} LB`, calc.tow > calc.profile.maxTakeoffWeightLbs);
@@ -383,13 +406,21 @@
       if (next) { next.value = stamp; saved = false; render(); next.focus(); }
       else el('saveState').textContent = 'All actual movement times are already populated.';
     });
+    el('resetLoadBtn').addEventListener('click', () => {
+      inputFor('passengerWeightOverrideLb').value = '';
+      inputFor('baggageWeightOverrideLb').value = '';
+      if (inputFor('releaseAccepted').checked) inputFor('releaseAccepted').checked = false;
+      saved = false;
+      el('saveState').textContent = 'Actual-load overrides cleared. Booking manifest weights restored.';
+      render();
+    });
     el('saveBtn').addEventListener('click', () => save().catch(error => { el('saveState').textContent = error.message; }));
     el('pdfBtn').addEventListener('click', async () => {
       try { await save(); window.open(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/operational-flight-plan/pdf`, '_blank', 'noopener'); }
       catch (error) { el('saveState').textContent = error.message; }
     });
     el('backBtn').addEventListener('click', () => { location.href = '/booking-ops'; });
-    el('weatherBtn').addEventListener('click', () => { window.open('/acars', '_blank', 'noopener'); });
+    el('weatherBtn').addEventListener('click', () => { location.href = '/booking-ops#weather'; });
     load().catch(error => { el('saveState').textContent = error.message; });
   </script>
 </body>

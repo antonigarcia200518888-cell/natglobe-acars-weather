@@ -102,6 +102,13 @@
       text-transform: uppercase;
     }
 
+    html.embedded body { display: block; padding: 0; }
+    html.embedded .frame { width: 100%; border: 0; padding: 12px; }
+    html.embedded .title-row,
+    html.embedded .utc-clock,
+    html.embedded .portal-links,
+    html.embedded .intro { display: none; }
+
     .intro {
       color: #bdbdbd;
       font-size: clamp(12px, 1.3vw, 17px);
@@ -1607,6 +1614,9 @@ END OF REPORT</pre>
   </main>
 
   <script>
+    const bootParams = new URLSearchParams(window.location.search);
+    if (bootParams.get('embedded') === '1') document.documentElement.classList.add('embedded');
+
     async function clearOldCaches() {
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
@@ -1694,6 +1704,10 @@ END OF REPORT`;
       includeWindsAloft: el('includeWindsAloft'),
       fullWeather: el('fullWeather')
     };
+
+    if (/^[A-Z0-9]{4}$/i.test(bootParams.get('dep') || '')) fields.dep.value = bootParams.get('dep').toUpperCase();
+    if (/^[A-Z0-9]{4}$/i.test(bootParams.get('arr') || '')) fields.arr.value = bootParams.get('arr').toUpperCase();
+    if (fields.dep.value && fields.arr.value) fields.route.value = `${fields.dep.value}-${fields.arr.value}`;
 
     const statusBox = el('statusBox');
     const wxModeStrip = el('wxModeStrip');

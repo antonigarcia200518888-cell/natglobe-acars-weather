@@ -1036,6 +1036,11 @@ function normalizeOperationalFlightPlan(input, request) {
   const defaults = operationalFlightPlanDefaults(request);
   const textField = (name, max = 80) => normalizeBookingText(input[name] ?? defaults[name], max);
   const numberField = (name, min = 0, max = 10000) => operationalPlanNumber(input[name], defaults[name], min, max);
+  const optionalNumberField = (name, min = 0, max = 10000) => {
+    const raw = input[name];
+    if (raw === null || raw === undefined || String(raw).trim() === '') return null;
+    return operationalPlanNumber(raw, null, min, max);
+  };
   const plan = {
     version: 'NGA-OFP-2026-07',
     updatedAt: new Date().toISOString(),
@@ -1084,6 +1089,8 @@ function normalizeOperationalFlightPlan(input, request) {
     bemArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.basicEmptyCgIn,
     crew1Lb: numberField('crew1Lb', 0, 600),
     crew2Lb: numberField('crew2Lb', 0, 600),
+    passengerWeightOverrideLb: optionalNumberField('passengerWeightOverrideLb', 0, 1200),
+    baggageWeightOverrideLb: optionalNumberField('baggageWeightOverrideLb', 0, 600),
     crewArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.cockpit.armIn,
     passengerArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.rearSeats.armIn,
     fuelArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.armIn,
@@ -3892,6 +3899,8 @@ function operationalFlightPlanDefaults(request) {
     bemArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.basicEmptyCgIn,
     crew1Lb: 0,
     crew2Lb: 0,
+    passengerWeightOverrideLb: null,
+    baggageWeightOverrideLb: null,
     crewArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.cockpit.armIn,
     passengerArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.rearSeats.armIn,
     fuelArmIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.armIn,
@@ -3946,8 +3955,12 @@ function operationalCgEnvelopeStatus(weightLbs, cgIn) {
 
 function operationalFlightPlanCalculations(plan, request) {
   const profile = AIRCRAFT_WEIGHT_BALANCE_PROFILE;
-  const passengerWeightLb = ofpRound(getRequestPassengers(request).reduce((sum, passenger) => sum + (Number(passenger.weightKg) || 0), 0) * 2.20462, 1);
-  const baggageWeightLb = request?.carryOnBags === 'YES' ? ofpRound((Number(request.baggageWeightKg) || 0) * 2.20462, 1) : 0;
+  const bookingPassengerWeightLb = ofpRound(getRequestPassengers(request).reduce((sum, passenger) => sum + (Number(passenger.weightKg) || 0), 0) * 2.20462, 1);
+  const bookingBaggageWeightLb = request?.carryOnBags === 'YES' ? ofpRound((Number(request.baggageWeightKg) || 0) * 2.20462, 1) : 0;
+  const hasPassengerOverride = plan.passengerWeightOverrideLb !== null && plan.passengerWeightOverrideLb !== undefined && Number.isFinite(Number(plan.passengerWeightOverrideLb));
+  const hasBaggageOverride = plan.baggageWeightOverrideLb !== null && plan.baggageWeightOverrideLb !== undefined && Number.isFinite(Number(plan.baggageWeightOverrideLb));
+  const passengerWeightLb = hasPassengerOverride ? ofpRound(Number(plan.passengerWeightOverrideLb), 1) : bookingPassengerWeightLb;
+  const baggageWeightLb = hasBaggageOverride ? ofpRound(Number(plan.baggageWeightOverrideLb), 1) : bookingBaggageWeightLb;
   const blockFuelGal = ofpRound(
     Number(plan.taxiFuelGal || 0)
       + Number(plan.tripFuelGal || 0)
@@ -3998,8 +4011,12 @@ function operationalFlightPlanCalculations(plan, request) {
   if (!String(plan.route || '').trim()) warnings.push('ENTER PILOT ROUTE');
   if (!String(plan.alternate || '').trim()) warnings.push('ALTERNATE REVIEW OPEN');
   return {
+    bookingPassengerWeightLb,
+    bookingBaggageWeightLb,
     passengerWeightLb,
     baggageWeightLb,
+    passengerWeightSource: hasPassengerOverride ? 'PILOT ACTUAL LOAD' : 'BOOKING MANIFEST',
+    baggageWeightSource: hasBaggageOverride ? 'PILOT ACTUAL LOAD' : 'BOOKING MANIFEST',
     blockFuelGal,
     fuelWeightLb,
     crewWeightLb,

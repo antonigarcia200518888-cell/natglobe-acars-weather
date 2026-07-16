@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Private Flight Operations</title>
+  <title>NGA Pilot Operations Centre</title>
   <style>
     :root {
       --bg: #000;
@@ -92,6 +92,86 @@
       color: var(--live);
       text-transform: uppercase;
     }
+
+    .ops-suite-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .suite-tab {
+      min-height: 66px;
+      border: 1px solid #46535e;
+      background: linear-gradient(145deg, #071019, #020405);
+      color: #aab7c0;
+      padding: 9px 11px;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      text-transform: uppercase;
+    }
+
+    .suite-tab span,
+    .suite-tab strong,
+    .suite-tab small { display: block; }
+    .suite-tab span { color: #738491; font-size: 9px; letter-spacing: .12em; }
+    .suite-tab strong { margin-top: 5px; color: #fff; font-size: 13px; }
+    .suite-tab small { margin-top: 3px; color: #7f909b; font-size: 9px; line-height: 1.25; }
+    .suite-tab:hover,
+    .suite-tab.active { border-color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+    .suite-tab.active span,
+    .suite-tab.active strong { color: var(--accent); }
+
+    .ops-tool-workspace {
+      border: 2px solid var(--line);
+      background: #030608;
+      margin-bottom: 12px;
+      min-height: 620px;
+    }
+
+    .tool-workspace-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 13px 14px;
+      border-bottom: 1px solid #3e4d58;
+    }
+
+    .tool-workspace-head span { display: block; color: #758896; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .tool-workspace-head strong { display: block; margin-top: 5px; color: #fff; font-size: 16px; text-transform: uppercase; }
+    .tool-flight-context { color: var(--live); font-size: 11px; text-transform: uppercase; text-align: right; }
+    .ops-tool-pane { padding: 12px; }
+    .weather-frame { width: 100%; height: min(72vh, 860px); min-height: 600px; border: 1px solid #46535e; background: #000; }
+
+    .performance-form {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .performance-form label { color: #8797a2; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .performance-form input { width: 100%; min-height: 40px; margin-top: 5px; border: 1px solid #4b5a65; background: #000; color: #fff; padding: 8px; font: 12px "Courier New", monospace; text-transform: uppercase; }
+    .performance-run { min-height: 40px; align-self: end; border: 1px solid var(--live); background: var(--live); color: #001308; font: 700 11px "Courier New", monospace; cursor: pointer; text-transform: uppercase; }
+    .performance-status { border-left: 2px solid var(--accent); padding: 8px 10px; margin-bottom: 10px; color: #a9bac5; background: #071019; font-size: 10px; line-height: 1.45; text-transform: uppercase; }
+    .performance-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .performance-leg { border: 1px solid #40505c; padding: 12px; background: #020405; }
+    .performance-leg h3 { margin: 0 0 10px; color: var(--accent); font-size: 13px; text-transform: uppercase; }
+    .performance-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .performance-metric { border: 1px solid #27353f; padding: 8px; min-width: 0; }
+    .performance-metric span { display: block; color: #758692; font-size: 8px; text-transform: uppercase; }
+    .performance-metric strong { display: block; margin-top: 5px; color: #fff; font-size: 12px; overflow-wrap: anywhere; }
+    .performance-note { margin-top: 10px; color: var(--warn); font-size: 9px; line-height: 1.45; text-transform: uppercase; }
+
+    .suite-doc-summary { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .suite-doc-summary > div { border: 1px solid #3c4b56; background: #020405; padding: 11px; }
+    .suite-doc-summary span { display: block; color: #768793; font-size: 8px; text-transform: uppercase; }
+    .suite-doc-summary strong { display: block; margin-top: 6px; color: #fff; font-size: 13px; overflow-wrap: anywhere; }
+    .suite-document-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .suite-document-actions button { min-height: 52px; border: 1px solid var(--accent); background: #03080c; color: var(--accent); padding: 9px; font: 700 10px "Courier New", monospace; cursor: pointer; text-transform: uppercase; }
+    .suite-document-actions button:disabled { opacity: .4; cursor: not-allowed; }
 
     .ops-calendar { border: 2px solid var(--line); padding: 12px; margin-bottom: 12px; background: #050505; }
     .calendar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -1017,19 +1097,68 @@
       .readiness-dial-wrap { align-items: flex-start; }
       .flight-control-head { display: block; }
       .flight-control-head em { display: block; margin-top: 8px; }
+      .ops-suite-nav { grid-template-columns: repeat(2, 1fr); }
+      .performance-form, .performance-results, .suite-doc-summary, .suite-document-actions { grid-template-columns: 1fr; }
+      .performance-metrics { grid-template-columns: repeat(2, 1fr); }
+      .tool-workspace-head { display: block; }
+      .tool-flight-context { margin-top: 8px; text-align: left; }
+      .weather-frame { min-height: 72vh; }
     }
   </style>
 </head>
 <body>
   <main class="frame">
     <div class="title-row">
-      <div class="title">PRIVATE FLIGHT OPERATIONS</div>
+      <div class="title">NGA PILOT OPERATIONS CENTRE</div>
       <div class="badge">PILOT / DISPATCH / LIVE</div>
     </div>
 
     <div id="clock" class="clock">UTC --:--:--</div>
-    <div class="intro">Live operational control for flight review, crew assignment, passenger files, schedule monitoring, and pilot decision.</div>
+    <div class="intro">One selected-flight workspace for booking control, weather, runway review, performance inputs, OFP preparation, passenger files, and pilot decision.</div>
     <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
+    <nav class="ops-suite-nav" aria-label="Pilot operations workspaces">
+      <button class="suite-tab active" type="button" data-suite-view="bookings"><span>01 / Control</span><strong>Booking Control</strong><small>Queue, crew, passengers, decisions</small></button>
+      <button class="suite-tab" type="button" data-suite-view="weather"><span>02 / Preflight</span><strong>Weather Operations</strong><small>Live briefing and dispatch weather</small></button>
+      <button class="suite-tab" type="button" data-suite-view="performance"><span>03 / Aircraft</span><strong>Runway &amp; Performance</strong><small>Weather, runway, load inputs</small></button>
+      <button class="suite-tab" type="button" data-suite-view="documents"><span>04 / Flight file</span><strong>OFP &amp; Documents</strong><small>Controlled selected-flight documents</small></button>
+    </nav>
+    <section id="opsToolWorkspace" class="ops-tool-workspace" hidden>
+      <header class="tool-workspace-head"><div><span id="toolWorkspaceKicker">Pilot tool</span><strong id="toolWorkspaceTitle">Operations workspace</strong></div><div id="toolFlightContext" class="tool-flight-context">NO FLIGHT SELECTED</div></header>
+      <div id="weatherOpsPane" class="ops-tool-pane" hidden>
+        <iframe id="weatherOpsFrame" class="weather-frame" title="NGA weather operations" data-src="/acars"></iframe>
+      </div>
+      <div id="performanceOpsPane" class="ops-tool-pane" hidden>
+        <div class="performance-form">
+          <label>Departure ICAO<input id="perfDep" maxlength="4" placeholder="EFHV" /></label>
+          <label>Departure runway<input id="perfDepRunway" maxlength="5" placeholder="04" /></label>
+          <label>Takeoff weight LB<input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" /></label>
+          <label>Arrival ICAO<input id="perfArr" maxlength="4" placeholder="EFHN" /></label>
+          <label>Arrival runway<input id="perfArrRunway" maxlength="5" placeholder="03" /></label>
+          <label>Landing weight LB<input id="perfLdw" type="number" min="1400" max="2650" step="1" placeholder="2600" /></label>
+          <button id="runPerformanceBtn" class="performance-run" type="button">Load runway &amp; weather data</button>
+        </div>
+        <div id="performanceStatus" class="performance-status">Select a flight or enter the route and runway ends. Current airport, weather, density altitude, runway, and wind-component data will load here.</div>
+        <div class="performance-results">
+          <section class="performance-leg"><h3>Takeoff review</h3><div id="takeoffPerformanceMetrics" class="performance-metrics"></div><div class="performance-note">Confirm takeoff distance, V-speeds, obstacle clearance, runway state, and margins using the current approved AFM/POH.</div></section>
+          <section class="performance-leg"><h3>Landing review</h3><div id="landingPerformanceMetrics" class="performance-metrics"></div><div class="performance-note">Confirm landing distance, approach speed, braking assumptions, runway state, and go-around capability using the current approved AFM/POH.</div></section>
+        </div>
+      </div>
+      <div id="documentsOpsPane" class="ops-tool-pane" hidden>
+        <div class="suite-doc-summary">
+          <div><span>Selected flight</span><strong id="suiteDocFlight">NO FLIGHT SELECTED</strong></div>
+          <div><span>OFP</span><strong id="suiteDocOfp">NOT STARTED</strong></div>
+          <div><span>Statement</span><strong id="suiteDocStatement">NOT SAVED</strong></div>
+          <div><span>Agreements</span><strong id="suiteDocAgreements">0 / 0</strong></div>
+        </div>
+        <div class="suite-document-actions">
+          <button id="suiteOpenOfpBtn" type="button">Build / edit OFP</button>
+          <button id="suiteOpenOfpPdfBtn" type="button">Open OFP PDF</button>
+          <button id="suiteOpenStatementBtn" type="button">Reimbursement statement</button>
+          <button id="suiteOpenFlightFileBtn" type="button">Operations flight file PDF</button>
+        </div>
+      </div>
+    </section>
+    <div id="bookingsWorkspace">
     <section class="ops-command-strip" aria-label="Operations queue totals">
       <div class="ops-command-card"><span>Total requests</span><strong id="opsTotal">0</strong></div>
       <div class="ops-command-card"><span>Needs action</span><strong id="opsNeedsAction">0</strong></div>
@@ -1270,6 +1399,7 @@ END OF MESSAGE</pre>
         </div>
       </section>
     </div>
+    </div>
   </main>
 
   <script>
@@ -1383,6 +1513,30 @@ END OF MESSAGE</pre>
     const openStatementControlBtn = el('openStatementControlBtn');
     const jumpManifestBtn = el('jumpManifestBtn');
     const openFlightFileControlBtn = el('openFlightFileControlBtn');
+    const suiteTabs = [...document.querySelectorAll('[data-suite-view]')];
+    const bookingsWorkspace = el('bookingsWorkspace');
+    const opsToolWorkspace = el('opsToolWorkspace');
+    const weatherOpsPane = el('weatherOpsPane');
+    const performanceOpsPane = el('performanceOpsPane');
+    const documentsOpsPane = el('documentsOpsPane');
+    const weatherOpsFrame = el('weatherOpsFrame');
+    const toolWorkspaceKicker = el('toolWorkspaceKicker');
+    const toolWorkspaceTitle = el('toolWorkspaceTitle');
+    const toolFlightContext = el('toolFlightContext');
+    const perfDep = el('perfDep');
+    const perfDepRunway = el('perfDepRunway');
+    const perfTow = el('perfTow');
+    const perfArr = el('perfArr');
+    const perfArrRunway = el('perfArrRunway');
+    const perfLdw = el('perfLdw');
+    const runPerformanceBtn = el('runPerformanceBtn');
+    const performanceStatus = el('performanceStatus');
+    const takeoffPerformanceMetrics = el('takeoffPerformanceMetrics');
+    const landingPerformanceMetrics = el('landingPerformanceMetrics');
+    const suiteOpenOfpBtn = el('suiteOpenOfpBtn');
+    const suiteOpenOfpPdfBtn = el('suiteOpenOfpPdfBtn');
+    const suiteOpenStatementBtn = el('suiteOpenStatementBtn');
+    const suiteOpenFlightFileBtn = el('suiteOpenFlightFileBtn');
 
     const OPS_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', label: '(HEL) Helsinki-Vantaa' },
@@ -1432,6 +1586,115 @@ END OF MESSAGE</pre>
 
     function text(value, fallback = '.....') {
       return value === 0 || value ? String(value) : fallback;
+    }
+
+    function updateSuiteContext(req = selected) {
+      const passengers = req ? passengerList(req) : [];
+      const signed = req ? agreementCount(req) : 0;
+      toolFlightContext.textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
+      el('suiteDocFlight').textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`}` : 'NO FLIGHT SELECTED';
+      el('suiteDocOfp').textContent = req?.operationalFlightPlan?.releaseAccepted ? 'RELEASED' : req?.operationalFlightPlan ? 'DRAFT SAVED' : 'NOT STARTED';
+      el('suiteDocStatement').textContent = req?.reimbursementStatement ? 'SAVED' : 'NOT SAVED';
+      el('suiteDocAgreements').textContent = req ? `${signed} / ${passengers.length} SIGNED` : '0 / 0';
+      suiteOpenOfpBtn.disabled = !req;
+      suiteOpenOfpPdfBtn.disabled = !req?.operationalFlightPlan;
+      suiteOpenStatementBtn.disabled = !req;
+      suiteOpenFlightFileBtn.disabled = !req;
+      if (req) {
+        perfDep.value = req.dep || '';
+        perfArr.value = req.arr || '';
+        perfTow.value = req.operationalFlightPlan?.takeoffWeightLb || '';
+        perfLdw.value = req.operationalFlightPlan?.landingWeightLb || '';
+      }
+    }
+
+    function switchOpsWorkspace(view) {
+      const allowedViews = new Set(['bookings', 'weather', 'performance', 'documents']);
+      if (!allowedViews.has(view)) view = 'bookings';
+      suiteTabs.forEach(button => button.classList.toggle('active', button.dataset.suiteView === view));
+      const bookingsActive = view === 'bookings';
+      bookingsWorkspace.hidden = !bookingsActive;
+      opsToolWorkspace.hidden = bookingsActive;
+      weatherOpsPane.hidden = view !== 'weather';
+      performanceOpsPane.hidden = view !== 'performance';
+      documentsOpsPane.hidden = view !== 'documents';
+      if (view === 'weather') {
+        toolWorkspaceKicker.textContent = 'Preflight / Live data';
+        toolWorkspaceTitle.textContent = 'Weather Operations';
+        const weatherUrl = new URL(weatherOpsFrame.dataset.src, location.origin);
+        weatherUrl.searchParams.set('embedded', '1');
+        if (selected?.dep) weatherUrl.searchParams.set('dep', selected.dep);
+        if (selected?.arr) weatherUrl.searchParams.set('arr', selected.arr);
+        const weatherContext = `${selected?.dep || ''}-${selected?.arr || ''}`;
+        if (weatherOpsFrame.dataset.context !== weatherContext) {
+          weatherOpsFrame.dataset.context = weatherContext;
+          weatherOpsFrame.src = weatherUrl;
+        }
+      } else if (view === 'performance') {
+        toolWorkspaceKicker.textContent = 'Aircraft / Runway review';
+        toolWorkspaceTitle.textContent = 'Runway & Performance Inputs';
+      } else if (view === 'documents') {
+        toolWorkspaceKicker.textContent = 'Selected flight / Controlled file';
+        toolWorkspaceTitle.textContent = 'OFP & Flight Documents';
+      }
+      updateSuiteContext();
+      history.replaceState(null, '', view === 'bookings' ? location.pathname : `${location.pathname}#${view}`);
+      if (!bookingsActive) opsToolWorkspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function performanceMetric(label, value) {
+      return `<div class="performance-metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value ?? 'N/A')}</strong></div>`;
+    }
+
+    function performanceLegMetrics(section, kind) {
+      const wx = kind === 'takeoff' ? section?.runwayAndWeather : section?.airportAndWeather;
+      const weight = kind === 'takeoff' ? section?.inputs?.weightLbs : section?.inputs?.landingWeightLbs;
+      const runwayLength = kind === 'takeoff' ? wx?.toraFt : wx?.ldaFt;
+      const wind = wx?.wind?.raw || 'NO LIVE WIND';
+      const headwind = Number.isFinite(wx?.hwXw?.headwindKt) ? `${wx.hwXw.headwindKt} KT` : 'N/A';
+      const crosswind = Number.isFinite(wx?.hwXw?.crosswindKt) ? `${wx.hwXw.crosswindKt} KT` : 'N/A';
+      return [
+        performanceMetric('Airport', `${wx?.apt?.icao || 'N/A'}${wx?.apt?.name ? ` / ${wx.apt.name}` : ''}`),
+        performanceMetric('Runway', wx?.rwy || 'NOT SET'),
+        performanceMetric(kind === 'takeoff' ? 'TORA' : 'LDA', Number.isFinite(runwayLength) ? `${Math.round(runwayLength)} FT` : 'N/A'),
+        performanceMetric('Surface', wx?.surface || wx?.rwyCond || 'N/A'),
+        performanceMetric('Wind', wind),
+        performanceMetric('Headwind', headwind),
+        performanceMetric('Crosswind', crosswind),
+        performanceMetric('OAT', Number.isFinite(wx?.oatC) ? `${wx.oatC} C` : 'N/A'),
+        performanceMetric('QNH', Number.isFinite(wx?.qnhHpa) ? `${wx.qnhHpa} HPA` : 'N/A'),
+        performanceMetric('Density altitude', Number.isFinite(wx?.densityAltFt) ? `${Math.round(wx.densityAltFt)} FT` : 'N/A'),
+        performanceMetric('Elevation', Number.isFinite(wx?.elevFt) ? `${Math.round(wx.elevFt)} FT` : 'N/A'),
+        performanceMetric('Planned weight', Number.isFinite(weight) ? `${Math.round(weight)} LB` : 'N/A')
+      ].join('');
+    }
+
+    async function runPerformanceReview() {
+      const dep = perfDep.value.trim().toUpperCase();
+      const arr = perfArr.value.trim().toUpperCase();
+      if (!/^[A-Z0-9]{4}$/.test(dep) || !/^[A-Z0-9]{4}$/.test(arr)) {
+        performanceStatus.textContent = 'Enter valid four-character departure and arrival ICAO identifiers.';
+        return;
+      }
+      runPerformanceBtn.disabled = true;
+      performanceStatus.textContent = 'Loading current airport, runway, and weather data...';
+      try {
+        const params = new URLSearchParams({ dep, arr });
+        if (perfDepRunway.value.trim()) params.set('takeoffRunway', perfDepRunway.value.trim());
+        if (perfArrRunway.value.trim()) params.set('landingRunway', perfArrRunway.value.trim());
+        if (perfTow.value) params.set('takeoffWeightLbs', perfTow.value);
+        if (perfLdw.value) params.set('landingWeightLbs', perfLdw.value);
+        const response = await fetch(`/api/performance?${params}`, { cache: 'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'PERFORMANCE DATA UNAVAILABLE');
+        takeoffPerformanceMetrics.innerHTML = performanceLegMetrics(data.takeoff, 'takeoff');
+        landingPerformanceMetrics.innerHTML = performanceLegMetrics(data.landing, 'landing');
+        performanceStatus.textContent = `${dep}-${arr} data loaded. Use these live inputs with the current approved AFM/POH; this screen does not issue a takeoff or landing clearance.`;
+      } catch (error) {
+        performanceStatus.textContent = error.message || 'Performance data unavailable.';
+      } finally {
+        runPerformanceBtn.disabled = false;
+      }
     }
 
     function money(value) {
@@ -2112,6 +2375,7 @@ END OF MESSAGE</pre>
       renderDispatchBoard(req);
       renderDispatchIntelligence(req);
       renderFlightControl(req);
+      updateSuiteContext(req);
       renderReadiness(req);
       renderManifest(req);
       updateWalletControls(req);
@@ -2318,10 +2582,16 @@ END OF MESSAGE</pre>
       mode.textContent = 'MODE: TIME PROPOSAL SENT';
     });
 
-    openWeatherOpsBtn.addEventListener('click', () => {
-      const weatherWindow = window.open('/acars', '_blank', 'noopener');
-      if (!weatherWindow) mode.textContent = 'MODE: POP-UP BLOCKED / ALLOW POP-UPS TO OPEN WEATHER OPS';
+    openWeatherOpsBtn.addEventListener('click', () => switchOpsWorkspace('weather'));
+    suiteTabs.forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.suiteView)));
+    runPerformanceBtn.addEventListener('click', runPerformanceReview);
+    suiteOpenOfpBtn.addEventListener('click', () => openOfpBtn.click());
+    suiteOpenOfpPdfBtn.addEventListener('click', () => {
+      if (!selected?.operationalFlightPlan) return;
+      window.open(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/operational-flight-plan/pdf`, '_blank', 'noopener');
     });
+    suiteOpenStatementBtn.addEventListener('click', () => openStatementControlBtn.click());
+    suiteOpenFlightFileBtn.addEventListener('click', () => openFlightFileControlBtn.click());
 
     copyBriefBtn.addEventListener('click', async () => {
       if (!selected) {
@@ -2474,9 +2744,9 @@ END OF MESSAGE</pre>
     tick();
     setInterval(tick, 1000);
     setInterval(autoSyncOps, 30000);
-    loadRequests().catch(() => {
-      mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE';
-    });
+    loadRequests()
+      .then(() => switchOpsWorkspace(location.hash.replace('#', '') || 'bookings'))
+      .catch(() => { mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE'; });
   </script>
 </body>
 </html>
