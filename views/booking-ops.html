@@ -182,77 +182,102 @@
     .ops-tool-pane { padding: 18px; }
     .ofp-frame { width: 100%; height: min(80vh, 1040px); min-height: 680px; border: 1px solid #344654; border-radius: 5px; background: #000; }
 
-    .weather-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 160px auto auto; gap:9px; align-items:end; margin-bottom:12px; }
-    .weather-route { min-height:52px; border:1px solid #334654; border-radius:5px; padding:9px 11px; background:#0b141d; }
-    .weather-route span, .aircraft-identity span { display:block; color:#7890a1; font-size:9px; letter-spacing:.12em; text-transform:uppercase; }
-    .weather-route strong { display:block; margin-top:6px; color:#fff; font-size:16px; }
-    .weather-toolbar label { color:#8797a2; font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
-    .weather-toolbar input { width:100%; min-height:42px; margin-top:5px; border:1px solid #405361; border-radius:4px; background:#05090e; color:#fff; padding:8px; font:12px "Courier New", monospace; text-transform:uppercase; }
-    .efb-action { min-height:42px; border:1px solid var(--accent); border-radius:4px; background:#0c1924; color:var(--accent); padding:8px 12px; font:700 10px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
+    .weather-console, .performance-console { border:1px solid #405568; border-radius:6px; background:#05090d; overflow:hidden; }
+    .acars-console-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 15px; border-bottom:1px solid #34495a; background:linear-gradient(100deg,#102435,#071018 72%); }
+    .acars-console-head span { color:#7890a1; font-size:8px; letter-spacing:.14em; text-transform:uppercase; }
+    .acars-console-head strong { display:block; margin-top:4px; color:#fff; font-size:15px; text-transform:uppercase; }
+    .acars-live-badge { flex:0 0 auto; border:1px solid var(--live); border-radius:999px; padding:5px 9px; color:var(--live); font-size:8px; text-transform:uppercase; }
+    .weather-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 150px auto auto; gap:9px; align-items:end; padding:13px 14px 0; }
+    .weather-route { min-height:52px; border:1px solid #334654; border-radius:4px; padding:9px 11px; background:#020507; }
+    .weather-route span, .aircraft-identity span { display:block; color:#7890a1; font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
+    .weather-route strong { display:block; margin-top:6px; color:#fff; font-size:15px; }
+    .weather-toolbar label { color:#8797a2; font-size:8px; letter-spacing:.08em; text-transform:uppercase; }
+    .weather-toolbar input, .performance-form input, .performance-form select, .perf-control select, .perf-control input { width:100%; min-height:40px; margin-top:5px; border:1px solid #405361; border-radius:3px; background:#000; color:#fff; padding:8px; font:11px "Courier New", monospace; text-transform:uppercase; }
+    .efb-action { min-height:42px; border:1px solid var(--accent); border-radius:3px; background:#07131d; color:var(--accent); padding:8px 12px; font:700 10px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
     .efb-action.primary { border-color:var(--live); background:var(--live); color:#00140a; }
-    .weather-status { border-left:3px solid var(--accent); border-radius:3px; padding:10px 12px; margin-bottom:12px; color:#aec0cc; background:#0a141e; font-size:10px; line-height:1.45; text-transform:uppercase; }
-    .weather-airports { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-    .weather-card { min-width:0; border:1px solid #344754; border-radius:6px; background:#080f16; overflow:hidden; }
-    .weather-card-head { display:flex; justify-content:space-between; gap:12px; padding:12px 13px; border-bottom:1px solid #253643; background:#0c1721; }
-    .weather-card-head span { display:block; color:#738797; font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
-    .weather-card-head h3 { margin:5px 0 0; color:#fff; font-size:15px; }
-    .weather-source { align-self:flex-start; border:1px solid #486074; border-radius:999px; padding:4px 8px; color:var(--accent); font-size:8px; white-space:nowrap; }
+    .weather-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:12px 14px; }
+    .weather-option-group { border:1px solid #2e414f; background:#071018; padding:9px 10px; }
+    .weather-option-group > strong { display:block; margin-bottom:8px; color:var(--accent); font-size:8px; letter-spacing:.12em; }
+    .weather-option-group label { display:inline-flex; align-items:center; gap:6px; margin-right:10px; color:#dce5ea; font-size:9px; cursor:pointer; }
+    .weather-option-group input { accent-color:var(--live); }
+    .weather-status, .performance-status { border-left:3px solid var(--accent); padding:9px 12px; margin:0 14px 12px; color:#aec0cc; background:#0a141e; font-size:9px; line-height:1.45; text-transform:uppercase; }
+    .weather-output-layout { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); gap:10px; padding:0 14px 14px; }
+    .acars-preview { min-width:0; border:1px solid #354b5c; background:#000; padding:14px; }
+    .acars-preview-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:11px; padding-bottom:9px; border-bottom:1px solid #263b49; color:var(--accent); font-size:9px; text-transform:uppercase; }
+    .acars-preview pre { min-height:420px; margin:0; color:#f2f6f8; font:11px/1.5 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .weather-data-stack { display:grid; gap:8px; align-content:start; }
+    .weather-card { min-width:0; border:1px solid #344754; border-radius:4px; background:#080f16; overflow:hidden; }
+    .weather-card-head { display:flex; justify-content:space-between; gap:10px; padding:10px 11px; border-bottom:1px solid #253643; background:#0c1721; }
+    .weather-card-head span { display:block; color:#738797; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
+    .weather-card-head h3 { margin:4px 0 0; color:#fff; font-size:11px; }
+    .weather-source { align-self:flex-start; border:1px solid #486074; border-radius:999px; padding:3px 6px; color:var(--accent); font-size:7px; white-space:nowrap; }
     .weather-source.live { border-color:var(--live); color:var(--live); }
     .weather-source.fallback { border-color:var(--warn); color:var(--warn); }
-    .weather-metrics { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:1px; background:#22313c; }
-    .weather-metric { min-width:0; padding:9px 10px; background:#070d13; }
-    .weather-metric span { display:block; color:#718391; font-size:8px; text-transform:uppercase; }
-    .weather-metric strong { display:block; margin-top:5px; color:#fff; font-size:11px; overflow-wrap:anywhere; }
-    .weather-report { padding:11px 13px; border-top:1px solid #263744; }
-    .weather-report:first-of-type { border-top:0; }
-    .weather-report span { display:block; color:#7c91a0; font-size:8px; letter-spacing:.1em; text-transform:uppercase; }
-    .weather-report code { display:block; margin-top:6px; color:#ecf3f7; font:11px/1.55 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
-    .weather-report small { display:block; margin-top:5px; color:#748998; font-size:8px; text-transform:uppercase; }
-    .weather-lower { display:grid; grid-template-columns:1.2fr .8fr; gap:10px; margin-top:10px; }
-    .weather-brief { border:1px solid #344754; border-radius:6px; background:#080f16; padding:12px; }
-    .weather-brief h3 { margin:0 0 10px; color:var(--accent); font-size:12px; text-transform:uppercase; }
+    .weather-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; background:#22313c; }
+    .weather-metric { min-width:0; padding:7px 8px; background:#070d13; }
+    .weather-metric span { display:block; color:#718391; font-size:7px; text-transform:uppercase; }
+    .weather-metric strong { display:block; margin-top:4px; color:#fff; font-size:9px; overflow-wrap:anywhere; }
+    .weather-report { padding:8px 10px; border-top:1px solid #263744; }
+    .weather-report span, .weather-report small, .weather-report code { display:block; }
+    .weather-report span { color:#7c91a0; font-size:7px; letter-spacing:.1em; text-transform:uppercase; }
+    .weather-report code { margin-top:5px; color:#ecf3f7; font:9px/1.45 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .weather-report small { margin-top:4px; color:#748998; font-size:7px; text-transform:uppercase; }
+    .weather-lower { display:grid; grid-template-columns:1.2fr .8fr; gap:10px; padding:0 14px 14px; }
+    .weather-brief { border:1px solid #344754; border-radius:4px; background:#080f16; padding:11px; }
+    .weather-brief h3 { margin:0 0 9px; color:var(--accent); font-size:10px; text-transform:uppercase; }
     .winds-grid { display:grid; grid-template-columns:1fr repeat(3,minmax(0,1fr)); border:1px solid #263744; }
-    .winds-grid > div { min-height:38px; padding:8px; border-right:1px solid #263744; border-bottom:1px solid #263744; color:#dce5ea; font-size:10px; }
+    .winds-grid > div { min-height:34px; padding:7px; border-right:1px solid #263744; border-bottom:1px solid #263744; color:#dce5ea; font-size:9px; }
     .winds-grid > div:nth-child(4n) { border-right:0; }
     .winds-grid .winds-head { color:var(--accent); background:#0c1721; font-weight:700; }
-    .weather-decision { color:#dce5ea; font-size:11px; line-height:1.6; text-transform:uppercase; }
+    .weather-decision { color:#dce5ea; font-size:9px; line-height:1.55; text-transform:uppercase; }
     .weather-decision strong { color:var(--warn); }
     .weather-decision .weather-ok { color:var(--live); }
     .weather-decision span { color:var(--accent); }
-    .weather-decision p { margin:0 0 10px; }
+    .weather-decision p { margin:0 0 8px; }
     .weather-decision p:last-child { margin-bottom:0; }
-    .weather-decision .weather-caution { color:#8fa0ab; font-size:9px; }
+    .weather-decision .weather-caution { color:#8fa0ab; font-size:8px; }
 
-    .aircraft-performance-head { display:flex; align-items:stretch; justify-content:space-between; gap:12px; margin-bottom:14px; border:1px solid #385064; border-radius:6px; background:linear-gradient(120deg,#102332,#080f16 72%); padding:14px 16px; }
-    .aircraft-identity h2 { margin:5px 0 4px; color:#fff; font-size:22px; text-transform:uppercase; }
-    .aircraft-identity strong { color:var(--accent); font-size:13px; }
+    .aircraft-performance-head { display:flex; align-items:stretch; justify-content:space-between; gap:12px; margin:0; border-bottom:1px solid #385064; background:linear-gradient(120deg,#102332,#080f16 72%); padding:13px 15px; }
+    .aircraft-identity h2 { margin:5px 0 4px; color:#fff; font-size:19px; text-transform:uppercase; }
+    .aircraft-identity strong { color:var(--accent); font-size:11px; }
     .aircraft-specs { display:grid; grid-template-columns:repeat(3,minmax(92px,1fr)); gap:7px; }
     .aircraft-specs div { border-left:1px solid #405567; padding:7px 12px; }
-    .aircraft-specs span { display:block; color:#748998; font-size:8px; text-transform:uppercase; }
-    .aircraft-specs strong { display:block; margin-top:5px; color:#fff; font-size:12px; }
-
-    .performance-form {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .performance-form label { color: #8797a2; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
-    .performance-form input, .performance-form select { width: 100%; min-height: 40px; margin-top: 5px; border: 1px solid #4b5a65; background:#000; color:#fff; padding:8px; font:12px "Courier New", monospace; text-transform:uppercase; }
-    .performance-run { min-height: 40px; align-self: end; border: 1px solid var(--live); background: var(--live); color: #001308; font: 700 11px "Courier New", monospace; cursor: pointer; text-transform: uppercase; }
-    .performance-status { border-left: 2px solid var(--accent); padding: 8px 10px; margin-bottom: 10px; color: #a9bac5; background: #071019; font-size: 10px; line-height: 1.45; text-transform: uppercase; }
-    .performance-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .performance-leg { border: 1px solid #40505c; border-radius:6px; padding: 12px; background: #080f16; }
-    .performance-leg h3 { margin: 0 0 10px; color: var(--accent); font-size: 13px; text-transform: uppercase; }
-    .performance-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-    .performance-metric { border: 1px solid #27353f; padding: 8px; min-width: 0; }
-    .performance-metric span { display: block; color: #758692; font-size: 8px; text-transform: uppercase; }
-    .performance-metric strong { display: block; margin-top: 5px; color: #fff; font-size: 12px; overflow-wrap: anywhere; }
-    .performance-note { margin-top: 10px; color: var(--warn); font-size: 9px; line-height: 1.45; text-transform: uppercase; }
-    .performance-actions { display:grid; grid-template-columns:repeat(2,minmax(0,220px)); gap:8px; margin-top:10px; }
-    .performance-actions button { min-height:42px; border:1px solid var(--accent); background:#03080c; color:var(--accent); padding:9px; font:700 10px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
+    .aircraft-specs span { display:block; color:#748998; font-size:7px; text-transform:uppercase; }
+    .aircraft-specs strong { display:block; margin-top:5px; color:#fff; font-size:10px; }
+    .performance-form { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)) auto; gap:8px; padding:12px 14px; }
+    .performance-form label, .perf-control label { color:#8797a2; font-size:8px; letter-spacing:.08em; text-transform:uppercase; }
+    .performance-run { min-height:40px; align-self:end; border:1px solid var(--live); border-radius:3px; background:var(--live); color:#001308; padding:8px 12px; font:700 10px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
+    .performance-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:0 14px 14px; }
+    .performance-leg { min-width:0; border:1px solid #40505c; border-radius:5px; background:#080f16; overflow:hidden; }
+    .performance-leg-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 12px; border-bottom:1px solid #2d414f; background:#0c1721; }
+    .performance-leg-head span { color:#718896; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
+    .performance-leg-head h3 { margin:4px 0 0; color:#fff; font-size:14px; text-transform:uppercase; }
+    .perf-status-badge { border:1px solid var(--live); border-radius:3px; padding:5px 7px; color:var(--live); font-size:8px; text-transform:uppercase; }
+    .perf-section-title { padding:7px 10px; border-top:1px solid #2a3d4b; border-bottom:1px solid #2a3d4b; background:#0a141d; color:var(--accent); font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
+    .performance-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .performance-metric { display:grid; grid-template-columns:minmax(78px,.8fr) minmax(0,1.2fr); gap:8px; align-items:center; min-width:0; min-height:38px; padding:7px 9px; border-right:1px solid #263744; border-bottom:1px solid #263744; }
+    .performance-metric:nth-child(2n) { border-right:0; }
+    .performance-metric span { color:#758692; font-size:7px; text-transform:uppercase; }
+    .performance-metric strong { color:#fff; font-size:9px; text-align:right; overflow-wrap:anywhere; }
+    .perf-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:9px 10px; }
+    .perf-control { min-width:0; }
+    .perf-output strong.live { color:var(--live); }
+    .perf-output strong.warn { color:var(--warn); }
+    .performance-derived { padding:8px 10px; border-top:1px solid #2a3d4b; color:#91a5b2; background:#050b10; font-size:8px; line-height:1.45; text-transform:uppercase; }
+    .performance-derived strong { color:var(--accent); }
+    .performance-visual-wrap { padding:10px; background:#020405; }
+    .runway-visual { min-height:360px; border:1px solid #243847; background:radial-gradient(circle at 50% 40%,#0f1c26 0,#030608 67%); overflow:hidden; }
+    .runway-visual svg { display:block; width:100%; height:360px; }
+    .runway-legend { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin-top:7px; }
+    .runway-legend div { border:1px solid #263744; padding:6px; background:#071018; }
+    .runway-legend span { display:block; color:#718492; font-size:6px; text-transform:uppercase; }
+    .runway-legend strong { display:block; margin-top:4px; color:#fff; font-size:8px; }
+    .performance-messages { min-height:38px; padding:9px 10px; color:var(--warn); font-size:8px; line-height:1.45; text-transform:uppercase; }
+    .performance-note { padding:0 10px 10px; color:#8294a0; font-size:7px; line-height:1.5; text-transform:uppercase; }
+    .performance-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; padding:0 10px 10px; }
+    .performance-actions button { min-height:39px; border:1px solid var(--accent); border-radius:3px; background:#03080c; color:var(--accent); padding:8px; font:700 9px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
     .performance-actions button.primary { border-color:var(--live); background:var(--live); color:#001208; }
+    .performance-footer-actions { display:grid; grid-template-columns:repeat(2,minmax(0,220px)); gap:8px; padding:0 14px 14px; }
 
     .movement-phase-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:10px 0; }
     .movement-phase { border:1px solid #40505c; background:#020405; padding:9px 10px; min-height:58px; }
@@ -1231,9 +1256,10 @@
       .flight-control-head { display: block; }
       .flight-control-head em { display: block; margin-top: 8px; }
       .ops-suite-nav { display:grid; grid-template-columns: repeat(2, 1fr); position:static; }
-      .performance-form, .performance-results, .suite-doc-summary, .suite-document-actions, .weather-airports, .weather-lower { grid-template-columns: 1fr; }
+      .performance-form, .performance-results, .suite-doc-summary, .suite-document-actions, .weather-lower, .weather-output-layout { grid-template-columns: 1fr; }
       .performance-metrics { grid-template-columns: repeat(2, 1fr); }
       .weather-toolbar { grid-template-columns:1fr 1fr; }
+      .weather-options { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .weather-route { grid-column:1/-1; }
       .aircraft-specs { grid-template-columns:1fr; }
       .aircraft-specs div { border-left:0; border-top:1px solid #405567; }
@@ -1244,9 +1270,15 @@
     @media (max-width: 560px) {
       .weather-toolbar { grid-template-columns:1fr; }
       .weather-route { grid-column:auto; }
+      .weather-options { grid-template-columns:1fr; }
       .weather-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .winds-grid { grid-template-columns:1fr repeat(3,minmax(0,1fr)); overflow-x:auto; }
       .aircraft-identity h2 { font-size:18px; }
+      .performance-metrics { grid-template-columns:1fr; }
+      .performance-metric { border-right:0; }
+      .perf-controls, .runway-legend, .performance-footer-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .acars-preview pre { min-height:320px; font-size:10px; }
+      .runway-visual, .runway-visual svg { height:320px; min-height:320px; }
     }
   </style>
 </head>
@@ -1269,42 +1301,85 @@
     <section id="opsToolWorkspace" class="ops-tool-workspace" hidden>
       <header class="tool-workspace-head"><div><span id="toolWorkspaceKicker">Pilot tool</span><strong id="toolWorkspaceTitle">Operations workspace</strong></div><div id="toolFlightContext" class="tool-flight-context">NO FLIGHT SELECTED</div></header>
       <div id="weatherOpsPane" class="ops-tool-pane" hidden>
-        <div class="weather-toolbar">
-          <div class="weather-route"><span>Selected route</span><strong id="weatherRoute">NO FLIGHT SELECTED</strong></div>
-          <label>Alternate ICAO<input id="weatherAltn" maxlength="4" placeholder="OPTIONAL" /></label>
-          <button id="refreshWeatherBtn" class="efb-action primary" type="button">Refresh briefing</button>
-          <button id="openWeatherPdfBtn" class="efb-action" type="button">Open weather PDF</button>
-        </div>
-        <div id="weatherStatus" class="weather-status">Select a flight to load its native EFB weather briefing.</div>
-        <div id="weatherAirportGrid" class="weather-airports"></div>
-        <div class="weather-lower">
-          <section class="weather-brief"><h3>Winds aloft</h3><div id="weatherWinds" class="winds-grid"></div></section>
-          <section class="weather-brief"><h3>Operational weather review</h3><div id="weatherDecision" class="weather-decision">No weather briefing loaded.</div></section>
+        <div class="weather-console">
+          <header class="acars-console-head"><div><span>NGA flight operations</span><strong>ACARS weather dispatch</strong></div><em class="acars-live-badge">Live data link</em></header>
+          <div class="weather-toolbar">
+            <div class="weather-route"><span>Selected route</span><strong id="weatherRoute">NO FLIGHT SELECTED</strong></div>
+            <label>Alternate ICAO<input id="weatherAltn" maxlength="4" placeholder="OPTIONAL" /></label>
+            <button id="refreshWeatherBtn" class="efb-action primary" type="button">Generate weather</button>
+            <button id="openWeatherPdfBtn" class="efb-action" type="button">Open weather PDF</button>
+          </div>
+          <div class="weather-options" aria-label="Weather report options">
+            <div class="weather-option-group"><strong>DEPARTURE</strong><label><input id="wxDepMetar" type="checkbox" checked /> METAR</label><label><input id="wxDepTaf" type="checkbox" checked /> TAF</label></div>
+            <div class="weather-option-group"><strong>ARRIVAL</strong><label><input id="wxArrMetar" type="checkbox" checked /> METAR</label><label><input id="wxArrTaf" type="checkbox" checked /> TAF</label></div>
+            <div class="weather-option-group"><strong>ALTERNATE</strong><label><input id="wxAltnMetar" type="checkbox" checked /> METAR</label><label><input id="wxAltnTaf" type="checkbox" checked /> TAF</label></div>
+            <div class="weather-option-group"><strong>EXTRAS</strong><label><input id="wxWinds" type="checkbox" checked /> WINDS ALOFT</label></div>
+          </div>
+          <div id="weatherStatus" class="weather-status">Select a flight to generate its ACARS weather dispatch.</div>
+          <div class="weather-output-layout">
+            <section class="acars-preview"><header class="acars-preview-head"><span>Dispatch preview</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
+--------------------
+SELECT A FLIGHT TO GENERATE WEATHER.</pre></section>
+            <div id="weatherAirportGrid" class="weather-data-stack"></div>
+          </div>
+          <div class="weather-lower">
+            <section class="weather-brief"><h3>Winds aloft</h3><div id="weatherWinds" class="winds-grid"></div></section>
+            <section class="weather-brief"><h3>Operational weather review</h3><div id="weatherDecision" class="weather-decision">No weather briefing loaded.</div></section>
+          </div>
         </div>
       </div>
       <div id="flightPlanOpsPane" class="ops-tool-pane" hidden>
         <iframe id="ofpOpsFrame" class="ofp-frame" title="Selected flight operational flight plan"></iframe>
       </div>
       <div id="performanceOpsPane" class="ops-tool-pane" hidden>
-        <div class="aircraft-performance-head">
-          <div class="aircraft-identity"><span>Aircraft Performance</span><h2>Takeoff Performance</h2><strong>OH-PMK&nbsp;&nbsp; Piper PA-28R-200 Arrow II</strong></div>
-          <div class="aircraft-specs"><div><span>MTOW</span><strong>2650 LB</strong></div><div><span>Fuel</span><strong>100LL / 48 USG</strong></div><div><span>Crosswind</span><strong>17 KT</strong></div></div>
+        <div class="performance-console">
+          <div class="aircraft-performance-head">
+            <div class="aircraft-identity"><span>Aircraft Performance</span><h2>Runway performance analysis</h2><strong>OH-PMK&nbsp;&nbsp; Piper PA-28R-200 Arrow II</strong></div>
+            <div class="aircraft-specs"><div><span>MTOW / MLW</span><strong>2650 LB</strong></div><div><span>Fuel</span><strong>100LL / 48 USG</strong></div><div><span>Crosswind</span><strong>17 KT</strong></div></div>
+          </div>
+          <div class="performance-form">
+            <label>Departure ICAO<input id="perfDep" maxlength="4" placeholder="EFHV" readonly /></label>
+            <label>Departure runway<select id="perfDepRunway"><option value="">Select runway</option></select></label>
+            <label>Takeoff weight LB<input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" /></label>
+            <label>Arrival ICAO<input id="perfArr" maxlength="4" placeholder="EFHN" readonly /></label>
+            <label>Arrival runway<select id="perfArrRunway"><option value="">Select runway</option></select></label>
+            <label>Landing weight LB<input id="perfLdw" type="number" min="1400" max="2650" step="1" placeholder="2600" /></label>
+            <button id="runPerformanceBtn" class="performance-run" type="button">Calculate both</button>
+          </div>
+          <div id="performanceStatus" class="performance-status">Select a flight and runway ends. Current weather, wind components, density altitude, and runway data will load automatically.</div>
+          <div class="performance-results">
+            <section class="performance-leg">
+              <header class="performance-leg-head"><div><span>Departure analysis</span><h3>Takeoff performance</h3></div><em id="takeoffPerfBadge" class="perf-status-badge">Ready</em></header>
+              <div class="perf-section-title">Airport and weather</div><div id="takeoffPerformanceMetrics" class="performance-metrics"></div>
+              <div class="perf-section-title">Inputs</div><div class="perf-controls">
+                <div class="perf-control"><label>Flaps<select id="perfTakeoffFlaps"><option value="0">0 DEG</option><option value="10">10 DEG</option><option value="25">25 DEG</option></select></label></div>
+                <div class="perf-control"><label>Runway condition<select id="perfTakeoffCondition"><option value="DRY">DRY</option><option value="WET">WET</option><option value="SNOW">SNOW</option><option value="ICE">ICE</option></select></label></div>
+              </div>
+              <div class="perf-section-title">Outputs</div><div id="takeoffPerformanceOutputs" class="performance-metrics perf-output"></div>
+              <div id="takeoffPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
+              <div class="perf-section-title">Visual runway</div><div class="performance-visual-wrap"><div id="takeoffRunwayVisual" class="runway-visual"></div><div id="takeoffRunwayLegend" class="runway-legend"></div></div>
+              <div class="perf-section-title">Remarks</div><div id="takeoffPerformanceMessages" class="performance-messages">LOAD DATA TO CALCULATE</div>
+              <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
+              <div class="performance-actions"><button id="calculateTakeoffBtn" class="primary" type="button">Calculate takeoff</button><button id="openTakeoffPdfBtn" type="button">Open takeoff PDF</button></div>
+            </section>
+            <section class="performance-leg">
+              <header class="performance-leg-head"><div><span>Arrival analysis</span><h3>Landing performance</h3></div><em id="landingPerfBadge" class="perf-status-badge">Ready</em></header>
+              <div class="perf-section-title">Airport and weather</div><div id="landingPerformanceMetrics" class="performance-metrics"></div>
+              <div class="perf-section-title">Inputs</div><div class="perf-controls">
+                <div class="perf-control"><label>Flaps<select id="perfLandingFlaps"><option value="40">FULL / 40 DEG</option><option value="25">25 DEG</option><option value="10">10 DEG</option><option value="0">0 DEG</option></select></label></div>
+                <div class="perf-control"><label>Runway condition<select id="perfLandingCondition"><option value="DRY">DRY</option><option value="WET">WET</option><option value="SNOW">SNOW</option><option value="ICE">ICE</option></select></label></div>
+                <div class="perf-control"><label>Braking<select id="perfLandingBraking"><option value="MAX">MAX</option><option value="MOD">MOD</option><option value="MIN">MIN</option></select></label></div>
+              </div>
+              <div class="perf-section-title">Outputs</div><div id="landingPerformanceOutputs" class="performance-metrics perf-output"></div>
+              <div id="landingPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
+              <div class="perf-section-title">Visual runway</div><div class="performance-visual-wrap"><div id="landingRunwayVisual" class="runway-visual"></div><div id="landingRunwayLegend" class="runway-legend"></div></div>
+              <div class="perf-section-title">Remarks</div><div id="landingPerformanceMessages" class="performance-messages">LOAD DATA TO CALCULATE</div>
+              <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
+              <div class="performance-actions"><button id="calculateLandingBtn" class="primary" type="button">Calculate landing</button><button id="openLandingPdfBtn" type="button">Open landing PDF</button></div>
+            </section>
+          </div>
+          <div class="performance-footer-actions"><button id="applyPerformanceToOfpBtn" class="efb-action primary" type="button">Apply snapshot to OFP</button><button id="openPerformanceOfpBtn" class="efb-action" type="button">Open flight plan</button></div>
         </div>
-        <div class="performance-form">
-          <label>Departure ICAO<input id="perfDep" maxlength="4" placeholder="EFHV" readonly /></label>
-          <label>Departure runway<select id="perfDepRunway"><option value="">Select runway</option></select></label>
-          <label>Takeoff weight LB<input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" /></label>
-          <label>Arrival ICAO<input id="perfArr" maxlength="4" placeholder="EFHN" readonly /></label>
-          <label>Arrival runway<select id="perfArrRunway"><option value="">Select runway</option></select></label>
-          <label>Landing weight LB<input id="perfLdw" type="number" min="1400" max="2650" step="1" placeholder="2600" /></label>
-          <button id="runPerformanceBtn" class="performance-run" type="button">Load aircraft performance inputs</button>
-        </div>
-        <div id="performanceStatus" class="performance-status">Select a flight or enter the route and runway ends. Current airport, weather, density altitude, runway, and wind-component data will load here.</div>
-        <div class="performance-results">
-          <section class="performance-leg"><h3>Takeoff Performance</h3><div id="takeoffPerformanceMetrics" class="performance-metrics"></div><div class="performance-note">Confirm takeoff distance, V-speeds, obstacle clearance, runway state, and margins using the current approved AFM/POH.</div></section>
-          <section class="performance-leg"><h3>Landing Performance</h3><div id="landingPerformanceMetrics" class="performance-metrics"></div><div class="performance-note">Confirm landing distance, approach speed, braking assumptions, runway state, and go-around capability using the current approved AFM/POH.</div></section>
-        </div>
-        <div class="performance-actions"><button id="applyPerformanceToOfpBtn" class="primary" type="button">Apply snapshot to OFP</button><button id="openPerformanceOfpBtn" type="button">Open flight plan</button></div>
       </div>
       <div id="documentsOpsPane" class="ops-tool-pane" hidden>
         <div class="suite-doc-summary">
@@ -1643,6 +1718,9 @@ END OF MESSAGE</pre>
     const weatherAirportGrid = el('weatherAirportGrid');
     const weatherWinds = el('weatherWinds');
     const weatherDecision = el('weatherDecision');
+    const weatherAcarsReport = el('weatherAcarsReport');
+    const weatherReportMode = el('weatherReportMode');
+    const weatherOptionInputs = ['wxDepMetar','wxDepTaf','wxArrMetar','wxArrTaf','wxAltnMetar','wxAltnTaf','wxWinds'].map(el);
     const ofpOpsFrame = el('ofpOpsFrame');
     const toolWorkspaceKicker = el('toolWorkspaceKicker');
     const toolWorkspaceTitle = el('toolWorkspaceTitle');
@@ -1659,6 +1737,12 @@ END OF MESSAGE</pre>
     const performanceStatus = el('performanceStatus');
     const takeoffPerformanceMetrics = el('takeoffPerformanceMetrics');
     const landingPerformanceMetrics = el('landingPerformanceMetrics');
+    const takeoffPerformanceOutputs = el('takeoffPerformanceOutputs');
+    const landingPerformanceOutputs = el('landingPerformanceOutputs');
+    const calculateTakeoffBtn = el('calculateTakeoffBtn');
+    const calculateLandingBtn = el('calculateLandingBtn');
+    const openTakeoffPdfBtn = el('openTakeoffPdfBtn');
+    const openLandingPdfBtn = el('openLandingPdfBtn');
     const suiteOpenOfpBtn = el('suiteOpenOfpBtn');
     const suiteOpenOfpPdfBtn = el('suiteOpenOfpPdfBtn');
     const suiteOpenStatementBtn = el('suiteOpenStatementBtn');
@@ -1669,6 +1753,7 @@ END OF MESSAGE</pre>
     let quickFilter = 'ALL';
     let autoSyncing = false;
     let latestPerformanceData = null;
+    let latestPerformanceCalculations = null;
     let performanceDataRequest = '';
     let latestWeatherData = null;
     let weatherDataKey = '';
@@ -1701,14 +1786,28 @@ END OF MESSAGE</pre>
       return value === 0 || value ? String(value) : fallback;
     }
 
+    function bookingWeightEstimate(req) {
+      if (!req) return { takeoff:2650, landing:2600 };
+      const passengerKg = passengerList(req).reduce((sum, passenger) => sum + (Number(passenger.weightKg) || 0), 0);
+      const baggageKg = Number(req.baggageWeightKg) || 0;
+      const estimated = Math.round(1727 + 340 + ((passengerKg + baggageKg) * 2.20462) + 288);
+      const takeoff = Math.max(1800, Math.min(2650, estimated));
+      return { takeoff, landing:Math.max(1800, takeoff - 45) };
+    }
+
     function updateSuiteContext(req = selected) {
       const passengers = req ? passengerList(req) : [];
       const signed = req ? agreementCount(req) : 0;
       if (performanceDataRequest !== (req?.id || '')) {
         performanceDataRequest = req?.id || '';
         latestPerformanceData = null;
+        latestPerformanceCalculations = null;
         takeoffPerformanceMetrics.innerHTML = '';
         landingPerformanceMetrics.innerHTML = '';
+        takeoffPerformanceOutputs.innerHTML = '';
+        landingPerformanceOutputs.innerHTML = '';
+        el('takeoffRunwayVisual').innerHTML = '';
+        el('landingRunwayVisual').innerHTML = '';
       }
       toolFlightContext.textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
       weatherRoute.textContent = req ? `${req.dep || '----'}  >  ${req.arr || '----'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
@@ -1729,10 +1828,11 @@ END OF MESSAGE</pre>
       applyPerformanceToOfpBtn.disabled = !req;
       openPerformanceOfpBtn.disabled = !req;
       if (req) {
+        const estimatedWeights = bookingWeightEstimate(req);
         perfDep.value = req.dep || '';
         perfArr.value = req.arr || '';
-        perfTow.value = req.operationalFlightPlan?.takeoffWeightLb || '';
-        perfLdw.value = req.operationalFlightPlan?.landingWeightLb || '';
+        perfTow.value = req.operationalFlightPlan?.takeoffWeightLb || estimatedWeights.takeoff;
+        perfLdw.value = req.operationalFlightPlan?.landingWeightLb || estimatedWeights.landing;
         populatePerformanceRunways(req)
           .then(() => {
             if (activeWorkspace === 'performance' && perfDepRunway.value && perfArrRunway.value && !latestPerformanceData) {
@@ -1788,6 +1888,8 @@ END OF MESSAGE</pre>
 
     function renderWeatherBriefing(data) {
       latestWeatherData = data;
+      weatherAcarsReport.textContent = data.reportText || 'ACARS WEATHER REPORT\n--------------------\nNO REPORT DATA.';
+      weatherReportMode.textContent = data.departure?.mode === 'NO DATA' || data.arrival?.mode === 'NO DATA' ? 'PARTIAL DATA' : 'LIVE / GENERATED';
       weatherAirportGrid.innerHTML = [
         weatherAirportCard('Departure', data.departure),
         weatherAirportCard('Arrival', data.arrival),
@@ -1802,23 +1904,45 @@ END OF MESSAGE</pre>
       weatherStatus.textContent = `BRIEFING LOADED ${generated} HELSINKI TIME / ${data.route.dep}-${data.route.arr}`;
     }
 
+    function weatherQuery() {
+      const query = new URLSearchParams({
+        dep:selected?.dep || '',
+        arr:selected?.arr || '',
+        flight:selected?.flightNumber || selected?.id || '',
+        route:selected?.route || `${selected?.dep || ''}-${selected?.arr || ''}`,
+        includeDepMetar:String(el('wxDepMetar').checked),
+        includeDepTaf:String(el('wxDepTaf').checked),
+        includeArrMetar:String(el('wxArrMetar').checked),
+        includeArrTaf:String(el('wxArrTaf').checked),
+        includeWindsAloft:String(el('wxWinds').checked)
+      });
+      const altn = weatherAltn.value.trim().toUpperCase();
+      if (altn) {
+        query.set('altn', altn);
+        query.set('includeAltnMetar', String(el('wxAltnMetar').checked));
+        query.set('includeAltnTaf', String(el('wxAltnTaf').checked));
+      }
+      return query;
+    }
+
     async function loadWeatherWorkspace(force = false) {
       if (!selected?.dep || !selected?.arr) {
         weatherStatus.textContent = 'Select a flight to load its native EFB weather briefing.';
         weatherAirportGrid.innerHTML = '';
         weatherWinds.innerHTML = '';
         weatherDecision.textContent = 'No weather briefing loaded.';
+        weatherAcarsReport.textContent = 'ACARS WEATHER REPORT\n--------------------\nSELECT A FLIGHT TO GENERATE WEATHER.';
+        weatherReportMode.textContent = 'READY';
         return;
       }
       const altn = weatherAltn.value.trim().toUpperCase();
-      const context = `${selected.id}|${selected.dep}|${selected.arr}|${altn}`;
+      const context = `${selected.id}|${weatherQuery().toString()}`;
       if (!force && latestWeatherData && weatherDataKey === context) return;
       weatherDataKey = context;
       refreshWeatherBtn.disabled = true;
       weatherStatus.textContent = `LOADING LIVE WEATHER / ${selected.dep}-${selected.arr}`;
       try {
-        const query = new URLSearchParams({ dep:selected.dep, arr:selected.arr });
-        if (altn) query.set('altn', altn);
+        const query = weatherQuery();
         const response = await fetch(`/api/booking-ops/weather?${query}`, { cache:'no-store' });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || 'WEATHER BRIEFING UNAVAILABLE');
@@ -1829,6 +1953,8 @@ END OF MESSAGE</pre>
         weatherAirportGrid.innerHTML = '';
         weatherWinds.innerHTML = '';
         weatherDecision.textContent = 'Weather data could not be loaded. Retry and use an approved independent source.';
+        weatherAcarsReport.textContent = `ACARS WEATHER REPORT\n--------------------\n${String(error.message || 'WEATHER DATA UNAVAILABLE').toUpperCase()}`;
+        weatherReportMode.textContent = 'NO DATA';
       } finally {
         refreshWeatherBtn.disabled = false;
       }
@@ -1839,19 +1965,7 @@ END OF MESSAGE</pre>
         weatherStatus.textContent = 'SELECT A FLIGHT BEFORE OPENING THE WEATHER PDF';
         return;
       }
-      const query = new URLSearchParams({
-        dep:selected.dep,
-        arr:selected.arr,
-        flight:selected.flightNumber || selected.id || '',
-        route:selected.route || `${selected.dep}-${selected.arr}`,
-        includeDepMetar:'true', includeDepTaf:'true', includeArrMetar:'true', includeArrTaf:'true', includeWindsAloft:'true'
-      });
-      const altn = weatherAltn.value.trim().toUpperCase();
-      if (altn) {
-        query.set('altn', altn);
-        query.set('includeAltnMetar', 'true');
-        query.set('includeAltnTaf', 'true');
-      }
+      const query = weatherQuery();
       window.open(`/api/dispatch-pdf?${query}`, '_blank', 'noopener');
     }
 
@@ -1872,6 +1986,7 @@ END OF MESSAGE</pre>
       select.innerHTML = `<option value="">SELECT RUNWAY</option>${runways.map(runway => `<option value="${escapeHtml(runway.ident)}">${escapeHtml(runwayOptionLabel(runway))}</option>`).join('')}`;
       if (selectedValue && !runways.some(runway => runway.ident === selectedValue)) select.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(selectedValue)}">RWY ${escapeHtml(selectedValue)} / SAVED</option>`);
       select.value = selectedValue;
+      if (!select.value && runways.length) select.value = runways[0].ident;
     }
 
     async function populatePerformanceRunways(req = selected) {
@@ -1920,31 +2035,182 @@ END OF MESSAGE</pre>
       if (!bookingsActive) opsToolWorkspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function performanceMetric(label, value) {
-      return `<div class="performance-metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value ?? 'N/A')}</strong></div>`;
+    const PERFORMANCE_AIRCRAFT = Object.freeze({
+      maxTakeoffWeightLbs:2650, maxLandingWeightLbs:2650, crosswindLimitKt:17,
+      takeoffGroundRoll0Ft:1025, takeoffGroundRoll10Ft:900, takeoffGroundRoll25Ft:770,
+      takeoff50ft0Ft:1800, takeoff50ft10Ft:1700, takeoff50ft25Ft:1600,
+      landingRollFt:780, landing50ftFt:1380
+    });
+
+    function performanceMetric(label, value, tone = '') {
+      return `<div class="performance-metric"><span>${escapeHtml(label)}</span><strong class="${tone}">${escapeHtml(value ?? 'N/A')}</strong></div>`;
     }
 
-    function performanceLegMetrics(section, kind) {
+    function finite(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function feet(value) { return Number.isFinite(value) ? `${Math.round(value)} FT` : 'N/A'; }
+    function knots(value) { return Number.isFinite(value) ? `${Math.round(value)} KT` : 'N/A'; }
+
+    function performanceWeatherMetrics(section, kind) {
       const wx = kind === 'takeoff' ? section?.runwayAndWeather : section?.airportAndWeather;
-      const weight = kind === 'takeoff' ? section?.inputs?.weightLbs : section?.inputs?.landingWeightLbs;
       const runwayLength = kind === 'takeoff' ? wx?.toraFt : wx?.ldaFt;
       const wind = wx?.wind?.raw || 'NO LIVE WIND';
-      const headwind = Number.isFinite(wx?.hwXw?.headwindKt) ? `${wx.hwXw.headwindKt} KT` : 'N/A';
-      const crosswind = Number.isFinite(wx?.hwXw?.crosswindKt) ? `${wx.hwXw.crosswindKt} KT` : 'N/A';
+      const hw = finite(wx?.hwXw?.headwindKt);
+      const xw = finite(wx?.hwXw?.crosswindKt);
       return [
-        performanceMetric('Airport', `${wx?.apt?.icao || 'N/A'}${wx?.apt?.name ? ` / ${wx.apt.name}` : ''}`),
-        performanceMetric('Runway', wx?.rwy || 'NOT SET'),
-        performanceMetric(kind === 'takeoff' ? 'TORA' : 'LDA', Number.isFinite(runwayLength) ? `${Math.round(runwayLength)} FT` : 'N/A'),
-        performanceMetric('Surface', wx?.surface || wx?.rwyCond || 'N/A'),
-        performanceMetric('Wind', wind),
-        performanceMetric('Headwind', headwind),
-        performanceMetric('Crosswind', crosswind),
-        performanceMetric('OAT', Number.isFinite(wx?.oatC) ? `${wx.oatC} C` : 'N/A'),
-        performanceMetric('QNH', Number.isFinite(wx?.qnhHpa) ? `${wx.qnhHpa} HPA` : 'N/A'),
-        performanceMetric('Density altitude', Number.isFinite(wx?.densityAltFt) ? `${Math.round(wx.densityAltFt)} FT` : 'N/A'),
-        performanceMetric('Elevation', Number.isFinite(wx?.elevFt) ? `${Math.round(wx.elevFt)} FT` : 'N/A'),
-        performanceMetric('Planned weight', Number.isFinite(weight) ? `${Math.round(weight)} LB` : 'N/A')
+        performanceMetric('APT', `${wx?.apt?.icao || 'N/A'} / ${wx?.apt?.name || 'UNKNOWN'}`),
+        performanceMetric('WIND', wind),
+        performanceMetric('RWY', wx?.rwy || 'NOT SET', 'live'),
+        performanceMetric('HW / XW', `${knots(hw)} / ${knots(Math.abs(xw))}`, Math.abs(xw || 0) > PERFORMANCE_AIRCRAFT.crosswindLimitKt ? 'warn' : ''),
+        performanceMetric(kind === 'takeoff' ? 'TORA' : 'LDA', feet(finite(runwayLength))),
+        performanceMetric('OAT / QNH', `${Number.isFinite(wx?.oatC) ? `${wx.oatC} C` : 'N/A'} / ${Number.isFinite(wx?.qnhHpa) ? `${wx.qnhHpa} HPA` : 'N/A'}`),
+        performanceMetric('HDG', Number.isFinite(wx?.hdgDeg) ? `${Math.round(wx.hdgDeg)} DEG` : 'N/A'),
+        performanceMetric('ELEV / DA', `${feet(finite(wx?.elevFt))} / ${feet(finite(wx?.densityAltFt))}`),
+        performanceMetric('SURFACE', wx?.surface || wx?.rwyCond || 'N/A'),
+        performanceMetric('SLOPE / WIDTH', `${Number.isFinite(wx?.rwySlopePct) ? `${wx.rwySlopePct}%` : 'N/A'} / ${feet(finite(wx?.widthFt))}`)
       ].join('');
+    }
+
+    function conditionMultiplier(condition, phase) {
+      const value = String(condition || 'DRY').toUpperCase();
+      if (value === 'WET') return phase === 'landing' ? 1.20 : 1.15;
+      if (value === 'SNOW') return phase === 'landing' ? 1.35 : 1.28;
+      if (value === 'ICE') return phase === 'landing' ? 1.55 : 1.45;
+      return 1;
+    }
+
+    function calculateTakeoff(data) {
+      const wx = data?.takeoff?.runwayAndWeather || {};
+      const weight = finite(perfTow.value) || 2650;
+      const flaps = Number(el('perfTakeoffFlaps').value || 0);
+      const condition = el('perfTakeoffCondition').value || 'DRY';
+      const available = finite(wx.toraFt);
+      const densityAltitude = finite(wx.densityAltFt) || 0;
+      const headwind = finite(wx.hwXw?.headwindKt) || 0;
+      const crosswind = Math.abs(finite(wx.hwXw?.crosswindKt) || 0);
+      const baseRoll = flaps === 25 ? PERFORMANCE_AIRCRAFT.takeoffGroundRoll25Ft : flaps === 10 ? PERFORMANCE_AIRCRAFT.takeoffGroundRoll10Ft : PERFORMANCE_AIRCRAFT.takeoffGroundRoll0Ft;
+      const base50 = flaps === 25 ? PERFORMANCE_AIRCRAFT.takeoff50ft25Ft : flaps === 10 ? PERFORMANCE_AIRCRAFT.takeoff50ft10Ft : PERFORMANCE_AIRCRAFT.takeoff50ft0Ft;
+      const weightFactor = Math.max(.82, Math.min(1.14, weight / 2650));
+      const densityFactor = Math.max(.85, 1 + (densityAltitude / 1000) * .08);
+      const windFactor = headwind >= 0 ? Math.max(.78, 1 - headwind * .01) : 1 + Math.abs(headwind) * .03;
+      const surfaceFactor = conditionMultiplier(condition, 'takeoff');
+      const groundRoll = Math.round(baseRoll * weightFactor * densityFactor * windFactor * surfaceFactor * 1.10);
+      const distance50 = Math.round(base50 * weightFactor * densityFactor * windFactor * surfaceFactor * 1.10);
+      const vr = Math.round(69 + Math.max(0, (weight - 2350) / 250) + Math.max(0, densityAltitude / 4500));
+      const vx = Math.round(74 + Math.max(0, densityAltitude / 6000));
+      const vy = Math.round(83 + Math.max(0, densityAltitude / 7000));
+      const accelerateStop = Math.round(Math.max(groundRoll * 1.22, groundRoll + vr * 18));
+      const remaining = Number.isFinite(available) ? available - distance50 : null;
+      const stopMargin = Number.isFinite(available) ? available - accelerateStop : null;
+      const cautions = [];
+      if (weight > 2650) cautions.push('OVER MAXIMUM TAKEOFF WEIGHT');
+      if (headwind < -4) cautions.push(`TAILWIND ${Math.round(Math.abs(headwind))} KT`);
+      if (crosswind > 17) cautions.push(`CROSSWIND ${Math.round(crosswind)} KT ABOVE 17 KT LIMIT`);
+      if (Number.isFinite(remaining) && remaining < 500) cautions.push(`RUNWAY MARGIN ${Math.round(remaining)} FT`);
+      if (condition !== 'DRY') cautions.push(`${condition} RUNWAY CORRECTION APPLIED`);
+      return { kind:'takeoff', weight, flaps, condition, available, groundRoll, distance50, required:distance50, remaining, accelerateStop, stopMargin, vr, vx, vy, cautions };
+    }
+
+    function calculateLanding(data) {
+      const wx = data?.landing?.airportAndWeather || {};
+      const weight = finite(perfLdw.value) || 2600;
+      const flaps = Number(el('perfLandingFlaps').value || 40);
+      const condition = el('perfLandingCondition').value || 'DRY';
+      const braking = el('perfLandingBraking').value || 'MAX';
+      const available = finite(wx.ldaFt);
+      const densityAltitude = finite(wx.densityAltFt) || 0;
+      const headwind = finite(wx.hwXw?.headwindKt) || 0;
+      const crosswind = Math.abs(finite(wx.hwXw?.crosswindKt) || 0);
+      const weightFactor = Math.max(.82, Math.min(1.14, weight / 2650));
+      const densityFactor = Math.max(.88, 1 + (densityAltitude / 1000) * .06);
+      const windFactor = headwind >= 0 ? Math.max(.80, 1 - headwind * .008) : 1 + Math.abs(headwind) * .04;
+      const flapFactor = flaps === 40 ? 1 : flaps === 25 ? 1.08 : flaps === 10 ? 1.15 : 1.25;
+      const brakingFactor = braking === 'MIN' ? 1.15 : braking === 'MOD' ? 1.07 : 1;
+      const surfaceFactor = conditionMultiplier(condition, 'landing');
+      const groundRoll = Math.round(PERFORMANCE_AIRCRAFT.landingRollFt * weightFactor * densityFactor * windFactor * flapFactor * brakingFactor * surfaceFactor * 1.10);
+      const distance50 = Math.round(PERFORMANCE_AIRCRAFT.landing50ftFt * weightFactor * densityFactor * windFactor * flapFactor * brakingFactor * surfaceFactor * 1.10);
+      const vref = Math.round(76 + Math.max(0, (weight - 2350) / 250));
+      const gustAdd = Math.max(0, Math.min(5, Math.round(((finite(wx.wind?.gustKt) || 0) - (finite(wx.wind?.speedKt) || 0)) / 2)));
+      const vapp = vref + gustAdd;
+      const remaining = Number.isFinite(available) ? available - distance50 : null;
+      const cautions = [];
+      if (weight > 2650) cautions.push('OVER MAXIMUM LANDING WEIGHT');
+      if (headwind < -4) cautions.push(`TAILWIND ${Math.round(Math.abs(headwind))} KT`);
+      if (crosswind > 17) cautions.push(`CROSSWIND ${Math.round(crosswind)} KT ABOVE 17 KT LIMIT`);
+      if (Number.isFinite(remaining) && remaining < 500) cautions.push(`RUNWAY MARGIN ${Math.round(remaining)} FT`);
+      if (condition !== 'DRY') cautions.push(`${condition} RUNWAY CORRECTION APPLIED`);
+      return { kind:'landing', weight, flaps, condition, braking, available, groundRoll, distance50, required:distance50, remaining, vref, vapp, cautions };
+    }
+
+    function runwayNumberReciprocal(runway) {
+      const match = String(runway || '').match(/^(\d{1,2})([LCR]?)$/i);
+      if (!match) return '';
+      let number = Number(match[1]) + 18;
+      if (number > 36) number -= 36;
+      const side = match[2].toUpperCase() === 'L' ? 'R' : match[2].toUpperCase() === 'R' ? 'L' : match[2].toUpperCase();
+      return `${String(number).padStart(2, '0')}${side}`;
+    }
+
+    function renderRunwayVisual(kind, data, calc) {
+      const wx = kind === 'takeoff' ? data?.takeoff?.runwayAndWeather || {} : data?.landing?.airportAndWeather || {};
+      const container = el(kind === 'takeoff' ? 'takeoffRunwayVisual' : 'landingRunwayVisual');
+      const legend = el(kind === 'takeoff' ? 'takeoffRunwayLegend' : 'landingRunwayLegend');
+      const runway = wx.rwy || (kind === 'takeoff' ? perfDepRunway.value : perfArrRunway.value) || '--';
+      const reciprocal = runwayNumberReciprocal(runway);
+      const available = calc.available || 1;
+      const ratio = Math.max(0, Math.min(1, (calc.required || 0) / available));
+      const markerY = 640 - (ratio * 540);
+      const marginColor = calc.remaining === null ? '#8ec5ff' : calc.remaining < 500 ? '#ff6b6b' : '#66ff99';
+      const centerline = Array.from({length:10},(_,index)=>`<rect x="296" y="${90 + index * 52}" width="8" height="28" rx="2" fill="#f5f5f5"/>`).join('');
+      const sideLights = Array.from({length:18},(_,index)=>`<circle cx="228" cy="${82 + index * 32}" r="3" fill="#ffd84d"/><circle cx="372" cy="${82 + index * 32}" r="3" fill="#ffd84d"/>`).join('');
+      const wind = finite(wx.hwXw?.headwindKt);
+      const crosswind = finite(wx.hwXw?.crosswindKt);
+      container.innerHTML = `<svg viewBox="0 0 600 720" role="img" aria-label="${kind} runway performance visual">
+        <defs><linearGradient id="${kind}Rwy" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#42484d"/><stop offset="1" stop-color="#171b1e"/></linearGradient><linearGradient id="${kind}Use" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#66ff99"/><stop offset="1" stop-color="#8ec5ff"/></linearGradient></defs>
+        <rect width="600" height="720" fill="#030608"/><text x="24" y="34" fill="#8ec5ff" font-size="14" font-family="Courier New">${escapeHtml(wx.apt?.icao || '----')} / RWY ${escapeHtml(runway)} / ${Math.round(available)} FT</text>
+        <rect x="220" y="58" width="160" height="604" rx="18" fill="url(#${kind}Rwy)" stroke="#83909a" stroke-width="2"/>${sideLights}${centerline}
+        <text x="300" y="112" text-anchor="middle" transform="rotate(180 300 112)" fill="#fff" font-size="34" font-family="Courier New" font-weight="700">${escapeHtml(reciprocal)}</text>
+        <text x="300" y="635" text-anchor="middle" fill="#fff" font-size="34" font-family="Courier New" font-weight="700">${escapeHtml(runway)}</text>
+        <rect x="173" y="${markerY}" width="254" height="4" fill="${marginColor}"/><text x="438" y="${markerY + 5}" fill="${marginColor}" font-size="12" font-family="Courier New">${kind === 'takeoff' ? '50 FT / REQUIRED' : 'LANDING REQUIRED'} ${Math.round(calc.required)} FT</text>
+        <rect x="154" y="${640 - ratio * 540}" width="28" height="${Math.max(2, ratio * 540)}" rx="6" fill="url(#${kind}Use)"/><text x="168" y="676" text-anchor="middle" fill="#91a5b2" font-size="10" font-family="Courier New">USED</text>
+        <g transform="translate(22 80)"><rect width="174" height="90" rx="8" fill="#071018" stroke="#395366"/><text x="12" y="24" fill="#8ec5ff" font-size="11" font-family="Courier New">HEADWIND</text><text x="162" y="24" text-anchor="end" fill="#fff" font-size="12" font-family="Courier New">${knots(wind)}</text><text x="12" y="55" fill="#ffb15c" font-size="11" font-family="Courier New">CROSSWIND</text><text x="162" y="55" text-anchor="end" fill="#fff" font-size="12" font-family="Courier New">${knots(Math.abs(crosswind || 0))}</text><text x="12" y="78" fill="#91a5b2" font-size="9" font-family="Courier New">${escapeHtml(calc.condition)} / DA ${Math.round(finite(wx.densityAltFt) || 0)} FT</text></g>
+        <g transform="translate(446 520)"><path d="M77 0 L87 34 L132 50 L132 62 L88 56 L94 100 L82 100 L70 56 L26 62 L26 50 L71 34 Z" fill="#dce8ef" stroke="#8ec5ff"/><text x="80" y="124" text-anchor="middle" fill="#8ec5ff" font-size="10" font-family="Courier New">${kind === 'takeoff' ? 'DEPARTURE' : 'ARRIVAL'}</text></g>
+      </svg>`;
+      const legendValues = kind === 'takeoff'
+        ? [['GROUND ROLL',calc.groundRoll],['50 FT DIST',calc.distance50],['TORA',calc.available],['REMAIN',calc.remaining]]
+        : [['GROUND ROLL',calc.groundRoll],['50 FT / REQ',calc.distance50],['LDA',calc.available],['REMAIN',calc.remaining]];
+      legend.innerHTML = legendValues.map(([label,value]) => `<div><span>${label}</span><strong>${feet(finite(value))}</strong></div>`).join('');
+    }
+
+    function renderPerformanceCalculation(kind, data, calc) {
+      const outputs = kind === 'takeoff' ? takeoffPerformanceOutputs : landingPerformanceOutputs;
+      if (kind === 'takeoff') {
+        outputs.innerHTML = [performanceMetric('VR', `${calc.vr} KIAS`, 'live'), performanceMetric('T/O DIST REQ', feet(calc.required)), performanceMetric('VX', `${calc.vx} KIAS`, 'live'), performanceMetric('RWY AVAIL', feet(calc.available)), performanceMetric('VY', `${calc.vy} KIAS`, 'live'), performanceMetric('RWY REMAIN', feet(calc.remaining), calc.remaining < 500 ? 'warn' : 'live'), performanceMetric('ACCEL-STOP', feet(calc.accelerateStop)), performanceMetric('STOP MARGIN', feet(calc.stopMargin), calc.stopMargin < 500 ? 'warn' : '')].join('');
+      } else {
+        outputs.innerHTML = [performanceMetric('VREF', `${calc.vref} KIAS`, 'live'), performanceMetric('RWY AVAIL', feet(calc.available)), performanceMetric('VAPP', `${calc.vapp} KIAS`, 'live'), performanceMetric('RWY REMAIN', feet(calc.remaining), calc.remaining < 500 ? 'warn' : 'live'), performanceMetric('LDG DIST REQ', feet(calc.required)), performanceMetric('GROUND ROLL', feet(calc.groundRoll)), performanceMetric('GO-AROUND PWR', 'FULL'), performanceMetric('FLAPS UP SPD', '87 KIAS')].join('');
+      }
+      const wx = kind === 'takeoff' ? data.takeoff.runwayAndWeather : data.landing.airportAndWeather;
+      el(kind === 'takeoff' ? 'takeoffPerformanceDerived' : 'landingPerformanceDerived').innerHTML = `<strong>CALCULATED FROM</strong> RWY ${escapeHtml(wx.rwy || '--')} / ${escapeHtml(wx.wind?.raw || 'NO WIND')} / WT ${Math.round(calc.weight)} LB / ${escapeHtml(calc.condition)}`;
+      el(kind === 'takeoff' ? 'takeoffPerformanceMessages' : 'landingPerformanceMessages').textContent = calc.cautions.length ? calc.cautions.join(' / ') : 'NORMAL / NO AUTOMATED CAUTIONS';
+      const badge = el(kind === 'takeoff' ? 'takeoffPerfBadge' : 'landingPerfBadge');
+      badge.textContent = calc.cautions.length ? 'Review' : 'Calculated';
+      badge.style.borderColor = calc.cautions.length ? 'var(--warn)' : 'var(--live)';
+      badge.style.color = calc.cautions.length ? 'var(--warn)' : 'var(--live)';
+      renderRunwayVisual(kind, data, calc);
+    }
+
+    function calculatePerformanceSection(kind) {
+      if (!latestPerformanceData) {
+        performanceStatus.textContent = 'LOAD AIRPORT, WEATHER, AND RUNWAY DATA FIRST.';
+        return null;
+      }
+      const calculation = kind === 'takeoff' ? calculateTakeoff(latestPerformanceData) : calculateLanding(latestPerformanceData);
+      latestPerformanceCalculations = { ...(latestPerformanceCalculations || {}), [kind]:calculation };
+      renderPerformanceCalculation(kind, latestPerformanceData, calculation);
+      return calculation;
     }
 
     async function runPerformanceReview() {
@@ -1954,26 +2220,55 @@ END OF MESSAGE</pre>
         performanceStatus.textContent = 'Enter valid four-character departure and arrival ICAO identifiers.';
         return;
       }
+      if (!perfDepRunway.value || !perfArrRunway.value) {
+        performanceStatus.textContent = 'SELECT DEPARTURE AND ARRIVAL RUNWAYS TO CALCULATE.';
+        return;
+      }
       runPerformanceBtn.disabled = true;
-      performanceStatus.textContent = 'Loading current airport, runway, and weather data...';
+      performanceStatus.textContent = 'LOADING AIRPORT, RUNWAY, LIVE WEATHER, AND WIND COMPONENT DATA...';
       try {
-        const params = new URLSearchParams({ dep, arr });
-        if (perfDepRunway.value.trim()) params.set('takeoffRunway', perfDepRunway.value.trim());
-        if (perfArrRunway.value.trim()) params.set('landingRunway', perfArrRunway.value.trim());
-        if (perfTow.value) params.set('takeoffWeightLbs', perfTow.value);
-        if (perfLdw.value) params.set('landingWeightLbs', perfLdw.value);
+        const params = new URLSearchParams({ dep, arr, takeoffRunway:perfDepRunway.value, landingRunway:perfArrRunway.value, takeoffWeightLbs:perfTow.value, landingWeightLbs:perfLdw.value, takeoffRunwayCondition:el('perfTakeoffCondition').value, landingRunwayCondition:el('perfLandingCondition').value });
         const response = await fetch(`/api/performance?${params}`, { cache: 'no-store' });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || 'PERFORMANCE DATA UNAVAILABLE');
         latestPerformanceData = data;
-        takeoffPerformanceMetrics.innerHTML = performanceLegMetrics(data.takeoff, 'takeoff');
-        landingPerformanceMetrics.innerHTML = performanceLegMetrics(data.landing, 'landing');
-        performanceStatus.textContent = `${dep}-${arr} data loaded. Use these live inputs with the current approved AFM/POH; this screen does not issue a takeoff or landing clearance.`;
+        takeoffPerformanceMetrics.innerHTML = performanceWeatherMetrics(data.takeoff, 'takeoff');
+        landingPerformanceMetrics.innerHTML = performanceWeatherMetrics(data.landing, 'landing');
+        latestPerformanceCalculations = { takeoff:calculateTakeoff(data), landing:calculateLanding(data) };
+        renderPerformanceCalculation('takeoff', data, latestPerformanceCalculations.takeoff);
+        renderPerformanceCalculation('landing', data, latestPerformanceCalculations.landing);
+        performanceStatus.textContent = `${dep}-${arr} PERFORMANCE LOADED / VERIFY AGAINST CURRENT APPROVED AFM/POH BEFORE OPERATION.`;
       } catch (error) {
         performanceStatus.textContent = error.message || 'Performance data unavailable.';
       } finally {
         runPerformanceBtn.disabled = false;
       }
+    }
+
+    function performanceAcarsText(kind) {
+      const calc = latestPerformanceCalculations?.[kind];
+      const data = latestPerformanceData;
+      if (!calc || !data) return '';
+      const wx = kind === 'takeoff' ? data.takeoff.runwayAndWeather : data.landing.airportAndWeather;
+      const lines = [kind === 'takeoff' ? 'TAKEOFF PERFORMANCE' : 'LANDING PERFORMANCE','------------------------','OH-PMK  PIPER PA-28R-200 ARROW II',`APT ${wx.apt?.icao || '----'}   RWY ${wx.rwy || '--'}   ${kind === 'takeoff' ? 'TORA' : 'LDA'} ${feet(calc.available)}`,`WIND ${wx.wind?.raw || 'N/A'}   HW ${knots(finite(wx.hwXw?.headwindKt))}   XW ${knots(Math.abs(finite(wx.hwXw?.crosswindKt) || 0))}`,`OAT ${Number.isFinite(wx.oatC) ? `${wx.oatC}C` : 'N/A'}   QNH ${Number.isFinite(wx.qnhHpa) ? `${wx.qnhHpa}HPA` : 'N/A'}   DA ${feet(finite(wx.densityAltFt))}`,`WEIGHT ${Math.round(calc.weight)} LB   FLAPS ${calc.flaps} DEG   COND ${calc.condition}`];
+      if (kind === 'takeoff') lines.push(`VR ${calc.vr} KIAS   VX ${calc.vx} KIAS   VY ${calc.vy} KIAS`,`GROUND ROLL ${feet(calc.groundRoll)}   50FT ${feet(calc.distance50)}`,`ACCEL-STOP ${feet(calc.accelerateStop)}   RWY REM ${feet(calc.remaining)}`);
+      else lines.push(`VREF ${calc.vref} KIAS   VAPP ${calc.vapp} KIAS`,`GROUND ROLL ${feet(calc.groundRoll)}   50FT/REQ ${feet(calc.distance50)}`,`RWY REM ${feet(calc.remaining)}   BRAKING ${calc.braking}`);
+      lines.push(`RMK ${calc.cautions.length ? calc.cautions.join(' / ') : 'NORMAL'}`,'ADVISORY ONLY - VERIFY CURRENT AFM/POH.','END OF REPORT');
+      return lines.join('\n');
+    }
+
+    function openPerformanceDocument(kind) {
+      const report = performanceAcarsText(kind);
+      if (!report) {
+        performanceStatus.textContent = `CALCULATE ${kind.toUpperCase()} PERFORMANCE BEFORE OPENING PDF.`;
+        return;
+      }
+      const visual = el(kind === 'takeoff' ? 'takeoffRunwayVisual' : 'landingRunwayVisual').innerHTML;
+      const title = kind === 'takeoff' ? 'TAKEOFF PERFORMANCE' : 'LANDING PERFORMANCE';
+      const popup = window.open('', '_blank');
+      if (!popup) return;
+      popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>body{margin:0;background:#fff;color:#000;font-family:"Courier New",monospace}.page{max-width:820px;margin:auto;padding:24px}.tools{margin-bottom:16px}button{padding:9px 12px;border:1px solid #000;background:#fff;font-family:inherit}h1{font-size:20px}pre{font:13px/1.45 "Courier New",monospace;white-space:pre-wrap}.visual{max-width:430px;margin:18px auto}.visual svg{width:100%;height:auto}@media print{.tools{display:none}.page{padding:0}}</style></head><body><main class="page"><div class="tools"><button onclick="window.print()">PRINT / SAVE AS PDF</button></div><h1>${title}</h1><pre>${escapeHtml(report)}</pre><div class="visual">${visual}</div></main></body></html>`);
+      popup.document.close();
     }
 
     function performanceSnapshotFromData(data) {
@@ -2879,11 +3174,29 @@ END OF MESSAGE</pre>
       weatherDataKey = '';
     });
     weatherAltn.addEventListener('change', () => loadWeatherWorkspace(true).catch(() => {}));
-    runPerformanceBtn.addEventListener('click', runPerformanceReview);
-    [perfDepRunway, perfArrRunway, perfTow, perfLdw].forEach(input => input.addEventListener('change', () => {
-      latestPerformanceData = null;
-      performanceStatus.textContent = 'Inputs changed. Reload aircraft performance data before applying it to the OFP.';
+    weatherOptionInputs.forEach(input => input.addEventListener('change', () => {
+      latestWeatherData = null;
+      weatherDataKey = '';
+      loadWeatherWorkspace(true).catch(() => {});
     }));
+    runPerformanceBtn.addEventListener('click', runPerformanceReview);
+    [perfDepRunway, perfArrRunway].forEach(input => input.addEventListener('change', () => {
+      latestPerformanceData = null;
+      latestPerformanceCalculations = null;
+      runPerformanceReview().catch(() => {});
+    }));
+    [perfTow, el('perfTakeoffFlaps'), el('perfTakeoffCondition')].forEach(input => input.addEventListener('change', () => {
+      if (latestPerformanceData) calculatePerformanceSection('takeoff');
+      performanceStatus.textContent = 'TAKEOFF INPUTS UPDATED / VERIFY THE RECALCULATED RESULT.';
+    }));
+    [perfLdw, el('perfLandingFlaps'), el('perfLandingCondition'), el('perfLandingBraking')].forEach(input => input.addEventListener('change', () => {
+      if (latestPerformanceData) calculatePerformanceSection('landing');
+      performanceStatus.textContent = 'LANDING INPUTS UPDATED / VERIFY THE RECALCULATED RESULT.';
+    }));
+    calculateTakeoffBtn.addEventListener('click', () => calculatePerformanceSection('takeoff'));
+    calculateLandingBtn.addEventListener('click', () => calculatePerformanceSection('landing'));
+    openTakeoffPdfBtn.addEventListener('click', () => openPerformanceDocument('takeoff'));
+    openLandingPdfBtn.addEventListener('click', () => openPerformanceDocument('landing'));
     applyPerformanceToOfpBtn.addEventListener('click', () => applyPerformanceToOfp().catch(error => { performanceStatus.textContent = error.message; }));
     openPerformanceOfpBtn.addEventListener('click', () => switchOpsWorkspace('flight-plan'));
     window.addEventListener('message', async event => {

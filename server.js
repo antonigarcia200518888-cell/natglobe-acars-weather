@@ -5231,17 +5231,20 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
 
     const needsAlternate = arrivalNeedsAlternate(arrWx);
     const suggestedAlternate = needsAlternate ? await getSuggestedAlternate(arr, altn) : null;
+    const reportOption = (name, fallback = true) => req.query[name] === undefined ? fallback : parseBoolean(req.query[name]);
     const dispatchData = buildDispatchData({
       dep,
       arr,
       altn,
-      includeDepMetar: 'true',
-      includeDepTaf: 'true',
-      includeArrMetar: 'true',
-      includeArrTaf: 'true',
-      includeAltnMetar: Boolean(altn) ? 'true' : 'false',
-      includeAltnTaf: Boolean(altn) ? 'true' : 'false',
-      includeWindsAloft: 'true'
+      flight: req.query.flight || '',
+      route: req.query.route || `${dep}-${arr}`,
+      includeDepMetar: reportOption('includeDepMetar'),
+      includeDepTaf: reportOption('includeDepTaf'),
+      includeArrMetar: reportOption('includeArrMetar'),
+      includeArrTaf: reportOption('includeArrTaf'),
+      includeAltnMetar: Boolean(altn) && reportOption('includeAltnMetar'),
+      includeAltnTaf: Boolean(altn) && reportOption('includeAltnTaf'),
+      includeWindsAloft: reportOption('includeWindsAloft')
     }, depWx, arrWx, altnWx, { dep: depWinds, arr: arrWinds });
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -5253,6 +5256,7 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
       arrival: summarize(arr, arrAirport, arrWx),
       alternate: summarize(altn, altnAirport, altnWx),
       windsAloft: { departure: depWinds, arrival: arrWinds },
+      reportText: buildDispatchText(dispatchData),
       operational: {
         remarks: generateAutoRemark(dispatchData),
         arrivalNeedsAlternate: needsAlternate,
