@@ -1669,6 +1669,7 @@ END OF MESSAGE</pre>
     let quickFilter = 'ALL';
     let autoSyncing = false;
     let latestPerformanceData = null;
+    let performanceDataRequest = '';
     let latestWeatherData = null;
     let weatherDataKey = '';
     let activeWorkspace = 'bookings';
@@ -1703,6 +1704,12 @@ END OF MESSAGE</pre>
     function updateSuiteContext(req = selected) {
       const passengers = req ? passengerList(req) : [];
       const signed = req ? agreementCount(req) : 0;
+      if (performanceDataRequest !== (req?.id || '')) {
+        performanceDataRequest = req?.id || '';
+        latestPerformanceData = null;
+        takeoffPerformanceMetrics.innerHTML = '';
+        landingPerformanceMetrics.innerHTML = '';
+      }
       toolFlightContext.textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
       weatherRoute.textContent = req ? `${req.dep || '----'}  >  ${req.arr || '----'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
       if (weatherAltn.dataset.request !== (req?.id || '')) {
@@ -1726,9 +1733,15 @@ END OF MESSAGE</pre>
         perfArr.value = req.arr || '';
         perfTow.value = req.operationalFlightPlan?.takeoffWeightLb || '';
         perfLdw.value = req.operationalFlightPlan?.landingWeightLb || '';
-        populatePerformanceRunways(req).catch(() => {
-          performanceStatus.textContent = 'Runway database unavailable. Retry from Aircraft Performance.';
-        });
+        populatePerformanceRunways(req)
+          .then(() => {
+            if (activeWorkspace === 'performance' && perfDepRunway.value && perfArrRunway.value && !latestPerformanceData) {
+              runPerformanceReview().catch(() => {});
+            }
+          })
+          .catch(() => {
+            performanceStatus.textContent = 'Runway database unavailable. Retry from Aircraft Performance.';
+          });
       }
       if (activeWorkspace === 'weather') loadWeatherWorkspace().catch(() => {});
     }
