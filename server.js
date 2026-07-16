@@ -5183,6 +5183,88 @@ app.get('/api/airport-runways', async (req, res) => {
   }
 });
 
+app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
+  try {
+    const dep = normalizeIcao(req.query.dep);
+    const arr = normalizeIcao(req.query.arr);
+    const altn = normalizeIcao(req.query.altn);
+    if (!dep || !arr) return res.status(400).json({ error: 'DEPARTURE AND ARRIVAL ARE REQUIRED' });
+
+    const [depWx, arrWx, altnWx, depAirport, arrAirport, altnAirport, depWinds, arrWinds] = await Promise.all([
+      getAirportWeather(dep),
+      getAirportWeather(arr),
+      altn ? getAirportWeather(altn) : null,
+      findAirportByIcao(dep),
+      findAirportByIcao(arr),
+      altn ? findAirportByIcao(altn) : null,
+      getWindsAloftForAirport(dep),
+      getWindsAloftForAirport(arr)
+    ]);
+
+    const summarize = (icao, airport, wx) => {
+      if (!icao || !wx) return null;
+      const metar = wx.metar && wx.metar !== 'NOT AVAILABLE' ? wx.metar : '';
+      const elevationFt = Number.isFinite(airport?.elevationFt) ? Math.round(airport.elevationFt) : null;
+      const oatC = parseTemperatureC(metar);
+      const qnhHpa = parseQnhHpa(metar);
+      return {
+        icao,
+        name: airport?.name || icao,
+        elevationFt,
+        mode: wx.mode,
+        metar: wx.metar,
+        taf: wx.taf,
+        metarSource: wx.metarSource,
+        tafSource: wx.tafSource,
+        metarFallback: wx.metarFallback,
+        tafFallback: wx.tafFallback,
+        metarDistanceNm: wx.metarDistanceNm,
+        tafDistanceNm: wx.tafDistanceNm,
+        wind: parseWindDetailed(metar),
+        visibilityM: parseVisibility(metar),
+        ceilingFt: parseCloudBase(metar),
+        oatC,
+        qnhHpa,
+        densityAltitudeFt: computeDensityAltitudeFt(elevationFt, oatC, qnhHpa)
+      };
+    };
+
+    const needsAlternate = arrivalNeedsAlternate(arrWx);
+    const suggestedAlternate = needsAlternate ? await getSuggestedAlternate(arr, altn) : null;
+    const dispatchData = buildDispatchData({
+      dep,
+      arr,
+      altn,
+      includeDepMetar: 'true',
+      includeDepTaf: 'true',
+      includeArrMetar: 'true',
+      includeArrTaf: 'true',
+      includeAltnMetar: Boolean(altn) ? 'true' : 'false',
+      includeAltnTaf: Boolean(altn) ? 'true' : 'false',
+      includeWindsAloft: 'true'
+    }, depWx, arrWx, altnWx, { dep: depWinds, arr: arrWinds });
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.json({
+      generatedAt: new Date().toISOString(),
+      route: { dep, arr, altn },
+      departure: summarize(dep, depAirport, depWx),
+      arrival: summarize(arr, arrAirport, arrWx),
+      alternate: summarize(altn, altnAirport, altnWx),
+      windsAloft: { departure: depWinds, arrival: arrWinds },
+      operational: {
+        remarks: generateAutoRemark(dispatchData),
+        arrivalNeedsAlternate: needsAlternate,
+        suggestedAlternate
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'EFB WEATHER DATA UNAVAILABLE' });
+  }
+});
+
 app.get('/api/dispatch-pdf', async (req, res) => {
   try {
     const dep = normalizeIcao(req.query.dep);
