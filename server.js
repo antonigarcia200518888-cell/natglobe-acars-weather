@@ -1031,6 +1031,38 @@ function operationalPlanNumber(input, fallback = 0, min = -100000, max = 100000)
   return Math.max(min, Math.min(max, Math.round(value * 100) / 100));
 }
 
+function normalizeOperationalPerformanceSnapshot(input) {
+  if (!input || typeof input !== 'object') return null;
+  const numberOrNull = (value, min = -100000, max = 100000) => {
+    if (value === null || value === undefined || String(value).trim() === '') return null;
+    const number = Number(value);
+    if (!Number.isFinite(number)) return null;
+    return Math.max(min, Math.min(max, Math.round(number * 100) / 100));
+  };
+  const normalizeLeg = leg => ({
+    airport: normalizeBookingText(leg?.airport, 8).toUpperCase(),
+    runway: normalizeBookingText(leg?.runway, 12).toUpperCase(),
+    headingDeg: numberOrNull(leg?.headingDeg, 0, 360),
+    runwayLengthFt: numberOrNull(leg?.runwayLengthFt, 0, 30000),
+    surface: normalizeBookingText(leg?.surface, 40).toUpperCase(),
+    widthFt: numberOrNull(leg?.widthFt, 0, 1000),
+    windRaw: normalizeBookingText(leg?.windRaw, 120).toUpperCase(),
+    headwindKt: numberOrNull(leg?.headwindKt, -200, 200),
+    crosswindKt: numberOrNull(leg?.crosswindKt, -200, 200),
+    oatC: numberOrNull(leg?.oatC, -100, 100),
+    qnhHpa: numberOrNull(leg?.qnhHpa, 800, 1200),
+    densityAltitudeFt: numberOrNull(leg?.densityAltitudeFt, -5000, 30000),
+    elevationFt: numberOrNull(leg?.elevationFt, -2000, 30000),
+    plannedWeightLb: numberOrNull(leg?.plannedWeightLb, 0, 10000)
+  });
+  return {
+    capturedAt: normalizeBookingText(input.capturedAt, 40),
+    source: normalizeBookingText(input.source, 80).toUpperCase() || 'NGA WEATHER / AIRPORT DATABASE',
+    departure: normalizeLeg(input.departure),
+    arrival: normalizeLeg(input.arrival)
+  };
+}
+
 function normalizeOperationalFlightPlan(input, request) {
   if (!input || typeof input !== 'object') return null;
   const defaults = operationalFlightPlanDefaults(request);
@@ -1051,8 +1083,8 @@ function normalizeOperationalFlightPlan(input, request) {
     commanderName: textField('commanderName', 60).toUpperCase(),
     commanderPhone: textField('commanderPhone', 40),
     callsign: textField('callsign', 40).toUpperCase(),
-    departure: textField('departure', 8).toUpperCase(),
-    destination: textField('destination', 8).toUpperCase(),
+    departure: normalizeBookingText(request?.dep || defaults.departure, 8).toUpperCase(),
+    destination: normalizeBookingText(request?.arr || defaults.destination, 8).toUpperCase(),
     depRunway: textField('depRunway', 12).toUpperCase(),
     arrRunway: textField('arrRunway', 12).toUpperCase(),
     route: textField('route', 240).toUpperCase(),
@@ -1106,6 +1138,7 @@ function normalizeOperationalFlightPlan(input, request) {
     cgForwardLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.forwardCgLimits.at(-1).cgIn,
     cgAftLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.aftCgLimits.at(-1).cgIn,
     weightBalanceProfile: AIRCRAFT_WEIGHT_BALANCE_PROFILE,
+    performanceSnapshot: normalizeOperationalPerformanceSnapshot(input.performanceSnapshot),
     stabTrim: textField('stabTrim', 20).toUpperCase(),
     releaseName: textField('releaseName', 60).toUpperCase(),
     releaseAccepted: input.releaseAccepted === true || input.releaseAccepted === 'true'
@@ -3916,6 +3949,7 @@ function operationalFlightPlanDefaults(request) {
     cgForwardLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.forwardCgLimits.at(-1).cgIn,
     cgAftLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.aftCgLimits.at(-1).cgIn,
     weightBalanceProfile: AIRCRAFT_WEIGHT_BALANCE_PROFILE,
+    performanceSnapshot: null,
     stabTrim: '',
     releaseName: commander,
     releaseAccepted: false

@@ -17,6 +17,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display:none !important; }
 
     html, body {
       margin: 0;
@@ -95,7 +96,7 @@
 
     .ops-suite-nav {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 8px;
       margin-bottom: 12px;
     }
@@ -143,7 +144,7 @@
     .tool-workspace-head strong { display: block; margin-top: 5px; color: #fff; font-size: 16px; text-transform: uppercase; }
     .tool-flight-context { color: var(--live); font-size: 11px; text-transform: uppercase; text-align: right; }
     .ops-tool-pane { padding: 12px; }
-    .weather-frame { width: 100%; height: min(72vh, 860px); min-height: 600px; border: 1px solid #46535e; background: #000; }
+    .weather-frame, .ofp-frame { width: 100%; height: min(78vh, 980px); min-height: 640px; border: 1px solid #46535e; background: #000; }
 
     .performance-form {
       display: grid;
@@ -153,7 +154,7 @@
     }
 
     .performance-form label { color: #8797a2; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
-    .performance-form input { width: 100%; min-height: 40px; margin-top: 5px; border: 1px solid #4b5a65; background: #000; color: #fff; padding: 8px; font: 12px "Courier New", monospace; text-transform: uppercase; }
+    .performance-form input, .performance-form select { width: 100%; min-height: 40px; margin-top: 5px; border: 1px solid #4b5a65; background:#000; color:#fff; padding:8px; font:12px "Courier New", monospace; text-transform:uppercase; }
     .performance-run { min-height: 40px; align-self: end; border: 1px solid var(--live); background: var(--live); color: #001308; font: 700 11px "Courier New", monospace; cursor: pointer; text-transform: uppercase; }
     .performance-status { border-left: 2px solid var(--accent); padding: 8px 10px; margin-bottom: 10px; color: #a9bac5; background: #071019; font-size: 10px; line-height: 1.45; text-transform: uppercase; }
     .performance-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -164,6 +165,16 @@
     .performance-metric span { display: block; color: #758692; font-size: 8px; text-transform: uppercase; }
     .performance-metric strong { display: block; margin-top: 5px; color: #fff; font-size: 12px; overflow-wrap: anywhere; }
     .performance-note { margin-top: 10px; color: var(--warn); font-size: 9px; line-height: 1.45; text-transform: uppercase; }
+    .performance-actions { display:grid; grid-template-columns:repeat(2,minmax(0,220px)); gap:8px; margin-top:10px; }
+    .performance-actions button { min-height:42px; border:1px solid var(--accent); background:#03080c; color:var(--accent); padding:9px; font:700 10px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
+    .performance-actions button.primary { border-color:var(--live); background:var(--live); color:#001208; }
+
+    .movement-phase-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:10px 0; }
+    .movement-phase { border:1px solid #40505c; background:#020405; padding:9px 10px; min-height:58px; }
+    .movement-phase span { display:block; color:#71838f; font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
+    .movement-phase strong { display:block; margin-top:6px; color:#fff; font-size:12px; }
+    .movement-phase.done { border-color:var(--live); }
+    .movement-phase.done strong { color:var(--live); }
 
     .suite-doc-summary { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
     .suite-doc-summary > div { border: 1px solid #3c4b56; background: #020405; padding: 11px; }
@@ -173,7 +184,12 @@
     .suite-document-actions button { min-height: 52px; border: 1px solid var(--accent); background: #03080c; color: var(--accent); padding: 9px; font: 700 10px "Courier New", monospace; cursor: pointer; text-transform: uppercase; }
     .suite-document-actions button:disabled { opacity: .4; cursor: not-allowed; }
 
-    .ops-calendar { border: 2px solid var(--line); padding: 12px; margin-bottom: 12px; background: #050505; }
+    .ops-calendar { border:2px solid var(--line); margin-bottom:12px; background:#050505; }
+    .ops-calendar summary { padding:12px; cursor:pointer; color:#fff; font-weight:700; text-transform:uppercase; list-style:none; }
+    .ops-calendar summary::-webkit-details-marker { display:none; }
+    .ops-calendar summary::after { content:"OPEN SCHEDULE +"; float:right; color:var(--accent); font-size:9px; }
+    .ops-calendar[open] summary::after { content:"CLOSE SCHEDULE -"; }
+    .ops-calendar .calendar-grid { padding:0 12px 12px; }
     .calendar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
     .calendar-day { border: 1px solid #555; padding: 9px; min-height: 92px; }
     .calendar-day strong { display:block; color: var(--live); font-size: 12px; margin-bottom: 7px; }
@@ -413,6 +429,16 @@
       margin-bottom: 8px;
       letter-spacing: 0.5px;
     }
+
+    .ops-history > summary {
+      cursor: pointer;
+      margin: 0;
+      list-style: none;
+    }
+    .ops-history > summary::-webkit-details-marker { display: none; }
+    .ops-history > summary::after { content: 'OPEN +'; float: right; color: #fff; font-size: 10px; }
+    .ops-history[open] > summary { margin-bottom: 10px; }
+    .ops-history[open] > summary::after { content: 'CLOSE -'; }
 
     .brief-line {
       display: flex;
@@ -1087,7 +1113,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .route-correction, .contact-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .document-dashboard { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .document-dashboard, .movement-phase-strip, .performance-actions { grid-template-columns: 1fr; }
       .brief-card.wide,
       .brief-card.third { grid-column: 1 / -1; }
       .title-row { flex-direction: column; }
@@ -1117,31 +1143,36 @@
     <div class="intro">One selected-flight workspace for booking control, weather, runway review, performance inputs, OFP preparation, passenger files, and pilot decision.</div>
     <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
     <nav class="ops-suite-nav" aria-label="Pilot operations workspaces">
-      <button class="suite-tab active" type="button" data-suite-view="bookings"><span>01 / Control</span><strong>Booking Control</strong><small>Queue, crew, passengers, decisions</small></button>
-      <button class="suite-tab" type="button" data-suite-view="weather"><span>02 / Preflight</span><strong>Weather Operations</strong><small>Live briefing and dispatch weather</small></button>
-      <button class="suite-tab" type="button" data-suite-view="performance"><span>03 / Aircraft</span><strong>Runway &amp; Performance</strong><small>Weather, runway, load inputs</small></button>
-      <button class="suite-tab" type="button" data-suite-view="documents"><span>04 / Flight file</span><strong>OFP &amp; Documents</strong><small>Controlled selected-flight documents</small></button>
+      <button class="suite-tab active" type="button" data-suite-view="bookings"><span>01 / Control</span><strong>Flight Control</strong><small>Queue, crew, passengers, decision</small></button>
+      <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>02 / Plan</span><strong>Flight Plan</strong><small>Route, fuel, load, movement log</small></button>
+      <button class="suite-tab" type="button" data-suite-view="weather"><span>03 / Preflight</span><strong>Weather</strong><small>Live briefing and dispatch data</small></button>
+      <button class="suite-tab" type="button" data-suite-view="performance"><span>04 / Aircraft</span><strong>Aircraft Performance</strong><small>Runway, wind, density altitude</small></button>
+      <button class="suite-tab" type="button" data-suite-view="documents"><span>05 / Flight file</span><strong>Documents</strong><small>OFP, statement, agreements</small></button>
     </nav>
     <section id="opsToolWorkspace" class="ops-tool-workspace" hidden>
       <header class="tool-workspace-head"><div><span id="toolWorkspaceKicker">Pilot tool</span><strong id="toolWorkspaceTitle">Operations workspace</strong></div><div id="toolFlightContext" class="tool-flight-context">NO FLIGHT SELECTED</div></header>
       <div id="weatherOpsPane" class="ops-tool-pane" hidden>
         <iframe id="weatherOpsFrame" class="weather-frame" title="NGA weather operations" data-src="/acars"></iframe>
       </div>
+      <div id="flightPlanOpsPane" class="ops-tool-pane" hidden>
+        <iframe id="ofpOpsFrame" class="ofp-frame" title="Selected flight operational flight plan"></iframe>
+      </div>
       <div id="performanceOpsPane" class="ops-tool-pane" hidden>
         <div class="performance-form">
-          <label>Departure ICAO<input id="perfDep" maxlength="4" placeholder="EFHV" /></label>
-          <label>Departure runway<input id="perfDepRunway" maxlength="5" placeholder="04" /></label>
+          <label>Departure ICAO<input id="perfDep" maxlength="4" placeholder="EFHV" readonly /></label>
+          <label>Departure runway<select id="perfDepRunway"><option value="">Select runway</option></select></label>
           <label>Takeoff weight LB<input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" /></label>
-          <label>Arrival ICAO<input id="perfArr" maxlength="4" placeholder="EFHN" /></label>
-          <label>Arrival runway<input id="perfArrRunway" maxlength="5" placeholder="03" /></label>
+          <label>Arrival ICAO<input id="perfArr" maxlength="4" placeholder="EFHN" readonly /></label>
+          <label>Arrival runway<select id="perfArrRunway"><option value="">Select runway</option></select></label>
           <label>Landing weight LB<input id="perfLdw" type="number" min="1400" max="2650" step="1" placeholder="2600" /></label>
-          <button id="runPerformanceBtn" class="performance-run" type="button">Load runway &amp; weather data</button>
+          <button id="runPerformanceBtn" class="performance-run" type="button">Load aircraft performance inputs</button>
         </div>
         <div id="performanceStatus" class="performance-status">Select a flight or enter the route and runway ends. Current airport, weather, density altitude, runway, and wind-component data will load here.</div>
         <div class="performance-results">
           <section class="performance-leg"><h3>Takeoff review</h3><div id="takeoffPerformanceMetrics" class="performance-metrics"></div><div class="performance-note">Confirm takeoff distance, V-speeds, obstacle clearance, runway state, and margins using the current approved AFM/POH.</div></section>
           <section class="performance-leg"><h3>Landing review</h3><div id="landingPerformanceMetrics" class="performance-metrics"></div><div class="performance-note">Confirm landing distance, approach speed, braking assumptions, runway state, and go-around capability using the current approved AFM/POH.</div></section>
         </div>
+        <div class="performance-actions"><button id="applyPerformanceToOfpBtn" class="primary" type="button">Apply snapshot to OFP</button><button id="openPerformanceOfpBtn" type="button">Open flight plan</button></div>
       </div>
       <div id="documentsOpsPane" class="ops-tool-pane" hidden>
         <div class="suite-doc-summary">
@@ -1173,7 +1204,7 @@
       <div id="opsCrewOpenCard" class="ops-watch-card"><span>Crew open</span><strong id="opsCrewOpen">0</strong><small>Commander not assigned</small></div>
       <div id="opsLoadWatchCard" class="ops-watch-card"><span>Load watch</span><strong id="opsLoadWatch">0</strong><small>W&amp;B review queue</small></div>
     </section>
-    <section class="ops-calendar"><div class="panel-title">MOVEMENT CALENDAR</div><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></section>
+    <details class="ops-calendar"><summary>Movement schedule</summary><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></details>
 
     <div class="layout">
       <aside class="panel queue-panel">
@@ -1214,7 +1245,13 @@
             <div class="dispatch-metric"><span>Luggage</span><strong id="dispatchLuggage">.....</strong></div>
             <div class="dispatch-metric"><span>Cost estimate</span><strong id="dispatchCost">.....</strong></div>
           </div>
-          <div class="dispatch-intelligence" aria-label="Automated dispatch intelligence">
+          <div class="movement-phase-strip" aria-label="Selected flight movement times">
+            <div id="opsMovementOut" class="movement-phase"><span>OUT / Taxi</span><strong>NOT RECORDED</strong></div>
+            <div id="opsMovementOff" class="movement-phase"><span>OFF / Airborne</span><strong>NOT RECORDED</strong></div>
+            <div id="opsMovementOn" class="movement-phase"><span>ON / Landed</span><strong>NOT RECORDED</strong></div>
+            <div id="opsMovementIn" class="movement-phase"><span>IN / On stand</span><strong>NOT RECORDED</strong></div>
+          </div>
+          <div class="dispatch-intelligence" aria-label="Automated dispatch intelligence" hidden>
             <div class="readiness-console">
               <div class="console-kicker">Automated dispatch intelligence</div>
               <div class="readiness-dial-wrap">
@@ -1235,7 +1272,7 @@
               </div>
             </div>
           </div>
-          <div class="ops-quick-actions" aria-label="Operations quick actions">
+          <div class="ops-quick-actions" aria-label="Operations quick actions" hidden>
             <button id="openWeatherOpsBtn" class="ops-tool" type="button">OPEN WEATHER OPS</button>
             <button id="copyBriefBtn" class="ops-tool" type="button">COPY DISPATCH BRIEF</button>
             <button id="emailPassengerBtn" class="ops-tool" type="button">EMAIL LEAD PASSENGER</button>
@@ -1253,45 +1290,20 @@
               <div id="controlDocuments" class="control-phase danger"><strong>04 / Documents</strong>Passenger and cost files</div>
               <div id="controlDecision" class="control-phase danger"><strong>05 / Decision</strong>Pilot disposition</div>
             </div>
-            <div class="document-dashboard" aria-label="Document dashboard">
+            <div class="document-dashboard" aria-label="Document dashboard" hidden>
               <article id="ofpDocumentCard" class="document-card warn"><span>Operational flight plan</span><strong id="ofpDocumentStatus">NOT STARTED</strong><small id="ofpDocumentDetail">Route, fuel, mass and balance, times, and pilot release.</small><button id="openOfpBtn" type="button">BUILD / EDIT OFP</button></article>
               <article id="statementDocumentCard" class="document-card danger"><span>Reimbursement statement</span><strong id="statementDocumentStatus">REQUIRED</strong><small>Cost allocation and payment document for the selected flight.</small><button id="openStatementControlBtn" type="button">OPEN STATEMENT</button></article>
               <article id="agreementDocumentCard" class="document-card warn"><span>Passenger agreements</span><strong id="agreementDocumentStatus">0 / 0 SIGNED</strong><small>Individual agreement state for every passenger on the manifest.</small><button id="jumpManifestBtn" type="button">VIEW MANIFEST</button></article>
               <article id="flightFileDocumentCard" class="document-card"><span>Operations flight file</span><strong id="flightFileDocumentStatus">AVAILABLE</strong><small>Booking request message and internal operations record.</small><button id="openFlightFileControlBtn" type="button">OPEN FLIGHT FILE PDF</button></article>
             </div>
           </section>
-          <div class="ops-readiness" aria-label="Ready for flight checklist">
+          <div class="ops-readiness" aria-label="Ready for flight checklist" hidden>
             <div class="ops-readiness-head"><strong>Ready for flight checklist</strong><span id="readinessScore">0/8 complete</span></div>
             <div id="opsReadinessList" class="ops-readiness-grid">
               <div class="ops-check warn"><strong>Select request</strong>Choose a booking to review readiness.</div>
             </div>
           </div>
           <div class="ops-brief">
-            <div class="brief-card wide">
-              <div class="brief-title">Route and schedule</div>
-              <div class="brief-line"><span>Outbound</span><strong id="briefOutbound">.....</strong></div>
-              <div class="brief-line"><span>Return</span><strong id="briefReturn">.....</strong></div>
-              <div class="brief-line"><span>Aircraft</span><strong id="briefAircraft">.....</strong></div>
-              <div class="brief-line"><span>Created</span><strong id="briefCreated">.....</strong></div>
-            </div>
-            <div class="brief-card wide">
-              <div class="brief-title">Itinerary correction</div>
-              <div class="brief-line"><span>Use case</span><strong>Correct booker route mistakes before approval</strong></div>
-              <div class="route-correction">
-                <select id="correctDep" aria-label="Correct departure airport"></select>
-                <select id="correctArr" aria-label="Correct destination airport"></select>
-                <select id="correctExperience" class="full-select" aria-label="Correct flight type">
-                  <option value="">Normal point-to-point flight</option>
-                  <option value="HANKO_REGATTA_SCENIC">Hanko Regatta scenic / HNK-HNK</option>
-                  <option value="HELSINKI_CITY_SCENIC">Helsinki city scenic / HYV-HYV or NUM-NUM</option>
-                </select>
-                <select id="correctTripType" class="full-select" aria-label="Correct trip type">
-                  <option value="ONE_WAY">One way</option>
-                  <option value="ROUNDTRIP">Roundtrip</option>
-                </select>
-              </div>
-              <button id="saveItineraryBtn" class="btn ghost" type="button">SAVE ITINERARY CORRECTION</button>
-            </div>
             <div class="brief-card wide">
               <div class="brief-title">Propose new departure time</div>
               <div class="brief-line"><span>Current proposal</span><strong id="proposalSummary">NO ACTIVE PROPOSAL</strong></div>
@@ -1302,18 +1314,6 @@
                 <textarea id="proposalNote" placeholder="Reason or message shown to the booker."></textarea>
               </div>
               <button id="sendProposalBtn" class="btn ghost" type="button">SEND TIME PROPOSAL</button>
-            </div>
-            <div class="brief-card wide">
-              <div class="brief-title">Lead passenger and contact</div>
-              <div class="brief-line"><span>Name</span><strong id="briefLead">.....</strong></div>
-              <div class="brief-line"><span>Email</span><strong id="briefEmail">.....</strong></div>
-              <div class="brief-line"><span>Phone</span><strong id="briefPhone">.....</strong></div>
-              <div class="brief-line"><span>Safety</span><strong id="briefSafety">.....</strong></div>
-              <div class="brief-line"><span>Extra email contacts</span><strong id="briefExtraEmails">NONE</strong></div>
-              <div class="contact-compose">
-                <input id="additionalEmailContacts" type="text" placeholder="extra@email.com, operations@email.com" />
-                <button id="saveEmailContactsBtn" class="btn ghost" type="button">SAVE EMAIL CONTACTS</button>
-              </div>
             </div>
             <div id="managementRequestCard" class="brief-card full" hidden>
               <div class="brief-title">Passenger management request</div>
@@ -1343,28 +1343,16 @@
               <div class="brief-line"><span>Secondary pilot</span><select id="secondary"><option value="NONE">None assigned</option><option value="ANTONI GARCIA">Antoni Garcia</option><option value="SAUL GARCIA">Saul Garcia</option></select></div>
               <button id="saveCrewBtn" class="btn ghost" type="button">SAVE CREW</button>
             </div>
-            <div class="brief-card third">
-              <div class="brief-title">Onboard requests</div>
-              <div class="brief-line"><span>Extras</span><strong id="briefExtras">.....</strong></div>
-              <div class="brief-line"><span>Notes</span><strong id="briefExtrasNotes">.....</strong></div>
-              <div class="brief-line"><span>Seat</span><strong id="briefSeat">.....</strong></div>
-            </div>
-            <div class="brief-card third">
-              <div class="brief-title">Commercial review</div>
-              <div class="brief-line"><span>Share</span><strong id="briefPrice">.....</strong></div>
-              <div class="brief-line"><span>Total</span><strong id="briefTotal">.....</strong></div>
-              <div class="brief-line"><span>Note</span><strong id="briefPriceNote">.....</strong></div>
-            </div>
-            <div class="brief-card full">
-              <div class="brief-title">Operations timeline</div>
+            <details class="brief-card full ops-history">
+              <summary class="brief-title">Operations timeline</summary>
               <div id="timelineList" class="timeline-list"><div class="timeline-event">Select a request to load its timeline.</div></div>
               <div class="timeline-compose">
                 <textarea id="timelineNote" placeholder="Internal pilot or dispatch note. Not visible to the booker."></textarea>
                 <button id="addTimelineNoteBtn" class="btn ghost" type="button">ADD INTERNAL NOTE</button>
               </div>
-            </div>
+            </details>
           </div>
-          <pre id="bookingMessage" class="booking-message">PRIVATE FLIGHT OPERATIONS REQUEST
+          <pre id="bookingMessage" class="booking-message" hidden>PRIVATE FLIGHT OPERATIONS REQUEST
 ------------------------
 NO REQUEST SELECTED
 
@@ -1440,8 +1428,6 @@ END OF MESSAGE</pre>
     const proposalStatus = el('proposalStatus');
     const proposalSummary = el('proposalSummary');
     const sendProposalBtn = el('sendProposalBtn');
-    const additionalEmailContacts = el('additionalEmailContacts');
-    const saveEmailContactsBtn = el('saveEmailContactsBtn');
     const managementRequestCard = el('managementRequestCard');
     const managementRequestType = el('managementRequestType');
     const managementRequestPassenger = el('managementRequestPassenger');
@@ -1450,11 +1436,6 @@ END OF MESSAGE</pre>
     const managementRequestNote = el('managementRequestNote');
     const applyManagementRequestBtn = el('applyManagementRequestBtn');
     const declineManagementRequestBtn = el('declineManagementRequestBtn');
-    const correctDep = el('correctDep');
-    const correctArr = el('correctArr');
-    const correctExperience = el('correctExperience');
-    const correctTripType = el('correctTripType');
-    const saveItineraryBtn = el('saveItineraryBtn');
     const opsTotal = el('opsTotal');
     const opsNeedsAction = el('opsNeedsAction');
     const opsConfirmed = el('opsConfirmed');
@@ -1517,9 +1498,11 @@ END OF MESSAGE</pre>
     const bookingsWorkspace = el('bookingsWorkspace');
     const opsToolWorkspace = el('opsToolWorkspace');
     const weatherOpsPane = el('weatherOpsPane');
+    const flightPlanOpsPane = el('flightPlanOpsPane');
     const performanceOpsPane = el('performanceOpsPane');
     const documentsOpsPane = el('documentsOpsPane');
     const weatherOpsFrame = el('weatherOpsFrame');
+    const ofpOpsFrame = el('ofpOpsFrame');
     const toolWorkspaceKicker = el('toolWorkspaceKicker');
     const toolWorkspaceTitle = el('toolWorkspaceTitle');
     const toolFlightContext = el('toolFlightContext');
@@ -1530,6 +1513,8 @@ END OF MESSAGE</pre>
     const perfArrRunway = el('perfArrRunway');
     const perfLdw = el('perfLdw');
     const runPerformanceBtn = el('runPerformanceBtn');
+    const applyPerformanceToOfpBtn = el('applyPerformanceToOfpBtn');
+    const openPerformanceOfpBtn = el('openPerformanceOfpBtn');
     const performanceStatus = el('performanceStatus');
     const takeoffPerformanceMetrics = el('takeoffPerformanceMetrics');
     const landingPerformanceMetrics = el('landingPerformanceMetrics');
@@ -1538,28 +1523,11 @@ END OF MESSAGE</pre>
     const suiteOpenStatementBtn = el('suiteOpenStatementBtn');
     const suiteOpenFlightFileBtn = el('suiteOpenFlightFileBtn');
 
-    const OPS_AIRPORTS = [
-      { icao: 'EFHK', short: 'HEL', label: '(HEL) Helsinki-Vantaa' },
-      { icao: 'EFHV', short: 'HYV', label: '(HYV) Hyvinkää' },
-      { icao: 'EFNU', short: 'NUM', label: '(NUM) Nummela' },
-      { icao: 'EFHN', short: 'HNK', label: '(HNK) Hanko' },
-      { icao: 'EFPR', short: 'PYT', label: '(PYT) Pyhtää Redstone' },
-      { icao: 'EFRY', short: 'RAY', label: '(RAY) Räyskälä' },
-      { icao: 'EFLA', short: 'LAH', label: '(LAH) Lahti-Vesivehmaa' },
-      { icao: 'EFTU', short: 'TKU', label: '(TKU) Turku' },
-      { icao: 'EFTP', short: 'TMP', label: '(TMP) Tampere-Pirkkala' },
-      { icao: 'EETN', short: 'TLL', label: '(TLL) Tallinn' },
-      { icao: 'EEKE', short: 'URE', label: '(URE) Kuressaare' },
-      { icao: 'ESSB', short: 'BMA', label: '(BMA) Stockholm Bromma' }
-    ];
-
-    correctDep.innerHTML = OPS_AIRPORTS.map(airport => `<option value="${airport.icao}">${airport.label}</option>`).join('');
-    correctArr.innerHTML = OPS_AIRPORTS.map(airport => `<option value="${airport.icao}">${airport.label}</option>`).join('');
-
     let requests = [];
     let selected = null;
     let quickFilter = 'ALL';
     let autoSyncing = false;
+    let latestPerformanceData = null;
 
     function tick() {
       const now = new Date();
@@ -1600,25 +1568,69 @@ END OF MESSAGE</pre>
       suiteOpenOfpPdfBtn.disabled = !req?.operationalFlightPlan;
       suiteOpenStatementBtn.disabled = !req;
       suiteOpenFlightFileBtn.disabled = !req;
+      applyPerformanceToOfpBtn.disabled = !req;
+      openPerformanceOfpBtn.disabled = !req;
       if (req) {
         perfDep.value = req.dep || '';
         perfArr.value = req.arr || '';
         perfTow.value = req.operationalFlightPlan?.takeoffWeightLb || '';
         perfLdw.value = req.operationalFlightPlan?.landingWeightLb || '';
+        populatePerformanceRunways(req).catch(() => {
+          performanceStatus.textContent = 'Runway database unavailable. Retry from Aircraft Performance.';
+        });
       }
     }
 
+    async function fetchRunways(icao) {
+      if (!icao) return [];
+      const response = await fetch(`/api/airport-runways?icao=${encodeURIComponent(icao)}`, { cache:'no-store' });
+      if (!response.ok) throw new Error('RUNWAY DATABASE UNAVAILABLE');
+      return response.json();
+    }
+
+    function runwayOptionLabel(runway) {
+      const parts = [runway.heading === null || runway.heading === undefined ? '' : `${String(Math.round(runway.heading)).padStart(3, '0')} DEG`, runway.lengthFt ? `${Math.round(runway.lengthFt)} FT` : '', runway.surface || ''].filter(Boolean);
+      return `RWY ${runway.ident}${parts.length ? ` / ${parts.join(' / ')}` : ''}`;
+    }
+
+    function setPerformanceRunwayOptions(select, runways, selectedRunway) {
+      const selectedValue = String(selectedRunway || '').toUpperCase();
+      select.innerHTML = `<option value="">SELECT RUNWAY</option>${runways.map(runway => `<option value="${escapeHtml(runway.ident)}">${escapeHtml(runwayOptionLabel(runway))}</option>`).join('')}`;
+      if (selectedValue && !runways.some(runway => runway.ident === selectedValue)) select.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(selectedValue)}">RWY ${escapeHtml(selectedValue)} / SAVED</option>`);
+      select.value = selectedValue;
+    }
+
+    async function populatePerformanceRunways(req = selected) {
+      if (!req) return;
+      const [departureRunways, arrivalRunways] = await Promise.all([fetchRunways(req.dep), fetchRunways(req.arr)]);
+      setPerformanceRunwayOptions(perfDepRunway, departureRunways, req.operationalFlightPlan?.depRunway);
+      setPerformanceRunwayOptions(perfArrRunway, arrivalRunways, req.operationalFlightPlan?.arrRunway);
+    }
+
     function switchOpsWorkspace(view) {
-      const allowedViews = new Set(['bookings', 'weather', 'performance', 'documents']);
+      const allowedViews = new Set(['bookings', 'flight-plan', 'weather', 'performance', 'documents']);
       if (!allowedViews.has(view)) view = 'bookings';
       suiteTabs.forEach(button => button.classList.toggle('active', button.dataset.suiteView === view));
       const bookingsActive = view === 'bookings';
       bookingsWorkspace.hidden = !bookingsActive;
       opsToolWorkspace.hidden = bookingsActive;
+      flightPlanOpsPane.hidden = view !== 'flight-plan';
       weatherOpsPane.hidden = view !== 'weather';
       performanceOpsPane.hidden = view !== 'performance';
       documentsOpsPane.hidden = view !== 'documents';
-      if (view === 'weather') {
+      if (view === 'flight-plan') {
+        toolWorkspaceKicker.textContent = 'Selected flight / Pilot workflow';
+        toolWorkspaceTitle.textContent = 'Operational Flight Plan';
+        if (selected?.id) {
+          const ofpUrl = `/booking-ops/requests/${encodeURIComponent(selected.id)}/operational-flight-plan?embedded=1`;
+          if (ofpOpsFrame.dataset.context !== selected.id) {
+            ofpOpsFrame.dataset.context = selected.id;
+            ofpOpsFrame.src = ofpUrl;
+          }
+        } else {
+          ofpOpsFrame.removeAttribute('src');
+        }
+      } else if (view === 'weather') {
         toolWorkspaceKicker.textContent = 'Preflight / Live data';
         toolWorkspaceTitle.textContent = 'Weather Operations';
         const weatherUrl = new URL(weatherOpsFrame.dataset.src, location.origin);
@@ -1632,7 +1644,7 @@ END OF MESSAGE</pre>
         }
       } else if (view === 'performance') {
         toolWorkspaceKicker.textContent = 'Aircraft / Runway review';
-        toolWorkspaceTitle.textContent = 'Runway & Performance Inputs';
+        toolWorkspaceTitle.textContent = 'Aircraft Performance';
       } else if (view === 'documents') {
         toolWorkspaceKicker.textContent = 'Selected flight / Controlled file';
         toolWorkspaceTitle.textContent = 'OFP & Flight Documents';
@@ -1687,6 +1699,7 @@ END OF MESSAGE</pre>
         const response = await fetch(`/api/performance?${params}`, { cache: 'no-store' });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || 'PERFORMANCE DATA UNAVAILABLE');
+        latestPerformanceData = data;
         takeoffPerformanceMetrics.innerHTML = performanceLegMetrics(data.takeoff, 'takeoff');
         landingPerformanceMetrics.innerHTML = performanceLegMetrics(data.landing, 'landing');
         performanceStatus.textContent = `${dep}-${arr} data loaded. Use these live inputs with the current approved AFM/POH; this screen does not issue a takeoff or landing clearance.`;
@@ -1697,12 +1710,64 @@ END OF MESSAGE</pre>
       }
     }
 
+    function performanceSnapshotFromData(data) {
+      const leg = (section, kind) => {
+        const wx = kind === 'departure' ? section?.runwayAndWeather : section?.airportAndWeather;
+        return {
+          airport: wx?.apt?.icao || (kind === 'departure' ? perfDep.value : perfArr.value),
+          runway: wx?.rwy || (kind === 'departure' ? perfDepRunway.value : perfArrRunway.value),
+          headingDeg: wx?.hdgDeg ?? null,
+          runwayLengthFt: kind === 'departure' ? (wx?.toraFt ?? null) : (wx?.ldaFt ?? null),
+          surface: wx?.surface || wx?.rwyCond || '',
+          widthFt: wx?.widthFt ?? null,
+          windRaw: wx?.wind?.raw || '',
+          headwindKt: wx?.hwXw?.headwindKt ?? null,
+          crosswindKt: wx?.hwXw?.crosswindKt ?? null,
+          oatC: wx?.oatC ?? null,
+          qnhHpa: wx?.qnhHpa ?? null,
+          densityAltitudeFt: wx?.densityAltFt ?? null,
+          elevationFt: wx?.elevFt ?? null,
+          plannedWeightLb: kind === 'departure' ? (Number(perfTow.value) || null) : (Number(perfLdw.value) || null)
+        };
+      };
+      return { capturedAt:new Date().toISOString(), source:'NGA WEATHER / AIRPORT DATABASE', departure:leg(data.takeoff, 'departure'), arrival:leg(data.landing, 'arrival') };
+    }
+
+    async function applyPerformanceToOfp() {
+      if (!selected?.id) throw new Error('SELECT A FLIGHT FIRST');
+      if (!latestPerformanceData) throw new Error('LOAD AIRCRAFT PERFORMANCE INPUTS FIRST');
+      if (!perfDepRunway.value || !perfArrRunway.value) throw new Error('SELECT BOTH RUNWAY ENDS FIRST');
+      applyPerformanceToOfpBtn.disabled = true;
+      performanceStatus.textContent = 'Saving selected runway and current performance inputs into the OFP...';
+      try {
+        const planResponse = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/operational-flight-plan`, { cache:'no-store' });
+        const planData = await planResponse.json().catch(() => ({}));
+        if (!planResponse.ok) throw new Error(planData.error || 'OFP UNAVAILABLE');
+        const operationalFlightPlan = {
+          ...planData.operationalFlightPlan,
+          depRunway:perfDepRunway.value,
+          arrRunway:perfArrRunway.value,
+          performanceSnapshot:performanceSnapshotFromData(latestPerformanceData),
+          releaseAccepted:false
+        };
+        const response = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ operationalFlightPlan }) });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'OFP UPDATE FAILED');
+        replaceRequest(data.request);
+        ofpOpsFrame.dataset.context = '';
+        performanceStatus.textContent = 'Runways and weather snapshot saved to the OFP. Pilot release was cleared for re-verification.';
+      } finally {
+        applyPerformanceToOfpBtn.disabled = false;
+      }
+    }
+
     function money(value) {
       return value === 0 || value ? `EUR ${value}` : 'TBD';
     }
 
     function setText(id, value, fallback = '.....') {
-      el(id).textContent = text(value, fallback);
+      const node = el(id);
+      if (node) node.textContent = text(value, fallback);
     }
 
     function todayIso() {
@@ -2025,32 +2090,6 @@ END OF MESSAGE</pre>
       applyManagementRequestBtn.textContent = request.type === 'CANCELLATION' ? 'CONFIRM CANCELLATION' : 'APPLY PASSENGER CHANGES';
     }
 
-    function syncItineraryCorrectionControls(req) {
-      correctDep.value = OPS_AIRPORTS.some(airport => airport.icao === req.dep) ? req.dep : 'EFHV';
-      correctArr.value = OPS_AIRPORTS.some(airport => airport.icao === req.arr) ? req.arr : 'EFHN';
-      correctExperience.value = req.flightExperience || '';
-      correctTripType.value = req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
-    }
-
-    function normalizeCorrectionSelection(changedField = '') {
-      if (changedField === 'arr' && correctExperience.value && correctArr.value !== correctDep.value) {
-        correctExperience.value = '';
-      }
-      if (correctExperience.value === 'HANKO_REGATTA_SCENIC') {
-        correctDep.value = 'EFHN';
-        correctArr.value = 'EFHN';
-        correctTripType.value = 'ONE_WAY';
-      }
-      if (correctExperience.value === 'HELSINKI_CITY_SCENIC') {
-        if (!['EFHV', 'EFNU'].includes(correctDep.value)) correctDep.value = 'EFHV';
-        correctArr.value = correctDep.value;
-        correctTripType.value = 'ONE_WAY';
-      }
-      if (!correctExperience.value && correctDep.value === correctArr.value) {
-        mode.textContent = 'MODE: SAME AIRPORT REQUIRES A SCENIC FLIGHT TYPE';
-      }
-    }
-
     function renderAlerts(req) {
       const alerts = [];
       const conflicts = conflictsFor(req);
@@ -2136,6 +2175,20 @@ END OF MESSAGE</pre>
       node.classList.add(tone);
     }
 
+    function renderMovementPhases(req) {
+      const ofp = req.operationalFlightPlan || {};
+      [
+        ['opsMovementOut', ofp.actualOut],
+        ['opsMovementOff', ofp.actualOff],
+        ['opsMovementOn', ofp.actualOn],
+        ['opsMovementIn', ofp.actualIn]
+      ].forEach(([id, value]) => {
+        const node = el(id);
+        node.classList.toggle('done', Boolean(value));
+        node.querySelector('strong').textContent = value || 'NOT RECORDED';
+      });
+    }
+
     function renderFlightControl(req) {
       const passengers = passengerList(req);
       const signed = agreementCount(req);
@@ -2174,6 +2227,7 @@ END OF MESSAGE</pre>
       agreementDocumentStatus.textContent = approved ? `${signed} / ${passengers.length} SIGNED` : 'ISSUED AFTER APPROVAL';
       setControlTone(flightFileDocumentCard, routeReady ? 'good' : 'warn');
       flightFileDocumentStatus.textContent = routeReady ? 'AVAILABLE' : 'INCOMPLETE';
+      renderMovementPhases(req);
     }
 
     function renderDispatchBoard(req) {
@@ -2330,6 +2384,7 @@ END OF MESSAGE</pre>
     }
 
     function selectRequest(req) {
+      if (selected?.id !== req.id) latestPerformanceData = null;
       selected = req;
       el('ref').textContent = req.id || '.....';
       el('route').textContent = req.route || '.....';
@@ -2354,9 +2409,6 @@ END OF MESSAGE</pre>
       setText('briefEmail', req.email);
       setText('briefPhone', req.phone);
       setText('briefSafety', req.contractAccepted ? 'Declaration accepted' : 'Not accepted');
-      const extraEmails = Array.isArray(req.additionalEmailContacts) ? req.additionalEmailContacts.join(', ') : '';
-      setText('briefExtraEmails', extraEmails, 'NONE');
-      additionalEmailContacts.value = extraEmails;
       setText('briefBaggage', req.carryOnBags || 'NIL');
       setText('briefBagWeight', req.carryOnBags === 'YES' ? `${req.baggageWeightKg || '0'} KG / ${req.bagType || 'NIL'}` : 'N/A');
       setText('briefPowerBanks', req.powerBanks || 'NIL');
@@ -2368,7 +2420,6 @@ END OF MESSAGE</pre>
       setText('briefPriceNote', req.priceNote || 'PILOT CONFIRMS');
       commander.value = req.crew?.commander || 'UNASSIGNED';
       secondary.value = req.crew?.secondary || 'NONE';
-      syncItineraryCorrectionControls(req);
       renderProposal(req);
       renderManagementRequest(req);
       renderAlerts(req);
@@ -2485,37 +2536,7 @@ END OF MESSAGE</pre>
         renderList();
       });
     });
-    correctExperience.addEventListener('change', () => normalizeCorrectionSelection('experience'));
-    correctDep.addEventListener('change', () => normalizeCorrectionSelection('dep'));
-    correctArr.addEventListener('change', () => normalizeCorrectionSelection('arr'));
     saveCrewBtn.addEventListener('click', () => updateSelected({ crew: { commander: commander.value, secondary: secondary.value } }));
-    saveItineraryBtn.addEventListener('click', async () => {
-      if (!selected) {
-        mode.textContent = 'MODE: SELECT A BOOKING REQUEST FIRST';
-        return;
-      }
-      normalizeCorrectionSelection('save');
-      if (!correctExperience.value && correctDep.value === correctArr.value) {
-        mode.textContent = 'MODE: SAME AIRPORT REQUIRES HANKO OR HELSINKI SCENIC TYPE';
-        return;
-      }
-      const routeText = `${correctDep.value}-${correctArr.value}${correctExperience.value ? ` / ${correctExperience.value}` : ''}`;
-      if (!window.confirm(`Save itinerary correction for ${selected.id} to ${routeText}? This keeps the same booking reference.`)) {
-        mode.textContent = 'MODE: ITINERARY CORRECTION CANCELLED';
-        return;
-      }
-      await updateSelected({
-        itinerary: {
-          dep: correctDep.value,
-          arr: correctArr.value,
-          tripType: correctTripType.value,
-          flightExperience: correctExperience.value
-        }
-      });
-      renderCalendar();
-      loadTimeline(selected.id).catch(() => {});
-    });
-    saveEmailContactsBtn.addEventListener('click', () => updateSelected({ additionalEmailContacts: additionalEmailContacts.value }));
     async function resolveManagementRequest(decision) {
       if (!selected?.managementRequest || selected.managementRequest.status !== 'PENDING') {
         mode.textContent = 'MODE: NO PENDING PASSENGER MANAGEMENT REQUEST';
@@ -2585,6 +2606,17 @@ END OF MESSAGE</pre>
     openWeatherOpsBtn.addEventListener('click', () => switchOpsWorkspace('weather'));
     suiteTabs.forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.suiteView)));
     runPerformanceBtn.addEventListener('click', runPerformanceReview);
+    [perfDepRunway, perfArrRunway, perfTow, perfLdw].forEach(input => input.addEventListener('change', () => {
+      latestPerformanceData = null;
+      performanceStatus.textContent = 'Inputs changed. Reload aircraft performance data before applying it to the OFP.';
+    }));
+    applyPerformanceToOfpBtn.addEventListener('click', () => applyPerformanceToOfp().catch(error => { performanceStatus.textContent = error.message; }));
+    openPerformanceOfpBtn.addEventListener('click', () => switchOpsWorkspace('flight-plan'));
+    window.addEventListener('message', async event => {
+      if (event.origin !== location.origin || event.data?.type !== 'nga-ofp-saved' || event.data.requestId !== selected?.id) return;
+      const refreshed = await refreshSelectedRequest();
+      if (refreshed) replaceRequest(refreshed);
+    });
     suiteOpenOfpBtn.addEventListener('click', () => openOfpBtn.click());
     suiteOpenOfpPdfBtn.addEventListener('click', () => {
       if (!selected?.operationalFlightPlan) return;

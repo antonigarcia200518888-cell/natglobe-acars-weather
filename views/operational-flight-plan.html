@@ -7,6 +7,7 @@
   <style>
     :root { --bg:#030506; --panel:#071019; --panel2:#0b151d; --line:#40505c; --ink:#f4f7f9; --muted:#91a0aa; --blue:#8ec5ff; --green:#66ff99; --amber:#ffcc66; --red:#ff7777; }
     * { box-sizing:border-box; }
+    [hidden] { display:none !important; }
     html, body { margin:0; min-height:100%; background:var(--bg); color:var(--ink); font-family:"Courier New", monospace; }
     body { padding:20px; background-image:linear-gradient(rgba(142,197,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(142,197,255,.025) 1px,transparent 1px); background-size:30px 30px; }
     button, input, select, textarea { font:inherit; }
@@ -73,8 +74,33 @@
     .source-item strong { display:block; margin-top:5px; color:var(--green); font-size:11px; overflow-wrap:anywhere; }
     .source-item.override strong { color:var(--amber); }
     .load-help { grid-column:1/-1; color:var(--muted); font-size:9px; line-height:1.45; text-transform:uppercase; }
+    .route-controls { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; }
+    .route-controls .btn { margin-bottom:0; }
+    .movement-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:12px; }
+    .movement-card { display:grid; grid-template-rows:auto auto 1fr auto; min-height:160px; border:1px solid #40505c; background:#020507; padding:11px; }
+    .movement-card.done { border-color:var(--green); background:#06130b; }
+    .movement-code { color:var(--blue); font-size:22px; font-weight:700; }
+    .movement-card.done .movement-code { color:var(--green); }
+    .movement-card span { margin-top:3px; color:var(--muted); font-size:9px; text-transform:uppercase; }
+    .movement-time { align-self:center; margin:12px 0; color:#fff; font-size:18px; }
+    .movement-card .btn { min-height:38px; padding:7px; font-size:10px; }
+    .movement-card.done .btn { border-color:var(--green); color:var(--green); }
+    .time-support { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:10px; }
+    .performance-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .performance-state { margin-top:12px; border:1px solid #334653; background:#020507; padding:11px; color:var(--muted); font-size:10px; line-height:1.45; text-transform:uppercase; }
+    .performance-state.ready { border-color:var(--green); color:#d9ffe4; }
+    .performance-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:8px; }
+    .performance-leg { border:1px solid #2e404b; padding:10px; background:#03090d; }
+    .performance-leg h3 { margin:0 0 8px; color:var(--blue); font-size:11px; text-transform:uppercase; }
+    .performance-leg dl { display:grid; grid-template-columns:1fr auto; gap:5px 10px; margin:0; font-size:9px; }
+    .performance-leg dt { color:var(--muted); }
+    .performance-leg dd { margin:0; color:#fff; text-align:right; }
+    html.embedded body { padding:0; background:#000; }
+    html.embedded .shell { width:100%; border:0; box-shadow:none; }
+    html.embedded .topbar { display:none; }
+    html.embedded .workspace { padding-top:8px; }
     @media (max-width:1050px) { .workspace { grid-template-columns:1fr; } .console { position:static; grid-template-columns:repeat(2,1fr); } .notice, .save-state { grid-column:1/-1; } }
-    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .load-source { grid-template-columns:1fr; } }
+    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two, .movement-grid, .time-support, .performance-grid { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .route-controls { grid-template-columns:1fr; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .load-source { grid-template-columns:1fr; } .movement-card { min-height:132px; grid-template-columns:auto 1fr; grid-template-rows:auto auto; gap:4px 12px; align-items:center; } .movement-card span { grid-column:1; } .movement-time { grid-column:2; grid-row:1/3; margin:0; text-align:right; } .movement-card .btn { grid-column:1/-1; margin-top:7px; } }
   </style>
 </head>
 <body>
@@ -100,11 +126,11 @@
               <label>Aircraft registration<input data-field="aircraftRegistration" placeholder="Internal use / optional" /></label>
               <label>Aircraft model<input data-field="aircraftModel" /></label>
               <label>Aircraft code<input data-field="aircraftCode" /></label>
-              <label>Departure<input data-field="departure" maxlength="4" /></label>
-              <label>Destination<input data-field="destination" maxlength="4" /></label>
-              <label>Departure runway<input data-field="depRunway" placeholder="Pilot entry" /></label>
-              <label>Arrival runway<input data-field="arrRunway" placeholder="Pilot entry" /></label>
-              <label class="field wide">Pilot route<textarea data-field="route" placeholder="DCT, VFR reporting points, airways, or pilot routing"></textarea></label>
+              <label>Departure / booking source<input data-field="departure" maxlength="4" readonly /></label>
+              <label>Destination / booking source<input data-field="destination" maxlength="4" readonly /></label>
+              <label>Departure runway<select id="depRunwaySelect" data-field="depRunway"><option value="">Loading runway database...</option></select></label>
+              <label>Arrival runway<select id="arrRunwaySelect" data-field="arrRunway"><option value="">Loading runway database...</option></select></label>
+              <div class="field wide route-controls"><label>Pilot route<textarea data-field="route" placeholder="DCT, VFR reporting points, airways, or pilot routing"></textarea></label><button id="directRouteBtn" class="btn" type="button">Use direct route</button></div>
               <label class="field wide">Clearance / operational note<textarea data-field="clearance"></textarea></label>
               <label>Flight rules<select data-field="flightRules"><option>VFR</option><option>IFR</option><option>Y</option><option>Z</option></select></label>
               <label>Cruise level<input data-field="cruiseFlightLevel" placeholder="VFR / FL055 / 2500FT" /></label>
@@ -121,14 +147,18 @@
         <details open>
           <summary>02 / Timesheet</summary>
           <div class="detail-body">
-            <div class="grid">
-              <label>Estimated OUT<input data-field="estimatedOut" placeholder="1420Z/1720L" /></label><label>Scheduled OUT<input data-field="scheduledOut" /></label><label>Actual OUT<input data-field="actualOut" /></label><span></span>
-              <label>Estimated OFF<input data-field="estimatedOff" /></label><label>Scheduled OFF<input data-field="scheduledOff" /></label><label>Actual OFF<input data-field="actualOff" /></label><span></span>
-              <label>Estimated ON<input data-field="estimatedOn" /></label><label>Scheduled ON<input data-field="scheduledOn" /></label><label>Actual ON<input data-field="actualOn" /></label><span></span>
-              <label>Estimated IN<input data-field="estimatedIn" /></label><label>Scheduled IN<input data-field="scheduledIn" /></label><label>Actual IN<input data-field="actualIn" /></label><span></span>
-              <label>Planned EET (MIN)<input data-field="estimatedEnrouteMinutes" type="number" min="0" step="1" /></label>
+            <div class="movement-grid">
+              <article class="movement-card" data-movement-card="actualOut"><strong class="movement-code">OUT</strong><span>Start taxi / brakes released</span><div id="actualOutDisplay" class="movement-time">NOT RECORDED</div><button class="btn movement-button" type="button" data-stamp-field="actualOut">Record start taxi</button></article>
+              <article class="movement-card" data-movement-card="actualOff"><strong class="movement-code">OFF</strong><span>Airborne / takeoff</span><div id="actualOffDisplay" class="movement-time">NOT RECORDED</div><button class="btn movement-button" type="button" data-stamp-field="actualOff">Record takeoff</button></article>
+              <article class="movement-card" data-movement-card="actualOn"><strong class="movement-code">ON</strong><span>Landed / touchdown</span><div id="actualOnDisplay" class="movement-time">NOT RECORDED</div><button class="btn movement-button" type="button" data-stamp-field="actualOn">Record landing</button></article>
+              <article class="movement-card" data-movement-card="actualIn"><strong class="movement-code">IN</strong><span>On stand / brakes set</span><div id="actualInDisplay" class="movement-time">NOT RECORDED</div><button class="btn movement-button" type="button" data-stamp-field="actualIn">Record on stand</button></article>
             </div>
-            <button id="actualNowBtn" class="btn inline-action" type="button">Stamp current UTC into next empty actual time</button>
+            <div class="time-support">
+              <label>Scheduled OUT<input data-field="scheduledOut" /></label><label>Scheduled OFF<input data-field="scheduledOff" /></label><label>Scheduled ON<input data-field="scheduledOn" /></label><label>Scheduled IN<input data-field="scheduledIn" /></label>
+              <label>Estimated OUT<input data-field="estimatedOut" placeholder="1420Z/1720L" /></label><label>Estimated OFF<input data-field="estimatedOff" /></label><label>Estimated ON<input data-field="estimatedOn" /></label><label>Estimated IN<input data-field="estimatedIn" /></label>
+              <label>Planned EET (MIN)<input data-field="estimatedEnrouteMinutes" type="number" min="0" step="1" /></label>
+              <label hidden>Actual OUT<input data-field="actualOut" /></label><label hidden>Actual OFF<input data-field="actualOff" /></label><label hidden>Actual ON<input data-field="actualOn" /></label><label hidden>Actual IN<input data-field="actualIn" /></label>
+            </div>
           </div>
         </details>
 
@@ -193,7 +223,16 @@
         </details>
 
         <details open>
-          <summary>05 / Pilot release</summary>
+          <summary>05 / Aircraft Performance</summary>
+          <div class="detail-body">
+            <div class="performance-actions"><button id="capturePerformanceBtn" class="btn" type="button">Capture runway &amp; weather inputs</button><button id="openWeatherPerformanceBtn" class="btn" type="button">Open weather workspace</button></div>
+            <div id="performanceState" class="performance-state">Choose departure and arrival runways, then capture the current airport and weather inputs for this OFP.</div>
+            <div id="performanceSnapshot" class="performance-grid"></div>
+          </div>
+        </details>
+
+        <details open>
+          <summary>06 / Pilot release</summary>
           <div class="detail-body">
             <div class="grid two"><label>Commander / release name<input data-field="releaseName" /></label><label>Commander phone<input data-field="commanderPhone" /></label></div>
             <label class="checkline"><input data-field="releaseAccepted" type="checkbox" />I have independently verified the route, weather, NOTAMs, runway suitability, fuel policy, aircraft status, performance, mass and balance, legal requirements, and the locked aircraft profile against current approved operational sources and the aircraft AFM/POH.</label>
@@ -221,6 +260,8 @@
     </div>
   </main>
   <script>
+    const embedded = new URLSearchParams(location.search).get('embedded') === '1';
+    if (embedded) document.documentElement.classList.add('embedded');
     const pathParts = location.pathname.split('/').filter(Boolean);
     const requestId = decodeURIComponent(pathParts[2] || '');
     const el = id => document.getElementById(id);
@@ -231,9 +272,37 @@
     let request = null;
     let plan = null;
     let saved = false;
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
 
     function inputFor(name) { return document.querySelector(`[data-field="${name}"]`); }
-    function populate() {
+    async function getRunways(icao) {
+      if (!icao) return [];
+      const response = await fetch(`/api/airport-runways?icao=${encodeURIComponent(icao)}`, { cache:'no-store' });
+      return response.ok ? response.json() : [];
+    }
+
+    function runwayLabel(runway) {
+      const details = [runway.heading === null || runway.heading === undefined ? '' : `${String(Math.round(runway.heading)).padStart(3, '0')} DEG`, runway.lengthFt ? `${Math.round(runway.lengthFt)} FT` : '', runway.surface || ''].filter(Boolean);
+      return `RWY ${runway.ident}${details.length ? ` / ${details.join(' / ')}` : ''}`;
+    }
+
+    function setRunwayOptions(select, runways, selectedValue) {
+      const selected = String(selectedValue || '').toUpperCase();
+      const options = ['<option value="">SELECT RUNWAY</option>'];
+      runways.forEach(runway => options.push(`<option value="${escapeHtml(runway.ident)}">${escapeHtml(runwayLabel(runway))}</option>`));
+      if (selected && !runways.some(runway => runway.ident === selected)) options.push(`<option value="${escapeHtml(selected)}">RWY ${escapeHtml(selected)} / SAVED</option>`);
+      select.innerHTML = options.join('');
+      select.value = selected;
+    }
+
+    async function populateRunwaySelectors() {
+      const [departureRunways, arrivalRunways] = await Promise.all([getRunways(plan.departure), getRunways(plan.destination)]);
+      setRunwayOptions(el('depRunwaySelect'), departureRunways, plan.depRunway);
+      setRunwayOptions(el('arrRunwaySelect'), arrivalRunways, plan.arrRunway);
+    }
+
+    async function populate(refreshRunways = true) {
+      if (refreshRunways) await populateRunwaySelectors();
       fields().forEach(input => {
         const value = plan[input.dataset.field];
         if (input.type === 'checkbox') input.checked = value === true;
@@ -244,6 +313,7 @@
       el('scheduleStatus').textContent = `${request.requestDate || 'DATE'} ${request.requestTime || 'TIME'}L`;
       el('crewStatus').textContent = plan.commanderName || 'UNASSIGNED';
       el('profileVersion').textContent = `${plan.weightBalanceProfile?.profileVersion || 'LOCKED AIRCRAFT PROFILE'} / SERVER PROTECTED`;
+      renderPerformanceSnapshot();
       render();
     }
 
@@ -349,6 +419,83 @@
       el('documentStatus').textContent = released ? 'RELEASE ACKNOWLEDGED' : saved ? 'DRAFT SAVED' : 'UNSAVED DRAFT';
       el('documentStatus').style.color = released ? 'var(--green)' : 'var(--amber)';
       el('crewStatus').textContent = inputFor('releaseName').value || inputFor('commanderName')?.value || plan.commanderName || 'UNASSIGNED';
+      ['actualOut','actualOff','actualOn','actualIn'].forEach(field => {
+        const value = String(inputFor(field).value || '').trim();
+        const card = document.querySelector(`[data-movement-card="${field}"]`);
+        el(`${field}Display`).textContent = value || 'NOT RECORDED';
+        card.classList.toggle('done', Boolean(value));
+        const button = card.querySelector('button');
+        button.textContent = value ? `Amend ${field.replace('actual','')}` : button.dataset.originalLabel;
+      });
+    }
+
+    function performanceLegHtml(title, leg) {
+      if (!leg) return '';
+      const value = (item, unit = '') => item === null || item === undefined || item === '' ? 'N/A' : `${item}${unit}`;
+      const rows = [
+        ['Airport / runway', `${leg.airport || 'N/A'} / ${leg.runway || 'NOT SET'}`],
+        ['Heading', value(leg.headingDeg, ' DEG')],
+        ['Available runway', value(leg.runwayLengthFt, ' FT')],
+        ['Surface / width', `${leg.surface || 'N/A'} / ${value(leg.widthFt, ' FT')}`],
+        ['Wind', leg.windRaw || 'NO LIVE WIND'],
+        ['Headwind / crosswind', `${value(leg.headwindKt, ' KT')} / ${value(leg.crosswindKt, ' KT')}`],
+        ['OAT / QNH', `${value(leg.oatC, ' C')} / ${value(leg.qnhHpa, ' HPA')}`],
+        ['Density altitude', value(leg.densityAltitudeFt, ' FT')],
+        ['Planned weight', value(leg.plannedWeightLb, ' LB')]
+      ];
+      return `<article class="performance-leg"><h3>${escapeHtml(title)}</h3><dl>${rows.map(([label, item]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(item)}</dd>`).join('')}</dl></article>`;
+    }
+
+    function renderPerformanceSnapshot() {
+      const snapshot = plan?.performanceSnapshot;
+      el('performanceSnapshot').innerHTML = snapshot ? `${performanceLegHtml('Departure performance inputs', snapshot.departure)}${performanceLegHtml('Arrival performance inputs', snapshot.arrival)}` : '';
+      el('performanceState').classList.toggle('ready', Boolean(snapshot));
+      el('performanceState').textContent = snapshot
+        ? `Captured ${snapshot.capturedAt ? new Date(snapshot.capturedAt).toLocaleString('en-GB', { hour12:false }) : 'previously'} from ${snapshot.source || 'NGA WEATHER / AIRPORT DATABASE'}. Re-capture after any runway, weather, fuel, or load change.`
+        : 'Choose departure and arrival runways, then capture the current airport and weather inputs for this OFP.';
+    }
+
+    function performanceSnapshotFromResponse(data, calc) {
+      const leg = (section, kind) => {
+        const wx = kind === 'departure' ? section?.runwayAndWeather : section?.airportAndWeather;
+        return {
+          airport: wx?.apt?.icao || (kind === 'departure' ? plan.departure : plan.destination),
+          runway: wx?.rwy || (kind === 'departure' ? plan.depRunway : plan.arrRunway),
+          headingDeg: wx?.hdgDeg ?? null,
+          runwayLengthFt: kind === 'departure' ? (wx?.toraFt ?? null) : (wx?.ldaFt ?? null),
+          surface: wx?.surface || wx?.rwyCond || '',
+          widthFt: wx?.widthFt ?? null,
+          windRaw: wx?.wind?.raw || '',
+          headwindKt: wx?.hwXw?.headwindKt ?? null,
+          crosswindKt: wx?.hwXw?.crosswindKt ?? null,
+          oatC: wx?.oatC ?? null,
+          qnhHpa: wx?.qnhHpa ?? null,
+          densityAltitudeFt: wx?.densityAltFt ?? null,
+          elevationFt: wx?.elevFt ?? null,
+          plannedWeightLb: kind === 'departure' ? calc.tow : calc.landing
+        };
+      };
+      return { capturedAt:new Date().toISOString(), source:'NGA WEATHER / AIRPORT DATABASE', departure:leg(data.takeoff, 'departure'), arrival:leg(data.landing, 'arrival') };
+    }
+
+    async function capturePerformance() {
+      readPlan();
+      if (!plan.depRunway || !plan.arrRunway) throw new Error('Select both runway ends before capturing aircraft performance inputs.');
+      const calc = calculations();
+      const params = new URLSearchParams({ dep:plan.departure, arr:plan.destination, takeoffRunway:plan.depRunway, landingRunway:plan.arrRunway, takeoffWeightLbs:String(calc.tow), landingWeightLbs:String(calc.landing) });
+      el('capturePerformanceBtn').disabled = true;
+      el('performanceState').textContent = 'Loading current runway and weather inputs...';
+      try {
+        const response = await fetch(`/api/performance?${params}`, { cache:'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'Aircraft performance inputs are unavailable.');
+        plan.performanceSnapshot = performanceSnapshotFromResponse(data, calc);
+        saved = false;
+        renderPerformanceSnapshot();
+        await save();
+      } finally {
+        el('capturePerformanceBtn').disabled = false;
+      }
     }
 
     async function load() {
@@ -358,7 +505,7 @@
       request = data.request;
       plan = data.operationalFlightPlan;
       saved = data.saved;
-      populate();
+      await populate();
       el('saveState').textContent = saved ? `Saved OFP loaded / ${plan.updatedAt ? new Date(plan.updatedAt).toLocaleString('en-GB', { hour12:false }) : ''}` : 'New OFP draft created from booking data.';
     }
 
@@ -377,11 +524,13 @@
       request = data.request;
       plan = request.operationalFlightPlan;
       saved = true;
-      populate();
+      await populate(false);
       el('saveState').textContent = `OFP saved at ${new Date().toLocaleTimeString('en-GB', { hour12:false })}.`;
+      if (embedded && window.parent !== window) window.parent.postMessage({ type:'nga-ofp-saved', requestId }, location.origin);
       return true;
     }
 
+    document.querySelectorAll('.movement-button').forEach(button => { button.dataset.originalLabel = button.textContent; });
     fields().forEach(input => input.addEventListener('input', () => {
       if (input.dataset.field !== 'releaseAccepted' && inputFor('releaseAccepted').checked) {
         inputFor('releaseAccepted').checked = false;
@@ -400,12 +549,30 @@
       saved = false;
       render();
     });
-    el('actualNowBtn').addEventListener('click', () => {
-      const stamp = `${new Date().toISOString().slice(11,16).replace(':','')}Z`;
-      const next = ['actualOut','actualOff','actualOn','actualIn'].map(inputFor).find(input => !input.value.trim());
-      if (next) { next.value = stamp; saved = false; render(); next.focus(); }
-      else el('saveState').textContent = 'All actual movement times are already populated.';
+    document.querySelectorAll('[data-stamp-field]').forEach(button => button.addEventListener('click', async () => {
+      const field = button.dataset.stampField;
+      const input = inputFor(field);
+      if (input.value.trim() && !window.confirm(`${field.replace('actual','')} is already ${input.value}. Replace it with the current time?`)) return;
+      const now = new Date();
+      const utc = now.toISOString().slice(11,16).replace(':','');
+      const helsinkiParts = new Intl.DateTimeFormat('en-GB', { timeZone:'Europe/Helsinki', hour:'2-digit', minute:'2-digit', hour12:false }).formatToParts(now);
+      const helsinki = `${helsinkiParts.find(part => part.type === 'hour')?.value || '--'}${helsinkiParts.find(part => part.type === 'minute')?.value || '--'}`;
+      input.value = `${utc}Z/${helsinki}L`;
+      if (inputFor('releaseAccepted').checked) inputFor('releaseAccepted').checked = false;
+      saved = false;
+      render();
+      el('saveState').textContent = `Recording ${field.replace('actual','')} movement time...`;
+      try { await save(); }
+      catch (error) { el('saveState').textContent = `Time recorded locally but save failed: ${error.message}`; }
+    }));
+    el('directRouteBtn').addEventListener('click', () => {
+      inputFor('route').value = `${inputFor('departure').value} DCT ${inputFor('destination').value}`.trim();
+      if (inputFor('releaseAccepted').checked) inputFor('releaseAccepted').checked = false;
+      saved = false;
+      render();
     });
+    el('capturePerformanceBtn').addEventListener('click', () => capturePerformance().catch(error => { el('performanceState').textContent = error.message; }));
+    el('openWeatherPerformanceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
     el('resetLoadBtn').addEventListener('click', () => {
       inputFor('passengerWeightOverrideLb').value = '';
       inputFor('baggageWeightOverrideLb').value = '';
@@ -419,8 +586,8 @@
       try { await save(); window.open(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/operational-flight-plan/pdf`, '_blank', 'noopener'); }
       catch (error) { el('saveState').textContent = error.message; }
     });
-    el('backBtn').addEventListener('click', () => { location.href = '/booking-ops'; });
-    el('weatherBtn').addEventListener('click', () => { location.href = '/booking-ops#weather'; });
+    el('backBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops'; });
+    el('weatherBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
     load().catch(error => { el('saveState').textContent = error.message; });
   </script>
 </body>
