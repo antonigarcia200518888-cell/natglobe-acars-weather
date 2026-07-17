@@ -31,6 +31,17 @@ PILOT_SESSION_SECRET=<long random secret>
 
 Commander and Secondary sessions can record the locked `OUT`, `OFF`, `ON`, and `IN` movement times. Only the Commander session can acknowledge an OFP release. Pilot Ops records the active role beside new operational timeline entries.
 
+### Face ID / Touch ID pilot access
+
+Pilot Ops supports device passkeys. Sign in once with the pilot access code, open **Face ID / Touch ID device access** near the bottom of Pilot Ops, then choose **Set up this device**. Your phone or computer uses Face ID, Touch ID, or its device PIN; no biometric data is sent to or stored by NGA Private Aviation.
+
+The pilot access code remains the fallback for a new device. Device passkeys can be removed from the same Pilot Ops panel. The custom HTTPS domain is required. With the current domain, no additional Render environment variables are required. If the public domain changes later, set these values in Render and redeploy:
+
+```text
+WEBAUTHN_RP_ID=ngaprivateaviation.com
+WEBAUTHN_ORIGIN=https://ngaprivateaviation.com
+```
+
 ### Booking emails
 
 To automatically notify operations and send the booking contact a request receipt without paid SMTP, deploy a Google Apps Script email relay that sends through the Gmail account. Add these Render environment variables:

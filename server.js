@@ -3,6 +3,12 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createHmac, randomUUID, timingSafeEqual } from 'crypto';
+import {
+  generateAuthenticationOptions,
+  generateRegistrationOptions,
+  verifyAuthenticationResponse,
+  verifyRegistrationResponse
+} from '@simplewebauthn/server';
 import { degrees, PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { airports as bundledAirports } from './data/airports.js';
@@ -18,6 +24,8 @@ const PILOT_SESSION_SECRET = String(process.env.PILOT_SESSION_SECRET || PILOT_AC
 const PILOT_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 const WALLET_ASSETS_DIR = path.join(__dirname, 'wallet-assets');
 const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || 'https://ngaprivateaviation.com').replace(/\/$/, '');
+const WEBAUTHN_RP_NAME = 'NGA Private Aviation Pilot Ops';
+const WEBAUTHN_CHALLENGE_TTL_MS = 5 * 60 * 1000;
 
 // The public domain opens the passenger experience. ACARS remains available to crew at /acars.
 app.get('/', (req, res) => {
@@ -26,6 +34,12 @@ app.get('/', (req, res) => {
 
 app.get('/acars', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/vendor/simplewebauthn-browser.js', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.type('application/javascript');
+  res.sendFile(path.join(__dirname, 'node_modules', '@simplewebauthn', 'browser', 'dist', 'bundle', 'index.umd.min.js'));
 });
 
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -125,6 +139,9 @@ const bookingRequests = [];
 const bookingAvailability = new Map();
 const bookingTimeline = new Map();
 const bookingManageLinkThrottle = new Map();
+const pilotPasskeys = new Map();
+const passkeyRegistrationChallenges = new Map();
+const passkeyAuthenticationChallenges = new Map();
 let bookingPool = null;
 
 async function initializeBookingStore() {
@@ -159,12 +176,24 @@ async function initializeBookingStore() {
         actor TEXT NOT NULL DEFAULT 'SYSTEM',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      CREATE TABLE IF NOT EXISTS pilot_passkeys (
+        id TEXT PRIMARY KEY,
+        profile_role TEXT NOT NULL,
+        profile_name TEXT NOT NULL,
+        credential_id TEXT NOT NULL UNIQUE,
+        public_key TEXT NOT NULL,
+        counter BIGINT NOT NULL DEFAULT 0,
+        transports JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        last_used_at TIMESTAMPTZ
+      );
     `);
     await bookingPool.query("ALTER TABLE booking_timeline ADD COLUMN IF NOT EXISTS actor TEXT NOT NULL DEFAULT 'SYSTEM'");
-    const [requests, availability, timeline] = await Promise.all([
+    const [requests, availability, timeline, passkeys] = await Promise.all([
       bookingPool.query('SELECT payload FROM booking_requests ORDER BY created_at ASC'),
       bookingPool.query('SELECT date, is_open, note, updated_at FROM booking_availability'),
-      bookingPool.query('SELECT id, request_id, event_type, note, actor, created_at FROM booking_timeline ORDER BY created_at ASC')
+      bookingPool.query('SELECT id, request_id, event_type, note, actor, created_at FROM booking_timeline ORDER BY created_at ASC'),
+      bookingPool.query('SELECT id, profile_role, profile_name, credential_id, public_key, counter, transports, created_at, last_used_at FROM pilot_passkeys ORDER BY created_at ASC')
     ]);
     bookingRequests.push(...requests.rows.map(row => row.payload));
     availability.rows.forEach(row => bookingAvailability.set(String(row.date).slice(0, 10), {
@@ -176,6 +205,19 @@ async function initializeBookingStore() {
       const items = bookingTimeline.get(row.request_id) || [];
       items.push({ id: row.id, type: row.event_type, note: row.note, actor: row.actor || 'SYSTEM', createdAt: row.created_at });
       bookingTimeline.set(row.request_id, items);
+    });
+    passkeys.rows.forEach(row => {
+      pilotPasskeys.set(row.credential_id, {
+        id: row.id,
+        profileRole: row.profile_role,
+        profileName: row.profile_name,
+        credentialId: row.credential_id,
+        publicKey: row.public_key,
+        counter: Number(row.counter || 0),
+        transports: Array.isArray(row.transports) ? row.transports : [],
+        createdAt: row.created_at,
+        lastUsedAt: row.last_used_at
+      });
     });
     console.log(`BOOKING STORE: loaded ${bookingRequests.length} requests.`);
   } catch (err) {
@@ -208,6 +250,39 @@ async function persistAvailability(date, item) {
      ON CONFLICT (date) DO UPDATE SET is_open = EXCLUDED.is_open, note = EXCLUDED.note, updated_at = NOW()`,
     [date, item.isOpen, item.note || '']
   );
+}
+
+async function persistPilotPasskey(passkey) {
+  pilotPasskeys.set(passkey.credentialId, passkey);
+  if (!bookingPool) return;
+  await bookingPool.query(
+    `INSERT INTO pilot_passkeys (id, profile_role, profile_name, credential_id, public_key, counter, transports, created_at, last_used_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9)
+     ON CONFLICT (credential_id) DO UPDATE SET
+       profile_role = EXCLUDED.profile_role,
+       profile_name = EXCLUDED.profile_name,
+       public_key = EXCLUDED.public_key,
+       counter = EXCLUDED.counter,
+       transports = EXCLUDED.transports,
+       last_used_at = EXCLUDED.last_used_at`,
+    [
+      passkey.id,
+      passkey.profileRole,
+      passkey.profileName,
+      passkey.credentialId,
+      passkey.publicKey,
+      passkey.counter,
+      JSON.stringify(passkey.transports || []),
+      passkey.createdAt || new Date().toISOString(),
+      passkey.lastUsedAt || null
+    ]
+  );
+}
+
+async function removePilotPasskey(credentialId) {
+  pilotPasskeys.delete(credentialId);
+  if (!bookingPool) return;
+  await bookingPool.query('DELETE FROM pilot_passkeys WHERE credential_id = $1', [credentialId]);
 }
 
 async function addBookingTimelineEvent(requestId, type, note = '', actor = 'SYSTEM') {
@@ -989,6 +1064,61 @@ function pilotAccessProfiles() {
     });
   });
   return profiles;
+}
+
+function webAuthnConfiguration() {
+  let publicUrl;
+  try {
+    publicUrl = new URL(PUBLIC_SITE_URL);
+  } catch {
+    publicUrl = new URL('https://ngaprivateaviation.com');
+  }
+  const rpID = String(process.env.WEBAUTHN_RP_ID || publicUrl.hostname).trim().toLowerCase();
+  const expectedOrigin = String(process.env.WEBAUTHN_ORIGIN || publicUrl.origin).trim().replace(/\/$/, '');
+  return { rpID, expectedOrigin };
+}
+
+function clearExpiredPasskeyChallenges() {
+  const expiresBefore = Date.now() - WEBAUTHN_CHALLENGE_TTL_MS;
+  [passkeyRegistrationChallenges, passkeyAuthenticationChallenges].forEach(store => {
+    for (const [id, value] of store.entries()) {
+      if (Number(value.createdAt || 0) < expiresBefore) store.delete(id);
+    }
+  });
+}
+
+function rememberPasskeyChallenge(store, value) {
+  clearExpiredPasskeyChallenges();
+  const id = `PK-${randomUUID()}`;
+  store.set(id, { ...value, createdAt: Date.now() });
+  return id;
+}
+
+function consumePasskeyChallenge(store, id) {
+  clearExpiredPasskeyChallenges();
+  const value = store.get(String(id || ''));
+  if (!value) return null;
+  store.delete(String(id || ''));
+  return value;
+}
+
+function passkeyProfileKey(profile) {
+  return String(profile?.role || '').trim().toUpperCase();
+}
+
+function passkeysForProfile(profile) {
+  const profileKey = passkeyProfileKey(profile);
+  return [...pilotPasskeys.values()].filter(item => item.profileRole === profileKey);
+}
+
+function passkeyPublicView(passkey) {
+  return {
+    id: passkey.id,
+    credentialId: passkey.credentialId,
+    createdAt: passkey.createdAt,
+    lastUsedAt: passkey.lastUsedAt || null,
+    transports: Array.isArray(passkey.transports) ? passkey.transports : []
+  };
 }
 
 function pilotSessionSignature(payload) {
@@ -3568,6 +3698,160 @@ app.post('/api/pilot-login', (req, res) => {
 app.get('/api/pilot-session', requirePilotAccess, (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.json({ session: req.pilotSession });
+});
+
+app.get('/api/pilot-passkeys', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const passkeys = passkeysForProfile(req.pilotSession).map(passkeyPublicView);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({ passkeys });
+});
+
+app.post('/api/pilot-passkeys/registration/options', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  try {
+    const profile = {
+      role: passkeyProfileKey(req.pilotSession),
+      name: normalizeBookingText(req.pilotSession.name, 60).toUpperCase()
+    };
+    const { rpID, expectedOrigin } = webAuthnConfiguration();
+    const options = await generateRegistrationOptions({
+      rpName: WEBAUTHN_RP_NAME,
+      rpID,
+      userID: new Uint8Array(Buffer.from(`nga-private-aviation/${profile.role}`, 'utf8')),
+      userName: `nga-${profile.role.toLowerCase()}`,
+      userDisplayName: `${profile.name} / ${profile.role}`,
+      timeout: 60000,
+      attestationType: 'none',
+      excludeCredentials: passkeysForProfile(profile).map(passkey => ({
+        id: passkey.credentialId,
+        transports: passkey.transports || []
+      })),
+      authenticatorSelection: {
+        residentKey: 'required',
+        userVerification: 'required'
+      },
+      preferredAuthenticatorType: 'localDevice'
+    });
+    const transactionId = rememberPasskeyChallenge(passkeyRegistrationChallenges, {
+      challenge: options.challenge,
+      profile,
+      rpID,
+      expectedOrigin
+    });
+    res.json({ options, transactionId });
+  } catch (err) {
+    console.error('PASSKEY REGISTRATION OPTIONS:', err.message);
+    res.status(500).json({ error: 'UNABLE TO START DEVICE PASSKEY SETUP' });
+  }
+});
+
+app.post('/api/pilot-passkeys/registration/verify', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const challenge = consumePasskeyChallenge(passkeyRegistrationChallenges, req.body?.transactionId);
+  if (!challenge) return res.status(400).json({ error: 'PASSKEY SETUP EXPIRED. TRY AGAIN.' });
+  if (passkeyProfileKey(req.pilotSession) !== challenge.profile.role) {
+    return res.status(403).json({ error: 'PILOT SESSION DOES NOT MATCH PASSKEY SETUP' });
+  }
+  try {
+    const verification = await verifyRegistrationResponse({
+      response: req.body?.credential,
+      expectedChallenge: challenge.challenge,
+      expectedOrigin: challenge.expectedOrigin,
+      expectedRPID: challenge.rpID,
+      requireUserVerification: true
+    });
+    if (!verification.verified || !verification.registrationInfo) {
+      return res.status(400).json({ error: 'DEVICE PASSKEY COULD NOT BE VERIFIED' });
+    }
+    const credential = verification.registrationInfo.credential;
+    const passkey = {
+      id: `PK-${randomUUID().slice(0, 12).toUpperCase()}`,
+      profileRole: challenge.profile.role,
+      profileName: challenge.profile.name,
+      credentialId: credential.id,
+      publicKey: Buffer.from(credential.publicKey).toString('base64url'),
+      counter: Number(credential.counter || 0),
+      transports: Array.isArray(credential.transports) ? credential.transports : [],
+      createdAt: new Date().toISOString(),
+      lastUsedAt: null
+    };
+    await persistPilotPasskey(passkey);
+    res.json({ ok: true, passkey: passkeyPublicView(passkey) });
+  } catch (err) {
+    console.error('PASSKEY REGISTRATION VERIFY:', err.message);
+    res.status(400).json({ error: 'DEVICE PASSKEY SETUP FAILED' });
+  }
+});
+
+app.post('/api/pilot-passkeys/authentication/options', async (req, res) => {
+  await bookingStoreReady;
+  if (!pilotPasskeys.size) {
+    return res.status(409).json({ error: 'NO DEVICE PASSKEY IS SET UP. USE THE PILOT ACCESS CODE FIRST.' });
+  }
+  try {
+    const { rpID, expectedOrigin } = webAuthnConfiguration();
+    const options = await generateAuthenticationOptions({
+      rpID,
+      timeout: 60000,
+      userVerification: 'required'
+    });
+    const transactionId = rememberPasskeyChallenge(passkeyAuthenticationChallenges, {
+      challenge: options.challenge,
+      rpID,
+      expectedOrigin
+    });
+    res.json({ options, transactionId });
+  } catch (err) {
+    console.error('PASSKEY AUTHENTICATION OPTIONS:', err.message);
+    res.status(500).json({ error: 'UNABLE TO START DEVICE PASSKEY LOGIN' });
+  }
+});
+
+app.post('/api/pilot-passkeys/authentication/verify', async (req, res) => {
+  await bookingStoreReady;
+  const challenge = consumePasskeyChallenge(passkeyAuthenticationChallenges, req.body?.transactionId);
+  if (!challenge) return res.status(400).json({ error: 'PASSKEY LOGIN EXPIRED. TRY AGAIN.' });
+  const credentialId = String(req.body?.credential?.id || '').trim();
+  const storedPasskey = pilotPasskeys.get(credentialId);
+  if (!storedPasskey) return res.status(401).json({ error: 'THIS DEVICE PASSKEY IS NOT REGISTERED' });
+  const profile = pilotAccessProfiles().find(item => item.role === storedPasskey.profileRole);
+  if (!profile) return res.status(403).json({ error: 'THE PILOT ROLE FOR THIS PASSKEY IS NO LONGER ACTIVE' });
+  try {
+    const verification = await verifyAuthenticationResponse({
+      response: req.body?.credential,
+      expectedChallenge: challenge.challenge,
+      expectedOrigin: challenge.expectedOrigin,
+      expectedRPID: challenge.rpID,
+      credential: {
+        id: storedPasskey.credentialId,
+        publicKey: Buffer.from(storedPasskey.publicKey, 'base64url'),
+        counter: Number(storedPasskey.counter || 0),
+        transports: storedPasskey.transports || []
+      },
+      requireUserVerification: true
+    });
+    if (!verification.verified) return res.status(401).json({ error: 'DEVICE PASSKEY COULD NOT BE VERIFIED' });
+    storedPasskey.counter = Number(verification.authenticationInfo.newCounter || 0);
+    storedPasskey.lastUsedAt = new Date().toISOString();
+    storedPasskey.profileName = profile.name;
+    await persistPilotPasskey(storedPasskey);
+    res.setHeader('Set-Cookie', pilotCookieOptions(profile));
+    res.json({ ok: true, role: profile.role, name: profile.name });
+  } catch (err) {
+    console.error('PASSKEY AUTHENTICATION VERIFY:', err.message);
+    res.status(401).json({ error: 'DEVICE PASSKEY LOGIN FAILED' });
+  }
+});
+
+app.delete('/api/pilot-passkeys/:id', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const passkey = [...pilotPasskeys.values()].find(item => item.id === req.params.id);
+  if (!passkey || passkey.profileRole !== passkeyProfileKey(req.pilotSession)) {
+    return res.status(404).json({ error: 'DEVICE PASSKEY NOT FOUND' });
+  }
+  await removePilotPasskey(passkey.credentialId);
+  res.json({ ok: true });
 });
 
 app.post('/api/pilot-logout', (req, res) => {

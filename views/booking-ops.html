@@ -1279,6 +1279,36 @@
       color: var(--danger);
     }
 
+    .device-access {
+      margin: 12px 0;
+      border: 1px solid #36516a;
+      background: linear-gradient(135deg, rgba(9,28,48,.74), rgba(2,7,12,.96));
+      padding: 11px 12px;
+    }
+
+    .device-access summary {
+      cursor: pointer;
+      color: #bde1ff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .device-access p {
+      margin: 9px 0 10px;
+      color: #8ca1b1;
+      font-size: 10px;
+      line-height: 1.45;
+      text-transform: uppercase;
+    }
+
+    .device-passkey-list { display:grid; gap:6px; margin-top:9px; }
+    .device-passkey-row { display:flex; align-items:center; justify-content:space-between; gap:8px; border-top:1px solid rgba(127,157,179,.26); padding-top:7px; color:#d7e8f4; font-size:10px; text-transform:uppercase; }
+    .device-passkey-row small { display:block; margin-top:3px; color:#8296a5; font-size:9px; }
+    .device-passkey-remove { width:auto; min-height:30px; margin:0; padding:5px 8px; border:1px solid var(--danger); background:transparent; color:var(--danger); font:700 9px "Courier New", Courier, monospace; cursor:pointer; text-transform:uppercase; }
+    .device-access .btn { margin:0; min-height:42px; font-size:12px; background:#0a2746; border-color:#8ec5ff; color:#fff; }
+
     @media print {
       body { display: block; padding: 0; background: #fff; }
       body * { visibility: hidden; }
@@ -1739,6 +1769,12 @@ END OF MESSAGE</pre>
             <button id="webPassBtn" class="btn" type="button">ISSUE PASSENGER FLIGHT PASS</button>
           </div>
           <div id="walletPassStatus" class="ops-mini-status">Pilot approval required before issuing a passenger flight pass.</div>
+          <details class="device-access">
+            <summary>Face ID / Touch ID device access</summary>
+            <p>Set up this trusted device for biometric Pilot Ops sign-in. Your biometric data stays on your device; the pilot access code remains available as a fallback.</p>
+            <button id="passkeySetupBtn" class="btn" type="button">SET UP THIS DEVICE</button>
+            <div id="passkeyDeviceList" class="device-passkey-list">Checking registered devices...</div>
+          </details>
           <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
           <button id="deleteBtn" class="btn ghost danger" type="button">DELETE REQUEST</button>
           <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
@@ -1750,6 +1786,7 @@ END OF MESSAGE</pre>
     </div>
   </main>
 
+  <script src="/vendor/simplewebauthn-browser.js"></script>
   <script>
     const el = (id) => document.getElementById(id);
     const clock = el('clock');
@@ -1763,6 +1800,8 @@ END OF MESSAGE</pre>
     const refreshBtn = el('refreshBtn');
     const deleteBtn = el('deleteBtn');
     const logoutBtn = el('logoutBtn');
+    const passkeySetupBtn = el('passkeySetupBtn');
+    const passkeyDeviceList = el('passkeyDeviceList');
     const paymentStatus = el('paymentStatus');
     const approveBtn = el('approveBtn');
     const statementStatus = el('statementStatus');
@@ -3420,7 +3459,65 @@ END OF MESSAGE</pre>
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.session) return;
       pilotRoleBadge.textContent = `${data.session.role} / ${data.session.name}`;
+      loadPilotPasskeys().catch(() => {});
     }
+
+    function passkeyDate(value) {
+      if (!value) return 'NOT YET USED';
+      return new Date(value).toLocaleString('en-GB', { hour12:false });
+    }
+
+    async function loadPilotPasskeys() {
+      const res = await fetch('/api/pilot-passkeys', { cache:'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        passkeyDeviceList.textContent = 'DEVICE PASSKEY STATUS UNAVAILABLE';
+        return;
+      }
+      const passkeys = data.passkeys || [];
+      passkeyDeviceList.innerHTML = passkeys.length
+        ? passkeys.map((passkey, index) => `<div class="device-passkey-row"><div><strong>TRUSTED DEVICE ${index + 1}</strong><small>ADDED ${escapeHtml(passkeyDate(passkey.createdAt))} / LAST USED ${escapeHtml(passkeyDate(passkey.lastUsedAt))}</small></div><button class="device-passkey-remove" type="button" data-passkey-id="${escapeHtml(passkey.id)}">REMOVE</button></div>`).join('')
+        : '<div class="device-passkey-row"><div><strong>NO DEVICE PASSKEYS</strong><small>USE THE BUTTON ABOVE TO ENROL FACE ID OR TOUCH ID.</small></div></div>';
+    }
+
+    passkeySetupBtn.addEventListener('click', async () => {
+      if (!window.PublicKeyCredential || !window.SimpleWebAuthnBrowser?.startRegistration) {
+        mode.textContent = 'MODE: DEVICE PASSKEYS ARE NOT AVAILABLE IN THIS BROWSER';
+        return;
+      }
+      passkeySetupBtn.disabled = true;
+      mode.textContent = 'MODE: CONFIRM FACE ID, TOUCH ID, OR DEVICE PIN TO SET UP THIS DEVICE';
+      try {
+        const optionsRes = await fetch('/api/pilot-passkeys/registration/options', { method:'POST' });
+        const optionsData = await optionsRes.json().catch(() => ({}));
+        if (!optionsRes.ok) throw new Error(optionsData.error || 'UNABLE TO START DEVICE PASSKEY SETUP');
+        const credential = await window.SimpleWebAuthnBrowser.startRegistration({ optionsJSON: optionsData.options });
+        const verifyRes = await fetch('/api/pilot-passkeys/registration/verify', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body:JSON.stringify({ transactionId:optionsData.transactionId, credential })
+        });
+        const verifyData = await verifyRes.json().catch(() => ({}));
+        if (!verifyRes.ok) throw new Error(verifyData.error || 'DEVICE PASSKEY SETUP FAILED');
+        mode.textContent = 'MODE: DEVICE PASSKEY READY / FACE ID OR TOUCH ID ENABLED';
+        await loadPilotPasskeys();
+      } catch (err) {
+        const message = String(err?.message || err || 'DEVICE PASSKEY SETUP FAILED');
+        mode.textContent = message.includes('NotAllowedError') ? 'MODE: DEVICE PASSKEY SETUP CANCELLED' : `MODE: ${message}`;
+      } finally {
+        passkeySetupBtn.disabled = false;
+      }
+    });
+
+    passkeyDeviceList.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-passkey-id]');
+      if (!button) return;
+      if (!window.confirm('Remove this device passkey? That device will need the pilot access code to sign in again.')) return;
+      const res = await fetch(`/api/pilot-passkeys/${encodeURIComponent(button.dataset.passkeyId)}`, { method:'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      mode.textContent = res.ok ? 'MODE: DEVICE PASSKEY REMOVED' : `MODE: ${data.error || 'UNABLE TO REMOVE DEVICE PASSKEY'}`;
+      if (res.ok) loadPilotPasskeys().catch(() => {});
+    });
 
     async function recordLiveMovement(phase) {
       if (!selected?.id) {

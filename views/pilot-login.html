@@ -91,6 +91,33 @@
       text-transform: uppercase;
     }
 
+    .btn.passkey {
+      margin-top: 10px;
+      background: #071c36;
+      color: #fff;
+      border-color: #8ec5ff;
+    }
+
+    .btn:disabled { cursor: not-allowed; opacity: 0.55; }
+
+    .access-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #898989;
+      font-size: 12px;
+      margin: 14px 0 4px;
+      text-transform: uppercase;
+    }
+
+    .access-divider::before,
+    .access-divider::after {
+      content: '';
+      height: 1px;
+      flex: 1;
+      background: #555;
+    }
+
     .status {
       min-height: 42px;
       border: 2px solid #666;
@@ -124,15 +151,20 @@
       <button class="btn" type="submit">OPEN BOOKING OPS</button>
     </form>
 
+    <div class="access-divider">or use this device</div>
+    <button id="passkeyLogin" class="btn passkey" type="button">USE FACE ID / TOUCH ID</button>
+
     <div id="status" class="status">READY</div>
-    <div class="hint">Use the access code assigned to your commander, secondary pilot, or dispatch role.</div>
+    <div class="hint">Use the access code assigned to your commander, secondary pilot, or dispatch role. A device passkey can be set up from inside Pilot Ops after code access is granted.</div>
   </main>
 
+  <script src="/vendor/simplewebauthn-browser.js"></script>
   <script>
     const clock = document.getElementById('clock');
     const statusBox = document.getElementById('status');
     const form = document.getElementById('loginForm');
     const code = document.getElementById('code');
+    const passkeyLogin = document.getElementById('passkeyLogin');
 
     function tick() {
       clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;
@@ -161,6 +193,40 @@
         setStatus(err.message || 'ACCESS DENIED', 'err');
       }
     });
+
+    passkeyLogin.addEventListener('click', async () => {
+      if (!window.PublicKeyCredential || !window.SimpleWebAuthnBrowser?.startAuthentication) {
+        setStatus('DEVICE PASSKEYS ARE NOT AVAILABLE IN THIS BROWSER', 'err');
+        return;
+      }
+      passkeyLogin.disabled = true;
+      setStatus('CONFIRM WITH FACE ID, TOUCH ID, OR DEVICE PIN');
+      try {
+        const optionsRes = await fetch('/api/pilot-passkeys/authentication/options', { method: 'POST' });
+        const optionsData = await optionsRes.json().catch(() => ({}));
+        if (!optionsRes.ok) throw new Error(optionsData.error || 'DEVICE PASSKEY LOGIN UNAVAILABLE');
+        const credential = await window.SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: optionsData.options });
+        const verifyRes = await fetch('/api/pilot-passkeys/authentication/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transactionId: optionsData.transactionId, credential })
+        });
+        const verifyData = await verifyRes.json().catch(() => ({}));
+        if (!verifyRes.ok) throw new Error(verifyData.error || 'DEVICE PASSKEY LOGIN FAILED');
+        setStatus(`ACCESS GRANTED / ${verifyData.role || 'PILOT'}`, 'ok');
+        window.location.href = '/booking-ops';
+      } catch (err) {
+        const message = String(err?.message || err || 'DEVICE PASSKEY LOGIN FAILED');
+        setStatus(message.includes('NotAllowedError') ? 'DEVICE PASSKEY LOGIN CANCELLED' : message, 'err');
+      } finally {
+        passkeyLogin.disabled = false;
+      }
+    });
+
+    if (!window.PublicKeyCredential) {
+      passkeyLogin.disabled = true;
+      passkeyLogin.textContent = 'DEVICE PASSKEY NOT AVAILABLE';
+    }
 
     tick();
     setInterval(tick, 1000);
