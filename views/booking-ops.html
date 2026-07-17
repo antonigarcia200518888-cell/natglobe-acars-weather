@@ -114,6 +114,37 @@
       text-transform: uppercase;
     }
 
+    .active-flight-strip {
+      display:grid;
+      grid-template-columns:minmax(255px,1.65fr) repeat(5,minmax(112px,1fr));
+      gap:1px;
+      margin:0 0 14px;
+      overflow:hidden;
+      border:1px solid #314656;
+      border-radius:7px;
+      background:#253845;
+      text-transform:uppercase;
+    }
+
+    .flight-strip-item {
+      min-width:0;
+      min-height:74px;
+      padding:11px 12px;
+      background:linear-gradient(145deg,#0a141d 0%,#05090e 100%);
+    }
+
+    .flight-strip-item span,
+    .flight-strip-item small { display:block; color:#7f95a4; font-size:8px; letter-spacing:.11em; }
+    .flight-strip-item strong { display:block; margin-top:7px; color:#edf6fb; font-size:12px; line-height:1.2; overflow-wrap:anywhere; }
+    .flight-strip-item small { margin-top:5px; color:#738591; font-size:7px; letter-spacing:.06em; line-height:1.25; }
+    .flight-strip-route { background:linear-gradient(120deg,#102534 0%,#071019 74%); }
+    .flight-strip-route strong { color:#fff; font-size:15px; }
+    .flight-strip-lamp { display:inline-block; width:7px; height:7px; margin:0 7px 1px 0; border-radius:50%; background:#56636c; box-shadow:0 0 0 2px rgba(255,255,255,.04); }
+    .active-flight-strip[data-active="true"] .flight-strip-lamp { background:var(--live); box-shadow:0 0 11px rgba(102,255,153,.75); }
+    .flight-strip-item.state-good strong { color:var(--live); }
+    .flight-strip-item.state-warn strong { color:var(--warn); }
+    .flight-strip-item.state-danger strong { color:var(--danger); }
+
     .efb-layout {
       display: grid;
       grid-template-columns: 224px minmax(0, 1fr);
@@ -1274,6 +1305,8 @@
       .flight-control-head { display: block; }
       .flight-control-head em { display: block; margin-top: 8px; }
       .ops-suite-nav { display:grid; grid-template-columns: repeat(2, 1fr); position:static; }
+      .active-flight-strip { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .flight-strip-route { grid-column:span 2; }
       .performance-form, .performance-results, .suite-doc-summary, .suite-document-actions, .weather-lower, .weather-output-layout { grid-template-columns: 1fr; }
       .performance-metrics { grid-template-columns: repeat(2, 1fr); }
       .weather-toolbar { grid-template-columns:1fr 1fr; }
@@ -1286,6 +1319,11 @@
     }
 
     @media (max-width: 560px) {
+      .active-flight-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .flight-strip-route { grid-column:1/-1; }
+      #activeFlightWeatherCard { grid-column:1/-1; }
+      .flight-strip-item { min-height:65px; padding:10px; }
+      .flight-strip-route strong { font-size:13px; }
       .weather-toolbar { grid-template-columns:1fr; }
       .weather-route { grid-column:auto; }
       .weather-options { grid-template-columns:1fr; }
@@ -1307,6 +1345,14 @@
       <div class="masthead-status"><div class="badge">PILOT / DISPATCH / LIVE</div><div id="clock" class="clock">UTC --:--:--</div></div>
       <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
     </header>
+    <section id="activeFlightStrip" class="active-flight-strip" aria-label="Active flight status" data-active="false">
+      <div class="flight-strip-item flight-strip-route"><span><i class="flight-strip-lamp"></i>Active flight</span><strong id="activeFlightRoute">NO FLIGHT SELECTED</strong><small id="activeFlightReference">SELECT A REQUEST TO START THE EFB WORKFLOW</small></div>
+      <div class="flight-strip-item"><span>Schedule</span><strong id="activeFlightSchedule">--</strong><small>Local Helsinki time</small></div>
+      <div id="activeFlightPhaseCard" class="flight-strip-item"><span>Phase</span><strong id="activeFlightPhase">STANDBY</strong><small id="activeFlightPhaseDetail">No movement logged</small></div>
+      <div class="flight-strip-item"><span>Fuel</span><strong id="activeFlightFuel">TBC</strong><small>Planned block fuel</small></div>
+      <div class="flight-strip-item"><span>Load</span><strong id="activeFlightLoad">--</strong><small>Declared cabin load</small></div>
+      <div id="activeFlightWeatherCard" class="flight-strip-item"><span>Weather</span><strong id="activeFlightWeather">NOT BRIEFED</strong><small id="activeFlightDocs">OFP NOT STARTED</small></div>
+    </section>
     <div class="efb-layout">
     <nav class="ops-suite-nav" aria-label="Pilot operations workspaces">
       <button class="suite-tab active" type="button" data-suite-view="bookings"><span>01 / Control</span><strong>Flight Control</strong><small>Queue, crew, passengers, decision</small></button>
@@ -1739,6 +1785,18 @@ END OF MESSAGE</pre>
     const opsCrewOpenCard = el('opsCrewOpenCard');
     const opsLoadWatch = el('opsLoadWatch');
     const opsLoadWatchCard = el('opsLoadWatchCard');
+    const activeFlightStrip = el('activeFlightStrip');
+    const activeFlightRoute = el('activeFlightRoute');
+    const activeFlightReference = el('activeFlightReference');
+    const activeFlightSchedule = el('activeFlightSchedule');
+    const activeFlightPhaseCard = el('activeFlightPhaseCard');
+    const activeFlightPhase = el('activeFlightPhase');
+    const activeFlightPhaseDetail = el('activeFlightPhaseDetail');
+    const activeFlightFuel = el('activeFlightFuel');
+    const activeFlightLoad = el('activeFlightLoad');
+    const activeFlightWeatherCard = el('activeFlightWeatherCard');
+    const activeFlightWeather = el('activeFlightWeather');
+    const activeFlightDocs = el('activeFlightDocs');
     const dispatchRoute = el('dispatchRoute');
     const dispatchSchedule = el('dispatchSchedule');
     const dispatchFlightTime = el('dispatchFlightTime');
@@ -1874,6 +1932,46 @@ END OF MESSAGE</pre>
       return { takeoff, landing:Math.max(1800, takeoff - 45) };
     }
 
+    function activeFlightPhaseData(req) {
+      const ofp = req?.operationalFlightPlan || {};
+      if (!req) return { label:'STANDBY', detail:'No movement logged', tone:'' };
+      if (ofp.actualIn) return { label:'ON STAND', detail:`IN ${ofp.actualIn}`, tone:'good' };
+      if (ofp.actualOn) return { label:'TAXI IN', detail:`ON ${ofp.actualOn}`, tone:'good' };
+      if (ofp.actualOff) return { label:'AIRBORNE', detail:`OFF ${ofp.actualOff}`, tone:'good' };
+      if (ofp.actualOut) return { label:'TAXI OUT', detail:`OUT ${ofp.actualOut}`, tone:'good' };
+      if (ofp.releaseAccepted) return { label:'RELEASED', detail:'Pilot release accepted', tone:'good' };
+      if (req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED') return { label:'CONFIRMED', detail:'Awaiting flight release', tone:'warn' };
+      if (req.pilotDecision === 'NEEDS INFO') return { label:'NEEDS INFO', detail:'Pilot review open', tone:'warn' };
+      return { label:'PREFLIGHT', detail:'No movement logged', tone:'' };
+    }
+
+    function setStripTone(node, tone) {
+      node.classList.remove('state-good', 'state-warn', 'state-danger');
+      if (tone) node.classList.add(`state-${tone}`);
+    }
+
+    function renderActiveFlightStrip(req = selected) {
+      const phase = activeFlightPhaseData(req);
+      const load = req ? declaredLoad(req) : { totalKg:0, passengerKg:0, baggageKg:0 };
+      const ofp = req?.operationalFlightPlan || {};
+      const weatherReady = Boolean(req && latestWeatherData && weatherDataKey.startsWith(`${req.id}|`));
+      const weatherPartial = weatherReady && (latestWeatherData.departure?.mode === 'NO DATA' || latestWeatherData.arrival?.mode === 'NO DATA');
+      const docsLabel = !req ? 'OFP NOT STARTED' : ofp.releaseAccepted ? 'OFP RELEASED' : ofp ? 'OFP DRAFT' : 'OFP NOT STARTED';
+
+      activeFlightStrip.dataset.active = String(Boolean(req));
+      activeFlightRoute.textContent = req ? (req.route || `${req.dep || '----'} > ${req.arr || '----'}`) : 'NO FLIGHT SELECTED';
+      activeFlightReference.textContent = req ? `${req.id || 'REFERENCE PENDING'} / ${req.status || 'REQUESTED'} / ${req.pilotDecision || 'PILOT REVIEW'}` : 'SELECT A REQUEST TO START THE EFB WORKFLOW';
+      activeFlightSchedule.textContent = req ? `${req.requestDate || 'DATE TBC'} ${req.requestTime || 'TIME TBC'}` : '--';
+      activeFlightPhase.textContent = phase.label;
+      activeFlightPhaseDetail.textContent = phase.detail;
+      activeFlightFuel.textContent = req ? (ofp.blockFuelGal ? `BLOCK ${ofp.blockFuelGal} USG` : 'FUEL TBC') : 'TBC';
+      activeFlightLoad.textContent = req ? `${load.totalKg} KG DECLARED` : '--';
+      activeFlightWeather.textContent = !req ? 'NOT BRIEFED' : weatherReady ? (weatherPartial ? 'PARTIAL DATA' : 'BRIEFED') : 'NOT BRIEFED';
+      activeFlightDocs.textContent = docsLabel;
+      setStripTone(activeFlightPhaseCard, phase.tone);
+      setStripTone(activeFlightWeatherCard, weatherReady ? (weatherPartial ? 'warn' : 'good') : (req ? 'warn' : ''));
+    }
+
     function updateSuiteContext(req = selected) {
       const passengers = req ? passengerList(req) : [];
       const signed = req ? agreementCount(req) : 0;
@@ -1983,6 +2081,7 @@ END OF MESSAGE</pre>
       weatherDecision.innerHTML = `<p>${alternateMessage}</p><p><span>Automated watch:</span> ${escapeHtml(data.operational?.remarks || 'NO AUTOMATED WEATHER REMARKS')}</p><p class="weather-caution">Pilot must verify report validity, forecast timing, runway state, NOTAMs, minima, and the complete operational picture before release.</p>`;
       const generated = data.generatedAt ? new Date(data.generatedAt).toLocaleString('en-GB', { timeZone:'Europe/Helsinki', hour12:false }) : 'NOW';
       weatherStatus.textContent = `BRIEFING LOADED ${generated} HELSINKI TIME / ${data.route.dep}-${data.route.arr}`;
+      renderActiveFlightStrip(selected);
     }
 
     function weatherQuery() {
@@ -2036,6 +2135,7 @@ END OF MESSAGE</pre>
         weatherDecision.textContent = 'Weather data could not be loaded. Retry and use an approved independent source.';
         weatherAcarsReport.textContent = `ACARS WEATHER REPORT\n--------------------\n${String(error.message || 'WEATHER DATA UNAVAILABLE').toUpperCase()}`;
         weatherReportMode.textContent = 'NO DATA';
+        renderActiveFlightStrip(selected);
       } finally {
         refreshWeatherBtn.disabled = false;
       }
@@ -3337,6 +3437,7 @@ END OF MESSAGE</pre>
       renderManagementRequest(req);
       renderAlerts(req);
       renderDispatchBoard(req);
+      renderActiveFlightStrip(req);
       renderDispatchIntelligence(req);
       renderFlightControl(req);
       updateSuiteContext(req);
@@ -3385,6 +3486,7 @@ END OF MESSAGE</pre>
       const data = await res.json();
       requests = data.requests || [];
       selected = null;
+      renderActiveFlightStrip();
       renderOpsTotals();
       renderList();
       renderCalendar();
@@ -3758,6 +3860,7 @@ END OF MESSAGE</pre>
       window.location.href = '/booking-ops';
     });
 
+    renderActiveFlightStrip();
     tick();
     setInterval(tick, 1000);
     setInterval(autoSyncOps, 30000);
