@@ -2398,7 +2398,9 @@ END OF MESSAGE</pre>
         ? `<rect x="${progressX}" y="${progressY}" width="42" height="${progressH}" rx="12" fill="#303941"/><rect x="${progressX}" y="${progressY+progressH-requiredH}" width="42" height="${requiredH}" rx="10" fill="#66ff99"/><rect x="${progressX}" y="${progressY+progressH-distance50H}" width="42" height="${Math.max(0,distance50H-requiredH)}" fill="#ffd84d"/><rect x="${progressX}" y="${progressY+progressH-stopH}" width="42" height="${Math.max(0,stopH-Math.max(requiredH,distance50H))}" fill="#ff9f43"/>`
         : `<rect x="${progressX}" y="${progressY}" width="42" height="${progressH}" rx="12" fill="#66ff99"/><rect x="${progressX}" y="${progressY+progressH-requiredH}" width="42" height="${requiredH}" rx="10" fill="#ff5d66"/>`;
       const planeY = kind === 'takeoff' ? bottomY - 185 : Math.max(runwayY + 180, requiredY - 120);
-      const aircraft = `<g transform="translate(${centerX} ${planeY}) scale(1.45)" filter="url(#${kind}Shadow)"><path d="M0 -68 L12 -24 L68 -3 L68 10 L14 5 L20 54 L7 54 L0 20 L-7 54 L-20 54 L-14 5 L-68 10 L-68 -3 L-12 -24 Z" fill="#eaf4fb" stroke="#8ec5ff" stroke-width="2"/><rect x="-6" y="-55" width="12" height="92" rx="6" fill="#dbe9f2"/></g>`;
+      const aircraftWidth = 360;
+      const aircraftHeight = 240;
+      const aircraft = `<g filter="url(#${kind}Shadow)"><image href="/pa28r-runway-top.png" x="${centerX - aircraftWidth / 2}" y="${planeY - aircraftHeight / 2}" width="${aircraftWidth}" height="${aircraftHeight}" preserveAspectRatio="xMidYMid meet" opacity="0.98"/></g>`;
       const rejectValue = Math.max(0, available - accelerateStop - 300);
       const goAroundValue = Math.max(0, available - required - 400);
       const operationalMarker = kind === 'takeoff' ? marker(positionFor(rejectValue),'REJECT','#ff5d66','10 7') : marker(positionFor(goAroundValue),'GO-AROUND','#ff5d66','10 7');
