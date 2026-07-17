@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { randomUUID } from 'crypto';
+import { createHmac, randomUUID, timingSafeEqual } from 'crypto';
 import { degrees, PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { airports as bundledAirports } from './data/airports.js';
@@ -14,7 +14,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const PILOT_ACCESS_CODE = process.env.PILOT_ACCESS_CODE || 'NATGLOBEOPS';
 const PILOT_COOKIE_NAME = 'ng_pilot_access';
-const BOOKING_COOKIE_VALUE = 'enabled';
+const PILOT_SESSION_SECRET = String(process.env.PILOT_SESSION_SECRET || PILOT_ACCESS_CODE || 'NATGLOBEOPS');
+const PILOT_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 const WALLET_ASSETS_DIR = path.join(__dirname, 'wallet-assets');
 const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || 'https://ngaprivateaviation.com').replace(/\/$/, '');
 
@@ -155,13 +156,15 @@ async function initializeBookingStore() {
         request_id TEXT NOT NULL,
         event_type TEXT NOT NULL,
         note TEXT NOT NULL DEFAULT '',
+        actor TEXT NOT NULL DEFAULT 'SYSTEM',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
+    await bookingPool.query("ALTER TABLE booking_timeline ADD COLUMN IF NOT EXISTS actor TEXT NOT NULL DEFAULT 'SYSTEM'");
     const [requests, availability, timeline] = await Promise.all([
       bookingPool.query('SELECT payload FROM booking_requests ORDER BY created_at ASC'),
       bookingPool.query('SELECT date, is_open, note, updated_at FROM booking_availability'),
-      bookingPool.query('SELECT id, request_id, event_type, note, created_at FROM booking_timeline ORDER BY created_at ASC')
+      bookingPool.query('SELECT id, request_id, event_type, note, actor, created_at FROM booking_timeline ORDER BY created_at ASC')
     ]);
     bookingRequests.push(...requests.rows.map(row => row.payload));
     availability.rows.forEach(row => bookingAvailability.set(String(row.date).slice(0, 10), {
@@ -171,7 +174,7 @@ async function initializeBookingStore() {
     }));
     timeline.rows.forEach(row => {
       const items = bookingTimeline.get(row.request_id) || [];
-      items.push({ id: row.id, type: row.event_type, note: row.note, createdAt: row.created_at });
+      items.push({ id: row.id, type: row.event_type, note: row.note, actor: row.actor || 'SYSTEM', createdAt: row.created_at });
       bookingTimeline.set(row.request_id, items);
     });
     console.log(`BOOKING STORE: loaded ${bookingRequests.length} requests.`);
@@ -207,15 +210,15 @@ async function persistAvailability(date, item) {
   );
 }
 
-async function addBookingTimelineEvent(requestId, type, note = '') {
-  const item = { id: `TML-${randomUUID().slice(0, 8).toUpperCase()}`, type, note, createdAt: new Date().toISOString() };
+async function addBookingTimelineEvent(requestId, type, note = '', actor = 'SYSTEM') {
+  const item = { id: `TML-${randomUUID().slice(0, 8).toUpperCase()}`, type, note, actor, createdAt: new Date().toISOString() };
   const items = bookingTimeline.get(requestId) || [];
   items.push(item);
   bookingTimeline.set(requestId, items);
   if (bookingPool) {
     await bookingPool.query(
-      'INSERT INTO booking_timeline (id, request_id, event_type, note, created_at) VALUES ($1, $2, $3, $4, $5)',
-      [item.id, requestId, item.type, item.note, item.createdAt]
+      'INSERT INTO booking_timeline (id, request_id, event_type, note, actor, created_at) VALUES ($1, $2, $3, $4, $5, $6)',
+      [item.id, requestId, item.type, item.note, item.actor, item.createdAt]
     );
   }
   return item;
@@ -964,24 +967,93 @@ function parseCookies(req) {
     }, {});
 }
 
+function pilotAccessProfiles() {
+  const profiles = [
+    {
+      code: PILOT_ACCESS_CODE,
+      role: 'COMMANDER',
+      name: normalizeBookingText(process.env.PILOT_COMMANDER_NAME || 'PILOT COMMANDER', 60).toUpperCase()
+    }
+  ];
+  const optionalProfiles = [
+    ['PILOT_SECONDARY_CODE', 'PILOT_SECONDARY_NAME', 'SECONDARY', 'SECONDARY PILOT'],
+    ['PILOT_DISPATCH_CODE', 'PILOT_DISPATCH_NAME', 'DISPATCH', 'FLIGHT DISPATCH']
+  ];
+  optionalProfiles.forEach(([codeKey, nameKey, role, fallbackName]) => {
+    const code = String(process.env[codeKey] || '').trim();
+    if (!code || profiles.some(profile => profile.code === code)) return;
+    profiles.push({
+      code,
+      role,
+      name: normalizeBookingText(process.env[nameKey] || fallbackName, 60).toUpperCase()
+    });
+  });
+  return profiles;
+}
+
+function pilotSessionSignature(payload) {
+  return createHmac('sha256', PILOT_SESSION_SECRET).update(payload).digest('base64url');
+}
+
+function makePilotSession(profile) {
+  const payload = Buffer.from(JSON.stringify({
+    role: profile.role,
+    name: profile.name,
+    exp: Math.floor(Date.now() / 1000) + PILOT_SESSION_MAX_AGE_SECONDS
+  })).toString('base64url');
+  return `${payload}.${pilotSessionSignature(payload)}`;
+}
+
+function readPilotSession(req) {
+  const token = parseCookies(req)[PILOT_COOKIE_NAME];
+  if (!token || !token.includes('.')) return null;
+  const [payload, signature] = token.split('.');
+  if (!payload || !signature) return null;
+  const expected = pilotSessionSignature(payload);
+  const receivedBytes = Buffer.from(signature);
+  const expectedBytes = Buffer.from(expected);
+  if (receivedBytes.length !== expectedBytes.length || !timingSafeEqual(receivedBytes, expectedBytes)) return null;
+  try {
+    const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!session?.role || !session?.name || Number(session.exp) <= Math.floor(Date.now() / 1000)) return null;
+    return { role: String(session.role), name: String(session.name), exp: Number(session.exp) };
+  } catch {
+    return null;
+  }
+}
+
 function hasPilotAccess(req) {
-  const cookies = parseCookies(req);
-  return cookies[PILOT_COOKIE_NAME] === BOOKING_COOKIE_VALUE;
+  return Boolean(readPilotSession(req));
+}
+
+function pilotActor(req) {
+  const session = req.pilotSession || readPilotSession(req);
+  return session ? `${session.role} / ${session.name}` : 'SYSTEM';
 }
 
 function requirePilotAccess(req, res, next) {
-  if (hasPilotAccess(req)) return next();
+  const session = readPilotSession(req);
+  if (session) {
+    req.pilotSession = session;
+    return next();
+  }
   return res.status(401).json({ error: 'PILOT ACCESS REQUIRED' });
 }
 
-function pilotCookieOptions() {
+function requireFlightCrew(req, res) {
+  if (['COMMANDER', 'SECONDARY'].includes(req.pilotSession?.role)) return true;
+  res.status(403).json({ error: 'COMMANDER OR SECONDARY PILOT ACCESS REQUIRED' });
+  return false;
+}
+
+function pilotCookieOptions(profile) {
   const secure = process.env.NODE_ENV === 'production';
   return [
-    `${PILOT_COOKIE_NAME}=${BOOKING_COOKIE_VALUE}`,
+    `${PILOT_COOKIE_NAME}=${makePilotSession(profile)}`,
     'Path=/',
     'HttpOnly',
     'SameSite=Lax',
-    'Max-Age=2592000',
+    `Max-Age=${PILOT_SESSION_MAX_AGE_SECONDS}`,
     secure ? 'Secure' : ''
   ].filter(Boolean).join('; ');
 }
@@ -1139,9 +1211,14 @@ function normalizeOperationalFlightPlan(input, request) {
     cgAftLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.aftCgLimits.at(-1).cgIn,
     weightBalanceProfile: AIRCRAFT_WEIGHT_BALANCE_PROFILE,
     performanceSnapshot: normalizeOperationalPerformanceSnapshot(input.performanceSnapshot),
+    notamReviewAccepted: input.notamReviewAccepted === true || input.notamReviewAccepted === 'true',
+    airspaceReviewAccepted: input.airspaceReviewAccepted === true || input.airspaceReviewAccepted === 'true',
+    briefingRemarks: textField('briefingRemarks', 500),
+    briefingReviewedAt: textField('briefingReviewedAt', 40),
     stabTrim: textField('stabTrim', 20).toUpperCase(),
     releaseName: textField('releaseName', 60).toUpperCase(),
-    releaseAccepted: input.releaseAccepted === true || input.releaseAccepted === 'true'
+    releaseAccepted: input.releaseAccepted === true || input.releaseAccepted === 'true',
+    releaseSnapshot: input.releaseSnapshot && typeof input.releaseSnapshot === 'object' ? input.releaseSnapshot : null
   };
   const calculations = operationalFlightPlanCalculations(plan, request);
   return { ...plan, ...calculations };
@@ -3479,12 +3556,18 @@ app.post('/api/private-flight-agreements/:token/sign', async (req, res) => {
 
 app.post('/api/pilot-login', (req, res) => {
   const code = String(req.body?.code || '').trim();
-  if (code !== PILOT_ACCESS_CODE) {
+  const profile = pilotAccessProfiles().find(item => item.code === code);
+  if (!profile) {
     return res.status(401).json({ error: 'INVALID PILOT CODE' });
   }
 
-  res.setHeader('Set-Cookie', pilotCookieOptions());
-  res.json({ ok: true });
+  res.setHeader('Set-Cookie', pilotCookieOptions(profile));
+  res.json({ ok: true, role: profile.role, name: profile.name });
+});
+
+app.get('/api/pilot-session', requirePilotAccess, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({ session: req.pilotSession });
 });
 
 app.post('/api/pilot-logout', (req, res) => {
@@ -3950,9 +4033,14 @@ function operationalFlightPlanDefaults(request) {
     cgAftLimitIn: AIRCRAFT_WEIGHT_BALANCE_PROFILE.aftCgLimits.at(-1).cgIn,
     weightBalanceProfile: AIRCRAFT_WEIGHT_BALANCE_PROFILE,
     performanceSnapshot: null,
+    notamReviewAccepted: false,
+    airspaceReviewAccepted: false,
+    briefingRemarks: '',
+    briefingReviewedAt: '',
     stabTrim: '',
     releaseName: commander,
-    releaseAccepted: false
+    releaseAccepted: false,
+    releaseSnapshot: null
   };
 }
 
@@ -4044,6 +4132,9 @@ function operationalFlightPlanCalculations(plan, request) {
   if (!landingEnvelope.withinEnvelope) warnings.push('LANDING POINT OUTSIDE APPROVED CG ENVELOPE');
   if (!String(plan.route || '').trim()) warnings.push('ENTER PILOT ROUTE');
   if (!String(plan.alternate || '').trim()) warnings.push('ALTERNATE REVIEW OPEN');
+  if (!plan.notamReviewAccepted) warnings.push('NOTAM REVIEW ACKNOWLEDGEMENT REQUIRED');
+  if (!plan.airspaceReviewAccepted) warnings.push('AIRSPACE REVIEW ACKNOWLEDGEMENT REQUIRED');
+  if (!plan.performanceSnapshot?.departure?.runway || !plan.performanceSnapshot?.arrival?.runway) warnings.push('CAPTURE RUNWAY AND WEATHER PERFORMANCE INPUTS');
   return {
     bookingPassengerWeightLb,
     bookingBaggageWeightLb,
@@ -4068,6 +4159,64 @@ function operationalFlightPlanCalculations(plan, request) {
     warnings,
     calculationStatus: warnings.length ? 'REVIEW REQUIRED' : 'CALCULATED / VERIFY POH'
   };
+}
+
+function createOperationalReleaseSnapshot(plan, request, actor) {
+  return {
+    version: 'NGA-OPERATIONAL-RELEASE-2026-07',
+    releaseId: `REL-${randomUUID().slice(0, 8).toUpperCase()}`,
+    releasedAt: new Date().toISOString(),
+    releasedBy: actor,
+    bookingReference: request.id,
+    route: {
+      departure: plan.departure,
+      destination: plan.destination,
+      depRunway: plan.depRunway,
+      arrRunway: plan.arrRunway,
+      routing: plan.route,
+      alternate: plan.alternate,
+      alternateRoute: plan.alternateRoute
+    },
+    fuel: {
+      blockFuelGal: plan.blockFuelGal,
+      taxiFuelGal: plan.taxiFuelGal,
+      tripFuelGal: plan.tripFuelGal,
+      contingencyFuelGal: plan.contingencyFuelGal,
+      alternateFuelGal: plan.alternateFuelGal,
+      finalReserveFuelGal: plan.finalReserveFuelGal,
+      extraFuelGal: plan.extraFuelGal
+    },
+    massAndBalance: {
+      zeroFuelWeightLb: plan.zeroFuelWeightLb,
+      rampWeightLb: plan.rampWeightLb,
+      takeoffWeightLb: plan.takeoffWeightLb,
+      landingWeightLb: plan.landingWeightLb,
+      takeoffCgIn: plan.takeoffCgIn,
+      gearUpCgIn: plan.takeoffGearUpCgIn,
+      landingCgIn: plan.landingCgIn,
+      passengerWeightSource: plan.passengerWeightSource,
+      baggageWeightSource: plan.baggageWeightSource
+    },
+    briefing: {
+      notamReviewAccepted: plan.notamReviewAccepted,
+      airspaceReviewAccepted: plan.airspaceReviewAccepted,
+      remarks: plan.briefingRemarks,
+      reviewedAt: plan.briefingReviewedAt
+    },
+    performance: plan.performanceSnapshot
+  };
+}
+
+function movementTimestamp(now = new Date()) {
+  const utc = now.toISOString().slice(11, 16).replace(':', '');
+  const localParts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Helsinki',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(now);
+  const local = Object.fromEntries(localParts.map(part => [part.type, part.value]));
+  return `${utc}Z/${local.hour || '--'}${local.minute || '--'}L`;
 }
 
 function reimbursementStatementDefaults(request) {
@@ -4593,6 +4742,45 @@ app.get('/api/booking-ops/requests/:id/operational-flight-plan/pdf', requirePilo
   res.send(pdf);
 });
 
+app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  if (!requireFlightCrew(req, res)) return;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  if (!request.operationalFlightPlan) return res.status(409).json({ error: 'SAVE AND RELEASE THE OFP BEFORE RECORDING MOVEMENT TIMES' });
+
+  const phase = String(req.params.phase || '').trim().toLowerCase();
+  const movementSteps = [
+    { phase: 'out', field: 'actualOut', label: 'OUT' },
+    { phase: 'off', field: 'actualOff', label: 'OFF' },
+    { phase: 'on', field: 'actualOn', label: 'ON' },
+    { phase: 'in', field: 'actualIn', label: 'IN' }
+  ];
+  const stepIndex = movementSteps.findIndex(item => item.phase === phase);
+  if (stepIndex === -1) return res.status(400).json({ error: 'INVALID MOVEMENT PHASE' });
+
+  const previousPlan = normalizeOperationalFlightPlan(request.operationalFlightPlan, request);
+  if (!previousPlan.releaseAccepted) return res.status(409).json({ error: 'PILOT RELEASE IS REQUIRED BEFORE RECORDING OUT TIME' });
+  const step = movementSteps[stepIndex];
+  if (previousPlan[step.field]) return res.status(409).json({ error: `${step.label} TIME IS LOCKED` });
+  if (stepIndex > 0 && !previousPlan[movementSteps[stepIndex - 1].field]) {
+    return res.status(409).json({ error: `RECORD ${movementSteps[stepIndex - 1].label} BEFORE ${step.label}` });
+  }
+
+  const timestamp = movementTimestamp();
+  const flightPlan = normalizeOperationalFlightPlan({ ...previousPlan, [step.field]: timestamp }, request);
+  request.operationalFlightPlan = flightPlan;
+  await persistBookingRequest(request);
+  await addBookingTimelineEvent(request.id, 'MOVEMENT TIME LOCKED', `${step.label} ${timestamp}`, pilotActor(req));
+  res.json({
+    request: {
+      ...request,
+      bookingMessage: formatBookingMessage(request)
+    },
+    movement: { phase: step.label, timestamp }
+  });
+});
+
 app.get('/api/booking-ops/requests/:id/agreement/:passengerNumber/pdf', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
@@ -4652,7 +4840,7 @@ app.post('/api/booking-ops/requests/:id/time-proposal', requirePilotAccess, asyn
     respondedAt: ''
   };
   await persistBookingRequest(request);
-  await addBookingTimelineEvent(request.id, 'NEW DEPARTURE TIME PROPOSED', `${proposedTimeLabel(request.timeProposal)}${note ? ` / ${note}` : ''}`);
+  await addBookingTimelineEvent(request.id, 'NEW DEPARTURE TIME PROPOSED', `${proposedTimeLabel(request.timeProposal)}${note ? ` / ${note}` : ''}`, pilotActor(req));
   res.json({
     request: {
       ...request,
@@ -4671,6 +4859,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
   await bookingStoreReady;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  const actor = pilotActor(req);
 
   const paymentStatus = String(req.body?.paymentStatus || '').trim().toUpperCase();
   const pilotDecision = String(req.body?.pilotDecision || '').trim().toUpperCase();
@@ -4684,7 +4873,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     const allowedPayments = new Set(['UNPAID', 'DEPOSIT PAID', 'PAID', 'REFUNDED']);
     if (!allowedPayments.has(paymentStatus)) return res.status(400).json({ error: 'INVALID PAYMENT STATUS' });
     request.paymentStatus = paymentStatus;
-    await addBookingTimelineEvent(request.id, 'PAYMENT STATUS', paymentStatus);
+    await addBookingTimelineEvent(request.id, 'PAYMENT STATUS', paymentStatus, actor);
   }
 
   if (pilotDecision) {
@@ -4699,11 +4888,11 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     if (pilotDecision === 'NEEDS INFO') request.status = 'NEEDS INFO';
     if (pilotDecision === 'DECLINED') request.status = 'DECLINED';
     if (pilotDecision === 'PENDING') request.status = 'REQUESTED';
-    await addBookingTimelineEvent(request.id, 'PILOT DECISION', pilotDecision);
+    await addBookingTimelineEvent(request.id, 'PILOT DECISION', pilotDecision, actor);
   }
 
   const timelineNote = normalizeBookingText(req.body?.timelineNote, 300);
-  if (timelineNote) await addBookingTimelineEvent(request.id, 'OPS NOTE', timelineNote);
+  if (timelineNote) await addBookingTimelineEvent(request.id, 'OPS NOTE', timelineNote, actor);
   if (req.body?.crew && typeof req.body.crew === 'object') {
     const allowedCrew = new Set(['ANTONI GARCIA', 'SAUL GARCIA', 'UNASSIGNED', 'NONE']);
     const commander = normalizeBookingText(req.body.crew.commander, 40).toUpperCase();
@@ -4712,14 +4901,15 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
       return res.status(400).json({ error: 'INVALID CREW ASSIGNMENT' });
     }
     request.crew = { commander, secondary };
-    await addBookingTimelineEvent(request.id, 'CREW ASSIGNMENT', `CMD ${commander} / SIC ${secondary}`);
+    await addBookingTimelineEvent(request.id, 'CREW ASSIGNMENT', `CMD ${commander} / SIC ${secondary}`, actor);
   }
   if (Object.prototype.hasOwnProperty.call(req.body || {}, 'additionalEmailContacts')) {
     request.additionalEmailContacts = normalizeAdditionalEmailContacts(req.body.additionalEmailContacts);
     await addBookingTimelineEvent(
       request.id,
       'EMAIL CONTACTS UPDATED',
-      request.additionalEmailContacts.length ? request.additionalEmailContacts.join(', ') : 'Additional contacts cleared.'
+      request.additionalEmailContacts.length ? request.additionalEmailContacts.join(', ') : 'Additional contacts cleared.',
+      actor
     );
   }
   if (req.body?.itinerary && typeof req.body.itinerary === 'object') {
@@ -4727,27 +4917,51 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     if (itineraryUpdate.error) return res.status(400).json({ error: itineraryUpdate.error });
     const itineraryNote = applyBookingItineraryUpdate(request, itineraryUpdate);
     request.bookingCorrectedAt = new Date().toISOString();
-    await addBookingTimelineEvent(request.id, 'ITINERARY CORRECTED', itineraryNote);
+    await addBookingTimelineEvent(request.id, 'ITINERARY CORRECTED', itineraryNote, actor);
   }
   if (req.body?.reimbursementStatement && typeof req.body.reimbursementStatement === 'object') {
     const statement = normalizeReimbursementStatement(req.body.reimbursementStatement);
     if (statement) {
       request.reimbursementStatement = statement;
       ensureReimbursementStatementToken(request);
-      await addBookingTimelineEvent(request.id, 'REIMBURSEMENT STATEMENT SAVED', 'Statement draft updated in Pilot Ops.');
+      await addBookingTimelineEvent(request.id, 'REIMBURSEMENT STATEMENT SAVED', 'Statement draft updated in Pilot Ops.', actor);
     }
   }
   if (req.body?.operationalFlightPlan && typeof req.body.operationalFlightPlan === 'object') {
+    const previousPlan = request.operationalFlightPlan
+      ? normalizeOperationalFlightPlan(request.operationalFlightPlan, request)
+      : null;
     const flightPlan = normalizeOperationalFlightPlan(req.body.operationalFlightPlan, request);
     if (flightPlan) {
+      const briefingComplete = flightPlan.notamReviewAccepted && flightPlan.airspaceReviewAccepted;
+      const briefingWasComplete = previousPlan?.notamReviewAccepted && previousPlan?.airspaceReviewAccepted;
+      flightPlan.briefingReviewedAt = briefingComplete
+        ? (briefingWasComplete ? previousPlan.briefingReviewedAt : new Date().toISOString())
+        : '';
+      if (flightPlan.releaseAccepted && req.pilotSession?.role !== 'COMMANDER') {
+        return res.status(403).json({ error: 'COMMANDER ACCESS REQUIRED TO RELEASE AN OFP' });
+      }
       if (flightPlan.releaseAccepted && flightPlan.warnings.length) {
         return res.status(400).json({ error: `OFP RELEASE BLOCKED: ${flightPlan.warnings.join(' / ')}` });
+      }
+      const wasReleased = Boolean(previousPlan?.releaseAccepted);
+      if (flightPlan.releaseAccepted && !wasReleased) {
+        flightPlan.releaseSnapshot = createOperationalReleaseSnapshot(flightPlan, request, actor);
+        await addBookingTimelineEvent(
+          request.id,
+          'OFP RELEASE SNAPSHOT',
+          `${flightPlan.releaseSnapshot.releaseId} / ${flightPlan.departure}-${flightPlan.destination} / TOW ${flightPlan.takeoffWeightLb}LB / BLOCK ${flightPlan.blockFuelGal}USG`,
+          actor
+        );
+      } else {
+        flightPlan.releaseSnapshot = previousPlan?.releaseSnapshot || null;
       }
       request.operationalFlightPlan = flightPlan;
       await addBookingTimelineEvent(
         request.id,
-        flightPlan.releaseAccepted ? 'OFP RELEASE ACKNOWLEDGED' : 'OFP DRAFT SAVED',
-        `${flightPlan.departure}-${flightPlan.destination} / ${flightPlan.calculationStatus}`
+        flightPlan.releaseAccepted ? 'OFP RELEASE ACKNOWLEDGED' : wasReleased ? 'OFP RELEASE CLEARED' : 'OFP DRAFT SAVED',
+        `${flightPlan.departure}-${flightPlan.destination} / ${flightPlan.calculationStatus}`,
+        actor
       );
     }
   }

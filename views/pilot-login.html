@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NatGlobe Aviation / Pilot Access</title>
+  <title>NGA Private Aviation / Pilot Access</title>
   <style>
     :root {
       --bg: #000;
@@ -114,7 +114,7 @@
 </head>
 <body>
   <main class="frame">
-    <div class="title">NATGLOBE AVIATION / PILOT OPS ACCESS</div>
+    <div class="title">NGA PRIVATE AVIATION / PILOT OPS ACCESS</div>
     <div id="clock" class="clock">UTC --:--:--</div>
     <div class="intro">Booking request board for pilots and dispatch. Contains passenger declarations and ACARS booking messages.</div>
     <div class="mode">MODE: PILOT CODE REQUIRED</div>
@@ -125,7 +125,7 @@
     </form>
 
     <div id="status" class="status">READY</div>
-    <div class="hint">Local test pilot code is NATGLOBEOPS unless PILOT_ACCESS_CODE is set on Render.</div>
+    <div class="hint">Use the access code assigned to your commander, secondary pilot, or dispatch role.</div>
   </main>
 
   <script>
@@ -155,7 +155,7 @@
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'ACCESS DENIED');
-        setStatus('ACCESS GRANTED', 'ok');
+        setStatus(`ACCESS GRANTED / ${data.role || 'PILOT'}`, 'ok');
         window.location.href = '/booking-ops';
       } catch (err) {
         setStatus(err.message || 'ACCESS DENIED', 'err');

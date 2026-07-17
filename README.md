@@ -16,6 +16,21 @@ The booking system uses temporary memory until a PostgreSQL connection is config
 
 Do not use the temporary mode for production passenger or identity data: Render restarts clear it.
 
+### Pilot Ops roles
+
+The existing `PILOT_ACCESS_CODE` remains the Commander login. Add a long random `PILOT_SESSION_SECRET` in Render to sign pilot sessions. Optional role-specific codes can be added without changing the current Commander code:
+
+```text
+PILOT_COMMANDER_NAME=Antoni Garcia
+PILOT_SECONDARY_CODE=<secondary pilot private code>
+PILOT_SECONDARY_NAME=Saul Garcia
+PILOT_DISPATCH_CODE=<dispatch private code>
+PILOT_DISPATCH_NAME=Flight Dispatch
+PILOT_SESSION_SECRET=<long random secret>
+```
+
+Commander and Secondary sessions can record the locked `OUT`, `OFF`, `ON`, and `IN` movement times. Only the Commander session can acknowledge an OFP release. Pilot Ops records the active role beside new operational timeline entries.
+
 ### Booking emails
 
 To automatically notify operations and send the booking contact a request receipt without paid SMTP, deploy a Google Apps Script email relay that sends through the Gmail account. Add these Render environment variables:

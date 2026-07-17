@@ -232,6 +232,7 @@
     .weather-option-group label { display:inline-flex; align-items:center; gap:6px; margin-right:10px; color:#dce5ea; font-size:9px; cursor:pointer; }
     .weather-option-group input { accent-color:var(--live); }
     .weather-status, .performance-status { border-left:3px solid var(--accent); padding:9px 12px; margin:0 14px 12px; color:#aec0cc; background:#0a141e; font-size:9px; line-height:1.45; text-transform:uppercase; }
+    .weather-status.offline { border-left-color:var(--danger); color:#ffd1d1; background:#1a0909; }
     .weather-output-layout { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); gap:10px; padding:0 14px 14px; }
     .acars-preview { min-width:0; border:1px solid #354b5c; background:#000; padding:14px; }
     .acars-preview-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:11px; padding-bottom:9px; border-bottom:1px solid #263b49; color:var(--accent); font-size:9px; text-transform:uppercase; }
@@ -923,6 +924,22 @@
       margin-bottom: 10px;
     }
 
+    .live-movement-console { display:grid; grid-template-columns:minmax(180px,.9fr) minmax(0,2.1fr); gap:10px; margin-bottom:10px; padding:11px; border:1px solid #40505c; background:linear-gradient(120deg,#071018,#020506); }
+    .live-movement-intro { display:grid; align-content:center; gap:4px; padding:4px 7px; }
+    .live-movement-intro span { color:#91a0aa; font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
+    .live-movement-intro strong { color:#fff; font-size:14px; text-transform:uppercase; }
+    .live-movement-intro small { color:#91a0aa; font-size:9px; line-height:1.4; text-transform:uppercase; }
+    .live-movement-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; }
+    .movement-command { min-height:76px; border:1px solid #40505c; background:#020405; color:#fff; padding:9px; text-align:left; cursor:pointer; font-family:inherit; text-transform:uppercase; }
+    .movement-command span { display:block; color:#8ec5ff; font-size:9px; letter-spacing:.1em; }
+    .movement-command strong { display:block; margin-top:7px; font-size:13px; }
+    .movement-command small { display:block; margin-top:4px; color:#91a0aa; font-size:8px; line-height:1.2; }
+    .movement-command.ready { border-color:var(--live); background:#06130b; }
+    .movement-command.ready span, .movement-command.ready strong { color:var(--live); }
+    .movement-command.done { border-color:var(--live); background:#06130b; cursor:default; }
+    .movement-command.done span, .movement-command.done strong { color:var(--live); }
+    .movement-command:disabled { opacity:.58; cursor:not-allowed; }
+
     .control-phase {
       min-height: 66px;
       border: 1px solid #3d4b55;
@@ -1193,6 +1210,7 @@
       color: #fff;
       margin-bottom: 2px;
     }
+    .timeline-event small { display:block; margin-top:5px; color:#7f929f; font-size:8px; letter-spacing:.08em; }
 
     .booking-message {
       border: 2px solid var(--line);
@@ -1288,7 +1306,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .document-dashboard, .movement-phase-strip, .performance-actions { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .live-movement-console, .live-movement-actions, .document-dashboard, .movement-phase-strip, .performance-actions { grid-template-columns: 1fr; }
       body { padding:0; }
       .frame { border:0; border-radius:0; padding:12px; }
       .efb-masthead { grid-template-columns:1fr; padding:12px 12px 0; }
@@ -1342,7 +1360,7 @@
   <main class="frame">
     <header class="efb-masthead">
       <div><div class="title">NGA PILOT OPERATIONS CENTRE</div><div class="intro">Selected-flight control, planning, weather, aircraft performance, and documents.</div></div>
-      <div class="masthead-status"><div class="badge">PILOT / DISPATCH / LIVE</div><div id="clock" class="clock">UTC --:--:--</div></div>
+      <div class="masthead-status"><div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div><div id="clock" class="clock">UTC --:--:--</div></div>
       <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
     </header>
     <section id="activeFlightStrip" class="active-flight-strip" aria-label="Active flight status" data-active="false">
@@ -1621,6 +1639,15 @@ LOAD DATA TO CALCULATE.</pre>
               <div id="controlDocuments" class="control-phase danger"><strong>04 / Documents</strong>Passenger and cost files</div>
               <div id="controlDecision" class="control-phase danger"><strong>05 / Decision</strong>Pilot disposition</div>
             </div>
+            <div class="live-movement-console" aria-label="Live flight movement controls">
+              <div class="live-movement-intro"><span>Live flight clock</span><strong>Movement record</strong><small>Server-stamped and locked after confirmation.</small></div>
+              <div class="live-movement-actions">
+                <button id="recordOutBtn" class="movement-command" type="button"><span>OUT / TAXI</span><strong>RECORD OUT</strong><small>Release required</small></button>
+                <button id="recordOffBtn" class="movement-command" type="button"><span>OFF / AIRBORNE</span><strong>RECORD OFF</strong><small>Await OUT</small></button>
+                <button id="recordOnBtn" class="movement-command" type="button"><span>ON / LANDED</span><strong>RECORD ON</strong><small>Await OFF</small></button>
+                <button id="recordInBtn" class="movement-command" type="button"><span>IN / STAND</span><strong>RECORD IN</strong><small>Await ON</small></button>
+              </div>
+            </div>
             <div class="document-dashboard" aria-label="Document dashboard" hidden>
               <article id="ofpDocumentCard" class="document-card warn"><span>Operational flight plan</span><strong id="ofpDocumentStatus">NOT STARTED</strong><small id="ofpDocumentDetail">Route, fuel, mass and balance, times, and pilot release.</small><button id="openOfpBtn" type="button">BUILD / EDIT OFP</button></article>
               <article id="statementDocumentCard" class="document-card danger"><span>Reimbursement statement</span><strong id="statementDocumentStatus">REQUIRED</strong><small>Cost allocation and payment document for the selected flight.</small><button id="openStatementControlBtn" type="button">OPEN STATEMENT</button></article>
@@ -1797,6 +1824,7 @@ END OF MESSAGE</pre>
     const activeFlightWeatherCard = el('activeFlightWeatherCard');
     const activeFlightWeather = el('activeFlightWeather');
     const activeFlightDocs = el('activeFlightDocs');
+    const pilotRoleBadge = el('pilotRoleBadge');
     const dispatchRoute = el('dispatchRoute');
     const dispatchSchedule = el('dispatchSchedule');
     const dispatchFlightTime = el('dispatchFlightTime');
@@ -1826,6 +1854,10 @@ END OF MESSAGE</pre>
     const controlOfp = el('controlOfp');
     const controlDocuments = el('controlDocuments');
     const controlDecision = el('controlDecision');
+    const recordOutBtn = el('recordOutBtn');
+    const recordOffBtn = el('recordOffBtn');
+    const recordOnBtn = el('recordOnBtn');
+    const recordInBtn = el('recordInBtn');
     const ofpDocumentCard = el('ofpDocumentCard');
     const ofpDocumentStatus = el('ofpDocumentStatus');
     const ofpDocumentDetail = el('ofpDocumentDetail');
@@ -1956,7 +1988,8 @@ END OF MESSAGE</pre>
       const ofp = req?.operationalFlightPlan || {};
       const weatherReady = Boolean(req && latestWeatherData && weatherDataKey.startsWith(`${req.id}|`));
       const weatherPartial = weatherReady && (latestWeatherData.departure?.mode === 'NO DATA' || latestWeatherData.arrival?.mode === 'NO DATA');
-      const docsLabel = !req ? 'OFP NOT STARTED' : ofp.releaseAccepted ? 'OFP RELEASED' : ofp ? 'OFP DRAFT' : 'OFP NOT STARTED';
+      const briefingReady = Boolean(ofp.notamReviewAccepted && ofp.airspaceReviewAccepted);
+      const docsLabel = !req ? 'OFP NOT STARTED' : ofp.releaseAccepted ? `OFP RELEASED / BRIEF ${briefingReady ? 'OK' : 'OPEN'}` : ofp ? `OFP DRAFT / BRIEF ${briefingReady ? 'OK' : 'OPEN'}` : 'OFP NOT STARTED';
 
       activeFlightStrip.dataset.active = String(Boolean(req));
       activeFlightRoute.textContent = req ? (req.route || `${req.dep || '----'} > ${req.arr || '----'}`) : 'NO FLIGHT SELECTED';
@@ -2081,6 +2114,7 @@ END OF MESSAGE</pre>
       weatherDecision.innerHTML = `<p>${alternateMessage}</p><p><span>Automated watch:</span> ${escapeHtml(data.operational?.remarks || 'NO AUTOMATED WEATHER REMARKS')}</p><p class="weather-caution">Pilot must verify report validity, forecast timing, runway state, NOTAMs, minima, and the complete operational picture before release.</p>`;
       const generated = data.generatedAt ? new Date(data.generatedAt).toLocaleString('en-GB', { timeZone:'Europe/Helsinki', hour12:false }) : 'NOW';
       weatherStatus.textContent = `BRIEFING LOADED ${generated} HELSINKI TIME / ${data.route.dep}-${data.route.arr}`;
+      weatherStatus.classList.remove('offline');
       renderActiveFlightStrip(selected);
     }
 
@@ -2129,7 +2163,8 @@ END OF MESSAGE</pre>
         renderWeatherBriefing(data);
       } catch (error) {
         latestWeatherData = null;
-        weatherStatus.textContent = error.message || 'WEATHER BRIEFING UNAVAILABLE';
+        weatherStatus.textContent = `OFFLINE / ${error.message || 'WEATHER BRIEFING UNAVAILABLE'} / USE AN APPROVED INDEPENDENT SOURCE`;
+        weatherStatus.classList.add('offline');
         weatherAirportGrid.innerHTML = '';
         weatherWinds.innerHTML = '';
         weatherDecision.textContent = 'Weather data could not be loaded. Retry and use an approved independent source.';
@@ -3202,6 +3237,32 @@ END OF MESSAGE</pre>
       });
     }
 
+    function renderLiveMovementControls(req) {
+      const ofp = req?.operationalFlightPlan || {};
+      const steps = [
+        { field:'actualOut', phase:'out', label:'OUT', button:recordOutBtn, prerequisite:null },
+        { field:'actualOff', phase:'off', label:'OFF', button:recordOffBtn, prerequisite:'actualOut' },
+        { field:'actualOn', phase:'on', label:'ON', button:recordOnBtn, prerequisite:'actualOff' },
+        { field:'actualIn', phase:'in', label:'IN', button:recordInBtn, prerequisite:'actualOn' }
+      ];
+      steps.forEach(step => {
+        const button = step.button;
+        const recorded = ofp[step.field];
+        const prerequisiteReady = !step.prerequisite || Boolean(ofp[step.prerequisite]);
+        const ready = Boolean(req && ofp.releaseAccepted && prerequisiteReady && !recorded);
+        button.disabled = !ready;
+        button.classList.toggle('ready', ready);
+        button.classList.toggle('done', Boolean(recorded));
+        button.querySelector('strong').textContent = recorded ? `${step.label} LOCKED` : `RECORD ${step.label}`;
+        button.querySelector('small').textContent = recorded
+          ? recorded
+          : !req ? 'Select a flight file'
+            : !ofp.releaseAccepted ? 'Pilot release required'
+              : !prerequisiteReady ? `Await ${step.prerequisite.replace('actual','').toUpperCase()}`
+                : 'Tap to server-stamp';
+      });
+    }
+
     function renderFlightControl(req) {
       const passengers = passengerList(req);
       const signed = agreementCount(req);
@@ -3241,6 +3302,7 @@ END OF MESSAGE</pre>
       setControlTone(flightFileDocumentCard, routeReady ? 'good' : 'warn');
       flightFileDocumentStatus.textContent = routeReady ? 'AVAILABLE' : 'INCOMPLETE';
       renderMovementPhases(req);
+      renderLiveMovementControls(req);
     }
 
     function renderDispatchBoard(req) {
@@ -3348,9 +3410,36 @@ END OF MESSAGE</pre>
       timelineList.innerHTML = events.length ? events.slice().reverse().map(event => `
         <div class="timeline-event">
           <strong>${escapeHtml(event.type || 'UPDATE')} / ${escapeHtml(event.createdAt ? new Date(event.createdAt).toLocaleString('en-GB', { hour12: false }) : '')}</strong>
-          ${escapeHtml(event.note || 'No additional note.')}
+          ${escapeHtml(event.note || 'No additional note.')}${event.actor ? `<small>RECORDED BY ${escapeHtml(event.actor)}</small>` : ''}
         </div>
       `).join('') : '<div class="timeline-event">No timeline events yet.</div>';
+    }
+
+    async function loadPilotSession() {
+      const res = await fetch('/api/pilot-session', { cache:'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.session) return;
+      pilotRoleBadge.textContent = `${data.session.role} / ${data.session.name}`;
+    }
+
+    async function recordLiveMovement(phase) {
+      if (!selected?.id) {
+        mode.textContent = 'MODE: SELECT A FLIGHT FILE FIRST';
+        return;
+      }
+      const label = String(phase || '').toUpperCase();
+      if (!window.confirm(`Record ${label} using the server flight clock? The recorded movement time cannot be changed.`)) return;
+      mode.textContent = `MODE: RECORDING ${label} / SERVER FLIGHT CLOCK`;
+      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/movements/${encodeURIComponent(phase)}`, { method:'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        mode.textContent = `MODE: ${data.error || `UNABLE TO RECORD ${label}`}`;
+        renderLiveMovementControls(selected);
+        return;
+      }
+      replaceRequest(data.request);
+      mode.textContent = `MODE: ${data.movement?.phase || label} ${data.movement?.timestamp || 'RECORDED'} / LOCKED`;
+      loadTimeline(selected.id).catch(() => {});
     }
 
     async function loadTimeline(requestId) {
@@ -3784,6 +3873,11 @@ END OF MESSAGE</pre>
       window.open(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/pdf`, '_blank', 'noopener');
     });
 
+    recordOutBtn.addEventListener('click', () => recordLiveMovement('out'));
+    recordOffBtn.addEventListener('click', () => recordLiveMovement('off'));
+    recordOnBtn.addEventListener('click', () => recordLiveMovement('on'));
+    recordInBtn.addEventListener('click', () => recordLiveMovement('in'));
+
     paymentStatus.addEventListener('change', () => updateSelected({ paymentStatus: paymentStatus.value }));
     approveBtn.addEventListener('click', async () => {
       if (!selected) {
@@ -3864,6 +3958,7 @@ END OF MESSAGE</pre>
     tick();
     setInterval(tick, 1000);
     setInterval(autoSyncOps, 30000);
+    loadPilotSession().catch(() => {});
     loadRequests()
       .then(() => switchOpsWorkspace(location.hash.replace('#', '') || 'bookings'))
       .catch(() => { mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE'; });

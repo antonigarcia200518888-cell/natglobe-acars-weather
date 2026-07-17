@@ -89,6 +89,8 @@
     .performance-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
     .performance-state { margin-top:12px; border:1px solid #334653; background:#020507; padding:11px; color:var(--muted); font-size:10px; line-height:1.45; text-transform:uppercase; }
     .performance-state.ready { border-color:var(--green); color:#d9ffe4; }
+    .release-snapshot { margin-top:12px; border:1px solid #31536a; background:#07131d; padding:11px 12px; color:#d4e9f8; font-size:10px; line-height:1.5; text-transform:uppercase; }
+    .release-snapshot strong { display:block; color:var(--green); font-size:11px; margin-bottom:4px; }
     .performance-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:8px; }
     .performance-leg { border:1px solid #2e404b; padding:10px; background:#03090d; }
     .performance-leg h3 { margin:0 0 8px; color:var(--blue); font-size:11px; text-transform:uppercase; }
@@ -223,7 +225,18 @@
         </details>
 
         <details open>
-          <summary>05 / Aircraft Performance</summary>
+          <summary>05 / Briefing review</summary>
+          <div class="detail-body">
+            <div class="grid two">
+              <label class="checkline"><input data-field="notamReviewAccepted" type="checkbox" />Current NOTAMs, published restrictions, and airport operating information have been reviewed from approved sources.</label>
+              <label class="checkline"><input data-field="airspaceReviewAccepted" type="checkbox" />Airspace, weather routing, fuel suitability, daylight, and alternate considerations have been reviewed for this operation.</label>
+            </div>
+            <label class="field wide">Briefing remarks<textarea data-field="briefingRemarks" placeholder="Relevant NOTAM, airspace, fuel, weather, or operational notes."></textarea></label>
+          </div>
+        </details>
+
+        <details open>
+          <summary>06 / Aircraft Performance</summary>
           <div class="detail-body">
             <div class="performance-actions"><button id="capturePerformanceBtn" class="btn" type="button">Capture runway &amp; weather inputs</button><button id="openWeatherPerformanceBtn" class="btn" type="button">Open weather workspace</button></div>
             <div id="performanceState" class="performance-state">Choose departure and arrival runways, then capture the current airport and weather inputs for this OFP.</div>
@@ -232,10 +245,11 @@
         </details>
 
         <details open>
-          <summary>06 / Pilot release</summary>
+          <summary>07 / Pilot release</summary>
           <div class="detail-body">
             <div class="grid two"><label>Commander / release name<input data-field="releaseName" /></label><label>Commander phone<input data-field="commanderPhone" /></label></div>
             <label class="checkline"><input data-field="releaseAccepted" type="checkbox" />I have independently verified the route, weather, NOTAMs, runway suitability, fuel policy, aircraft status, performance, mass and balance, legal requirements, and the locked aircraft profile against current approved operational sources and the aircraft AFM/POH.</label>
+            <div id="releaseSnapshotState" class="release-snapshot"><strong>No frozen release snapshot</strong>Save the completed plan with pilot release acknowledged to record the released flight configuration.</div>
           </div>
         </details>
       </section>
@@ -389,6 +403,9 @@
       if (!landingEnvelope.valid) warnings.push('Landing point is outside the approved CG envelope.');
       if (!String(plan.route || '').trim()) warnings.push('Pilot route is not complete.');
       if (!String(plan.alternate || '').trim()) warnings.push('Alternate review remains open.');
+      if (!plan.notamReviewAccepted) warnings.push('NOTAM review acknowledgement is required.');
+      if (!plan.airspaceReviewAccepted) warnings.push('Airspace review acknowledgement is required.');
+      if (!plan.performanceSnapshot?.departure?.runway || !plan.performanceSnapshot?.arrival?.runway) warnings.push('Runway and weather performance inputs must be captured.');
       return { profile, blockFuelGal, fuelWeightLb, crewWeightLb, passengerWeightLb, baggageWeightLb, passengerOverride, baggageOverride, zfw, ramp, tow, landing, cg, gearUpCg, zfwEnvelope, takeoffEnvelope, gearUpEnvelope, landingEnvelope, warnings };
     }
 
@@ -419,13 +436,22 @@
       el('documentStatus').textContent = released ? 'RELEASE ACKNOWLEDGED' : saved ? 'DRAFT SAVED' : 'UNSAVED DRAFT';
       el('documentStatus').style.color = released ? 'var(--green)' : 'var(--amber)';
       el('crewStatus').textContent = inputFor('releaseName').value || inputFor('commanderName')?.value || plan.commanderName || 'UNASSIGNED';
+      const snapshot = plan.releaseSnapshot;
+      el('releaseSnapshotState').innerHTML = snapshot
+        ? `<strong>Release snapshot ${escapeHtml(snapshot.releaseId || 'RECORDED')}</strong>${escapeHtml(snapshot.releasedAt ? `Released ${new Date(snapshot.releasedAt).toLocaleString('en-GB', { hour12:false })}` : 'Release time recorded')}${snapshot.releasedBy ? ` / ${escapeHtml(snapshot.releasedBy)}` : ''}`
+        : '<strong>No frozen release snapshot</strong>Save the completed plan with pilot release acknowledged to record the released flight configuration.';
       ['actualOut','actualOff','actualOn','actualIn'].forEach(field => {
         const value = String(inputFor(field).value || '').trim();
         const card = document.querySelector(`[data-movement-card="${field}"]`);
         el(`${field}Display`).textContent = value || 'NOT RECORDED';
         card.classList.toggle('done', Boolean(value));
         const button = card.querySelector('button');
-        button.textContent = value ? `Amend ${field.replace('actual','')}` : button.dataset.originalLabel;
+        const sequence = ['actualOut', 'actualOff', 'actualOn', 'actualIn'];
+        const index = sequence.indexOf(field);
+        const previousRecorded = index === 0 || Boolean(plan[sequence[index - 1]]);
+        const enabled = Boolean(plan.releaseAccepted) && previousRecorded && !value;
+        button.disabled = !enabled;
+        button.textContent = value ? `${field.replace('actual','').toUpperCase()} LOCKED` : enabled ? button.dataset.originalLabel : !plan.releaseAccepted ? 'RELEASE REQUIRED' : `AWAIT ${sequence[index - 1].replace('actual','').toUpperCase()}`;
       });
     }
 
@@ -551,19 +577,24 @@
     });
     document.querySelectorAll('[data-stamp-field]').forEach(button => button.addEventListener('click', async () => {
       const field = button.dataset.stampField;
-      const input = inputFor(field);
-      if (input.value.trim() && !window.confirm(`${field.replace('actual','')} is already ${input.value}. Replace it with the current time?`)) return;
-      const now = new Date();
-      const utc = now.toISOString().slice(11,16).replace(':','');
-      const helsinkiParts = new Intl.DateTimeFormat('en-GB', { timeZone:'Europe/Helsinki', hour:'2-digit', minute:'2-digit', hour12:false }).formatToParts(now);
-      const helsinki = `${helsinkiParts.find(part => part.type === 'hour')?.value || '--'}${helsinkiParts.find(part => part.type === 'minute')?.value || '--'}`;
-      input.value = `${utc}Z/${helsinki}L`;
-      if (inputFor('releaseAccepted').checked) inputFor('releaseAccepted').checked = false;
-      saved = false;
-      render();
-      el('saveState').textContent = `Recording ${field.replace('actual','')} movement time...`;
-      try { await save(); }
-      catch (error) { el('saveState').textContent = `Time recorded locally but save failed: ${error.message}`; }
+      const phase = field.replace('actual', '').toLowerCase();
+      if (!window.confirm(`Record ${phase.toUpperCase()} using the server flight clock? This movement time is locked after confirmation.`)) return;
+      el('saveState').textContent = `Recording ${phase.toUpperCase()} with the server flight clock...`;
+      button.disabled = true;
+      try {
+        const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/movements/${phase}`, { method:'POST' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Unable to record movement time.');
+        request = data.request;
+        plan = request.operationalFlightPlan;
+        saved = true;
+        await populate(false);
+        el('saveState').textContent = `${data.movement?.phase || phase.toUpperCase()} recorded as ${data.movement?.timestamp || 'CURRENT TIME'} / LOCKED.`;
+        if (embedded && window.parent !== window) window.parent.postMessage({ type:'nga-ofp-saved', requestId }, location.origin);
+      } catch (error) {
+        el('saveState').textContent = error.message || 'Unable to record movement time.';
+        render();
+      }
     }));
     el('directRouteBtn').addEventListener('click', () => {
       inputFor('route').value = `${inputFor('departure').value} DCT ${inputFor('destination').value}`.trim();
