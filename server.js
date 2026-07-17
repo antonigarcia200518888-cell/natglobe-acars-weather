@@ -4503,6 +4503,31 @@ function movementTimestamp(now = new Date()) {
   return `${utc}Z/${local.hour || '--'}${local.minute || '--'}L`;
 }
 
+function manualMovementTimestamp(localTime, flightDate) {
+  const match = String(localTime || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute) || hour > 23 || minute > 59) return null;
+
+  const dateMatch = String(flightDate || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const referenceDate = dateMatch
+    ? new Date(`${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}T12:00:00.000Z`)
+    : new Date();
+  const offsetLabel = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Helsinki',
+    timeZoneName: 'longOffset'
+  }).formatToParts(referenceDate).find(part => part.type === 'timeZoneName')?.value || 'GMT+00:00';
+  const offsetMatch = offsetLabel.match(/^GMT([+-])(\d{2}):(\d{2})$/);
+  const offsetMinutes = offsetMatch
+    ? (Number(offsetMatch[2]) * 60 + Number(offsetMatch[3])) * (offsetMatch[1] === '-' ? -1 : 1)
+    : 0;
+  const utcMinutes = ((hour * 60) + minute - offsetMinutes + 1440) % 1440;
+  const utc = `${String(Math.floor(utcMinutes / 60)).padStart(2, '0')}${String(utcMinutes % 60).padStart(2, '0')}`;
+  const local = `${String(hour).padStart(2, '0')}${String(minute).padStart(2, '0')}`;
+  return `${utc}Z/${local}L`;
+}
+
 function reimbursementStatementDefaults(request) {
   const flightHours = Math.max(1, Math.round(Number(request.estimatedFlightMinutes || 60) / 60));
   return {
@@ -5051,17 +5076,22 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
     return res.status(409).json({ error: `RECORD ${movementSteps[stepIndex - 1].label} BEFORE ${step.label}` });
   }
 
-  const timestamp = movementTimestamp();
+  const manualTime = String(req.body?.localTime || '').trim();
+  const timestamp = manualTime
+    ? manualMovementTimestamp(manualTime, previousPlan.dateUtc || request.requestDate)
+    : movementTimestamp();
+  if (!timestamp) return res.status(400).json({ error: 'ENTER A VALID LOCAL TIME IN HH:MM FORMAT' });
+  const source = manualTime ? 'MANUAL LOCAL TIME' : 'SERVER CLOCK';
   const flightPlan = normalizeOperationalFlightPlan({ ...previousPlan, [step.field]: timestamp }, request);
   request.operationalFlightPlan = flightPlan;
   await persistBookingRequest(request);
-  await addBookingTimelineEvent(request.id, 'MOVEMENT TIME LOCKED', `${step.label} ${timestamp}`, pilotActor(req));
+  await addBookingTimelineEvent(request.id, 'MOVEMENT TIME LOCKED', `${step.label} ${timestamp} / ${source}`, pilotActor(req));
   res.json({
     request: {
       ...request,
       bookingMessage: formatBookingMessage(request)
     },
-    movement: { phase: step.label, timestamp }
+    movement: { phase: step.label, timestamp, source }
   });
 });
 

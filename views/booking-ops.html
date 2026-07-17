@@ -198,6 +198,34 @@
       overflow: hidden;
     }
 
+    .ops-dashboard {
+      display: grid;
+      gap: 12px;
+    }
+
+    .dashboard-head {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      padding:18px;
+      border:1px solid #334553;
+      border-radius:7px;
+      background:linear-gradient(135deg,#0b1823 0%,#05090d 72%);
+    }
+
+    .dashboard-head span { display:block; color:#7893a7; font-size:9px; letter-spacing:.13em; text-transform:uppercase; }
+    .dashboard-head h2 { margin:7px 0 0; color:#fff; font-size:22px; line-height:1; text-transform:uppercase; }
+    .dashboard-head p { max-width:610px; margin:9px 0 0; color:#91a3af; font-size:11px; line-height:1.5; text-transform:uppercase; }
+    .dashboard-head strong { flex:0 0 auto; color:var(--live); font-size:11px; letter-spacing:.11em; text-transform:uppercase; }
+
+    .dashboard-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+    .dashboard-action { min-height:112px; border:1px solid #334b5d; background:linear-gradient(145deg,#0b1722,#04090d); color:#eaf4fa; padding:13px; text-align:left; cursor:pointer; font:inherit; text-transform:uppercase; }
+    .dashboard-action:hover { border-color:var(--accent); background:#0e2030; }
+    .dashboard-action span, .dashboard-action small { display:block; color:#78909f; font-size:9px; letter-spacing:.1em; }
+    .dashboard-action strong { display:block; margin:8px 0 5px; color:#fff; font-size:14px; }
+    .dashboard-action small { line-height:1.35; }
+
     .tool-workspace-head {
       display: flex;
       align-items: flex-start;
@@ -1336,7 +1364,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .live-movement-console, .live-movement-actions, .document-dashboard, .movement-phase-strip, .performance-actions { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .live-movement-console, .live-movement-actions, .document-dashboard, .movement-phase-strip, .performance-actions, .dashboard-actions { grid-template-columns: 1fr; }
       body { padding:0; }
       .frame { border:0; border-radius:0; padding:12px; }
       .efb-masthead { grid-template-columns:1fr; padding:12px 12px 0; }
@@ -1373,6 +1401,8 @@
       .flight-strip-item { min-height:65px; padding:10px; }
       .flight-strip-route strong { font-size:13px; }
       .weather-toolbar { grid-template-columns:1fr; }
+      .dashboard-head { display:block; }
+      .dashboard-head strong { display:block; margin-top:12px; }
       .weather-route { grid-column:auto; }
       .weather-options { grid-template-columns:1fr; }
       .weather-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -1403,35 +1433,63 @@
     </section>
     <div class="efb-layout">
     <nav class="ops-suite-nav" aria-label="Pilot operations workspaces">
-      <button class="suite-tab active" type="button" data-suite-view="bookings"><span>01 / Control</span><strong>Flight Control</strong><small>Queue, crew, passengers, decision</small></button>
-      <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>02 / Plan</span><strong>Flight Plan</strong><small>Route, fuel, load, movement log</small></button>
-      <button class="suite-tab" type="button" data-suite-view="weather"><span>03 / Preflight</span><strong>Weather</strong><small>Live briefing and dispatch data</small></button>
-      <button class="suite-tab" type="button" data-suite-view="performance"><span>04 / Aircraft</span><strong>Aircraft Performance</strong><small>Runway, wind, density altitude</small></button>
-      <button class="suite-tab" type="button" data-suite-view="documents"><span>05 / Flight file</span><strong>Documents</strong><small>OFP, statement, agreements</small></button>
+      <button class="suite-tab active" type="button" data-suite-view="dashboard"><span>01 / Overview</span><strong>Dashboard</strong><small>Operational picture and tools</small></button>
+      <button class="suite-tab" type="button" data-suite-view="flights"><span>02 / Control</span><strong>Flights</strong><small>Queue, crew, passengers, decision</small></button>
+      <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>03 / Plan</span><strong>Flight Plan</strong><small>Route, fuel, load, movement log</small></button>
+      <button class="suite-tab" type="button" data-suite-view="weather"><span>04 / Preflight</span><strong>Weather</strong><small>Live briefing and dispatch data</small></button>
+      <button class="suite-tab" type="button" data-suite-view="performance"><span>05 / Aircraft</span><strong>Aircraft Performance</strong><small>Runway, wind, density altitude</small></button>
+      <button class="suite-tab" type="button" data-suite-view="documents"><span>06 / Flight file</span><strong>Documents</strong><small>OFP, statement, agreements</small></button>
     </nav>
     <div class="efb-content">
+    <section id="dashboardWorkspace" class="ops-dashboard">
+      <header class="dashboard-head"><div><span>Pilot EFB / Operations Control</span><h2>Operations Dashboard</h2><p>Start with the current flight picture, then open the workspace you need without carrying the full booking queue into every task.</p></div><strong>Live operations view</strong></header>
+      <div class="dashboard-actions" aria-label="Operations tools">
+        <button class="dashboard-action" type="button" data-dashboard-view="flights"><span>Flight control</span><strong>Open flights</strong><small>Review the queue, assign crew, update decisions, and manage passenger files.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="weather"><span>Preflight dispatch</span><strong>Weather</strong><small>Enter any ICAO route or load the selected flight route for a live dispatch briefing.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="flight-plan"><span>Controlled document</span><strong>Flight plan</strong><small>Build the OFP, record movement times, fuel, load, release, and PDF.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="documents"><span>Flight file</span><strong>Documents</strong><small>Open the OFP, reimbursement statement, agreements, and operations PDF.</small></button>
+      </div>
+      <section class="ops-command-strip" aria-label="Operations queue totals">
+        <div class="ops-command-card"><span>Total requests</span><strong id="opsTotal">0</strong></div>
+        <div class="ops-command-card"><span>Needs action</span><strong id="opsNeedsAction">0</strong></div>
+        <div class="ops-command-card"><span>Confirmed</span><strong id="opsConfirmed">0</strong></div>
+        <div class="ops-command-card"><span>Unpaid</span><strong id="opsUnpaid">0</strong></div>
+        <div class="ops-command-card"><span>Today</span><strong id="opsToday">0</strong></div>
+      </section>
+      <section class="ops-watch" aria-label="Live operations watch">
+        <div id="opsNextDepartureCard" class="ops-watch-card good"><span>Next movement</span><strong id="opsNextDeparture">NO UPCOMING FLIGHT</strong><small id="opsNextDepartureMeta">Schedule watch clear</small></div>
+        <div id="opsConflictsCard" class="ops-watch-card"><span>Schedule conflicts</span><strong id="opsConflicts">0</strong><small>Potential overlap watch</small></div>
+        <div id="opsUnsignedCard" class="ops-watch-card"><span>Unsigned agreements</span><strong id="opsUnsigned">0</strong><small>Confirmed passenger files</small></div>
+        <div id="opsCrewOpenCard" class="ops-watch-card"><span>Crew open</span><strong id="opsCrewOpen">0</strong><small>Commander not assigned</small></div>
+        <div id="opsLoadWatchCard" class="ops-watch-card"><span>Load watch</span><strong id="opsLoadWatch">0</strong><small>W&amp;B review queue</small></div>
+      </section>
+      <details class="ops-calendar"><summary>Movement schedule</summary><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></details>
+    </section>
     <section id="opsToolWorkspace" class="ops-tool-workspace" hidden>
       <header class="tool-workspace-head"><div><span id="toolWorkspaceKicker">Pilot tool</span><strong id="toolWorkspaceTitle">Operations workspace</strong></div><div id="toolFlightContext" class="tool-flight-context">NO FLIGHT SELECTED</div></header>
       <div id="weatherOpsPane" class="ops-tool-pane" hidden>
         <div class="weather-console">
           <header class="acars-console-head"><div><span>NGA flight operations</span><strong>ACARS weather dispatch</strong></div><em class="acars-live-badge">Live data link</em></header>
           <div class="weather-toolbar">
-            <div class="weather-route"><span>Selected route</span><strong id="weatherRoute">NO FLIGHT SELECTED</strong></div>
+            <div class="weather-route"><span>Dispatch route</span><strong id="weatherRoute">ENTER ICAO ROUTE</strong></div>
+            <label>Departure ICAO<input id="weatherDep" list="weatherAirportOptions" maxlength="4" placeholder="EFHV" /></label>
+            <label>Arrival ICAO<input id="weatherArr" list="weatherAirportOptions" maxlength="4" placeholder="EFHN" /></label>
             <label>Alternate ICAO<input id="weatherAltn" maxlength="4" placeholder="OPTIONAL" /></label>
             <button id="refreshWeatherBtn" class="efb-action primary" type="button">Generate weather</button>
             <button id="openWeatherPdfBtn" class="efb-action" type="button">Open weather PDF</button>
           </div>
+          <datalist id="weatherAirportOptions"></datalist>
           <div class="weather-options" aria-label="Weather report options">
             <div class="weather-option-group"><strong>DEPARTURE</strong><label><input id="wxDepMetar" type="checkbox" checked /> METAR</label><label><input id="wxDepTaf" type="checkbox" checked /> TAF</label></div>
             <div class="weather-option-group"><strong>ARRIVAL</strong><label><input id="wxArrMetar" type="checkbox" checked /> METAR</label><label><input id="wxArrTaf" type="checkbox" checked /> TAF</label></div>
             <div class="weather-option-group"><strong>ALTERNATE</strong><label><input id="wxAltnMetar" type="checkbox" checked /> METAR</label><label><input id="wxAltnTaf" type="checkbox" checked /> TAF</label></div>
             <div class="weather-option-group"><strong>EXTRAS</strong><label><input id="wxWinds" type="checkbox" checked /> WINDS ALOFT</label></div>
           </div>
-          <div id="weatherStatus" class="weather-status">Select a flight to generate its ACARS weather dispatch.</div>
+          <div id="weatherStatus" class="weather-status">Enter departure and arrival ICAO codes, or open a flight to preload its route.</div>
           <div class="weather-output-layout">
             <section class="acars-preview"><header class="acars-preview-head"><span>Dispatch preview</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
 --------------------
-SELECT A FLIGHT TO GENERATE WEATHER.</pre></section>
+ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
             <div id="weatherAirportGrid" class="weather-data-stack"></div>
           </div>
           <div class="weather-lower">
@@ -1568,23 +1626,7 @@ LOAD DATA TO CALCULATE.</pre>
         </div>
       </div>
     </section>
-    <div id="bookingsWorkspace">
-    <section class="ops-command-strip" aria-label="Operations queue totals" hidden>
-      <div class="ops-command-card"><span>Total requests</span><strong id="opsTotal">0</strong></div>
-      <div class="ops-command-card"><span>Needs action</span><strong id="opsNeedsAction">0</strong></div>
-      <div class="ops-command-card"><span>Confirmed</span><strong id="opsConfirmed">0</strong></div>
-      <div class="ops-command-card"><span>Unpaid</span><strong id="opsUnpaid">0</strong></div>
-      <div class="ops-command-card"><span>Today</span><strong id="opsToday">0</strong></div>
-    </section>
-    <section class="ops-watch" aria-label="Live operations watch">
-      <div id="opsNextDepartureCard" class="ops-watch-card good"><span>Next movement</span><strong id="opsNextDeparture">NO UPCOMING FLIGHT</strong><small id="opsNextDepartureMeta">Schedule watch clear</small></div>
-      <div id="opsConflictsCard" class="ops-watch-card"><span>Schedule conflicts</span><strong id="opsConflicts">0</strong><small>Potential overlap watch</small></div>
-      <div id="opsUnsignedCard" class="ops-watch-card"><span>Unsigned agreements</span><strong id="opsUnsigned">0</strong><small>Confirmed passenger files</small></div>
-      <div id="opsCrewOpenCard" class="ops-watch-card"><span>Crew open</span><strong id="opsCrewOpen">0</strong><small>Commander not assigned</small></div>
-      <div id="opsLoadWatchCard" class="ops-watch-card"><span>Load watch</span><strong id="opsLoadWatch">0</strong><small>W&amp;B review queue</small></div>
-    </section>
-    <details class="ops-calendar"><summary>Movement schedule</summary><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></details>
-
+    <div id="bookingsWorkspace" hidden>
     <div class="layout">
       <aside class="panel queue-panel">
         <div class="panel-title">OPERATIONS QUEUE</div>
@@ -1911,6 +1953,7 @@ END OF MESSAGE</pre>
     const jumpManifestBtn = el('jumpManifestBtn');
     const openFlightFileControlBtn = el('openFlightFileControlBtn');
     const suiteTabs = [...document.querySelectorAll('[data-suite-view]')];
+    const dashboardWorkspace = el('dashboardWorkspace');
     const bookingsWorkspace = el('bookingsWorkspace');
     const opsToolWorkspace = el('opsToolWorkspace');
     const weatherOpsPane = el('weatherOpsPane');
@@ -1918,6 +1961,8 @@ END OF MESSAGE</pre>
     const performanceOpsPane = el('performanceOpsPane');
     const documentsOpsPane = el('documentsOpsPane');
     const weatherRoute = el('weatherRoute');
+    const weatherDep = el('weatherDep');
+    const weatherArr = el('weatherArr');
     const weatherAltn = el('weatherAltn');
     const refreshWeatherBtn = el('refreshWeatherBtn');
     const openWeatherPdfBtn = el('openWeatherPdfBtn');
@@ -1965,7 +2010,8 @@ END OF MESSAGE</pre>
     let performanceDataRequest = '';
     let latestWeatherData = null;
     let weatherDataKey = '';
-    let activeWorkspace = 'bookings';
+    let weatherAirportCatalog = [];
+    let activeWorkspace = 'dashboard';
 
     function tick() {
       const now = new Date();
@@ -2058,13 +2104,15 @@ END OF MESSAGE</pre>
         el('perfLandingAcars').textContent = 'LANDING PERFORMANCE\n------------------------\nLOAD DATA TO CALCULATE.';
       }
       toolFlightContext.textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
-      weatherRoute.textContent = req ? `${req.dep || '----'}  >  ${req.arr || '----'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
       if (weatherAltn.dataset.request !== (req?.id || '')) {
         weatherAltn.dataset.request = req?.id || '';
+        weatherDep.value = req?.dep || '';
+        weatherArr.value = req?.arr || '';
         weatherAltn.value = req?.operationalFlightPlan?.alternate || '';
         latestWeatherData = null;
         weatherDataKey = '';
       }
+      updateWeatherRouteLabel();
       el('suiteDocFlight').textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`}` : 'NO FLIGHT SELECTED';
       el('suiteDocOfp').textContent = req?.operationalFlightPlan?.releaseAccepted ? 'RELEASED' : req?.operationalFlightPlan ? 'DRAFT SAVED' : 'NOT STARTED';
       el('suiteDocStatement').textContent = req?.reimbursementStatement ? 'SAVED' : 'NOT SAVED';
@@ -2099,6 +2147,34 @@ END OF MESSAGE</pre>
 
     function weatherMetric(label, value) {
       return `<div class="weather-metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value ?? 'N/A')}</strong></div>`;
+    }
+
+    function weatherIcao(value) {
+      return String(value || '').trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+    }
+
+    function updateWeatherRouteLabel() {
+      const dep = weatherIcao(weatherDep.value);
+      const arr = weatherIcao(weatherArr.value);
+      const usesSelectedRoute = Boolean(selected && dep === weatherIcao(selected.dep) && arr === weatherIcao(selected.arr));
+      weatherRoute.textContent = dep && arr
+        ? `${dep}  >  ${arr}${usesSelectedRoute ? ` / ${selected.requestDate || 'DATE'} ${selected.requestTime || 'TIME'}` : ' / MANUAL DISPATCH'}`
+        : 'ENTER ICAO ROUTE';
+    }
+
+    async function loadWeatherAirportChoices() {
+      try {
+        const response = await fetch('/api/booking-airports', { cache:'force-cache' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error('AIRPORT CATALOGUE UNAVAILABLE');
+        weatherAirportCatalog = Array.isArray(data.airports) ? data.airports : [];
+        el('weatherAirportOptions').innerHTML = weatherAirportCatalog
+          .filter(airport => /^[A-Z]{4}$/.test(String(airport.icao || '').toUpperCase()))
+          .map(airport => `<option value="${escapeHtml(String(airport.icao).toUpperCase())}" label="${escapeHtml(`${airport.name || airport.city || 'Airport'}${airport.city ? ` / ${airport.city}` : ''}`)}"></option>`)
+          .join('');
+      } catch (_) {
+        weatherAirportCatalog = [];
+      }
     }
 
     function weatherSourceLabel(wx, type) {
@@ -2158,18 +2234,21 @@ END OF MESSAGE</pre>
     }
 
     function weatherQuery() {
+      const dep = weatherIcao(weatherDep.value);
+      const arr = weatherIcao(weatherArr.value);
+      const usesSelectedRoute = Boolean(selected && dep === weatherIcao(selected.dep) && arr === weatherIcao(selected.arr));
       const query = new URLSearchParams({
-        dep:selected?.dep || '',
-        arr:selected?.arr || '',
-        flight:selected?.flightNumber || selected?.id || '',
-        route:selected?.route || `${selected?.dep || ''}-${selected?.arr || ''}`,
+        dep,
+        arr,
+        flight:usesSelectedRoute ? (selected?.flightNumber || selected?.id || '') : '',
+        route:usesSelectedRoute ? (selected?.route || `${dep}-${arr}`) : `${dep}-${arr}`,
         includeDepMetar:String(el('wxDepMetar').checked),
         includeDepTaf:String(el('wxDepTaf').checked),
         includeArrMetar:String(el('wxArrMetar').checked),
         includeArrTaf:String(el('wxArrTaf').checked),
         includeWindsAloft:String(el('wxWinds').checked)
       });
-      const altn = weatherAltn.value.trim().toUpperCase();
+      const altn = weatherIcao(weatherAltn.value);
       if (altn) {
         query.set('altn', altn);
         query.set('includeAltnMetar', String(el('wxAltnMetar').checked));
@@ -2179,21 +2258,22 @@ END OF MESSAGE</pre>
     }
 
     async function loadWeatherWorkspace(force = false) {
-      if (!selected?.dep || !selected?.arr) {
-        weatherStatus.textContent = 'Select a flight to load its native EFB weather briefing.';
+      const dep = weatherIcao(weatherDep.value);
+      const arr = weatherIcao(weatherArr.value);
+      if (!/^[A-Z]{4}$/.test(dep) || !/^[A-Z]{4}$/.test(arr)) {
+        weatherStatus.textContent = 'ENTER BOTH FOUR-LETTER ICAO CODES TO GENERATE WEATHER.';
         weatherAirportGrid.innerHTML = '';
         weatherWinds.innerHTML = '';
         weatherDecision.textContent = 'No weather briefing loaded.';
-        weatherAcarsReport.textContent = 'ACARS WEATHER REPORT\n--------------------\nSELECT A FLIGHT TO GENERATE WEATHER.';
+        weatherAcarsReport.textContent = 'ACARS WEATHER REPORT\n--------------------\nENTER DEPARTURE AND ARRIVAL ICAO CODES.';
         weatherReportMode.textContent = 'READY';
         return;
       }
-      const altn = weatherAltn.value.trim().toUpperCase();
-      const context = `${selected.id}|${weatherQuery().toString()}`;
+      const context = `${selected?.id || 'MANUAL'}|${weatherQuery().toString()}`;
       if (!force && latestWeatherData && weatherDataKey === context) return;
       weatherDataKey = context;
       refreshWeatherBtn.disabled = true;
-      weatherStatus.textContent = `LOADING LIVE WEATHER / ${selected.dep}-${selected.arr}`;
+      weatherStatus.textContent = `LOADING LIVE WEATHER / ${dep}-${arr}`;
       try {
         const query = weatherQuery();
         const response = await fetch(`/api/booking-ops/weather?${query}`, { cache:'no-store' });
@@ -2216,8 +2296,10 @@ END OF MESSAGE</pre>
     }
 
     function openWeatherPdf() {
-      if (!selected?.dep || !selected?.arr) {
-        weatherStatus.textContent = 'SELECT A FLIGHT BEFORE OPENING THE WEATHER PDF';
+      const dep = weatherIcao(weatherDep.value);
+      const arr = weatherIcao(weatherArr.value);
+      if (!/^[A-Z]{4}$/.test(dep) || !/^[A-Z]{4}$/.test(arr)) {
+        weatherStatus.textContent = 'ENTER BOTH FOUR-LETTER ICAO CODES BEFORE OPENING THE WEATHER PDF';
         return;
       }
       const query = weatherQuery();
@@ -2252,13 +2334,15 @@ END OF MESSAGE</pre>
     }
 
     function switchOpsWorkspace(view) {
-      const allowedViews = new Set(['bookings', 'flight-plan', 'weather', 'performance', 'documents']);
-      if (!allowedViews.has(view)) view = 'bookings';
+      const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'documents']);
+      if (!allowedViews.has(view)) view = 'dashboard';
       activeWorkspace = view;
       suiteTabs.forEach(button => button.classList.toggle('active', button.dataset.suiteView === view));
-      const bookingsActive = view === 'bookings';
-      bookingsWorkspace.hidden = !bookingsActive;
-      opsToolWorkspace.hidden = bookingsActive;
+      const dashboardActive = view === 'dashboard';
+      const flightsActive = view === 'flights';
+      dashboardWorkspace.hidden = !dashboardActive;
+      bookingsWorkspace.hidden = !flightsActive;
+      opsToolWorkspace.hidden = dashboardActive || flightsActive;
       flightPlanOpsPane.hidden = view !== 'flight-plan';
       weatherOpsPane.hidden = view !== 'weather';
       performanceOpsPane.hidden = view !== 'performance';
@@ -2276,18 +2360,18 @@ END OF MESSAGE</pre>
           ofpOpsFrame.removeAttribute('src');
         }
       } else if (view === 'weather') {
-        toolWorkspaceKicker.textContent = '03 / Preflight';
-        toolWorkspaceTitle.textContent = 'Weather';
+        toolWorkspaceKicker.textContent = '04 / Preflight dispatch';
+        toolWorkspaceTitle.textContent = 'Weather Dispatch';
       } else if (view === 'performance') {
-        toolWorkspaceKicker.textContent = '04 / Aircraft';
+        toolWorkspaceKicker.textContent = '05 / Aircraft';
         toolWorkspaceTitle.textContent = 'Aircraft Performance';
       } else if (view === 'documents') {
-        toolWorkspaceKicker.textContent = '05 / Flight file';
+        toolWorkspaceKicker.textContent = '06 / Flight file';
         toolWorkspaceTitle.textContent = 'Documents';
       }
       updateSuiteContext();
-      history.replaceState(null, '', view === 'bookings' ? location.pathname : `${location.pathname}#${view}`);
-      if (!bookingsActive) opsToolWorkspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', view === 'dashboard' ? location.pathname : `${location.pathname}#${view}`);
+      if (!dashboardActive && !flightsActive) opsToolWorkspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     const PERFORMANCE_AIRCRAFT = Object.freeze({
@@ -3806,14 +3890,22 @@ END OF MESSAGE</pre>
 
     openWeatherOpsBtn.addEventListener('click', () => switchOpsWorkspace('weather'));
     suiteTabs.forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.suiteView)));
+    document.querySelectorAll('[data-dashboard-view]').forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.dashboardView)));
     refreshWeatherBtn.addEventListener('click', () => loadWeatherWorkspace(true).catch(() => {}));
     openWeatherPdfBtn.addEventListener('click', openWeatherPdf);
-    weatherAltn.addEventListener('input', () => {
-      weatherAltn.value = weatherAltn.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+    [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('input', () => {
+      input.value = weatherIcao(input.value);
       latestWeatherData = null;
       weatherDataKey = '';
-    });
-    weatherAltn.addEventListener('change', () => loadWeatherWorkspace(true).catch(() => {}));
+      updateWeatherRouteLabel();
+    }));
+    [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('change', () => loadWeatherWorkspace(true).catch(() => {})));
+    [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        loadWeatherWorkspace(true).catch(() => {});
+      }
+    }));
     weatherOptionInputs.forEach(input => input.addEventListener('change', () => {
       latestWeatherData = null;
       weatherDataKey = '';
@@ -4056,8 +4148,8 @@ END OF MESSAGE</pre>
     setInterval(tick, 1000);
     setInterval(autoSyncOps, 30000);
     loadPilotSession().catch(() => {});
-    loadRequests()
-      .then(() => switchOpsWorkspace(location.hash.replace('#', '') || 'bookings'))
+    Promise.all([loadRequests(), loadWeatherAirportChoices()])
+      .then(() => switchOpsWorkspace(location.hash.replace('#', '') || 'dashboard'))
       .catch(() => { mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE'; });
   </script>
 </body>

@@ -77,13 +77,16 @@
     .route-controls { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; }
     .route-controls .btn { margin-bottom:0; }
     .movement-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:12px; }
-    .movement-card { display:grid; grid-template-rows:auto auto 1fr auto; min-height:160px; border:1px solid #40505c; background:#020507; padding:11px; }
+    .movement-card { display:grid; grid-template-rows:auto auto 1fr auto; min-height:204px; border:1px solid #40505c; background:#020507; padding:11px; }
     .movement-card.done { border-color:var(--green); background:#06130b; }
     .movement-code { color:var(--blue); font-size:22px; font-weight:700; }
     .movement-card.done .movement-code { color:var(--green); }
     .movement-card span { margin-top:3px; color:var(--muted); font-size:9px; text-transform:uppercase; }
     .movement-time { align-self:center; margin:12px 0; color:#fff; font-size:18px; }
-    .movement-card .btn { min-height:38px; padding:7px; font-size:10px; }
+    .movement-actions { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px; }
+    .movement-actions input { min-height:36px; margin:0; padding:7px; font-size:10px; }
+    .movement-actions .btn { min-height:36px; padding:7px; font-size:9px; white-space:nowrap; }
+    .movement-card .movement-button { width:100%; min-height:36px; margin-top:6px; padding:7px; font-size:10px; }
     .movement-card.done .btn { border-color:var(--green); color:var(--green); }
     .time-support { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:10px; }
     .performance-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
@@ -102,7 +105,7 @@
     html.embedded .topbar { display:none; }
     html.embedded .workspace { padding-top:8px; }
     @media (max-width:1050px) { .workspace { grid-template-columns:1fr; } .console { position:static; grid-template-columns:repeat(2,1fr); } .notice, .save-state { grid-column:1/-1; } }
-    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two, .movement-grid, .time-support, .performance-grid { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .route-controls { grid-template-columns:1fr; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .load-source { grid-template-columns:1fr; } .movement-card { min-height:132px; grid-template-columns:auto 1fr; grid-template-rows:auto auto; gap:4px 12px; align-items:center; } .movement-card span { grid-column:1; } .movement-time { grid-column:2; grid-row:1/3; margin:0; text-align:right; } .movement-card .btn { grid-column:1/-1; margin-top:7px; } }
+    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two, .movement-grid, .time-support, .performance-grid { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .route-controls { grid-template-columns:1fr; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .load-source { grid-template-columns:1fr; } .movement-card { min-height:170px; grid-template-columns:auto 1fr; grid-template-rows:auto auto auto; gap:4px 12px; align-items:center; } .movement-card span { grid-column:1; } .movement-time { grid-column:2; grid-row:1/3; margin:0; text-align:right; } .movement-actions, .movement-card .movement-button { grid-column:1/-1; } }
   </style>
 </head>
 <body>
@@ -150,10 +153,10 @@
           <summary>02 / Timesheet</summary>
           <div class="detail-body">
             <div class="movement-grid">
-              <article class="movement-card" data-movement-card="actualOut"><strong class="movement-code">OUT</strong><span>Start taxi / brakes released</span><div id="actualOutDisplay" class="movement-time">NOT RECORDED</div><button class="btn movement-button" type="button" data-stamp-field="actualOut">Record start taxi</button></article>
-              <article class="movement-card" data-movement-card="actualOff"><strong class="movement-code">OFF</strong><span>Airborne / takeoff</span><div id="actualOffDisplay" class="movement-time">NOT RECORDED</div><button class="btn movement-button" type="button" data-stamp-field="actualOff">Record takeoff</button></article>
-              <article class="movement-card" data-movement-card="actualOn"><strong class="movement-code">ON</strong><span>Landed / touchdown</span><div id="actualOnDisplay" class="movement-time">NOT RECORDED</div><button class="btn movement-button" type="button" data-stamp-field="actualOn">Record landing</button></article>
-              <article class="movement-card" data-movement-card="actualIn"><strong class="movement-code">IN</strong><span>On stand / brakes set</span><div id="actualInDisplay" class="movement-time">NOT RECORDED</div><button class="btn movement-button" type="button" data-stamp-field="actualIn">Record on stand</button></article>
+              <article class="movement-card" data-movement-card="actualOut"><strong class="movement-code">OUT</strong><span>Start taxi / brakes released</span><div id="actualOutDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OUT local time" data-manual-time="actualOut" /><button class="btn" type="button" data-manual-field="actualOut">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOut">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualOff"><strong class="movement-code">OFF</strong><span>Airborne / takeoff</span><div id="actualOffDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OFF local time" data-manual-time="actualOff" /><button class="btn" type="button" data-manual-field="actualOff">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOff">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualOn"><strong class="movement-code">ON</strong><span>Landed / touchdown</span><div id="actualOnDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual ON local time" data-manual-time="actualOn" /><button class="btn" type="button" data-manual-field="actualOn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOn">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualIn"><strong class="movement-code">IN</strong><span>On stand / brakes set</span><div id="actualInDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual IN local time" data-manual-time="actualIn" /><button class="btn" type="button" data-manual-field="actualIn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualIn">Stamp now</button></article>
             </div>
             <div class="time-support">
               <label>Scheduled OUT<input data-field="scheduledOut" /></label><label>Scheduled OFF<input data-field="scheduledOff" /></label><label>Scheduled ON<input data-field="scheduledOn" /></label><label>Scheduled IN<input data-field="scheduledIn" /></label>
@@ -336,6 +339,11 @@
       return plan;
     }
 
+    function localTimeFromMovement(value) {
+      const match = String(value || '').match(/\/(\d{2})(\d{2})L$/);
+      return match ? `${match[1]}:${match[2]}` : '';
+    }
+
     function cgLimitAtWeight(points, weight) {
       if (weight <= points[0].weightLbs) return points[0].cgIn;
       if (weight >= points.at(-1).weightLbs) return points.at(-1).cgIn;
@@ -445,13 +453,19 @@
         const card = document.querySelector(`[data-movement-card="${field}"]`);
         el(`${field}Display`).textContent = value || 'NOT RECORDED';
         card.classList.toggle('done', Boolean(value));
-        const button = card.querySelector('button');
+        const stampButton = card.querySelector('[data-stamp-field]');
+        const manualButton = card.querySelector('[data-manual-field]');
+        const manualInput = card.querySelector('[data-manual-time]');
         const sequence = ['actualOut', 'actualOff', 'actualOn', 'actualIn'];
         const index = sequence.indexOf(field);
         const previousRecorded = index === 0 || Boolean(plan[sequence[index - 1]]);
         const enabled = Boolean(plan.releaseAccepted) && previousRecorded && !value;
-        button.disabled = !enabled;
-        button.textContent = value ? `${field.replace('actual','').toUpperCase()} LOCKED` : enabled ? button.dataset.originalLabel : !plan.releaseAccepted ? 'RELEASE REQUIRED' : `AWAIT ${sequence[index - 1].replace('actual','').toUpperCase()}`;
+        stampButton.disabled = !enabled;
+        manualButton.disabled = !enabled;
+        manualInput.disabled = !enabled;
+        manualInput.value = value ? localTimeFromMovement(value) : manualInput.value;
+        stampButton.textContent = value ? `${field.replace('actual','').toUpperCase()} LOCKED` : enabled ? stampButton.dataset.originalLabel : !plan.releaseAccepted ? 'RELEASE REQUIRED' : `AWAIT ${sequence[index - 1].replace('actual','').toUpperCase()}`;
+        manualButton.textContent = value ? 'TIME LOCKED' : enabled ? 'SAVE TIME' : !plan.releaseAccepted ? 'RELEASE REQUIRED' : `AWAIT ${sequence[index - 1].replace('actual','').toUpperCase()}`;
       });
     }
 
@@ -575,26 +589,39 @@
       saved = false;
       render();
     });
-    document.querySelectorAll('[data-stamp-field]').forEach(button => button.addEventListener('click', async () => {
-      const field = button.dataset.stampField;
+    async function recordMovement(field, localTime = '') {
       const phase = field.replace('actual', '').toLowerCase();
-      if (!window.confirm(`Record ${phase.toUpperCase()} using the server flight clock? This movement time is locked after confirmation.`)) return;
-      el('saveState').textContent = `Recording ${phase.toUpperCase()} with the server flight clock...`;
-      button.disabled = true;
+      const source = localTime ? `manual local time ${localTime}` : 'the server flight clock';
+      if (!window.confirm(`Record ${phase.toUpperCase()} using ${source}? This movement time is locked after confirmation.`)) return;
+      el('saveState').textContent = `Recording ${phase.toUpperCase()} with ${source}...`;
       try {
-        const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/movements/${phase}`, { method:'POST' });
+        const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/movements/${phase}`, {
+          method:'POST',
+          headers: localTime ? { 'Content-Type':'application/json' } : undefined,
+          body: localTime ? JSON.stringify({ localTime }) : undefined
+        });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Unable to record movement time.');
         request = data.request;
         plan = request.operationalFlightPlan;
         saved = true;
         await populate(false);
-        el('saveState').textContent = `${data.movement?.phase || phase.toUpperCase()} recorded as ${data.movement?.timestamp || 'CURRENT TIME'} / LOCKED.`;
+        el('saveState').textContent = `${data.movement?.phase || phase.toUpperCase()} recorded as ${data.movement?.timestamp || 'CURRENT TIME'} / ${data.movement?.source || 'LOCKED'}.`;
         if (embedded && window.parent !== window) window.parent.postMessage({ type:'nga-ofp-saved', requestId }, location.origin);
       } catch (error) {
         el('saveState').textContent = error.message || 'Unable to record movement time.';
         render();
       }
+    }
+    document.querySelectorAll('[data-stamp-field]').forEach(button => button.addEventListener('click', () => recordMovement(button.dataset.stampField)));
+    document.querySelectorAll('[data-manual-field]').forEach(button => button.addEventListener('click', () => {
+      const field = button.dataset.manualField;
+      const localTime = document.querySelector(`[data-manual-time="${field}"]`).value;
+      if (!localTime) {
+        el('saveState').textContent = `Enter the local ${field.replace('actual', '').toUpperCase()} time first.`;
+        return;
+      }
+      recordMovement(field, localTime);
     }));
     el('directRouteBtn').addEventListener('click', () => {
       inputFor('route').value = `${inputFor('departure').value} DCT ${inputFor('destination').value}`.trim();
