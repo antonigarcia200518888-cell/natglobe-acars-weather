@@ -263,6 +263,8 @@
     .performance-value.live { color:var(--live); }
     .performance-value.warn { color:var(--warn); }
     .performance-value input, .performance-value select { width:100%; min-height:30px; border:1px solid #405361; border-radius:2px; background:#000; color:#fff; padding:5px 6px; font:9px "Courier New", monospace; text-align:right; text-transform:uppercase; }
+    .performance-value[contenteditable="true"] { min-height:26px; border:1px solid transparent; border-radius:2px; padding:6px; cursor:text; }
+    .performance-value[contenteditable="true"]:hover, .performance-value[contenteditable="true"]:focus { border-color:#405361; background:#000; outline:0; }
     .performance-inline { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:5px; align-items:center; }
     .performance-inline button { min-height:30px; min-width:39px; border:1px solid var(--accent); border-radius:2px; background:#07131d; color:var(--accent); padding:4px; font:700 7px "Courier New", monospace; cursor:pointer; }
     .performance-inline button.manual { border-color:var(--warn); color:var(--warn); }
@@ -271,7 +273,7 @@
     .performance-visual-wrap { padding:10px; background:#020405; }
     .performance-visual-title { margin-bottom:7px; color:#7890a1; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
     .runway-visual { min-height:600px; border:1px solid #243847; background:radial-gradient(circle at 50% 40%,#0f1c26 0,#030608 67%); overflow:hidden; }
-    .runway-visual svg { display:block; width:100%; height:600px; }
+    .runway-visual svg { display:block; width:100%; height:auto; aspect-ratio:1080 / 1500; }
     .runway-legend { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin-top:7px; }
     .runway-legend div { border:1px solid #263744; padding:6px; background:#071018; }
     .runway-legend span { display:block; color:#718492; font-size:6px; text-transform:uppercase; }
@@ -281,7 +283,7 @@
     .performance-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; padding:0 10px 10px; }
     .performance-actions button { min-height:39px; border:1px solid var(--accent); border-radius:3px; background:#03080c; color:var(--accent); padding:8px; font:700 9px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
     .performance-actions button.primary { border-color:var(--live); background:var(--live); color:#001208; }
-    .performance-acars-block { margin:0 10px 10px; border:1px solid #314758; background:#000; color:#f2f6f8; padding:11px; font:9px/1.45 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .performance-acars-block { margin:0 10px 10px; border:1px solid #314758; background:#000; color:#f2f6f8; padding:12px; font:10px/1.5 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
     .performance-footer-actions { display:grid; grid-template-columns:repeat(2,minmax(0,220px)); gap:8px; padding:0 14px 14px; }
     @media (max-width:1080px) { .performance-results { grid-template-columns:1fr; } }
     @media (max-width:680px) {
@@ -291,7 +293,8 @@
       .performance-results { padding:0 8px 8px; }
       .performance-rows { grid-template-columns:1fr; }
       .performance-item, .performance-item:nth-child(2n) { border-right:0; }
-      .runway-visual, .runway-visual svg { min-height:500px; height:500px; }
+      .runway-visual { min-height:390px; }
+      .runway-visual svg { min-height:390px; height:auto; }
     }
 
     .movement-phase-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:10px 0; }
@@ -1362,43 +1365,45 @@ SELECT A FLIGHT TO GENERATE WEATHER.</pre></section>
               <header class="performance-block-header"><div><small>Departure analysis</small><h3>Takeoff performance</h3></div><em id="takeoffPerfBadge" class="perf-status-badge">Ready</em></header>
               <div class="performance-section-title">Airport and weather</div>
               <div id="takeoffPerformanceMetrics" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">APT</span><span class="performance-value"><input id="perfDep" maxlength="4" placeholder="EFHV" readonly /></span></div>
+                <div class="performance-item"><span class="performance-label">APT</span><span class="performance-value"><input id="perfDep" maxlength="4" placeholder="EFHV" /></span></div>
                 <div class="performance-item"><span class="performance-label">WIND</span><span class="performance-value performance-inline"><input id="perfTakeoffWind" value="AUTO" /><button id="perfTakeoffWindMode" type="button">AUTO</button></span></div>
                 <div class="performance-item"><span class="performance-label">RWY</span><span class="performance-value"><select id="perfDepRunway"><option value="">SELECT RUNWAY</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfTakeoffHwXw" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">TORA</span><strong id="perfTakeoffTora" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfTakeoffHwXw" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">TORA</span><strong id="perfTakeoffTora" class="performance-value" contenteditable="true">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">OAT / DP</span><span class="performance-value performance-inline"><input id="perfTakeoffOat" value="AUTO" /><button id="perfTakeoffOatMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfTakeoffRunwayHeading" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfTakeoffRunwayHeading" class="performance-value" contenteditable="true">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">QNH</span><span class="performance-value performance-inline"><input id="perfTakeoffQnh" value="AUTO" /><button id="perfTakeoffQnhMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfTakeoffElevation" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfTakeoffElevation" class="performance-value" contenteditable="true">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">RWY COND</span><span class="performance-value"><select id="perfTakeoffCondition"><option>DRY</option><option>WET</option><option>SNOW</option><option>ICE</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfTakeoffDensityAltitude" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfTakeoffSlope" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfTakeoffDensityAltitude" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfTakeoffSlope" class="performance-value" contenteditable="true">N/A</strong></div>
               </div>
               <div class="performance-section-title">Inputs</div>
               <div class="performance-rows">
                 <div class="performance-item"><span class="performance-label">WEIGHT</span><span class="performance-value"><input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" /></span></div>
-                <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfTakeoffFlaps"><option value="0">0 DEG</option><option value="10">10 DEG</option><option value="25">25 DEG</option></select></span></div>
+                <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfTakeoffFlaps"><option value="0">0 DEG</option><option value="10" selected>10 DEG</option><option value="25">25 DEG</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">SPEED UNIT</span><span class="performance-value"><select id="perfTakeoffSpeedUnit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">POWER</span><span class="performance-value"><select id="perfTakeoffPower"><option>FULL POWER</option><option>SHORT FIELD</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">AC</span><strong id="perfTakeoffAc" class="performance-value">OH-PMK / P28R</strong></div>
+                <div class="performance-item"><span class="performance-label">POWER</span><span class="performance-value"><select id="perfTakeoffPower"><option value="FULL">FULL</option><option value="SHORT FIELD">SHORT FIELD</option></select></span></div>
+                <div class="performance-item"><span class="performance-label">AC</span><span class="performance-value"><select id="perfTakeoffAc"><option>OFF</option><option>ON</option></select></span></div>
               </div>
               <div class="performance-section-title">Outputs</div>
               <div id="takeoffPerformanceOutputs" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">VR</span><strong id="perfTakeoffVr" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">T/O DIST REQ</span><strong id="perfTakeoffDistReq" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VX</span><strong id="perfTakeoffVx" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfTakeoffRwyAvail" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VY</span><strong id="perfTakeoffVy" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfTakeoffRwyRemain" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">ROTATE PITCH</span><strong id="perfTakeoffRotatePitch" class="performance-value">8-10 DEG</strong></div>
-                <div class="performance-item"><span class="performance-label">50 FT DIST</span><strong id="perfTakeoffDist50" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">ACCEL-STOP</span><strong id="perfTakeoffAccelStop" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">STOP MARGIN</span><strong id="perfTakeoffStopMargin" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VR</span><strong id="perfTakeoffVr" class="performance-value live" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">T/O DIST REQ</span><strong id="perfTakeoffDistReq" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VX</span><strong id="perfTakeoffVx" class="performance-value live" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfTakeoffRwyAvail" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VY</span><strong id="perfTakeoffVy" class="performance-value live" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfTakeoffRwyRemain" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">ROTATE PITCH</span><strong id="perfTakeoffRotatePitch" class="performance-value" contenteditable="true">7–9° NOSE UP</strong></div>
+                <div class="performance-item"><span class="performance-label">50 FT DIST</span><strong id="perfTakeoffDist50" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">ACCEL-STOP</span><strong id="perfTakeoffAccelStop" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">STOP MARGIN</span><strong id="perfTakeoffStopMargin" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">XWIND LIMIT</span><strong id="perfTakeoffXwindLimit" class="performance-value" contenteditable="true">17 KT</strong></div>
+                <div class="performance-item"><span class="performance-label">WIND COMP</span><strong id="perfTakeoffWindComp" class="performance-value" contenteditable="true">HW 00 / XW 00</strong></div>
               </div>
               <div id="takeoffPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
               <div class="performance-section-title">Visual runway</div><div class="performance-visual-wrap"><div class="performance-visual-title">Calculated takeoff roll, 50 ft requirement, accelerate-stop point, and remaining runway</div><div id="takeoffRunwayVisual" class="runway-visual"></div><div id="takeoffRunwayLegend" class="runway-legend"></div></div>
-              <div class="performance-section-title">Remarks</div><div id="takeoffPerformanceMessages" class="performance-messages">LOAD DATA TO CALCULATE</div>
+              <div class="performance-section-title">Remarks</div><div id="takeoffPerformanceMessages" class="performance-messages" contenteditable="true">LOAD DATA TO CALCULATE</div>
               <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
               <div class="performance-actions"><button id="calculateTakeoffBtn" class="primary" type="button">Calculate</button><button id="openTakeoffPdfBtn" type="button">Open PDF</button></div>
               <pre id="perfTakeoffAcars" class="performance-acars-block">TAKEOFF PERFORMANCE
@@ -1409,18 +1414,18 @@ LOAD DATA TO CALCULATE.</pre>
               <header class="performance-block-header"><div><small>Arrival analysis</small><h3>Landing performance</h3></div><em id="landingPerfBadge" class="perf-status-badge">Ready</em></header>
               <div class="performance-section-title">Airport and weather</div>
               <div id="landingPerformanceMetrics" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">APT</span><span class="performance-value"><input id="perfArr" maxlength="4" placeholder="EFHN" readonly /></span></div>
+                <div class="performance-item"><span class="performance-label">APT</span><span class="performance-value"><input id="perfArr" maxlength="4" placeholder="EFHN" /></span></div>
                 <div class="performance-item"><span class="performance-label">WIND</span><span class="performance-value performance-inline"><input id="perfLandingWind" value="AUTO" /><button id="perfLandingWindMode" type="button">AUTO</button></span></div>
                 <div class="performance-item"><span class="performance-label">RWY</span><span class="performance-value"><select id="perfArrRunway"><option value="">SELECT RUNWAY</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfLandingHwXw" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">LDA</span><strong id="perfLandingLda" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfLandingHwXw" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">LDA</span><strong id="perfLandingLda" class="performance-value" contenteditable="true">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">OAT / DP</span><span class="performance-value performance-inline"><input id="perfLandingOat" value="AUTO" /><button id="perfLandingOatMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfLandingRunwayHeading" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfLandingRunwayHeading" class="performance-value" contenteditable="true">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">QNH</span><span class="performance-value performance-inline"><input id="perfLandingQnh" value="AUTO" /><button id="perfLandingQnhMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfLandingElevation" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfLandingElevation" class="performance-value" contenteditable="true">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">RWY COND</span><span class="performance-value"><select id="perfLandingCondition"><option>DRY</option><option>WET</option><option>SNOW</option><option>ICE</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfLandingDensityAltitude" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfLandingSlope" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfLandingDensityAltitude" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfLandingSlope" class="performance-value" contenteditable="true">N/A</strong></div>
               </div>
               <div class="performance-section-title">Inputs</div>
               <div class="performance-rows">
@@ -1428,22 +1433,22 @@ LOAD DATA TO CALCULATE.</pre>
                 <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfLandingFlaps"><option value="40">FULL / 40 DEG</option><option value="25">25 DEG</option><option value="10">10 DEG</option><option value="0">0 DEG</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">SPEED UNIT</span><span class="performance-value"><select id="perfLandingSpeedUnit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">BRAKING</span><span class="performance-value"><select id="perfLandingBraking"><option value="MAX">MAX</option><option value="MOD">MOD</option><option value="MIN">MIN</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">AC</span><strong id="perfLandingAc" class="performance-value">OH-PMK / P28R</strong></div>
+                <div class="performance-item"><span class="performance-label">AC</span><span class="performance-value"><select id="perfLandingAc"><option>OFF</option><option>ON</option></select></span></div>
               </div>
               <div class="performance-section-title">Outputs</div>
               <div id="landingPerformanceOutputs" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">VREF</span><strong id="perfLandingVref" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfLandingRwyAvail" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VAPP</span><strong id="perfLandingFinalAppSpeed" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfLandingRwyRemain" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">LDG DIST REQ</span><strong id="perfLandingDistReq" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY WIDTH</span><strong id="perfLandingRwyWidth" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VREF</span><strong id="perfLandingVref" class="performance-value live" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfLandingRwyAvail" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VAPP</span><strong id="perfLandingFinalAppSpeed" class="performance-value live" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfLandingRwyRemain" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">LDG DIST REQ</span><strong id="perfLandingDistReq" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY WIDTH</span><strong id="perfLandingRwyWidth" class="performance-value" contenteditable="true">N/A</strong></div>
               </div>
               <div id="landingPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
               <div class="performance-section-title">Go-around</div>
-              <div class="performance-rows"><div class="performance-item"><span class="performance-label">POWER</span><strong id="perfLandingGoAroundPower" class="performance-value">FULL</strong></div><div class="performance-item"><span class="performance-label">FLAPS UP SPEED</span><strong id="perfLandingFlapsUpSpeed" class="performance-value">87 KIAS</strong></div></div>
+              <div class="performance-rows"><div class="performance-item"><span class="performance-label">POWER</span><strong id="perfLandingGoAroundPower" class="performance-value" contenteditable="true">FULL</strong></div><div class="performance-item"><span class="performance-label">FLAPS UP SPEED</span><strong id="perfLandingFlapsUpSpeed" class="performance-value" contenteditable="true">87 MIAS</strong></div></div>
               <div class="performance-section-title">Visual runway</div><div class="performance-visual-wrap"><div class="performance-visual-title">Calculated landing requirement, threshold crossing, stopping point, and remaining runway</div><div id="landingRunwayVisual" class="runway-visual"></div><div id="landingRunwayLegend" class="runway-legend"></div></div>
-              <div class="performance-section-title">Remarks</div><div id="landingPerformanceMessages" class="performance-messages">LOAD DATA TO CALCULATE</div>
+              <div class="performance-section-title">Remarks</div><div id="landingPerformanceMessages" class="performance-messages" contenteditable="true">LOAD DATA TO CALCULATE</div>
               <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
               <div class="performance-actions"><button id="calculateLandingBtn" class="primary" type="button">Calculate</button><button id="openLandingPdfBtn" type="button">Open PDF</button></div>
               <pre id="perfLandingAcars" class="performance-acars-block">LANDING PERFORMANCE
@@ -2130,6 +2135,46 @@ END OF MESSAGE</pre>
     function feet(value) { return Number.isFinite(value) ? `${Math.round(value)} FT` : 'N/A'; }
     function knots(value) { return Number.isFinite(value) ? `${Math.round(value)} KT` : 'N/A'; }
 
+    function performanceFieldValue(id, fallback = '') {
+      const node = el(id);
+      const value = node && 'value' in node ? node.value : node?.textContent;
+      return String(value ?? '').trim() || fallback;
+    }
+
+    function performanceFieldNumber(id, fallback = null) {
+      const match = performanceFieldValue(id).replace(',', '.').match(/[-+]?\d+(?:\.\d+)?/);
+      const value = match ? Number(match[0]) : NaN;
+      return Number.isFinite(value) ? value : fallback;
+    }
+
+    function performanceComponentPair(id, fallbackHeadwind = 0, fallbackCrosswind = 0) {
+      const values = performanceFieldValue(id).match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+      return { headwindKt:Number.isFinite(values[0]) ? values[0] : fallbackHeadwind, crosswindKt:Number.isFinite(values[1]) ? values[1] : fallbackCrosswind };
+    }
+
+    function formatComponentPair(headwind, crosswind) {
+      const hw = Number.isFinite(headwind) ? String(Math.abs(Math.round(headwind))).padStart(2, '0') : '..';
+      const xw = Number.isFinite(crosswind) ? String(Math.abs(Math.round(crosswind))).padStart(2, '0') : '..';
+      return `${hw}/${xw}`;
+    }
+
+    function formatAcarsPair(leftLabel, leftValue, rightLabel = '', rightValue = '') {
+      const left = String(leftLabel).padEnd(14) + String(leftValue).padEnd(14);
+      const right = rightLabel ? String(rightLabel).padEnd(14) + String(rightValue) : '';
+      return `${left}${right}`.trimEnd();
+    }
+
+    function shortPerformanceAirport(wx, fallback) {
+      const icao = wx?.apt?.icao || fallback || '.....';
+      const name = String(wx?.apt?.name || '').toUpperCase().replace(/[^A-Z ]/g, ' ').trim();
+      return `${icao}/${name ? name.split(/\s+/)[0].slice(0, 3) : '...'}`;
+    }
+
+    function performanceSpeedReport(value) {
+      const number = parseFloat(String(value || ''));
+      return Number.isFinite(number) ? `${Math.round(number)} MIAS` : '..... MIAS';
+    }
+
     function setPerformanceText(id, value, tone = '') {
       const node = el(id);
       if (!node) return;
@@ -2155,12 +2200,13 @@ END OF MESSAGE</pre>
       setPerformanceAutoInput(`${prefix}Wind`, `${prefix}WindMode`, wx.wind?.raw || 'N/A');
       setPerformanceAutoInput(`${prefix}Oat`, `${prefix}OatMode`, `${Number.isFinite(wx.oatC) ? `${wx.oatC}C` : 'N/A'} / ${Number.isFinite(wx.dewpointC) ? `${wx.dewpointC}C` : 'N/A'}`);
       setPerformanceAutoInput(`${prefix}Qnh`, `${prefix}QnhMode`, Number.isFinite(wx.qnhHpa) ? `${Math.round(wx.qnhHpa)} HPA` : 'N/A');
-      setPerformanceText(`${prefix}HwXw`, `${knots(headwind)} / ${knots(Math.abs(crosswind || 0))}`, Math.abs(crosswind || 0) > PERFORMANCE_AIRCRAFT.crosswindLimitKt ? 'warn' : '');
+      setPerformanceText(`${prefix}HwXw`, formatComponentPair(headwind, crosswind), Math.abs(crosswind || 0) > PERFORMANCE_AIRCRAFT.crosswindLimitKt ? 'warn' : '');
+      if (takeoff) setPerformanceText('perfTakeoffWindComp', `HW ${String(Math.abs(Math.round(headwind || 0))).padStart(2, '0')} / XW ${String(Math.abs(Math.round(crosswind || 0))).padStart(2, '0')}`);
       setPerformanceText(takeoff ? 'perfTakeoffTora' : 'perfLandingLda', feet(finite(takeoff ? wx.toraFt : wx.ldaFt)));
-      setPerformanceText(`${prefix}RunwayHeading`, Number.isFinite(wx.hdgDeg) ? `${String(Math.round(wx.hdgDeg)).padStart(3, '0')} DEG` : 'N/A');
+      setPerformanceText(`${prefix}RunwayHeading`, Number.isFinite(wx.hdgDeg) ? `${Math.round(wx.hdgDeg)} °` : 'N/A');
       setPerformanceText(`${prefix}Elevation`, feet(finite(wx.elevFt)));
       setPerformanceText(`${prefix}DensityAltitude`, feet(finite(wx.densityAltFt)));
-      setPerformanceText(`${prefix}Slope`, Number.isFinite(wx.rwySlopePct) ? `${Number(wx.rwySlopePct).toFixed(1)} %` : 'N/A');
+      setPerformanceText(`${prefix}Slope`, Number.isFinite(wx.rwySlopePct) ? `${Number(wx.rwySlopePct).toFixed(1).replace('.0', '')} %` : '0 %');
       if (!takeoff) setPerformanceText('perfLandingRwyWidth', feet(finite(wx.widthFt)));
     }
 
@@ -2172,6 +2218,8 @@ END OF MESSAGE</pre>
 
     function applyPerformanceOverrides(kind, wx) {
       const prefix = kind === 'takeoff' ? 'perfTakeoff' : 'perfLanding';
+      const manualOat = performanceModeIsManual(`${prefix}OatMode`);
+      const manualQnh = performanceModeIsManual(`${prefix}QnhMode`);
       if (performanceModeIsManual(`${prefix}WindMode`)) {
         const wind = parseManualWind(el(`${prefix}Wind`).value);
         if (wind) {
@@ -2180,15 +2228,15 @@ END OF MESSAGE</pre>
           wx.hwXw = { headwindKt:angle === null ? 0 : wind.speedKt * Math.cos(angle), crosswindKt:angle === null ? 0 : wind.speedKt * Math.sin(angle) };
         }
       }
-      if (performanceModeIsManual(`${prefix}OatMode`)) {
+      if (manualOat) {
         const oat = parseFloat(el(`${prefix}Oat`).value);
         if (Number.isFinite(oat)) wx.oatC = oat;
       }
-      if (performanceModeIsManual(`${prefix}QnhMode`)) {
+      if (manualQnh) {
         const qnh = parseFloat(el(`${prefix}Qnh`).value);
         if (Number.isFinite(qnh)) wx.qnhHpa = qnh;
       }
-      if (Number.isFinite(wx.elevFt) && Number.isFinite(wx.oatC) && Number.isFinite(wx.qnhHpa)) {
+      if ((manualOat || manualQnh) && Number.isFinite(wx.elevFt) && Number.isFinite(wx.oatC) && Number.isFinite(wx.qnhHpa)) {
         const pressureAltitude = wx.elevFt + (1013.25 - wx.qnhHpa) * 27;
         const isaTemperature = 15 - (wx.elevFt / 1000) * 2;
         wx.densityAltFt = Math.round(pressureAltitude + 120 * (wx.oatC - isaTemperature));
@@ -2235,23 +2283,26 @@ END OF MESSAGE</pre>
       const weight = finite(perfTow.value) || 2650;
       const flaps = Number(el('perfTakeoffFlaps').value || 0);
       const condition = el('perfTakeoffCondition').value || 'DRY';
-      const available = finite(wx.toraFt);
-      const densityAltitude = finite(wx.densityAltFt) || 0;
-      const headwind = finite(wx.hwXw?.headwindKt) || 0;
-      const crosswind = Math.abs(finite(wx.hwXw?.crosswindKt) || 0);
+      const available = performanceFieldNumber('perfTakeoffTora', finite(wx.toraFt));
+      const densityAltitude = performanceFieldNumber('perfTakeoffDensityAltitude', finite(wx.densityAltFt) || 0);
+      const components = performanceComponentPair('perfTakeoffHwXw', finite(wx.hwXw?.headwindKt) || 0, finite(wx.hwXw?.crosswindKt) || 0);
+      const headwind = components.headwindKt;
+      const crosswind = Math.abs(components.crosswindKt);
+      const slope = performanceFieldNumber('perfTakeoffSlope', finite(wx.rwySlopePct) || 0);
       const baseRoll = flaps === 25 ? PERFORMANCE_AIRCRAFT.takeoffGroundRoll25Ft : flaps === 10 ? PERFORMANCE_AIRCRAFT.takeoffGroundRoll10Ft : PERFORMANCE_AIRCRAFT.takeoffGroundRoll0Ft;
       const base50 = flaps === 25 ? PERFORMANCE_AIRCRAFT.takeoff50ft25Ft : flaps === 10 ? PERFORMANCE_AIRCRAFT.takeoff50ft10Ft : PERFORMANCE_AIRCRAFT.takeoff50ft0Ft;
       const weightFactor = Math.max(.82, Math.min(1.14, weight / 2650));
       const densityFactor = Math.max(.85, 1 + (densityAltitude / 1000) * .08);
       const windFactor = headwind >= 0 ? Math.max(.78, 1 - headwind * .01) : 1 + Math.abs(headwind) * .03;
       const surfaceFactor = conditionMultiplier(condition, 'takeoff');
-      const groundRoll = Math.round(baseRoll * weightFactor * densityFactor * windFactor * surfaceFactor * 1.10);
-      const distance50 = Math.round(base50 * weightFactor * densityFactor * windFactor * surfaceFactor * 1.10);
-      const vr = Math.round(69 + Math.max(0, (weight - 2350) / 250) + Math.max(0, densityAltitude / 4500));
-      const vx = Math.round(74 + Math.max(0, densityAltitude / 6000));
+      const slopeFactor = Math.max(.85, 1 + slope * .08);
+      const groundRoll = Math.round(baseRoll * weightFactor * densityFactor * windFactor * surfaceFactor * slopeFactor * 1.253);
+      const distance50 = Math.round(base50 * weightFactor * densityFactor * windFactor * surfaceFactor * slopeFactor * 1.1646);
+      const vr = Math.round(71 + Math.max(0, (weight - 2350) / 250) + Math.max(0, densityAltitude / 4500));
+      const vx = Math.round(75 + Math.max(0, densityAltitude / 6000));
       const vy = Math.round(83 + Math.max(0, densityAltitude / 7000));
-      const accelerateStop = Math.round(Math.max(groundRoll * 1.22, groundRoll + vr * 18));
-      const remaining = Number.isFinite(available) ? available - distance50 : null;
+      const accelerateStop = Math.round(Math.max(groundRoll * 1.75, groundRoll * 1.20 + vr * 13.16));
+      const remaining = Number.isFinite(available) ? available - groundRoll : null;
       const stopMargin = Number.isFinite(available) ? available - accelerateStop : null;
       const cautions = [];
       if (weight > 2650) cautions.push('OVER MAXIMUM TAKEOFF WEIGHT');
@@ -2259,7 +2310,7 @@ END OF MESSAGE</pre>
       if (crosswind > 17) cautions.push(`CROSSWIND ${Math.round(crosswind)} KT ABOVE 17 KT LIMIT`);
       if (Number.isFinite(remaining) && remaining < 500) cautions.push(`RUNWAY MARGIN ${Math.round(remaining)} FT`);
       if (condition !== 'DRY') cautions.push(`${condition} RUNWAY CORRECTION APPLIED`);
-      return { kind:'takeoff', weight, flaps, condition, available, groundRoll, distance50, required:distance50, remaining, accelerateStop, stopMargin, vr, vx, vy, cautions };
+      return { kind:'takeoff', weight, flaps, condition, available, groundRoll, distance50, required:groundRoll, remaining, accelerateStop, stopMargin, vr, vx, vy, cautions };
     }
 
     function calculateLanding(data) {
@@ -2268,18 +2319,21 @@ END OF MESSAGE</pre>
       const flaps = Number(el('perfLandingFlaps').value || 40);
       const condition = el('perfLandingCondition').value || 'DRY';
       const braking = el('perfLandingBraking').value || 'MAX';
-      const available = finite(wx.ldaFt);
-      const densityAltitude = finite(wx.densityAltFt) || 0;
-      const headwind = finite(wx.hwXw?.headwindKt) || 0;
-      const crosswind = Math.abs(finite(wx.hwXw?.crosswindKt) || 0);
+      const available = performanceFieldNumber('perfLandingLda', finite(wx.ldaFt));
+      const densityAltitude = performanceFieldNumber('perfLandingDensityAltitude', finite(wx.densityAltFt) || 0);
+      const components = performanceComponentPair('perfLandingHwXw', finite(wx.hwXw?.headwindKt) || 0, finite(wx.hwXw?.crosswindKt) || 0);
+      const headwind = components.headwindKt;
+      const crosswind = Math.abs(components.crosswindKt);
+      const slope = performanceFieldNumber('perfLandingSlope', finite(wx.rwySlopePct) || 0);
       const weightFactor = Math.max(.82, Math.min(1.14, weight / 2650));
       const densityFactor = Math.max(.88, 1 + (densityAltitude / 1000) * .06);
       const windFactor = headwind >= 0 ? Math.max(.80, 1 - headwind * .008) : 1 + Math.abs(headwind) * .04;
       const flapFactor = flaps === 40 ? 1 : flaps === 25 ? 1.08 : flaps === 10 ? 1.15 : 1.25;
       const brakingFactor = braking === 'MIN' ? 1.15 : braking === 'MOD' ? 1.07 : 1;
       const surfaceFactor = conditionMultiplier(condition, 'landing');
-      const groundRoll = Math.round(PERFORMANCE_AIRCRAFT.landingRollFt * weightFactor * densityFactor * windFactor * flapFactor * brakingFactor * surfaceFactor * 1.10);
-      const distance50 = Math.round(PERFORMANCE_AIRCRAFT.landing50ftFt * weightFactor * densityFactor * windFactor * flapFactor * brakingFactor * surfaceFactor * 1.10);
+      const slopeFactor = Math.max(.85, 1 - slope * .06);
+      const groundRoll = Math.round(PERFORMANCE_AIRCRAFT.landingRollFt * weightFactor * densityFactor * windFactor * flapFactor * brakingFactor * surfaceFactor * slopeFactor * 1.10);
+      const distance50 = Math.round(PERFORMANCE_AIRCRAFT.landing50ftFt * weightFactor * densityFactor * windFactor * flapFactor * brakingFactor * surfaceFactor * slopeFactor * 1.10);
       const vref = Math.round(76 + Math.max(0, (weight - 2350) / 250));
       const gustAdd = Math.max(0, Math.min(5, Math.round(((finite(wx.wind?.gustKt) || 0) - (finite(wx.wind?.speedKt) || 0)) / 2)));
       const vapp = vref + gustAdd;
@@ -2308,24 +2362,58 @@ END OF MESSAGE</pre>
       const legend = el(kind === 'takeoff' ? 'takeoffRunwayLegend' : 'landingRunwayLegend');
       const runway = wx.rwy || (kind === 'takeoff' ? perfDepRunway.value : perfArrRunway.value) || '--';
       const reciprocal = runwayNumberReciprocal(runway);
-      const available = calc.available || 1;
-      const ratio = Math.max(0, Math.min(1, (calc.required || 0) / available));
-      const markerY = 640 - (ratio * 540);
-      const marginColor = calc.remaining === null ? '#8ec5ff' : calc.remaining < 500 ? '#ff6b6b' : '#66ff99';
-      const centerline = Array.from({length:10},(_,index)=>`<rect x="296" y="${90 + index * 52}" width="8" height="28" rx="2" fill="#f5f5f5"/>`).join('');
-      const sideLights = Array.from({length:18},(_,index)=>`<circle cx="228" cy="${82 + index * 32}" r="3" fill="#ffd84d"/><circle cx="372" cy="${82 + index * 32}" r="3" fill="#ffd84d"/>`).join('');
-      const wind = finite(wx.hwXw?.headwindKt);
-      const crosswind = finite(wx.hwXw?.crosswindKt);
-      container.innerHTML = `<svg viewBox="0 0 600 720" role="img" aria-label="${kind} runway performance visual">
-        <defs><linearGradient id="${kind}Rwy" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#42484d"/><stop offset="1" stop-color="#171b1e"/></linearGradient><linearGradient id="${kind}Use" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#66ff99"/><stop offset="1" stop-color="#8ec5ff"/></linearGradient></defs>
-        <rect width="600" height="720" fill="#030608"/><text x="24" y="34" fill="#8ec5ff" font-size="14" font-family="Courier New">${escapeHtml(wx.apt?.icao || '----')} / RWY ${escapeHtml(runway)} / ${Math.round(available)} FT</text>
-        <rect x="220" y="58" width="160" height="604" rx="18" fill="url(#${kind}Rwy)" stroke="#83909a" stroke-width="2"/>${sideLights}${centerline}
-        <text x="300" y="112" text-anchor="middle" transform="rotate(180 300 112)" fill="#fff" font-size="34" font-family="Courier New" font-weight="700">${escapeHtml(reciprocal)}</text>
-        <text x="300" y="635" text-anchor="middle" fill="#fff" font-size="34" font-family="Courier New" font-weight="700">${escapeHtml(runway)}</text>
-        <rect x="173" y="${markerY}" width="254" height="4" fill="${marginColor}"/><text x="438" y="${markerY + 5}" fill="${marginColor}" font-size="12" font-family="Courier New">${kind === 'takeoff' ? '50 FT / REQUIRED' : 'LANDING REQUIRED'} ${Math.round(calc.required)} FT</text>
-        <rect x="154" y="${640 - ratio * 540}" width="28" height="${Math.max(2, ratio * 540)}" rx="6" fill="url(#${kind}Use)"/><text x="168" y="676" text-anchor="middle" fill="#91a5b2" font-size="10" font-family="Courier New">USED</text>
-        <g transform="translate(22 80)"><rect width="174" height="90" rx="8" fill="#071018" stroke="#395366"/><text x="12" y="24" fill="#8ec5ff" font-size="11" font-family="Courier New">HEADWIND</text><text x="162" y="24" text-anchor="end" fill="#fff" font-size="12" font-family="Courier New">${knots(wind)}</text><text x="12" y="55" fill="#ffb15c" font-size="11" font-family="Courier New">CROSSWIND</text><text x="162" y="55" text-anchor="end" fill="#fff" font-size="12" font-family="Courier New">${knots(Math.abs(crosswind || 0))}</text><text x="12" y="78" fill="#91a5b2" font-size="9" font-family="Courier New">${escapeHtml(calc.condition)} / DA ${Math.round(finite(wx.densityAltFt) || 0)} FT</text></g>
-        <g transform="translate(446 520)"><path d="M77 0 L87 34 L132 50 L132 62 L88 56 L94 100 L82 100 L70 56 L26 62 L26 50 L71 34 Z" fill="#dce8ef" stroke="#8ec5ff"/><text x="80" y="124" text-anchor="middle" fill="#8ec5ff" font-size="10" font-family="Courier New">${kind === 'takeoff' ? 'DEPARTURE' : 'ARRIVAL'}</text></g>
+      const available = Math.max(1, finite(calc.available) || 1);
+      const required = Math.max(0, finite(calc.required) || 0);
+      const distance50 = Math.max(required, finite(calc.distance50) || required);
+      const accelerateStop = Math.max(required, finite(calc.accelerateStop) || required);
+      const viewW = 1080;
+      const viewH = 1500;
+      const runwayX = 426;
+      const runwayY = 110;
+      const runwayW = 228;
+      const runwayH = 1240;
+      const bottomY = runwayY + runwayH;
+      const centerX = runwayX + runwayW / 2;
+      const positionFor = value => bottomY - Math.max(0, Math.min(runwayH, (value / available) * runwayH));
+      const requiredY = positionFor(required);
+      const distance50Y = positionFor(distance50);
+      const accelerateStopY = positionFor(accelerateStop);
+      const remain = available - required;
+      const marginColor = remain < 300 ? '#ff5d66' : remain < 800 ? '#ffd166' : '#66ff99';
+      const componentFallback = wx.hwXw || {};
+      const components = performanceComponentPair(kind === 'takeoff' ? 'perfTakeoffHwXw' : 'perfLandingHwXw', finite(componentFallback.headwindKt) || 0, finite(componentFallback.crosswindKt) || 0);
+      const densityAltitude = performanceFieldNumber(kind === 'takeoff' ? 'perfTakeoffDensityAltitude' : 'perfLandingDensityAltitude', finite(wx.densityAltFt) || 0);
+      const slope = performanceFieldValue(kind === 'takeoff' ? 'perfTakeoffSlope' : 'perfLandingSlope', '0 %');
+      const centerline = Array.from({length:18},(_,index)=>`<rect x="${centerX - 4}" y="${220 + index * 57}" width="8" height="32" rx="2" fill="#f7f7f7"/>`).join('');
+      const sideLights = Array.from({length:38},(_,index)=>{const y=runwayY+18+index*((runwayH-36)/37);return `<circle cx="${runwayX+8}" cy="${y}" r="3" fill="#ffd84d"/><circle cx="${runwayX+runwayW-8}" cy="${y}" r="3" fill="#ffd84d"/>`;}).join('');
+      const scaleTicks = [.2,.4,.6,.8].map(ratio=>{const y=bottomY-runwayH*ratio;return `<line x1="${runwayX+runwayW+24}" y1="${y}" x2="${runwayX+runwayW+74}" y2="${y}" stroke="#8ec5ff" stroke-width="2"/><text x="${runwayX+runwayW+88}" y="${y+7}" fill="#8ec5ff" font-size="20" font-family="Courier New">${Math.round(available*ratio)} FT</text>`;}).join('');
+      const marker = (y,label,color,dash='8 6') => `<line x1="${runwayX-28}" y1="${y}" x2="${runwayX+runwayW+38}" y2="${y}" stroke="${color}" stroke-width="3" stroke-dasharray="${dash}"/><text x="${runwayX+runwayW+54}" y="${y+7}" fill="${color}" font-size="20" font-family="Courier New">${label}</text>`;
+      const progressX = 220;
+      const progressY = 150;
+      const progressH = 1160;
+      const requiredH = Math.min(progressH, required / available * progressH);
+      const distance50H = Math.min(progressH, distance50 / available * progressH);
+      const stopH = Math.min(progressH, accelerateStop / available * progressH);
+      const progressMarkup = kind === 'takeoff'
+        ? `<rect x="${progressX}" y="${progressY}" width="42" height="${progressH}" rx="12" fill="#303941"/><rect x="${progressX}" y="${progressY+progressH-requiredH}" width="42" height="${requiredH}" rx="10" fill="#66ff99"/><rect x="${progressX}" y="${progressY+progressH-distance50H}" width="42" height="${Math.max(0,distance50H-requiredH)}" fill="#ffd84d"/><rect x="${progressX}" y="${progressY+progressH-stopH}" width="42" height="${Math.max(0,stopH-Math.max(requiredH,distance50H))}" fill="#ff9f43"/>`
+        : `<rect x="${progressX}" y="${progressY}" width="42" height="${progressH}" rx="12" fill="#66ff99"/><rect x="${progressX}" y="${progressY+progressH-requiredH}" width="42" height="${requiredH}" rx="10" fill="#ff5d66"/>`;
+      const planeY = kind === 'takeoff' ? bottomY - 185 : Math.max(runwayY + 180, requiredY - 120);
+      const aircraft = `<g transform="translate(${centerX} ${planeY}) scale(1.45)" filter="url(#${kind}Shadow)"><path d="M0 -68 L12 -24 L68 -3 L68 10 L14 5 L20 54 L7 54 L0 20 L-7 54 L-20 54 L-14 5 L-68 10 L-68 -3 L-12 -24 Z" fill="#eaf4fb" stroke="#8ec5ff" stroke-width="2"/><rect x="-6" y="-55" width="12" height="92" rx="6" fill="#dbe9f2"/></g>`;
+      const rejectValue = Math.max(0, available - accelerateStop - 300);
+      const goAroundValue = Math.max(0, available - required - 400);
+      const operationalMarker = kind === 'takeoff' ? marker(positionFor(rejectValue),'REJECT','#ff5d66','10 7') : marker(positionFor(goAroundValue),'GO-AROUND','#ff5d66','10 7');
+      container.innerHTML = `<svg viewBox="0 0 ${viewW} ${viewH}" role="img" aria-label="${kind} runway performance visual">
+        <defs><linearGradient id="${kind}Surface" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4b5359"/><stop offset=".5" stop-color="#2c3237"/><stop offset="1" stop-color="#171b1e"/></linearGradient><filter id="${kind}Shadow" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#000"/></filter></defs>
+        <rect width="${viewW}" height="${viewH}" fill="#020507"/><rect x="18" y="18" width="1044" height="1464" rx="18" fill="none" stroke="#243847" stroke-width="2"/>
+        <text x="42" y="48" fill="#8ec5ff" font-size="22" font-family="Courier New">${escapeHtml(wx.apt?.icao || '----')} / RWY ${escapeHtml(runway)} / ${Math.round(available)} FT</text>
+        ${scaleTicks}${progressMarkup}<text x="241" y="1390" text-anchor="middle" fill="#91a5b2" font-size="17" font-family="Courier New">${kind === 'takeoff' ? 'PERFORMANCE' : 'STOPPING'}</text>
+        <rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="18" fill="url(#${kind}Surface)" stroke="#89939a" stroke-width="3"/>${sideLights}${centerline}
+        <line x1="${runwayX+15}" y1="${runwayY+24}" x2="${runwayX+runwayW-15}" y2="${runwayY+24}" stroke="#ff5d66" stroke-width="9" stroke-dasharray="7 6"/><line x1="${runwayX+15}" y1="${bottomY-24}" x2="${runwayX+runwayW-15}" y2="${bottomY-24}" stroke="#66ff99" stroke-width="9" stroke-dasharray="7 6"/>
+        <text x="${centerX}" y="${runwayY+78}" text-anchor="middle" transform="rotate(180 ${centerX} ${runwayY+78})" fill="#fff" font-size="48" font-family="Courier New" font-weight="700">${escapeHtml(reciprocal)}</text><text x="${centerX}" y="${bottomY-42}" text-anchor="middle" fill="#fff" font-size="50" font-family="Courier New" font-weight="700">${escapeHtml(runway)}</text>
+        ${marker(requiredY,kind === 'takeoff' ? `T/O ROLL ${Math.round(required)} FT` : `LDG REQ ${Math.round(required)} FT`,kind === 'takeoff' ? '#66ff99' : '#ff5d66')}
+        ${kind === 'takeoff' ? marker(distance50Y,`50FT ${Math.round(distance50)} FT`,'#ffd84d','4 5') + marker(accelerateStopY,`ACCEL-STOP ${Math.round(accelerateStop)} FT`,'#ff9f43','10 6') : ''}${operationalMarker}${aircraft}
+        <g transform="translate(40 76)"><rect width="320" height="142" rx="14" fill="#071018" stroke="#8ec5ff" stroke-width="2"/><text x="20" y="38" fill="#8ec5ff" font-size="21" font-family="Courier New">HEADWIND</text><text x="292" y="38" text-anchor="end" fill="#fff" font-size="23" font-family="Courier New">${Math.round(Math.abs(components.headwindKt))} KT</text><line x1="14" y1="70" x2="306" y2="70" stroke="#263744"/><text x="20" y="108" fill="#ffb15c" font-size="21" font-family="Courier New">CROSSWIND</text><text x="292" y="108" text-anchor="end" fill="#ffb15c" font-size="23" font-family="Courier New">${Math.round(Math.abs(components.crosswindKt))} KT</text></g>
+        <g transform="translate(744 76)"><rect width="292" height="142" rx="14" fill="#071018" stroke="${marginColor}" stroke-width="2"/><text x="18" y="36" fill="#91a5b2" font-size="18" font-family="Courier New">RWY COND</text><text x="274" y="36" text-anchor="end" fill="#fff" font-size="20" font-family="Courier New">${escapeHtml(calc.condition)}</text><text x="18" y="76" fill="#91a5b2" font-size="18" font-family="Courier New">SLOPE</text><text x="274" y="76" text-anchor="end" fill="#fff" font-size="20" font-family="Courier New">${escapeHtml(slope)}</text><text x="18" y="116" fill="#91a5b2" font-size="18" font-family="Courier New">DENSITY ALT</text><text x="274" y="116" text-anchor="end" fill="${marginColor}" font-size="20" font-family="Courier New">${Math.round(densityAltitude)} FT</text></g>
       </svg>`;
       const legendValues = kind === 'takeoff'
         ? [['GROUND ROLL',calc.groundRoll],['50 FT DIST',calc.distance50],['TORA',calc.available],['REMAIN',calc.remaining]]
@@ -2336,7 +2424,7 @@ END OF MESSAGE</pre>
     function renderPerformanceCalculation(kind, data, calc) {
       const takeoff = kind === 'takeoff';
       const unit = el(takeoff ? 'perfTakeoffSpeedUnit' : 'perfLandingSpeedUnit').value;
-      const speed = value => unit === 'MPH' ? `${Math.round(value * 1.15078)} MPH` : `${Math.round(value)} KIAS`;
+      const speed = value => unit === 'MPH' ? `${Math.round(value * 1.15078)} MPH` : `${Math.round(value)} MIAS`;
       if (kind === 'takeoff') {
         setPerformanceText('perfTakeoffVr', speed(calc.vr), 'live');
         setPerformanceText('perfTakeoffDistReq', feet(calc.required));
@@ -2358,12 +2446,42 @@ END OF MESSAGE</pre>
       const wx = kind === 'takeoff' ? data.takeoff.runwayAndWeather : data.landing.airportAndWeather;
       syncPerformanceWeather(kind, data);
       el(kind === 'takeoff' ? 'takeoffPerformanceDerived' : 'landingPerformanceDerived').innerHTML = `<strong>CALCULATED FROM</strong> RWY ${escapeHtml(wx.rwy || '--')} / ${escapeHtml(wx.wind?.raw || 'NO WIND')} / WT ${Math.round(calc.weight)} LB / ${escapeHtml(calc.condition)}`;
-      el(kind === 'takeoff' ? 'takeoffPerformanceMessages' : 'landingPerformanceMessages').textContent = calc.cautions.length ? calc.cautions.join(' / ') : 'NORMAL / NO AUTOMATED CAUTIONS';
+      el(kind === 'takeoff' ? 'takeoffPerformanceMessages' : 'landingPerformanceMessages').textContent = calc.cautions.length ? calc.cautions.join(' / ') : 'NONE';
       const badge = el(kind === 'takeoff' ? 'takeoffPerfBadge' : 'landingPerfBadge');
       badge.textContent = calc.cautions.length ? 'Review' : 'Calculated';
       badge.style.borderColor = calc.cautions.length ? 'var(--warn)' : 'var(--live)';
       badge.style.color = calc.cautions.length ? 'var(--warn)' : 'var(--live)';
       renderRunwayVisual(kind, data, calc);
+      el(kind === 'takeoff' ? 'perfTakeoffAcars' : 'perfLandingAcars').textContent = performanceAcarsText(kind, data, calc);
+    }
+
+    function performanceCalculationFromDisplay(kind) {
+      const base = { ...(latestPerformanceCalculations?.[kind] || {}) };
+      if (kind === 'takeoff') {
+        base.available = performanceFieldNumber('perfTakeoffRwyAvail', performanceFieldNumber('perfTakeoffTora', base.available));
+        base.groundRoll = performanceFieldNumber('perfTakeoffDistReq', base.groundRoll);
+        base.required = base.groundRoll;
+        base.distance50 = performanceFieldNumber('perfTakeoffDist50', base.distance50);
+        base.remaining = performanceFieldNumber('perfTakeoffRwyRemain', Number.isFinite(base.available) && Number.isFinite(base.required) ? base.available - base.required : null);
+        base.accelerateStop = performanceFieldNumber('perfTakeoffAccelStop', base.accelerateStop);
+        base.stopMargin = performanceFieldNumber('perfTakeoffStopMargin', Number.isFinite(base.available) && Number.isFinite(base.accelerateStop) ? base.available - base.accelerateStop : null);
+        base.condition = el('perfTakeoffCondition').value;
+      } else {
+        base.available = performanceFieldNumber('perfLandingRwyAvail', performanceFieldNumber('perfLandingLda', base.available));
+        base.required = performanceFieldNumber('perfLandingDistReq', base.required);
+        base.distance50 = base.required;
+        base.remaining = performanceFieldNumber('perfLandingRwyRemain', Number.isFinite(base.available) && Number.isFinite(base.required) ? base.available - base.required : null);
+        base.groundRoll = base.groundRoll || Math.round((base.required || 0) * .56);
+        base.condition = el('perfLandingCondition').value;
+      }
+      return base;
+    }
+
+    function refreshPerformanceManualDisplay(kind, redrawVisual = false) {
+      if (!latestPerformanceData || !latestPerformanceCalculations?.[kind]) return;
+      const data = latestPerformanceEffectiveData || performanceDataWithOverrides();
+      const calc = performanceCalculationFromDisplay(kind);
+      if (redrawVisual) renderRunwayVisual(kind, data, calc);
       el(kind === 'takeoff' ? 'perfTakeoffAcars' : 'perfLandingAcars').textContent = performanceAcarsText(kind, data, calc);
     }
 
@@ -2403,6 +2521,8 @@ END OF MESSAGE</pre>
         syncPerformanceWeather('landing', data);
         const effectiveData = performanceDataWithOverrides();
         latestPerformanceEffectiveData = effectiveData;
+        syncPerformanceWeather('takeoff', effectiveData);
+        syncPerformanceWeather('landing', effectiveData);
         latestPerformanceCalculations = { takeoff:calculateTakeoff(effectiveData), landing:calculateLanding(effectiveData) };
         renderPerformanceCalculation('takeoff', effectiveData, latestPerformanceCalculations.takeoff);
         renderPerformanceCalculation('landing', effectiveData, latestPerformanceCalculations.landing);
@@ -2419,11 +2539,73 @@ END OF MESSAGE</pre>
       const data = suppliedData || latestPerformanceEffectiveData || latestPerformanceData;
       if (!calc || !data) return '';
       const wx = kind === 'takeoff' ? data.takeoff.runwayAndWeather : data.landing.airportAndWeather;
-      const lines = [kind === 'takeoff' ? 'TAKEOFF PERFORMANCE' : 'LANDING PERFORMANCE','------------------------','OH-PMK  PIPER PA-28R-200 ARROW II',`APT ${wx.apt?.icao || '----'} / ${String(wx.apt?.name || 'UNKNOWN').toUpperCase()}`,`RWY ${wx.rwy || '--'}   HDG ${Number.isFinite(wx.hdgDeg) ? String(Math.round(wx.hdgDeg)).padStart(3, '0') : '---'}   ${kind === 'takeoff' ? 'TORA' : 'LDA'} ${feet(calc.available)}`,`WIND ${wx.wind?.raw || 'N/A'}`,`HW ${knots(finite(wx.hwXw?.headwindKt))}   XW ${knots(Math.abs(finite(wx.hwXw?.crosswindKt) || 0))}`,`OAT ${Number.isFinite(wx.oatC) ? `${wx.oatC}C` : 'N/A'}   QNH ${Number.isFinite(wx.qnhHpa) ? `${wx.qnhHpa}HPA` : 'N/A'}`,`ELEV ${feet(finite(wx.elevFt))}   DA ${feet(finite(wx.densityAltFt))}`,`WEIGHT ${Math.round(calc.weight)} LB   FLAPS ${calc.flaps} DEG`,`RWY COND ${calc.condition}   SLOPE ${Number.isFinite(wx.rwySlopePct) ? `${wx.rwySlopePct}%` : 'N/A'}`];
-      if (kind === 'takeoff') lines.push(`VR ${calc.vr} KIAS   VX ${calc.vx} KIAS   VY ${calc.vy} KIAS`,`T/O DIST REQ ${feet(calc.required)}   RWY REM ${feet(calc.remaining)}`,`ACCEL-STOP ${feet(calc.accelerateStop)}   STOP MARGIN ${feet(calc.stopMargin)}`);
-      else lines.push(`VREF ${calc.vref} KIAS   VAPP ${calc.vapp} KIAS`,`LDG DIST REQ ${feet(calc.required)}   RWY REM ${feet(calc.remaining)}`,`BRAKING ${calc.braking}   GO-AROUND FULL POWER / 87 KIAS`);
-      lines.push('',`RMK ${calc.cautions.length ? calc.cautions.join(' / ') : 'NORMAL'}`,'ADVISORY ONLY - VERIFY CURRENT AFM/POH.','END OF REPORT');
-      return lines.join('\n');
+      const takeoff = kind === 'takeoff';
+      const prefix = takeoff ? 'perfTakeoff' : 'perfLanding';
+      const qnhMode = performanceModeIsManual(`${prefix}QnhMode`) ? 'MAN' : 'AUTO';
+      const qnh = performanceFieldNumber(`${prefix}Qnh`, finite(wx.qnhHpa));
+      const oat = performanceFieldNumber(`${prefix}Oat`, finite(wx.oatC));
+      const wind = performanceFieldValue(`${prefix}Wind`, wx.wind?.raw || '.....').toUpperCase().replace(/\s+/g, '').replace('/', '');
+      const heading = performanceFieldValue(`${prefix}RunwayHeading`, '..... °').replace(/DEG/gi, '°');
+      const slope = performanceFieldValue(`${prefix}Slope`, '0 %');
+      const remarks = performanceFieldValue(takeoff ? 'takeoffPerformanceMessages' : 'landingPerformanceMessages', 'NONE');
+      if (takeoff) {
+        return [
+          'TAKEOFF PERFORMANCE',
+          '',
+          'OH-PMK  Piper PA-28R-200 Arrow II',
+          '',
+          'RUNWAY AND WEATHER:',
+          formatAcarsPair('APT', shortPerformanceAirport(wx, perfDep.value), 'WIND', wind),
+          formatAcarsPair('RWY', perfDepRunway.value || '.....', 'HW/XW', performanceFieldValue('perfTakeoffHwXw', '.....')),
+          formatAcarsPair('TORA', performanceFieldValue('perfTakeoffTora', '..... FT'), 'OAT', Number.isFinite(oat) ? `${Math.round(oat)} °C` : '..... °C'),
+          formatAcarsPair('HDG', heading, 'QNH', Number.isFinite(qnh) ? `${Math.round(qnh)} ${qnhMode}` : `..... ${qnhMode}`),
+          formatAcarsPair('ELEV', performanceFieldValue('perfTakeoffElevation', '..... FT'), 'RWY COND', el('perfTakeoffCondition').value),
+          formatAcarsPair('DENSITY ALT', performanceFieldValue('perfTakeoffDensityAltitude', '..... FT'), 'RWY SLOPE', slope),
+          '',
+          'INPUTS:',
+          formatAcarsPair('TO WEIGHT', `${Math.round(Number(perfTow.value) || 0)} LBS`, 'FLAPS', `${el('perfTakeoffFlaps').value}°`),
+          formatAcarsPair('POWER SETTING', el('perfTakeoffPower').value, 'AC', el('perfTakeoffAc').value),
+          '',
+          'OUTPUTS:',
+          formatAcarsPair('VR', performanceSpeedReport(performanceFieldValue('perfTakeoffVr')), 'T/O DIST REQ', performanceFieldValue('perfTakeoffDistReq', '..... FT')),
+          formatAcarsPair('VX', performanceSpeedReport(performanceFieldValue('perfTakeoffVx')), 'RWY AVAIL', performanceFieldValue('perfTakeoffRwyAvail', '..... FT')),
+          formatAcarsPair('VY', performanceSpeedReport(performanceFieldValue('perfTakeoffVy')), 'RWY REMAIN', performanceFieldValue('perfTakeoffRwyRemain', '..... FT')),
+          formatAcarsPair('ROTATE PITCH', performanceFieldValue('perfTakeoffRotatePitch').replace(/DEG/gi, '°'), '50FT DISTANCE', performanceFieldValue('perfTakeoffDist50', '..... FT')),
+          formatAcarsPair('XWIND LIMIT', performanceFieldValue('perfTakeoffXwindLimit', '17 KT'), 'WIND COMP', performanceFieldValue('perfTakeoffWindComp', 'HW .. / XW ..')),
+          formatAcarsPair('ACCEL-STOP', performanceFieldValue('perfTakeoffAccelStop', '..... FT'), 'STOP MARGIN', performanceFieldValue('perfTakeoffStopMargin', '..... FT')),
+          '',
+          'RMK:',
+          remarks
+        ].join('\n');
+      }
+      return [
+        'LANDING PERFORMANCE',
+        '',
+        'OH-PMK  Piper PA-28R-200 Arrow II',
+        '',
+        'AIRPORT AND WEATHER:',
+        formatAcarsPair('APT', shortPerformanceAirport(wx, perfArr.value), 'WIND', wind),
+        formatAcarsPair('RWY', perfArrRunway.value || '.....', 'HDG', heading),
+        formatAcarsPair('LDA', performanceFieldValue('perfLandingLda', '..... FT'), 'OAT', Number.isFinite(oat) ? `${Math.round(oat)} °C` : '..... °C'),
+        formatAcarsPair('HW/XW', performanceFieldValue('perfLandingHwXw', '.....'), 'QNH', Number.isFinite(qnh) ? `${Math.round(qnh)} ${qnhMode}` : `..... ${qnhMode}`),
+        formatAcarsPair('ELEV', performanceFieldValue('perfLandingElevation', '..... FT'), 'RWY COND', el('perfLandingCondition').value),
+        formatAcarsPair('DENSITY ALT', performanceFieldValue('perfLandingDensityAltitude', '..... FT'), 'RWY SLOPE', slope),
+        '',
+        'INPUTS:',
+        formatAcarsPair('LANDING WT', `${Math.round(Number(perfLdw.value) || 0)} LBS`, 'FLAPS', `${el('perfLandingFlaps').value}°`),
+        formatAcarsPair('BRAKING', el('perfLandingBraking').value, 'AC', el('perfLandingAc').value),
+        '',
+        'OUTPUTS:',
+        formatAcarsPair('VREF', performanceSpeedReport(performanceFieldValue('perfLandingVref')), 'RWY AVAIL', performanceFieldValue('perfLandingRwyAvail', '..... FT')),
+        formatAcarsPair('VAPP', performanceSpeedReport(performanceFieldValue('perfLandingFinalAppSpeed')), 'RWY REMAIN', performanceFieldValue('perfLandingRwyRemain', '..... FT')),
+        formatAcarsPair('LDG DIST REQ', performanceFieldValue('perfLandingDistReq', '..... FT'), 'RWY WIDTH', performanceFieldValue('perfLandingRwyWidth', '..... FT')),
+        '',
+        'GO-AROUND:',
+        formatAcarsPair('GO-AROUND PWR', performanceFieldValue('perfLandingGoAroundPower', 'FULL'), 'FLAPS UP SPD', performanceSpeedReport(performanceFieldValue('perfLandingFlapsUpSpeed'))),
+        '',
+        'RMK:',
+        remarks
+      ].join('\n');
     }
 
     function openPerformanceDocument(kind) {
@@ -2435,7 +2617,7 @@ END OF MESSAGE</pre>
       const title = kind === 'takeoff' ? 'TAKEOFF PERFORMANCE' : 'LANDING PERFORMANCE';
       const popup = window.open('', '_blank');
       if (!popup) return;
-      popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>body{margin:0;background:#fff;color:#000;font-family:"Courier New",monospace}.page{max-width:760px;margin:auto;padding:28px}.tools{margin-bottom:20px}button{padding:10px 14px;border:1px solid #000;background:#fff;color:#000;font:700 12px "Courier New",monospace;cursor:pointer}h1{margin:0 0 18px;font-size:20px}pre{margin:0;border:1px solid #000;padding:18px;font:13px/1.5 "Courier New",monospace;white-space:pre-wrap}@media print{.tools{display:none}.page{padding:0}pre{border:0;padding:0}}</style></head><body><main class="page"><div class="tools"><button onclick="window.print()">PRINT / SAVE AS PDF</button></div><h1>${title}</h1><pre>${escapeHtml(report)}</pre></main></body></html>`);
+      popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>body{margin:0;background:#fff;color:#000;font-family:"Courier New",monospace}.page{max-width:900px;margin:auto;padding:24px}.tools{margin-bottom:16px}button{padding:8px 12px;border:1px solid #000;background:#fff;color:#000;font:12px "Courier New",monospace;cursor:pointer}pre{margin:0;font:14px/1.35 "Courier New",monospace;white-space:pre-wrap;word-break:normal}@media print{.tools{display:none}.page{padding:0}}</style></head><body><main class="page"><div class="tools"><button onclick="window.print()">PRINT / SAVE AS PDF</button></div><pre>${escapeHtml(report)}</pre></main></body></html>`);
       popup.document.close();
     }
 
@@ -3353,7 +3535,7 @@ END OF MESSAGE</pre>
       latestPerformanceCalculations = null;
       runPerformanceReview().catch(() => {});
     }));
-    [perfTow, el('perfTakeoffFlaps'), el('perfTakeoffCondition'), el('perfTakeoffSpeedUnit'), el('perfTakeoffPower')].forEach(input => input.addEventListener('change', () => {
+    [perfTow, el('perfTakeoffFlaps'), el('perfTakeoffCondition'), el('perfTakeoffSpeedUnit')].forEach(input => input.addEventListener('change', () => {
       if (latestPerformanceData) calculatePerformanceSection('takeoff');
       performanceStatus.textContent = 'TAKEOFF INPUTS UPDATED / VERIFY THE RECALCULATED RESULT.';
     }));
@@ -3383,6 +3565,28 @@ END OF MESSAGE</pre>
       input.readOnly = true;
       input.addEventListener('change', () => {
         if (performanceModeIsManual(buttonId) && latestPerformanceData) calculatePerformanceSection(kind);
+      });
+    });
+    [el('perfTakeoffPower'), el('perfTakeoffAc')].forEach(input => input.addEventListener('change', () => refreshPerformanceManualDisplay('takeoff')));
+    [el('perfLandingAc')].forEach(input => input.addEventListener('change', () => refreshPerformanceManualDisplay('landing')));
+    document.querySelectorAll('#performanceOpsPane [contenteditable="true"]').forEach(node => {
+      const kind = node.closest('.performance-block')?.querySelector('#perfTakeoffAcars') ? 'takeoff' : 'landing';
+      node.addEventListener('input', () => refreshPerformanceManualDisplay(kind));
+      node.addEventListener('blur', () => refreshPerformanceManualDisplay(kind, true));
+      node.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          node.blur();
+        }
+      });
+    });
+    [perfDep, perfArr].forEach((input, index) => {
+      input.addEventListener('input', () => { input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4); });
+      input.addEventListener('change', async () => {
+        const runways = await fetchRunways(input.value).catch(() => []);
+        setPerformanceRunwayOptions(index === 0 ? perfDepRunway : perfArrRunway, runways, '');
+        latestPerformanceData = null;
+        performanceStatus.textContent = 'AIRPORT CHANGED / SELECT A RUNWAY AND LOAD PERFORMANCE.';
       });
     });
     calculateTakeoffBtn.addEventListener('click', () => calculatePerformanceSection('takeoff'));
