@@ -25,6 +25,11 @@
     .statusbox:last-child { border-right:0; }
     .statusbox span { display:block; color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.12em; }
     .statusbox strong { display:block; margin-top:5px; color:#fff; font-size:14px; overflow-wrap:anywhere; }
+    .flight-source { display:grid; grid-template-columns:auto minmax(0,1fr); gap:12px; align-items:center; padding:11px 14px; border-bottom:1px solid var(--line); background:linear-gradient(100deg,#07131d,#030609); }
+    .flight-source-badge { border:1px solid var(--blue); color:var(--blue); padding:6px 8px; font-size:9px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; white-space:nowrap; }
+    .flight-source.manual .flight-source-badge { border-color:var(--green); color:var(--green); }
+    .flight-source strong { display:block; color:#fff; font-size:11px; text-transform:uppercase; }
+    .flight-source span { display:block; margin-top:4px; color:var(--muted); font-size:9px; line-height:1.4; text-transform:uppercase; }
     .workspace { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(310px,.65fr); gap:12px; padding:12px; }
     .editor { display:grid; gap:10px; }
     details { border:1px solid var(--line); background:var(--panel); }
@@ -105,6 +110,26 @@
     html.embedded .topbar { display:none; }
     html.embedded .workspace { padding-top:8px; }
     @media (max-width:1050px) { .workspace { grid-template-columns:1fr; } .console { position:static; grid-template-columns:repeat(2,1fr); } .notice, .save-state { grid-column:1/-1; } }
+    @media (min-width:721px) and (max-width:1050px) {
+      body { padding:12px; }
+      .topbar { padding:16px; }
+      .top-actions { justify-content:flex-start; }
+      .top-actions .btn { min-height:46px; }
+      .statusline { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .statusbox:nth-child(3) { border-right:0; }
+      .statusbox:nth-child(n + 4) { border-top:1px solid var(--line); }
+      .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .field.wide { grid-column:span 2; }
+      .movement-grid, .time-support { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .movement-card { min-height:184px; }
+      .movement-card .movement-button, .movement-actions .btn { min-height:40px; }
+      .detail-body { padding:0 16px 16px; }
+      summary { padding:15px 16px; font-size:13px; }
+      input, select, textarea { min-height:44px; font-size:14px; }
+      label { font-size:11px; }
+      .console-card { padding:16px; }
+      .metric strong { font-size:19px; }
+    }
     @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two, .movement-grid, .time-support, .performance-grid { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .route-controls { grid-template-columns:1fr; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .load-source { grid-template-columns:1fr; } .movement-card { min-height:170px; grid-template-columns:auto 1fr; grid-template-rows:auto auto auto; gap:4px 12px; align-items:center; } .movement-card span { grid-column:1; } .movement-time { grid-column:2; grid-row:1/3; margin:0; text-align:right; } .movement-actions, .movement-card .movement-button { grid-column:1/-1; } }
   </style>
 </head>
@@ -121,6 +146,7 @@
       <div class="statusbox"><span>Commander</span><strong id="crewStatus">...</strong></div>
       <div class="statusbox"><span>Document</span><strong id="documentStatus">DRAFT</strong></div>
     </section>
+    <section id="flightSource" class="flight-source"><div id="flightSourceBadge" class="flight-source-badge">BOOKING PRELOAD</div><div><strong id="flightSourceTitle">Selected booking data loaded</strong><span id="flightSourceDetail">Operational route, runways, fuel, load, timings, and release fields remain editable in this flight plan.</span></div></section>
     <div class="workspace">
       <section class="editor">
         <details open>
@@ -131,8 +157,8 @@
               <label>Aircraft registration<input data-field="aircraftRegistration" placeholder="Internal use / optional" /></label>
               <label>Aircraft model<input data-field="aircraftModel" /></label>
               <label>Aircraft code<input data-field="aircraftCode" /></label>
-              <label>Departure / booking source<input data-field="departure" maxlength="4" readonly /></label>
-              <label>Destination / booking source<input data-field="destination" maxlength="4" readonly /></label>
+              <label><span id="departureFieldLabel">Operational departure ICAO</span><input data-field="departure" maxlength="4" placeholder="EFHV" /></label>
+              <label><span id="destinationFieldLabel">Operational destination ICAO</span><input data-field="destination" maxlength="4" placeholder="EFHN" /></label>
               <label>Departure runway<select id="depRunwaySelect" data-field="depRunway"><option value="">Loading runway database...</option></select></label>
               <label>Arrival runway<select id="arrRunwaySelect" data-field="arrRunway"><option value="">Loading runway database...</option></select></label>
               <div class="field wide route-controls"><label>Pilot route<textarea data-field="route" placeholder="DCT, VFR reporting points, airways, or pilot routing"></textarea></label><button id="directRouteBtn" class="btn" type="button">Use direct route</button></div>
@@ -192,9 +218,9 @@
               <label>BEM arm (IN)<input data-field="bemArmIn" type="number" readonly /></label>
               <label>Crew 1 (LB)<input data-field="crew1Lb" type="number" min="0" step="1" /></label>
               <label>Crew 2 (LB)<input data-field="crew2Lb" type="number" min="0" step="1" /></label>
-              <label>Booking passenger total (LB)<input data-field="bookingPassengerWeightLb" type="number" readonly /></label>
+              <label><span id="bookingPassengerLabel">Booking passenger total (LB)</span><input data-field="bookingPassengerWeightLb" type="number" readonly /></label>
               <label>Actual passenger total (LB)<input data-field="passengerWeightOverrideLb" type="number" min="0" max="1200" step="0.1" placeholder="Uses booking manifest" /></label>
-              <label>Booking baggage / cargo (LB)<input data-field="bookingBaggageWeightLb" type="number" readonly /></label>
+              <label><span id="bookingBaggageLabel">Booking baggage / cargo (LB)</span><input data-field="bookingBaggageWeightLb" type="number" readonly /></label>
               <label>Actual baggage / cargo (LB)<input data-field="baggageWeightOverrideLb" type="number" min="0" max="600" step="0.1" placeholder="Uses booking manifest" /></label>
               <div class="load-source">
                 <div id="passengerSourceCard" class="source-item"><span>Passenger load source</span><strong id="passengerSource">BOOKING MANIFEST</strong></div>
@@ -318,6 +344,24 @@
       setRunwayOptions(el('arrRunwaySelect'), arrivalRunways, plan.arrRunway);
     }
 
+    function renderFlightSource() {
+      const manual = request?.manualFlight === true;
+      el('flightSource').classList.toggle('manual', manual);
+      el('flightSourceBadge').textContent = manual ? 'MANUAL FLIGHT FILE' : 'BOOKING PRELOAD';
+      el('flightSourceTitle').textContent = manual
+        ? 'Pilot-only operational flight plan'
+        : 'Booking data loaded into the flight plan';
+      el('flightSourceDetail').textContent = manual
+        ? 'Enter the departure and destination ICAO codes, then build the operational route, runways, fuel, load, timings, and release record.'
+        : 'The passenger booking preloads schedule and declared load. Operational route, runways, fuel, actual load, timings, and release fields remain editable here without changing the passenger booking.';
+      el('departureFieldLabel').textContent = manual ? 'Departure ICAO' : 'Operational departure ICAO';
+      el('destinationFieldLabel').textContent = manual ? 'Destination ICAO' : 'Operational destination ICAO';
+      el('bookingPassengerLabel').textContent = manual ? 'Loaded passenger total (LB)' : 'Booking passenger total (LB)';
+      el('bookingBaggageLabel').textContent = manual ? 'Loaded baggage / cargo (LB)' : 'Booking baggage / cargo (LB)';
+      inputFor('passengerWeightOverrideLb').placeholder = manual ? 'Enter actual passenger load' : 'Uses booking manifest';
+      inputFor('baggageWeightOverrideLb').placeholder = manual ? 'Enter actual baggage / cargo' : 'Uses booking manifest';
+    }
+
     async function populate(refreshRunways = true) {
       if (refreshRunways) await populateRunwaySelectors();
       fields().forEach(input => {
@@ -326,10 +370,11 @@
         else input.value = value ?? '';
       });
       el('refStatus').textContent = request.id;
-      el('routeStatus').textContent = `${request.dep}-${request.arr}`;
-      el('scheduleStatus').textContent = `${request.requestDate || 'DATE'} ${request.requestTime || 'TIME'}L`;
+      el('routeStatus').textContent = `${plan.departure || '----'}-${plan.destination || '----'}`;
+      el('scheduleStatus').textContent = `${plan.dateUtc || request.requestDate || 'DATE'} ${request.requestTime || 'TIME'}L`;
       el('crewStatus').textContent = plan.commanderName || 'UNASSIGNED';
       el('profileVersion').textContent = `${plan.weightBalanceProfile?.profileVersion || 'LOCKED AIRCRAFT PROFILE'} / SERVER PROTECTED`;
+      renderFlightSource();
       renderPerformanceSnapshot();
       render();
     }
@@ -429,8 +474,9 @@
       setMetric('fuelWeight', `${calc.fuelWeightLb.toFixed(1)} LB`, calc.fuelWeightLb > calc.profile.stations.fuel.weightLimitLbs);
       el('paxWeight').textContent = `${calc.passengerWeightLb.toFixed(1)} LB`;
       setMetric('bagWeight', `${calc.baggageWeightLb.toFixed(1)} LB`, calc.baggageWeightLb > calc.profile.stations.baggage.weightLimitLbs);
-      el('passengerSource').textContent = calc.passengerOverride === null ? 'BOOKING MANIFEST' : 'PILOT ACTUAL LOAD';
-      el('baggageSource').textContent = calc.baggageOverride === null ? 'BOOKING MANIFEST' : 'PILOT ACTUAL LOAD';
+      const manualFlight = request?.manualFlight === true;
+      el('passengerSource').textContent = calc.passengerOverride === null ? manualFlight ? 'PILOT ENTRY REQUIRED' : 'BOOKING MANIFEST' : 'PILOT ACTUAL LOAD';
+      el('baggageSource').textContent = calc.baggageOverride === null ? manualFlight ? 'PILOT ENTRY REQUIRED' : 'BOOKING MANIFEST' : 'PILOT ACTUAL LOAD';
       el('passengerSourceCard').classList.toggle('override', calc.passengerOverride !== null);
       el('baggageSourceCard').classList.toggle('override', calc.baggageOverride !== null);
       setMetric('zeroFuelWeight', `${calc.zfw.toFixed(1)} LB`, calc.zfw > calc.profile.maxZeroFuelWeightLbs || !calc.zfwEnvelope.valid);
@@ -520,6 +566,9 @@
 
     async function capturePerformance() {
       readPlan();
+      if (!/^[A-Z0-9]{4}$/.test(plan.departure || '') || !/^[A-Z0-9]{4}$/.test(plan.destination || '')) {
+        throw new Error('Enter valid four-character departure and destination ICAO codes before capturing performance inputs.');
+      }
       if (!plan.depRunway || !plan.arrRunway) throw new Error('Select both runway ends before capturing aircraft performance inputs.');
       const calc = calculations();
       const params = new URLSearchParams({ dep:plan.departure, arr:plan.destination, takeoffRunway:plan.depRunway, landingRunway:plan.arrRunway, takeoffWeightLbs:String(calc.tow), landingWeightLbs:String(calc.landing) });
@@ -572,10 +621,23 @@
 
     document.querySelectorAll('.movement-button').forEach(button => { button.dataset.originalLabel = button.textContent; });
     fields().forEach(input => input.addEventListener('input', () => {
+      if (['departure', 'destination', 'alternate'].includes(input.dataset.field)) input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (input.dataset.field !== 'releaseAccepted' && inputFor('releaseAccepted').checked) {
         inputFor('releaseAccepted').checked = false;
         el('saveState').textContent = 'Pilot release cleared because the OFP was changed.';
       }
+      saved = false;
+      render();
+    }));
+    ['departure', 'destination'].forEach(field => inputFor(field).addEventListener('change', async () => {
+      readPlan();
+      if (!/^[A-Z0-9]{4}$/.test(plan[field] || '')) {
+        el('saveState').textContent = `Enter a valid four-character ${field === 'departure' ? 'departure' : 'destination'} ICAO code to load runway choices.`;
+        return;
+      }
+      if (field === 'departure') plan.depRunway = '';
+      if (field === 'destination') plan.arrRunway = '';
+      await populateRunwaySelectors();
       saved = false;
       render();
     }));

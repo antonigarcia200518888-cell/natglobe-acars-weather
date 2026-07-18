@@ -852,6 +852,92 @@ function nextBookingReference(depIcao, arrIcao) {
   return `${prefix}${String(highest + 1).padStart(3, '0')}`;
 }
 
+function helsinkiFlightDateTime() {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Helsinki',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(new Date());
+  const value = type => parts.find(part => part.type === type)?.value || '';
+  return {
+    date: `${value('year')}-${value('month')}-${value('day')}`,
+    time: `${value('hour')}:${value('minute')}`
+  };
+}
+
+function nextManualFlightReference() {
+  const { date } = helsinkiFlightDateTime();
+  const prefix = `OFP-${date.replaceAll('-', '')}-`;
+  const highest = bookingRequests.reduce((max, request) => {
+    if (!request?.manualFlight || !String(request.id || '').startsWith(prefix)) return max;
+    const sequence = Number(String(request.id).slice(prefix.length));
+    return Number.isInteger(sequence) ? Math.max(max, sequence) : max;
+  }, 0);
+  return `${prefix}${String(highest + 1).padStart(3, '0')}`;
+}
+
+function createManualFlightFile(req) {
+  const { date, time } = helsinkiFlightDateTime();
+  const commander = normalizeBookingText(req.pilotSession?.name || 'PILOT COMMANDER', 60).toUpperCase();
+  const id = nextManualFlightReference();
+  return {
+    id,
+    flightId: `NGA-MNL-${id.slice(-3)}`,
+    flightTitle: 'PILOT MANUAL FLIGHT FILE',
+    route: 'MANUAL OFP',
+    dep: '',
+    arr: '',
+    depName: 'MANUAL DEPARTURE',
+    arrName: 'MANUAL DESTINATION',
+    aircraft: AIRCRAFT_PROFILE.type,
+    costPerSeatEur: 0,
+    estimatedTotalEur: 0,
+    priceNote: 'PILOT-ONLY OPERATIONAL FILE',
+    requestDate: date,
+    requestTime: time,
+    tripType: 'ONE_WAY',
+    flightExperience: '',
+    scenicVariant: '',
+    estimatedFlightMinutes: 0,
+    returnDate: '',
+    returnTime: '',
+    returnPlan: '',
+    seats: 0,
+    passengers: [],
+    name: 'PILOT MANUAL FILE',
+    email: '',
+    phone: '',
+    dob: '',
+    weightKg: 0,
+    nationalId: '',
+    emergencyName: '',
+    emergencyPhone: '',
+    carryOnBags: 'NO',
+    baggageWeightKg: 0,
+    bagType: '',
+    powerBanks: 'NO',
+    seatPreference: '',
+    extras: '',
+    extrasNotes: '',
+    medicalStatus: 'PILOT MANUAL FILE',
+    substancesStatus: '',
+    flightPurpose: 'PILOT MANUAL OFP',
+    scheduleFlexibility: '',
+    contractAccepted: false,
+    pilotDecision: 'MANUAL',
+    paymentStatus: 'N/A',
+    status: 'MANUAL',
+    manualFlight: true,
+    crew: { commander, secondary: 'NONE' },
+    message: 'Created from Pilot Ops. This manual flight file has no passenger notification workflow.',
+    createdAt: new Date().toISOString()
+  };
+}
+
 const BOOKING_TERMINALS = {
   EFHK: 'FINAVIA FBO',
   EETN: 'FBO TALLINN VIP',
@@ -1285,8 +1371,10 @@ function normalizeOperationalFlightPlan(input, request) {
     commanderName: textField('commanderName', 60).toUpperCase(),
     commanderPhone: textField('commanderPhone', 40),
     callsign: textField('callsign', 40).toUpperCase(),
-    departure: normalizeBookingText(request?.dep || defaults.departure, 8).toUpperCase(),
-    destination: normalizeBookingText(request?.arr || defaults.destination, 8).toUpperCase(),
+    // The booking route is the initial OFP source, but the operational route can be
+    // adjusted by the pilot without altering the passenger-facing reservation.
+    departure: textField('departure', 8).toUpperCase(),
+    destination: textField('destination', 8).toUpperCase(),
     depRunway: textField('depRunway', 12).toUpperCase(),
     arrRunway: textField('arrRunway', 12).toUpperCase(),
     route: textField('route', 240).toUpperCase(),
@@ -1417,6 +1505,7 @@ function createBookingManagementToken() {
 }
 
 function getRequestPassengers(request) {
+  if (request?.manualFlight) return [];
   return request.passengers?.length ? request.passengers : [{ number: 1, name: request.name }];
 }
 
@@ -1766,7 +1855,9 @@ function applyBookingItineraryUpdate(request, update) {
 }
 
 function formatBookingMessage(request) {
-  const passengerLines = (request.passengers?.length ? request.passengers : [{
+  const passengerLines = request.manualFlight
+    ? ['PILOT-ONLY MANUAL FLIGHT FILE / NO PASSENGER DATA']
+    : (request.passengers?.length ? request.passengers : [{
     number: 1,
     name: request.name,
     weightKg: request.weightKg,
@@ -1796,7 +1887,7 @@ function formatBookingMessage(request) {
     `TITLE ${String(request.flightTitle || 'CUSTOM ROUTE').toUpperCase()}`,
     `A/C ${String(request.aircraft || AIRCRAFT_PROFILE.registration + ' / ' + AIRCRAFT_PROFILE.type).toUpperCase()}`,
     `CREW CMD ${request.crew?.commander || 'UNASSIGNED'}   SIC ${request.crew?.secondary || 'NONE'}`,
-    `PAX COUNT ${request.seats}`,
+    `PAX COUNT ${request.manualFlight ? 0 : request.seats}`,
     ...passengerLines,
     emergency,
     returnLine,
@@ -4206,6 +4297,22 @@ app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
   });
 });
 
+app.post('/api/booking-ops/manual-flight', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  if (!requireFlightCrew(req, res)) return;
+  const request = createManualFlightFile(req);
+  request.operationalFlightPlan = normalizeOperationalFlightPlan(operationalFlightPlanDefaults(request), request);
+  bookingRequests.push(request);
+  await persistBookingRequest(request);
+  await addBookingTimelineEvent(request.id, 'MANUAL OFP CREATED', 'Pilot-only empty flight file created from Pilot Ops.', pilotActor(req));
+  res.status(201).json({
+    request: {
+      ...request,
+      bookingMessage: formatBookingMessage(request)
+    }
+  });
+});
+
 function reimbursementPdfText(value, limit = 70) {
   const text = String(value || '---').replace(/\s+/g, ' ').trim() || '---';
   return text.length > limit ? `${text.slice(0, Math.max(0, limit - 3))}...` : text;
@@ -4235,17 +4342,21 @@ function ofpClock(value, minutes = 0) {
 }
 
 function operationalFlightPlanDefaults(request) {
+  const manualFlight = request?.manualFlight === true;
   const depAirport = bookingAirports.find(item => item.icao === request?.dep);
   const arrAirport = bookingAirports.find(item => item.icao === request?.arr);
-  const minutes = Math.max(10, Number(request?.estimatedFlightMinutes) || estimateBoardingPassFlightMinutes(request?.dep, request?.arr) || 60);
+  const requestedMinutes = Number(request?.estimatedFlightMinutes) || 0;
+  const minutes = manualFlight
+    ? Math.max(0, requestedMinutes)
+    : Math.max(10, requestedMinutes || estimateBoardingPassFlightMinutes(request?.dep, request?.arr) || 60);
   const distance = depAirport && arrAirport && depAirport.icao !== arrAirport.icao
     ? ofpRound(kmToNm(haversineKm(depAirport, arrAirport)), 0)
-    : ofpRound((minutes / 60) * AIRCRAFT_PROFILE.cruiseTasKt, 0);
+    : manualFlight ? 0 : ofpRound((minutes / 60) * AIRCRAFT_PROFILE.cruiseTasKt, 0);
   const fuelFlowGph = 10;
-  const tripFuelGal = ofpRound((minutes / 60) * fuelFlowGph, 1);
-  const taxiFuelGal = ofpRound(AIRCRAFT_PROFILE.startTaxiTakeoffFuelGal, 1);
-  const contingencyFuelGal = ofpRound(Math.max(0.5, tripFuelGal * 0.05), 1);
-  const finalReserveFuelGal = ofpRound(fuelFlowGph * 0.5, 1);
+  const tripFuelGal = manualFlight ? 0 : ofpRound((minutes / 60) * fuelFlowGph, 1);
+  const taxiFuelGal = manualFlight ? 0 : ofpRound(AIRCRAFT_PROFILE.startTaxiTakeoffFuelGal, 1);
+  const contingencyFuelGal = manualFlight ? 0 : ofpRound(Math.max(0.5, tripFuelGal * 0.05), 1);
+  const finalReserveFuelGal = manualFlight ? 0 : ofpRound(fuelFlowGph * 0.5, 1);
   const localOut = ofpClock(request?.requestTime, 0);
   const localOff = ofpClock(request?.requestTime, 10);
   const localOn = ofpClock(request?.requestTime, 10 + minutes);
@@ -5271,6 +5382,18 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
         flightPlan.releaseSnapshot = previousPlan?.releaseSnapshot || null;
       }
       request.operationalFlightPlan = flightPlan;
+      if (request.manualFlight) {
+        request.dep = flightPlan.departure;
+        request.arr = flightPlan.destination;
+        request.depName = flightPlan.departure || 'MANUAL DEPARTURE';
+        request.arrName = flightPlan.destination || 'MANUAL DESTINATION';
+        request.route = flightPlan.departure && flightPlan.destination
+          ? `${flightPlan.departure}-${flightPlan.destination}`
+          : 'MANUAL OFP';
+        request.flightTitle = request.route === 'MANUAL OFP' ? 'PILOT MANUAL FLIGHT FILE' : `PILOT OFP ${request.route}`;
+        request.requestDate = flightPlan.dateUtc || request.requestDate;
+        request.estimatedFlightMinutes = flightPlan.estimatedEnrouteMinutes || 0;
+      }
       await addBookingTimelineEvent(
         request.id,
         flightPlan.releaseAccepted ? 'OFP RELEASE ACKNOWLEDGED' : wasReleased ? 'OFP RELEASE CLEARED' : 'OFP DRAFT SAVED',

@@ -240,6 +240,13 @@
     .tool-flight-context { color: var(--live); font-size: 11px; text-transform: uppercase; text-align: right; }
     .ops-tool-pane { padding: 18px; }
     .ofp-frame { width: 100%; height: min(80vh, 1040px); min-height: 680px; border: 1px solid #344654; border-radius: 5px; background: #000; }
+    .ofp-empty-state { display:grid; place-items:center; min-height:520px; border:1px dashed #40576a; border-radius:5px; background:linear-gradient(145deg,#091521,#020609); text-align:center; padding:28px; }
+    .ofp-empty-state > div { max-width:520px; }
+    .ofp-empty-state span { display:block; color:#7893a7; font-size:9px; letter-spacing:.14em; text-transform:uppercase; }
+    .ofp-empty-state strong { display:block; margin:10px 0 8px; color:#fff; font-size:20px; text-transform:uppercase; }
+    .ofp-empty-state p { margin:0 auto 18px; color:#9fb0bc; font-size:11px; line-height:1.55; text-transform:uppercase; }
+    .dashboard-action.manual-flight { border-color:#719ab7; background:linear-gradient(145deg,#102536,#05090d); }
+    .dashboard-action.manual-flight strong { color:var(--accent); }
 
     .weather-console, .performance-console { border:1px solid #405568; border-radius:6px; background:#05090d; overflow:hidden; }
     .acars-console-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 15px; border-bottom:1px solid #34495a; background:linear-gradient(100deg,#102435,#071018 72%); }
@@ -1356,7 +1363,16 @@
     }
 
     @media (max-width: 1180px) {
-      .efb-layout { grid-template-columns: 190px minmax(0,1fr); }
+      .efb-layout { grid-template-columns:1fr; }
+      .ops-suite-nav { position:static; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:8px; }
+      .suite-tab { min-height:82px; padding:12px; }
+      .suite-tab strong { font-size:14px; }
+      .suite-tab small { font-size:9px; }
+      .active-flight-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .flight-strip-route, #activeFlightWeatherCard { grid-column:1/-1; }
+      .dashboard-actions { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .dashboard-action { min-height:118px; padding:14px; }
+      .efb-action { min-height:48px; padding:10px 13px; }
       .performance-form { grid-template-columns: repeat(3, minmax(0,1fr)); }
       .weather-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
       .aircraft-performance-head { display:block; }
@@ -1381,8 +1397,8 @@
       .flight-control-head { display: block; }
       .flight-control-head em { display: block; margin-top: 8px; }
       .ops-suite-nav { display:grid; grid-template-columns: repeat(2, 1fr); position:static; }
-      .active-flight-strip { grid-template-columns:repeat(3,minmax(0,1fr)); }
-      .flight-strip-route { grid-column:span 2; }
+      .active-flight-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .flight-strip-route, #activeFlightWeatherCard { grid-column:1/-1; }
       .performance-form, .performance-results, .suite-doc-summary, .suite-document-actions, .weather-lower, .weather-output-layout { grid-template-columns: 1fr; }
       .performance-metrics { grid-template-columns: repeat(2, 1fr); }
       .weather-toolbar { grid-template-columns:1fr 1fr; }
@@ -1392,6 +1408,22 @@
       .aircraft-specs div { border-left:0; border-top:1px solid #405567; }
       .tool-workspace-head { display: block; }
       .tool-flight-context { margin-top: 8px; text-align: left; }
+    }
+
+    @media (min-width:561px) and (max-width:900px) {
+      .frame { padding:14px; }
+      .ops-suite-nav { gap:9px; padding:9px; }
+      .suite-tab { min-height:88px; padding:13px; }
+      .suite-tab span { font-size:10px; }
+      .suite-tab strong { font-size:15px; }
+      .suite-tab small { font-size:10px; }
+      .dashboard-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .dashboard-action { min-height:126px; }
+      .ops-command-strip { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .ops-watch { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .ops-watch > :last-child { grid-column:1/-1; }
+      .ops-tool-pane { padding:14px; }
+      .ofp-frame { min-height:760px; height:82vh; }
     }
 
     @media (max-width: 560px) {
@@ -1448,6 +1480,7 @@
         <button class="dashboard-action" type="button" data-dashboard-view="weather"><span>Preflight dispatch</span><strong>Weather</strong><small>Enter any ICAO route or load the selected flight route for a live dispatch briefing.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="flight-plan"><span>Controlled document</span><strong>Flight plan</strong><small>Build the OFP, record movement times, fuel, load, release, and PDF.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="documents"><span>Flight file</span><strong>Documents</strong><small>Open the OFP, reimbursement statement, agreements, and operations PDF.</small></button>
+        <button id="createManualOfpBtn" class="dashboard-action manual-flight" type="button"><span>Pilot-only file</span><strong>New manual OFP</strong><small>Start an empty operational flight plan with editable route, fuel, load, runway, and timings.</small></button>
       </div>
       <section class="ops-command-strip" aria-label="Operations queue totals">
         <div class="ops-command-card"><span>Total requests</span><strong id="opsTotal">0</strong></div>
@@ -1499,6 +1532,9 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
         </div>
       </div>
       <div id="flightPlanOpsPane" class="ops-tool-pane" hidden>
+        <section id="ofpEmptyState" class="ofp-empty-state">
+          <div><span>Flight plan workspace</span><strong>Select a flight or start manually</strong><p>A selected request preloads its schedule and declared load. You can still adjust operational planning fields in the OFP. Manual files remain pilot-only.</p><button id="createManualOfpFromPlanBtn" class="efb-action primary" type="button">Create empty OFP</button></div>
+        </section>
         <iframe id="ofpOpsFrame" class="ofp-frame" title="Selected flight operational flight plan"></iframe>
       </div>
       <div id="performanceOpsPane" class="ops-tool-pane" hidden>
@@ -1974,6 +2010,9 @@ END OF MESSAGE</pre>
     const weatherReportMode = el('weatherReportMode');
     const weatherOptionInputs = ['wxDepMetar','wxDepTaf','wxArrMetar','wxArrTaf','wxAltnMetar','wxAltnTaf','wxWinds'].map(el);
     const ofpOpsFrame = el('ofpOpsFrame');
+    const ofpEmptyState = el('ofpEmptyState');
+    const createManualOfpBtn = el('createManualOfpBtn');
+    const createManualOfpFromPlanBtn = el('createManualOfpFromPlanBtn');
     const toolWorkspaceKicker = el('toolWorkspaceKicker');
     const toolWorkspaceTitle = el('toolWorkspaceTitle');
     const toolFlightContext = el('toolFlightContext');
@@ -2078,7 +2117,11 @@ END OF MESSAGE</pre>
 
       activeFlightStrip.dataset.active = String(Boolean(req));
       activeFlightRoute.textContent = req ? (req.route || `${req.dep || '----'} > ${req.arr || '----'}`) : 'NO FLIGHT SELECTED';
-      activeFlightReference.textContent = req ? `${req.id || 'REFERENCE PENDING'} / ${req.status || 'REQUESTED'} / ${req.pilotDecision || 'PILOT REVIEW'}` : 'SELECT A REQUEST TO START THE EFB WORKFLOW';
+      activeFlightReference.textContent = req
+        ? req.manualFlight
+          ? `${req.id || 'REFERENCE PENDING'} / PILOT-ONLY MANUAL FLIGHT FILE`
+          : `${req.id || 'REFERENCE PENDING'} / ${req.status || 'REQUESTED'} / ${req.pilotDecision || 'PILOT REVIEW'}`
+        : 'SELECT A REQUEST TO START THE EFB WORKFLOW';
       activeFlightSchedule.textContent = req ? `${req.requestDate || 'DATE TBC'} ${req.requestTime || 'TIME TBC'}` : '--';
       activeFlightPhase.textContent = phase.label;
       activeFlightPhaseDetail.textContent = phase.detail;
@@ -2333,6 +2376,28 @@ END OF MESSAGE</pre>
       setPerformanceRunwayOptions(perfArrRunway, arrivalRunways, req.operationalFlightPlan?.arrRunway);
     }
 
+    async function createManualFlightPlan() {
+      if (!window.confirm('Create a new empty operational flight plan? It will be a pilot-only file and will not notify passengers.')) return;
+      [createManualOfpBtn, createManualOfpFromPlanBtn].forEach(button => { if (button) button.disabled = true; });
+      mode.textContent = 'MODE: CREATING PILOT-ONLY OFP';
+      try {
+        const response = await fetch('/api/booking-ops/manual-flight', { method:'POST' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'UNABLE TO CREATE MANUAL OFP');
+        requests = [data.request, ...requests.filter(item => item.id !== data.request.id)];
+        renderOpsTotals();
+        renderCalendar();
+        selectRequest(data.request);
+        ofpOpsFrame.dataset.context = '';
+        mode.textContent = `MODE: MANUAL OFP ${data.request.id} READY`;
+        switchOpsWorkspace('flight-plan');
+      } catch (error) {
+        mode.textContent = `MODE: ${error.message || 'UNABLE TO CREATE MANUAL OFP'}`;
+      } finally {
+        [createManualOfpBtn, createManualOfpFromPlanBtn].forEach(button => { if (button) button.disabled = false; });
+      }
+    }
+
     function switchOpsWorkspace(view) {
       const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'documents']);
       if (!allowedViews.has(view)) view = 'dashboard';
@@ -2348,15 +2413,19 @@ END OF MESSAGE</pre>
       performanceOpsPane.hidden = view !== 'performance';
       documentsOpsPane.hidden = view !== 'documents';
       if (view === 'flight-plan') {
-        toolWorkspaceKicker.textContent = 'Selected flight / Pilot workflow';
+        toolWorkspaceKicker.textContent = selected?.manualFlight ? 'Pilot-only workflow' : 'Selected flight / Pilot workflow';
         toolWorkspaceTitle.textContent = 'Operational Flight Plan';
         if (selected?.id) {
           const ofpUrl = `/booking-ops/requests/${encodeURIComponent(selected.id)}/operational-flight-plan?embedded=1`;
+          ofpEmptyState.hidden = true;
+          ofpOpsFrame.hidden = false;
           if (ofpOpsFrame.dataset.context !== selected.id) {
             ofpOpsFrame.dataset.context = selected.id;
             ofpOpsFrame.src = ofpUrl;
           }
         } else {
+          ofpEmptyState.hidden = false;
+          ofpOpsFrame.hidden = true;
           ofpOpsFrame.removeAttribute('src');
         }
       } else if (view === 'weather') {
@@ -3103,6 +3172,7 @@ END OF MESSAGE</pre>
     }
 
     function passengerList(req) {
+      if (req?.manualFlight) return [];
       return req.passengers?.length ? req.passengers : [{
         number: 1,
         name: req.name,
@@ -3129,6 +3199,7 @@ END OF MESSAGE</pre>
 
     function needsOpsAction(req) {
       if (!req) return false;
+      if (req.manualFlight) return false;
       if (['DECLINED', 'CANCELLED'].includes(req.status) || ['DECLINED', 'CANCELLED'].includes(req.pilotDecision)) return false;
       if (req.managementRequest?.status === 'PENDING') return true;
       if (req.status === 'REQUESTED') return true;
@@ -3161,11 +3232,12 @@ END OF MESSAGE</pre>
 
     function renderOpsTotals() {
       const today = todayIso();
-      opsTotal.textContent = requests.length;
-      opsNeedsAction.textContent = requests.filter(needsOpsAction).length;
-      opsConfirmed.textContent = requests.filter(req => req.status === 'CONFIRMED').length;
-      opsUnpaid.textContent = requests.filter(req => isOperationallyActive(req) && req.paymentStatus !== 'PAID').length;
-      opsToday.textContent = requests.filter(req => isOperationallyActive(req) && req.requestDate === today).length;
+      const customerRequests = requests.filter(req => !req.manualFlight);
+      opsTotal.textContent = customerRequests.length;
+      opsNeedsAction.textContent = customerRequests.filter(needsOpsAction).length;
+      opsConfirmed.textContent = customerRequests.filter(req => req.status === 'CONFIRMED').length;
+      opsUnpaid.textContent = customerRequests.filter(req => isOperationallyActive(req) && req.paymentStatus !== 'PAID').length;
+      opsToday.textContent = customerRequests.filter(req => isOperationallyActive(req) && req.requestDate === today).length;
       renderOpsWatch();
     }
 
@@ -3387,6 +3459,35 @@ END OF MESSAGE</pre>
     }
 
     function renderFlightControl(req) {
+      if (req.manualFlight) {
+        const ofp = req.operationalFlightPlan || null;
+        const routeReady = Boolean(ofp?.departure && ofp?.destination && ofp?.route);
+        const released = Boolean(ofp?.releaseAccepted);
+        setControlTone(controlFlight, routeReady ? 'good' : 'warn');
+        controlFlight.innerHTML = `<strong>01 / Flight</strong>${escapeHtml(routeReady ? `${ofp.departure}-${ofp.destination} / manual route loaded` : 'Enter route and schedule in the OFP')}`;
+        setControlTone(controlCrew, ofp?.commanderName ? 'good' : 'warn');
+        controlCrew.innerHTML = `<strong>02 / Crew</strong>${escapeHtml(ofp?.commanderName ? `CMD ${ofp.commanderName}` : 'Commander entry open')}`;
+        setControlTone(controlOfp, released ? 'good' : ofp ? 'warn' : 'danger');
+        controlOfp.innerHTML = `<strong>03 / OFP</strong>${escapeHtml(released ? 'Pilot release acknowledged' : ofp ? 'Draft / verification open' : 'Not started')}`;
+        setControlTone(controlDocuments, 'good');
+        controlDocuments.innerHTML = '<strong>04 / File type</strong>Pilot-only manual flight file';
+        setControlTone(controlDecision, released ? 'good' : 'warn');
+        controlDecision.innerHTML = `<strong>05 / Readiness</strong>${escapeHtml(released ? 'Released for pilot use' : 'Complete route, load, briefing, and release')}`;
+        flightControlSummary.textContent = `${[routeReady, Boolean(ofp?.commanderName), released].filter(Boolean).length}/3 MANUAL FLIGHT CONTROLS COMPLETE`;
+        setControlTone(ofpDocumentCard, released ? 'good' : ofp ? 'warn' : 'danger');
+        ofpDocumentStatus.textContent = released ? 'RELEASE ACKNOWLEDGED' : ofp ? 'DRAFT SAVED' : 'NOT STARTED';
+        ofpDocumentDetail.textContent = ofp ? `${ofp.departure || '----'}-${ofp.destination || '----'} / BLOCK ${ofp.blockFuelGal || 0}USG / TOW ${ofp.takeoffWeightLb || 0}LB` : 'Route, fuel, load, time, and release.';
+        openOfpBtn.textContent = ofp ? 'EDIT OFP / OPEN PDF' : 'BUILD OFP';
+        setControlTone(statementDocumentCard, 'good');
+        statementDocumentStatus.textContent = 'NOT APPLICABLE';
+        setControlTone(agreementDocumentCard, 'good');
+        agreementDocumentStatus.textContent = 'NO PASSENGERS';
+        setControlTone(flightFileDocumentCard, routeReady ? 'good' : 'warn');
+        flightFileDocumentStatus.textContent = routeReady ? 'AVAILABLE' : 'ROUTE OPEN';
+        renderMovementPhases(req);
+        renderLiveMovementControls(req);
+        return;
+      }
       const passengers = passengerList(req);
       const signed = agreementCount(req);
       const routeReady = Boolean(req.dep && req.arr && req.requestDate && req.requestTime);
@@ -3433,9 +3534,9 @@ END OF MESSAGE</pre>
       dispatchRoute.textContent = req.route || '.....';
       dispatchSchedule.textContent = `${req.depName || req.dep || 'DEP'} to ${req.arrName || req.arr || 'ARR'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}`;
       dispatchFlightTime.textContent = opsFlightTime(req);
-      dispatchPax.textContent = `${req.seats || passengers.length || 1} PAX / ${passengers[0]?.name || req.name || 'PASSENGER'}`;
-      dispatchLuggage.textContent = req.carryOnBags === 'YES' ? `${req.baggageWeightKg || '0'} KG / ${req.bagType || 'BAG TYPE NIL'}` : 'NO DECLARED LUGGAGE';
-      dispatchCost.textContent = req.estimatedTotalEur ? `${money(req.estimatedTotalEur)} TOTAL` : 'PILOT CONFIRMS';
+      dispatchPax.textContent = req.manualFlight ? 'PILOT ENTRY IN OFP' : `${req.seats || passengers.length || 1} PAX / ${passengers[0]?.name || req.name || 'PASSENGER'}`;
+      dispatchLuggage.textContent = req.manualFlight ? 'ENTER ACTUAL CARGO IN OFP' : req.carryOnBags === 'YES' ? `${req.baggageWeightKg || '0'} KG / ${req.bagType || 'BAG TYPE NIL'}` : 'NO DECLARED LUGGAGE';
+      dispatchCost.textContent = req.manualFlight ? 'PILOT-ONLY FILE' : req.estimatedTotalEur ? `${money(req.estimatedTotalEur)} TOTAL` : 'PILOT CONFIRMS';
     }
 
     function setIntelligenceValue(node, value, tone = '') {
@@ -3501,6 +3602,10 @@ END OF MESSAGE</pre>
     }
 
     function renderManifest(req) {
+      if (req.manualFlight) {
+        manifestList.innerHTML = '<div class="manifest-card"><strong>PILOT-ONLY FLIGHT FILE</strong>No passenger manifest is connected to this manual OFP. Enter actual load in the OFP mass and balance section.</div>';
+        return;
+      }
       const passengers = passengerList(req);
       manifestList.innerHTML = passengers.map(passenger => `
         <div class="manifest-card">
@@ -3517,6 +3622,13 @@ END OF MESSAGE</pre>
     }
 
     function updateWalletControls(req) {
+      if (req.manualFlight) {
+        walletPassenger.innerHTML = '<option>NO PASSENGER FILE</option>';
+        walletPassenger.disabled = true;
+        webPassBtn.disabled = true;
+        walletPassStatus.textContent = 'Manual flight files do not issue passenger flight passes.';
+        return;
+      }
       const passengers = req.passengers?.length ? req.passengers : [{ number: 1, name: req.name }];
       walletPassenger.innerHTML = passengers.map(passenger =>
         `<option value="${escapeHtml(passenger.number || 1)}">PAX ${escapeHtml(passenger.number || 1)} / ${escapeHtml(passenger.name || 'PRIVATE GUEST')}</option>`
@@ -3637,6 +3749,14 @@ END OF MESSAGE</pre>
         return matchesQuery && matchesQuickFilter(req) && (filterStatus.value === 'ALL' || req.status === filterStatus.value) && (!filterDate.value || req.requestDate === filterDate.value);
       }));
       requestList.innerHTML = visible.map(req => {
+        if (req.manualFlight) return `
+          <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
+            <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">MANUAL OFP</span></div>
+            ${escapeHtml(req.route || 'MANUAL OFP')} / ${escapeHtml(req.requestDate || 'DATE OPEN')} ${escapeHtml(req.requestTime || 'TIME OPEN')}<br>
+            PILOT-ONLY FLIGHT FILE / NO PASSENGER NOTIFICATIONS<br>
+            <div class="request-state-row"><span class="request-state state-info">MANUAL</span><span class="request-state state-good">READY TO PLAN</span><span class="request-state ${req.operationalFlightPlan?.releaseAccepted ? 'state-good' : 'state-warn'}">${req.operationalFlightPlan?.releaseAccepted ? 'RELEASED' : 'DRAFT'}</span></div>
+          </div>
+        `;
         const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
         const paid = req.paymentStatus === 'PAID';
         const priority = priorityData(req);
@@ -3669,20 +3789,23 @@ END OF MESSAGE</pre>
     function selectRequest(req) {
       if (selected?.id !== req.id) latestPerformanceData = null;
       selected = req;
+      const manualFlight = req.manualFlight === true;
       el('ref').textContent = req.id || '.....';
       el('route').textContent = req.route || '.....';
-      el('pax').textContent = `${req.name || '.....'} / ${req.seats || '?'} PAX`;
+      el('pax').textContent = manualFlight ? 'PILOT-ONLY / NO PAX' : `${req.name || '.....'} / ${req.seats || '?'} PAX`;
       el('status').textContent = req.status || '.....';
       const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
       const paid = req.paymentStatus === 'PAID';
       const statementSaved = Boolean(req.reimbursementStatement);
-      el('decision').textContent = approved ? 'APPROVED' : 'NOT APPROVED';
-      el('payment').textContent = paid ? 'PAID' : (req.paymentStatus || 'UNPAID');
-      el('decision').className = approved ? 'state-good' : 'state-danger';
-      el('payment').className = paid ? 'state-good' : 'state-danger';
-      paymentStatus.value = req.paymentStatus || 'UNPAID';
-      statementStatus.textContent = statementSaved ? 'SAVED / READY TO APPROVE' : 'REQUIRED BEFORE APPROVAL';
-      statementStatus.className = `statement-status ${statementSaved ? 'ready' : 'required'}`;
+      el('decision').textContent = manualFlight ? 'MANUAL FILE' : approved ? 'APPROVED' : 'NOT APPROVED';
+      el('payment').textContent = manualFlight ? 'N/A' : paid ? 'PAID' : (req.paymentStatus || 'UNPAID');
+      el('decision').className = manualFlight || approved ? 'state-good' : 'state-danger';
+      el('payment').className = manualFlight || paid ? 'state-good' : 'state-danger';
+      paymentStatus.value = manualFlight ? 'UNPAID' : (req.paymentStatus || 'UNPAID');
+      paymentStatus.disabled = manualFlight;
+      statementStatus.textContent = manualFlight ? 'NOT APPLICABLE / PILOT-ONLY FILE' : statementSaved ? 'SAVED / READY TO APPROVE' : 'REQUIRED BEFORE APPROVAL';
+      statementStatus.className = `statement-status ${manualFlight || statementSaved ? 'ready' : 'required'}`;
+      [approveBtn, needsInfoBtn, declineBtn].forEach(button => { if (button) button.disabled = manualFlight; });
       bookingMessage.textContent = req.bookingMessage || 'NO BOOKING MESSAGE';
       setText('briefOutbound', `${req.depName || req.dep || 'DEP'} to ${req.arrName || req.arr || 'ARR'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}`);
       setText('briefReturn', requestReturnText(req));
@@ -3891,6 +4014,8 @@ END OF MESSAGE</pre>
     openWeatherOpsBtn.addEventListener('click', () => switchOpsWorkspace('weather'));
     suiteTabs.forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.suiteView)));
     document.querySelectorAll('[data-dashboard-view]').forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.dashboardView)));
+    createManualOfpBtn.addEventListener('click', createManualFlightPlan);
+    createManualOfpFromPlanBtn.addEventListener('click', createManualFlightPlan);
     refreshWeatherBtn.addEventListener('click', () => loadWeatherWorkspace(true).catch(() => {}));
     openWeatherPdfBtn.addEventListener('click', openWeatherPdf);
     [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('input', () => {
