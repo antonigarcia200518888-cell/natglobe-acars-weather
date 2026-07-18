@@ -505,13 +505,16 @@
         const sequence = ['actualOut', 'actualOff', 'actualOn', 'actualIn'];
         const index = sequence.indexOf(field);
         const previousRecorded = index === 0 || Boolean(plan[sequence[index - 1]]);
-        const enabled = Boolean(plan.releaseAccepted) && previousRecorded && !value;
+        // Movement times are operational records, not a release prerequisite. A pilot
+        // can start recording them while the OFP remains a draft, but each saved time
+        // is immutable and the normal OUT > OFF > ON > IN order is preserved.
+        const enabled = previousRecorded && !value;
         stampButton.disabled = !enabled;
         manualButton.disabled = !enabled;
         manualInput.disabled = !enabled;
         manualInput.value = value ? localTimeFromMovement(value) : manualInput.value;
-        stampButton.textContent = value ? `${field.replace('actual','').toUpperCase()} LOCKED` : enabled ? stampButton.dataset.originalLabel : !plan.releaseAccepted ? 'RELEASE REQUIRED' : `AWAIT ${sequence[index - 1].replace('actual','').toUpperCase()}`;
-        manualButton.textContent = value ? 'TIME LOCKED' : enabled ? 'SAVE TIME' : !plan.releaseAccepted ? 'RELEASE REQUIRED' : `AWAIT ${sequence[index - 1].replace('actual','').toUpperCase()}`;
+        stampButton.textContent = value ? `${field.replace('actual','').toUpperCase()} LOCKED` : enabled ? stampButton.dataset.originalLabel : `AWAIT ${sequence[index - 1].replace('actual','').toUpperCase()}`;
+        manualButton.textContent = value ? 'TIME LOCKED' : enabled ? 'SAVE TIME' : `AWAIT ${sequence[index - 1].replace('actual','').toUpperCase()}`;
       });
     }
 

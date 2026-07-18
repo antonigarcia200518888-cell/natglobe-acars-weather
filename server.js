@@ -5167,7 +5167,7 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   if (!requireFlightCrew(req, res)) return;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
-  if (!request.operationalFlightPlan) return res.status(409).json({ error: 'SAVE AND RELEASE THE OFP BEFORE RECORDING MOVEMENT TIMES' });
+  if (!request.operationalFlightPlan) return res.status(409).json({ error: 'SAVE THE OFP DRAFT BEFORE RECORDING MOVEMENT TIMES' });
 
   const phase = String(req.params.phase || '').trim().toLowerCase();
   const movementSteps = [
@@ -5180,7 +5180,6 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   if (stepIndex === -1) return res.status(400).json({ error: 'INVALID MOVEMENT PHASE' });
 
   const previousPlan = normalizeOperationalFlightPlan(request.operationalFlightPlan, request);
-  if (!previousPlan.releaseAccepted) return res.status(409).json({ error: 'PILOT RELEASE IS REQUIRED BEFORE RECORDING OUT TIME' });
   const step = movementSteps[stepIndex];
   if (previousPlan[step.field]) return res.status(409).json({ error: `${step.label} TIME IS LOCKED` });
   if (stepIndex > 0 && !previousPlan[movementSteps[stepIndex - 1].field]) {
