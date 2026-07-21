@@ -8537,7 +8537,10 @@
     .luxury-booking .review-dialog-card {
       width: min(980px, 100%);
       padding: 0;
-      overflow: hidden;
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
     }
 
     .luxury-booking .review-dialog-head {
@@ -8569,6 +8572,10 @@
     .luxury-booking .review-actions {
       padding: 18px 30px 28px;
       background: #fff;
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+      border-top: 1px solid rgba(7,29,73,0.12);
     }
 
     .luxury-booking .review-cancel,
