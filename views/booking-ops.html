@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05080d" />
+  <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <title>NGA Pilot Operations Centre</title>
   <style>
     :root {
@@ -1027,6 +1029,61 @@
     .document-card.danger { border-color: var(--danger); }
     .document-card.danger strong { color: var(--danger); }
 
+    .release-console { margin-bottom:10px; border:1px solid #516777; background:linear-gradient(135deg,#081621,#020405 72%); padding:12px; }
+    .release-console-head { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:10px; text-transform:uppercase; }
+    .release-console-head span { display:block; color:#8ec5ff; font-size:8px; letter-spacing:.12em; }
+    .release-console-head strong { display:block; margin-top:4px; color:#fff; font-size:15px; }
+    .release-console-head small { display:block; margin-top:5px; color:#8d9da8; font-size:9px; line-height:1.4; }
+    .release-state { border:1px solid var(--warn); color:var(--warn); padding:7px 9px; font-size:10px; font-weight:700; white-space:nowrap; }
+    .release-state.ready { border-color:var(--live); color:var(--live); }
+    .release-state.released { border-color:var(--accent); color:var(--accent); }
+    .release-check-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+    .release-check { min-height:92px; border:1px solid #3c4d59; background:#020507; padding:10px; color:#fff; text-align:left; font-family:inherit; text-transform:uppercase; }
+    button.release-check { cursor:pointer; }
+    button.release-check:hover, button.release-check:focus-visible { border-color:var(--accent); outline:none; }
+    .release-check span { display:block; color:#7d909d; font-size:8px; letter-spacing:.1em; }
+    .release-check strong { display:block; margin-top:7px; color:var(--warn); font-size:12px; }
+    .release-check small { display:block; margin-top:5px; color:#8999a3; font-size:8px; line-height:1.35; }
+    .release-check.good { border-color:var(--live); background:#06130b; }
+    .release-check.good strong { color:var(--live); }
+    .release-check:disabled { opacity:.58; cursor:not-allowed; }
+    .release-action { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; margin-top:10px; border-top:1px solid #273642; padding-top:10px; }
+    .release-blockers { color:#9cacb6; font-size:9px; line-height:1.45; text-transform:uppercase; }
+    .release-blockers strong { color:var(--warn); }
+    .pic-release-button { min-width:230px; min-height:48px; border:1px solid var(--live); background:var(--live); color:#001007; padding:9px 14px; font:700 12px "Courier New", monospace; text-transform:uppercase; cursor:pointer; }
+    .pic-release-button:disabled { border-color:#48545c; background:#11171b; color:#71808a; cursor:not-allowed; }
+
+    .aircraft-console { display:grid; gap:12px; }
+    .aircraft-status-hero { display:grid; grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(150px,.6fr)); border:1px solid #476073; background:linear-gradient(125deg,#0b1b29,#020405); }
+    .aircraft-status-identity, .aircraft-status-metric { padding:16px; border-right:1px solid #30414e; }
+    .aircraft-status-metric:last-child { border-right:0; }
+    .aircraft-status-identity span, .aircraft-status-metric span { display:block; color:#8197a7; font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
+    .aircraft-status-identity h2 { margin:5px 0 3px; font-size:22px; text-transform:uppercase; }
+    .aircraft-status-identity strong { color:var(--live); font-size:12px; }
+    .aircraft-status-metric strong { display:block; margin-top:7px; color:#fff; font-size:18px; }
+    .aircraft-panel-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:12px; }
+    .aircraft-panel { border:1px solid #3d4f5d; background:#050a0e; padding:14px; }
+    .aircraft-panel-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:12px; text-transform:uppercase; }
+    .aircraft-panel-head span { display:block; color:#8ec5ff; font-size:8px; letter-spacing:.12em; }
+    .aircraft-panel-head strong { display:block; margin-top:4px; font-size:14px; }
+    .aircraft-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .aircraft-form-grid label { color:#91a2ad; font-size:9px; text-transform:uppercase; }
+    .aircraft-form-grid input, .aircraft-form-grid select, .aircraft-form-grid textarea { width:100%; min-height:44px; margin-top:5px; border:1px solid #50616e; background:#000; color:#fff; padding:8px 9px; font:12px "Courier New",monospace; }
+    .aircraft-form-grid textarea { min-height:70px; resize:vertical; }
+    .aircraft-field-wide { grid-column:1/-1; }
+    .aircraft-save { width:100%; min-height:44px; margin-top:10px; border:1px solid var(--accent); background:#0a2746; color:#fff; font:700 11px "Courier New",monospace; text-transform:uppercase; cursor:pointer; }
+    .fluid-log-form { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+    .fluid-log-form .wide { grid-column:1/-1; }
+    .aircraft-log { display:grid; gap:6px; max-height:360px; overflow:auto; }
+    .aircraft-log-entry { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:start; border:1px solid #2d3d48; background:#020405; padding:9px; text-transform:uppercase; }
+    .aircraft-log-entry span { color:var(--accent); font-size:9px; font-weight:700; }
+    .aircraft-log-entry strong { color:#fff; font-size:10px; line-height:1.35; }
+    .aircraft-log-entry small { color:#81919b; font-size:8px; text-align:right; }
+    .aircraft-empty { border:1px dashed #3d4c57; padding:18px; color:#7e8e98; font-size:9px; text-align:center; text-transform:uppercase; }
+    .offline-indicator { border:1px solid #40505c; color:#91a2ad; padding:5px 7px; font-size:9px; text-transform:uppercase; }
+    .offline-indicator.online { border-color:var(--live); color:var(--live); }
+    .offline-indicator.offline { border-color:var(--warn); color:var(--warn); }
+
     .calendar-flight.conflict { color: var(--danger); }
     .calendar-conflict { display: inline-block; margin-top: 3px; color: var(--danger); font-weight: 700; }
 
@@ -1378,6 +1435,8 @@
       .dashboard-actions { grid-template-columns:repeat(3,minmax(0,1fr)); }
       .dashboard-action { min-height:118px; padding:14px; }
       .efb-action { min-height:48px; padding:10px 13px; }
+      .dispatch-board { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .dispatch-route { grid-column:1/-1; }
       .performance-form { grid-template-columns: repeat(3, minmax(0,1fr)); }
       .weather-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
       .aircraft-performance-head { display:block; }
@@ -1385,7 +1444,7 @@
     }
 
     @media (max-width: 900px) {
-      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .live-movement-console, .live-movement-actions, .document-dashboard, .movement-phase-strip, .performance-actions, .dashboard-actions { grid-template-columns: 1fr; }
+      .title-row, .layout, .meta-grid, .ops-controls, .ops-alerts, .manifest-list, .wallet-actions, .proposal-compose, .management-actions, .ops-command-strip, .dispatch-board, .ops-readiness-grid, .ops-watch, .dispatch-intelligence, .intelligence-grid, .ops-quick-actions, .flight-control-sequence, .live-movement-console, .live-movement-actions, .document-dashboard, .movement-phase-strip, .performance-actions, .dashboard-actions, .release-check-grid, .release-action, .aircraft-status-hero, .aircraft-panel-grid, .aircraft-form-grid, .fluid-log-form { grid-template-columns: 1fr; }
       body { padding:0; }
       .frame { border:0; border-radius:0; padding:12px; }
       .efb-masthead { grid-template-columns:1fr; padding:12px 12px 0; }
@@ -1497,6 +1556,13 @@
       .perf-controls, .runway-legend, .performance-footer-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .acars-preview pre { min-height:320px; font-size:10px; }
       .runway-visual, .runway-visual svg { height:320px; min-height:320px; }
+      .release-console { padding:10px; }
+      .release-console-head { display:block; }
+      .release-state { display:inline-block; margin-top:10px; white-space:normal; }
+      .pic-release-button { width:100%; min-width:0; }
+      .aircraft-status-identity, .aircraft-status-metric { border-right:0; border-bottom:1px solid #30414e; }
+      .aircraft-status-metric:last-child { border-bottom:0; }
+      .aircraft-field-wide, .fluid-log-form .wide { grid-column:auto; }
     }
   </style>
 </head>
@@ -1504,7 +1570,7 @@
   <main class="frame">
     <header class="efb-masthead">
       <div><div class="title">NGA PILOT OPERATIONS CENTRE</div><div class="intro">Selected-flight control, planning, weather, aircraft performance, and documents.</div></div>
-      <div class="masthead-status"><div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div><div id="clock" class="clock">UTC --:--:--</div></div>
+      <div class="masthead-status"><div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div><div id="networkStatus" class="offline-indicator">NETWORK CHECK</div><div id="clock" class="clock">UTC --:--:--</div></div>
       <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
     </header>
     <section id="activeFlightStrip" class="active-flight-strip" aria-label="Active flight status" data-active="false">
@@ -1521,8 +1587,9 @@
       <button class="suite-tab" type="button" data-suite-view="flights"><span>02 / Control</span><strong>Flights</strong><small>Queue, crew, passengers, decision</small></button>
       <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>03 / Plan</span><strong>Flight Plan</strong><small>Route, fuel, load, movement log</small></button>
       <button class="suite-tab" type="button" data-suite-view="weather"><span>04 / Preflight</span><strong>Weather</strong><small>Live briefing and dispatch data</small></button>
-      <button class="suite-tab" type="button" data-suite-view="performance"><span>05 / Aircraft</span><strong>Aircraft Performance</strong><small>Runway, wind, density altitude</small></button>
-      <button class="suite-tab" type="button" data-suite-view="documents"><span>06 / Flight file</span><strong>Documents</strong><small>OFP, statement, agreements</small></button>
+      <button class="suite-tab" type="button" data-suite-view="performance"><span>05 / Performance</span><strong>Aircraft Performance</strong><small>Runway, wind, density altitude</small></button>
+      <button class="suite-tab" type="button" data-suite-view="aircraft"><span>06 / Aircraft</span><strong>Aircraft Status</strong><small>Fuel, oil, maintenance, serviceability</small></button>
+      <button class="suite-tab" type="button" data-suite-view="documents"><span>07 / Flight file</span><strong>Documents</strong><small>OFP, statement, agreements</small></button>
     </nav>
     <div class="efb-content">
     <section id="dashboardWorkspace" class="ops-dashboard">
@@ -1531,6 +1598,7 @@
         <button class="dashboard-action" type="button" data-dashboard-view="flights"><span>Flight control</span><strong>Open flights</strong><small>Review the queue, assign crew, update decisions, and manage passenger files.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="weather"><span>Preflight dispatch</span><strong>Weather</strong><small>Enter any ICAO route or load the selected flight route for a live dispatch briefing.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="flight-plan"><span>Controlled document</span><strong>Flight plan</strong><small>Build the OFP, record movement times, fuel, load, release, and PDF.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="aircraft"><span>Aircraft control</span><strong>Aircraft status</strong><small>Record fuel and oil, serviceability, hours, and scheduled maintenance.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="documents"><span>Flight file</span><strong>Documents</strong><small>Open the OFP, reimbursement statement, agreements, and operations PDF.</small></button>
         <button id="createManualOfpBtn" class="dashboard-action manual-flight" type="button"><span>Pilot-only file</span><strong>New manual OFP</strong><small>Start an empty operational flight plan with editable route, fuel, load, runway, and timings.</small></button>
       </div>
@@ -1699,6 +1767,49 @@ LOAD DATA TO CALCULATE.</pre>
           <div class="performance-footer-actions"><button id="applyPerformanceToOfpBtn" class="efb-action primary" type="button">Apply snapshot to OFP</button><button id="openPerformanceOfpBtn" class="efb-action" type="button">Open flight plan</button></div>
         </div>
       </div>
+      <div id="aircraftOpsPane" class="ops-tool-pane" hidden>
+        <div class="aircraft-console">
+          <section class="aircraft-status-hero" aria-label="Current aircraft status">
+            <div class="aircraft-status-identity"><span>Primary aircraft</span><h2>Piper PA-28R-200 Arrow II</h2><strong id="aircraftServiceabilityHero">STATUS LOADING</strong></div>
+            <div class="aircraft-status-metric"><span>Fuel on board</span><strong id="aircraftFuelHero">-- USG</strong></div>
+            <div class="aircraft-status-metric"><span>Oil quantity</span><strong id="aircraftOilHero">-- QT</strong></div>
+            <div class="aircraft-status-metric"><span>Next maintenance</span><strong id="aircraftMaintenanceHero">NOT ENTERED</strong></div>
+          </section>
+          <div class="aircraft-panel-grid">
+            <section class="aircraft-panel">
+              <header class="aircraft-panel-head"><div><span>Aircraft control record</span><strong>Serviceability and maintenance</strong></div><em id="aircraftUpdatedState">NOT SYNCED</em></header>
+              <div class="aircraft-form-grid">
+                <label>Serviceability<select id="aircraftServiceability"><option value="SERVICEABLE">Serviceable</option><option value="RESTRICTED">Restricted / review</option><option value="GROUNDED">Grounded</option></select></label>
+                <label>Fuel on board (USG)<input id="aircraftFuelOnBoard" type="number" min="0" max="48" step="0.1" inputmode="decimal" /></label>
+                <label>Oil quantity (QT)<input id="aircraftOilQuantity" type="number" min="0" max="20" step="0.1" inputmode="decimal" /></label>
+                <label>Tach time (H)<input id="aircraftTachHours" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
+                <label>Airframe time (H)<input id="aircraftAirframeHours" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
+                <label>Next maintenance date<input id="aircraftMaintenanceDate" type="date" /></label>
+                <label>Maintenance due tach (H)<input id="aircraftMaintenanceTach" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
+                <label class="aircraft-field-wide">Aircraft status note<textarea id="aircraftStatusNote" placeholder="Open defects, restrictions, or serviceability note"></textarea></label>
+                <label class="aircraft-field-wide">Maintenance note<textarea id="aircraftMaintenanceNote" placeholder="Next inspection, due item, or maintenance planning note"></textarea></label>
+              </div>
+              <button id="saveAircraftStatusBtn" class="aircraft-save" type="button">Save aircraft status</button>
+            </section>
+            <section class="aircraft-panel">
+              <header class="aircraft-panel-head"><div><span>Live fluid record</span><strong>Fuel and oil checkpoint</strong></div><em id="fluidLogState">READY</em></header>
+              <div class="aircraft-form-grid fluid-log-form">
+                <label>Checkpoint<select id="fluidLogPhase"><option value="PRE-FLIGHT">Pre-flight</option><option value="TAXI">Taxi</option><option value="IN-FLIGHT">In-flight</option><option value="POST-FLIGHT">Post-flight</option><option value="REFUEL">Refuel</option><option value="OIL CHECK">Oil check</option></select></label>
+                <label>Fuel reading (USG)<input id="fluidLogFuel" type="number" min="0" max="48" step="0.1" inputmode="decimal" /></label>
+                <label>Oil reading (QT)<input id="fluidLogOil" type="number" min="0" max="20" step="0.1" inputmode="decimal" /></label>
+                <label class="wide">Operational note<input id="fluidLogNote" maxlength="240" placeholder="Optional note" /></label>
+              </div>
+              <button id="recordFluidLogBtn" class="aircraft-save" type="button">Record checkpoint now</button>
+              <div id="aircraftLog" class="aircraft-log"><div class="aircraft-empty">No fuel or oil checkpoints recorded.</div></div>
+            </section>
+          </div>
+          <section class="aircraft-panel">
+            <header class="aircraft-panel-head"><div><span>Tablet operations</span><strong>Offline-ready EFB shell</strong></div><em id="offlineSnapshotState">ONLINE DATA REQUIRED FOR FIRST LOAD</em></header>
+            <p class="performance-note">The installed EFB shell and the latest non-sensitive operational flight snapshot remain available when connectivity drops. Live weather, database writes, passenger records, and new timestamps still require a connection.</p>
+            <button id="installPilotAppBtn" class="aircraft-save" type="button">Install Pilot EFB / iPad instructions</button>
+          </section>
+        </div>
+      </div>
       <div id="documentsOpsPane" class="ops-tool-pane" hidden>
         <div class="suite-doc-summary">
           <div><span>Selected flight</span><strong id="suiteDocFlight">NO FLIGHT SELECTED</strong></div>
@@ -1799,8 +1910,20 @@ LOAD DATA TO CALCULATE.</pre>
               <div id="controlDocuments" class="control-phase danger"><strong>04 / Documents</strong>Passenger and cost files</div>
               <div id="controlDecision" class="control-phase danger"><strong>05 / Decision</strong>Pilot disposition</div>
             </div>
+            <section class="release-console" aria-label="Flight release panel">
+              <header class="release-console-head"><div><span>Commander release</span><strong>Flight release panel</strong><small>Complete the operational checks, then the commander records the final PIC release and timestamp.</small></div><div id="releasePanelState" class="release-state">NOT READY</div></header>
+              <div class="release-check-grid">
+                <button class="release-check" type="button" data-release-check="weather"><span>01 / Weather</span><strong id="releaseWeatherState">OPEN</strong><small id="releaseWeatherDetail">Weather, NOTAM and airspace review</small></button>
+                <button class="release-check" type="button" data-release-check="performance"><span>02 / Performance</span><strong id="releasePerformanceState">OPEN</strong><small id="releasePerformanceDetail">Departure and arrival runway calculation</small></button>
+                <button class="release-check" type="button" data-release-check="weightBalance"><span>03 / Mass &amp; balance</span><strong id="releaseWeightBalanceState">OPEN</strong><small id="releaseWeightBalanceDetail">Verify loading and CG envelope</small></button>
+                <button class="release-check" type="button" data-release-check="fuel"><span>04 / Fuel</span><strong id="releaseFuelState">OPEN</strong><small id="releaseFuelDetail">Verify block, trip and reserve fuel</small></button>
+                <div id="releaseDocumentsCard" class="release-check"><span>05 / Documents</span><strong id="releaseDocumentsState">OPEN</strong><small id="releaseDocumentsDetail">Passenger agreements must be signed</small></div>
+                <div id="releaseAircraftCard" class="release-check"><span>06 / Aircraft</span><strong id="releaseAircraftState">OPEN</strong><small id="releaseAircraftDetail">Aircraft must be marked serviceable</small></div>
+              </div>
+              <div class="release-action"><div id="releaseBlockers" class="release-blockers"><strong>Release blocked:</strong> Select a flight file.</div><button id="picReleaseBtn" class="pic-release-button" type="button" disabled>Record PIC release</button></div>
+            </section>
             <div class="live-movement-console" aria-label="Live flight movement controls">
-              <div class="live-movement-intro"><span>Live flight clock</span><strong>Movement record</strong><small>Server-stamped and locked after confirmation.</small></div>
+              <div class="live-movement-intro"><span>PM quick record</span><strong>OFP movement clock</strong><small>Either pilot can tap the next phase. Server-stamped, sequence-controlled, and written into the final OFP.</small></div>
               <div class="live-movement-actions">
                 <button id="recordOutBtn" class="movement-command" type="button"><span>OUT / TAXI</span><strong>RECORD OUT</strong><small>Release required</small></button>
                 <button id="recordOffBtn" class="movement-command" type="button"><span>OFF / AIRBORNE</span><strong>RECORD OFF</strong><small>Await OUT</small></button>
@@ -1994,6 +2117,7 @@ END OF MESSAGE</pre>
     const activeFlightWeather = el('activeFlightWeather');
     const activeFlightDocs = el('activeFlightDocs');
     const pilotRoleBadge = el('pilotRoleBadge');
+    const networkStatus = el('networkStatus');
     const dispatchRoute = el('dispatchRoute');
     const dispatchSchedule = el('dispatchSchedule');
     const dispatchFlightTime = el('dispatchFlightTime');
@@ -2027,6 +2151,10 @@ END OF MESSAGE</pre>
     const recordOffBtn = el('recordOffBtn');
     const recordOnBtn = el('recordOnBtn');
     const recordInBtn = el('recordInBtn');
+    const releasePanelState = el('releasePanelState');
+    const releaseBlockers = el('releaseBlockers');
+    const picReleaseBtn = el('picReleaseBtn');
+    const releaseCheckButtons = [...document.querySelectorAll('[data-release-check]')];
     const ofpDocumentCard = el('ofpDocumentCard');
     const ofpDocumentStatus = el('ofpDocumentStatus');
     const ofpDocumentDetail = el('ofpDocumentDetail');
@@ -2047,6 +2175,7 @@ END OF MESSAGE</pre>
     const weatherOpsPane = el('weatherOpsPane');
     const flightPlanOpsPane = el('flightPlanOpsPane');
     const performanceOpsPane = el('performanceOpsPane');
+    const aircraftOpsPane = el('aircraftOpsPane');
     const documentsOpsPane = el('documentsOpsPane');
     const weatherRoute = el('weatherRoute');
     const weatherDep = el('weatherDep');
@@ -2090,6 +2219,30 @@ END OF MESSAGE</pre>
     const suiteOpenOfpPdfBtn = el('suiteOpenOfpPdfBtn');
     const suiteOpenStatementBtn = el('suiteOpenStatementBtn');
     const suiteOpenFlightFileBtn = el('suiteOpenFlightFileBtn');
+    const aircraftServiceabilityHero = el('aircraftServiceabilityHero');
+    const aircraftFuelHero = el('aircraftFuelHero');
+    const aircraftOilHero = el('aircraftOilHero');
+    const aircraftMaintenanceHero = el('aircraftMaintenanceHero');
+    const aircraftUpdatedState = el('aircraftUpdatedState');
+    const aircraftServiceability = el('aircraftServiceability');
+    const aircraftFuelOnBoard = el('aircraftFuelOnBoard');
+    const aircraftOilQuantity = el('aircraftOilQuantity');
+    const aircraftTachHours = el('aircraftTachHours');
+    const aircraftAirframeHours = el('aircraftAirframeHours');
+    const aircraftMaintenanceDate = el('aircraftMaintenanceDate');
+    const aircraftMaintenanceTach = el('aircraftMaintenanceTach');
+    const aircraftStatusNote = el('aircraftStatusNote');
+    const aircraftMaintenanceNote = el('aircraftMaintenanceNote');
+    const saveAircraftStatusBtn = el('saveAircraftStatusBtn');
+    const fluidLogPhase = el('fluidLogPhase');
+    const fluidLogFuel = el('fluidLogFuel');
+    const fluidLogOil = el('fluidLogOil');
+    const fluidLogNote = el('fluidLogNote');
+    const recordFluidLogBtn = el('recordFluidLogBtn');
+    const fluidLogState = el('fluidLogState');
+    const aircraftLog = el('aircraftLog');
+    const installPilotAppBtn = el('installPilotAppBtn');
+    const offlineSnapshotState = el('offlineSnapshotState');
 
     let requests = [];
     let selected = null;
@@ -2103,6 +2256,9 @@ END OF MESSAGE</pre>
     let weatherDataKey = '';
     let weatherAirportCatalog = [];
     let activeWorkspace = 'dashboard';
+    let pilotSession = null;
+    let aircraftStatus = null;
+    let deferredInstallPrompt = null;
 
     function tick() {
       const now = new Date();
@@ -2129,6 +2285,206 @@ END OF MESSAGE</pre>
 
     function text(value, fallback = '.....') {
       return value === 0 || value ? String(value) : fallback;
+    }
+
+    function nullableNumber(value) {
+      if (value === null || value === undefined || String(value).trim() === '') return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function releaseClientState(req) {
+      const plan = req?.operationalFlightPlan || null;
+      const checks = plan?.releaseChecks || {};
+      const blockFuelGal = Number(plan?.blockFuelGal);
+      const fuelRecord = aircraftStatus?.fuelOnBoardGal;
+      const fuelOnBoardGal = fuelRecord === null || fuelRecord === undefined || String(fuelRecord).trim() === '' ? Number.NaN : Number(fuelRecord);
+      const fuelQuantityReady = Number.isFinite(blockFuelGal)
+        && blockFuelGal > 0
+        && blockFuelGal <= Number(plan?.fuelCapacityGal || 0)
+        && Number.isFinite(fuelOnBoardGal)
+        && fuelOnBoardGal >= blockFuelGal;
+      const passengers = req ? passengerList(req) : [];
+      const signed = req ? agreementCount(req) : 0;
+      const documentsReady = Boolean(req?.manualFlight || (passengers.length && signed === passengers.length));
+      const wbReady = Boolean(plan
+        && Number(plan.crewWeightLb) > 0
+        && Number(plan.baggageWeightLb) <= Number(plan.baggageLimitLb)
+        && Number(plan.fuelWeightLb) <= Number(plan.fuelCapacityLb)
+        && Number(plan.zeroFuelWeightLb) <= Number(plan.maxZeroFuelWeightLb)
+        && Number(plan.rampWeightLb) <= Number(plan.maxRampWeightLb)
+        && Number(plan.takeoffWeightLb) <= Number(plan.maxTakeoffWeightLb)
+        && Number(plan.landingWeightLb) <= Number(plan.maxLandingWeightLb)
+        && Number(plan.takeoffCgIn) >= Number(plan.forwardCgLimitIn)
+        && Number(plan.takeoffCgIn) <= Number(plan.aftCgLimitIn));
+      const items = {
+        weather: {
+          ready:Boolean(checks.weather?.completed && plan?.notamReviewAccepted && plan?.airspaceReviewAccepted),
+          confirmed:Boolean(checks.weather?.completed),
+          detail:plan?.notamReviewAccepted && plan?.airspaceReviewAccepted ? 'Weather, NOTAM and airspace review acknowledged' : 'Complete weather, NOTAM and airspace review'
+        },
+        performance: {
+          ready:Boolean(checks.performance?.completed && plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway),
+          confirmed:Boolean(checks.performance?.completed),
+          detail:plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway ? 'Departure and arrival performance captured' : 'Capture both runway performance snapshots'
+        },
+        weightBalance: {
+          ready:Boolean(checks.weightBalance?.completed && wbReady),
+          confirmed:Boolean(checks.weightBalance?.completed),
+          detail:wbReady ? `TOW ${plan?.takeoffWeightLb || 0} LB / CG ${plan?.takeoffCgIn || 0} IN` : 'Resolve mass, balance, or loading limits'
+        },
+        fuel: {
+          ready:Boolean(checks.fuel?.completed && fuelQuantityReady),
+          confirmed:Boolean(checks.fuel?.completed),
+          detail:blockFuelGal > 0 ? `Block ${blockFuelGal} USG / onboard ${Number.isFinite(fuelOnBoardGal) ? `${fuelOnBoardGal} USG` : 'not recorded'}` : 'Enter and verify block fuel'
+        },
+        documents: {
+          ready:documentsReady,
+          confirmed:documentsReady,
+          detail:req?.manualFlight ? 'No passenger documents required' : `${signed}/${passengers.length} passenger agreements signed`
+        },
+        aircraft: {
+          ready:aircraftStatus?.serviceability === 'SERVICEABLE',
+          confirmed:aircraftStatus?.serviceability === 'SERVICEABLE',
+          detail:aircraftStatus ? `${aircraftStatus.serviceability}${aircraftStatus.statusNote ? ` / ${aircraftStatus.statusNote}` : ''}` : 'Load aircraft status'
+        }
+      };
+      const routeReady = Boolean(plan?.departure && plan?.destination && plan?.route && plan?.depRunway && plan?.arrRunway);
+      const commanderReady = Boolean(plan?.commanderName || (req?.crew?.commander && req.crew.commander !== 'UNASSIGNED'));
+      const blockers = [];
+      if (!plan) blockers.push('SAVE THE OFP DRAFT');
+      if (plan && !routeReady) blockers.push('COMPLETE ROUTE AND RUNWAYS');
+      if (!commanderReady) blockers.push('ASSIGN THE COMMANDER');
+      Object.entries(items).forEach(([key, item]) => { if (!item.ready) blockers.push(`${key.replace(/([A-Z])/g, ' $1').toUpperCase()} OPEN`); });
+      return {
+        ready:blockers.length === 0,
+        released:Boolean(plan?.releaseAccepted),
+        releaseId:plan?.releaseSnapshot?.releaseId || '',
+        releasedAt:plan?.releaseSnapshot?.releasedAt || '',
+        items,
+        blockers
+      };
+    }
+
+    function renderReleasePanel(req = selected) {
+      const state = releaseClientState(req);
+      const mapping = {
+        weather:['releaseWeatherState','releaseWeatherDetail'],
+        performance:['releasePerformanceState','releasePerformanceDetail'],
+        weightBalance:['releaseWeightBalanceState','releaseWeightBalanceDetail'],
+        fuel:['releaseFuelState','releaseFuelDetail'],
+        documents:['releaseDocumentsState','releaseDocumentsDetail'],
+        aircraft:['releaseAircraftState','releaseAircraftDetail']
+      };
+      Object.entries(mapping).forEach(([key, [stateId, detailId]]) => {
+        const item = state.items[key];
+        const stateNode = el(stateId);
+        const detailNode = el(detailId);
+        const card = stateNode.closest('.release-check');
+        card.classList.toggle('good', item.ready);
+        stateNode.textContent = item.ready ? 'CONFIRMED' : item.confirmed ? 'RECHECK REQUIRED' : 'OPEN';
+        detailNode.textContent = item.detail;
+      });
+      releaseCheckButtons.forEach(button => {
+        const item = state.items[button.dataset.releaseCheck];
+        button.disabled = !req?.operationalFlightPlan || state.released || !navigator.onLine;
+        button.title = item.confirmed ? 'Tap to clear this acknowledgement' : 'Tap after completing this operational check';
+      });
+      releasePanelState.className = `release-state ${state.released ? 'released' : state.ready ? 'ready' : ''}`;
+      releasePanelState.textContent = state.released ? `RELEASED / ${state.releaseId || 'RECORDED'}` : state.ready ? 'READY FOR PIC RELEASE' : 'NOT READY';
+      releaseBlockers.innerHTML = state.released
+        ? `<strong>PIC release recorded:</strong> ${escapeHtml(state.releasedAt ? new Date(state.releasedAt).toLocaleString('en-GB', { hour12:false }) : state.releaseId)}`
+        : state.blockers.length
+          ? `<strong>Release blocked:</strong> ${escapeHtml(state.blockers.join(' / '))}`
+          : '<strong>All checks complete:</strong> Commander may record the final release.';
+      picReleaseBtn.disabled = !state.ready || state.released || pilotSession?.role !== 'COMMANDER' || !navigator.onLine;
+      picReleaseBtn.textContent = state.released ? 'PIC release recorded' : pilotSession?.role === 'COMMANDER' ? 'Record PIC release' : 'Commander release required';
+    }
+
+    function aircraftMaintenanceLabel(status) {
+      if (!status) return 'NOT ENTERED';
+      const values = [];
+      if (status.nextMaintenanceDate) values.push(status.nextMaintenanceDate);
+      if (status.nextMaintenanceTachHours !== null && status.nextMaintenanceTachHours !== undefined) values.push(`${status.nextMaintenanceTachHours} H`);
+      return values.join(' / ') || 'NOT ENTERED';
+    }
+
+    function renderAircraftStatus(status = aircraftStatus, updateForm = true) {
+      if (!status) return;
+      aircraftServiceabilityHero.textContent = status.serviceability || 'REVIEW';
+      aircraftServiceabilityHero.style.color = status.serviceability === 'SERVICEABLE' ? 'var(--live)' : status.serviceability === 'GROUNDED' ? 'var(--danger)' : 'var(--warn)';
+      aircraftFuelHero.textContent = status.fuelOnBoardGal === null || status.fuelOnBoardGal === undefined ? '-- USG' : `${status.fuelOnBoardGal} USG`;
+      aircraftOilHero.textContent = status.oilQuarts === null || status.oilQuarts === undefined ? '-- QT' : `${status.oilQuarts} QT`;
+      aircraftMaintenanceHero.textContent = aircraftMaintenanceLabel(status);
+      aircraftUpdatedState.textContent = status.updatedAt ? `UPDATED ${new Date(status.updatedAt).toLocaleString('en-GB', { hour12:false })}` : 'NOT YET RECORDED';
+      if (updateForm) {
+        aircraftServiceability.value = status.serviceability || 'RESTRICTED';
+        aircraftFuelOnBoard.value = status.fuelOnBoardGal ?? '';
+        aircraftOilQuantity.value = status.oilQuarts ?? '';
+        aircraftTachHours.value = status.tachHours ?? '';
+        aircraftAirframeHours.value = status.airframeHours ?? '';
+        aircraftMaintenanceDate.value = status.nextMaintenanceDate || '';
+        aircraftMaintenanceTach.value = status.nextMaintenanceTachHours ?? '';
+        aircraftStatusNote.value = status.statusNote || '';
+        aircraftMaintenanceNote.value = status.maintenanceNote || '';
+      }
+      const logs = Array.isArray(status.fuelLog) ? status.fuelLog.slice().reverse() : [];
+      aircraftLog.innerHTML = logs.length ? logs.slice(0, 30).map(entry => `
+        <div class="aircraft-log-entry"><span>${escapeHtml(entry.phase || 'CHECK')}</span><strong>${escapeHtml([entry.flightId, entry.fuelGal === null || entry.fuelGal === undefined ? '' : `FUEL ${entry.fuelGal} USG`, entry.oilQuarts === null || entry.oilQuarts === undefined ? '' : `OIL ${entry.oilQuarts} QT`, entry.note].filter(Boolean).join(' / '))}</strong><small>${escapeHtml(entry.recordedAt ? new Date(entry.recordedAt).toLocaleString('en-GB', { hour12:false }) : '')}<br>${escapeHtml(entry.recordedBy || '')}</small></div>
+      `).join('') : '<div class="aircraft-empty">No fuel or oil checkpoints recorded.</div>';
+      renderReleasePanel();
+    }
+
+    async function loadAircraftStatus() {
+      const response = await fetch('/api/booking-ops/aircraft-status', { cache:'no-store' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'AIRCRAFT STATUS UNAVAILABLE');
+      aircraftStatus = data.aircraftStatus;
+      renderAircraftStatus();
+      return aircraftStatus;
+    }
+
+    function cacheOperationalSnapshot(req) {
+      if (!req?.id || !req.operationalFlightPlan) return;
+      const snapshot = {
+        id:req.id,
+        route:req.route,
+        dep:req.dep,
+        arr:req.arr,
+        depName:req.depName,
+        arrName:req.arrName,
+        requestDate:req.requestDate,
+        requestTime:req.requestTime,
+        status:'OFFLINE SNAPSHOT',
+        manualFlight:true,
+        crew:req.crew,
+        operationalFlightPlan:req.operationalFlightPlan,
+        cachedAt:new Date().toISOString()
+      };
+      localStorage.setItem('nga-pilot-operational-snapshot-v1', JSON.stringify(snapshot));
+      offlineSnapshotState.textContent = `LATEST SAFE SNAPSHOT / ${snapshot.id} / ${new Date(snapshot.cachedAt).toLocaleString('en-GB', { hour12:false })}`;
+    }
+
+    function readOperationalSnapshot() {
+      try {
+        const snapshot = JSON.parse(localStorage.getItem('nga-pilot-operational-snapshot-v1') || 'null');
+        return snapshot?.id ? snapshot : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function updateNetworkState() {
+      const online = navigator.onLine;
+      networkStatus.className = `offline-indicator ${online ? 'online' : 'offline'}`;
+      networkStatus.textContent = online ? 'ONLINE / SYNC READY' : 'OFFLINE / SAFE SNAPSHOT';
+      if (!online) {
+        [createManualOfpBtn, createManualOfpFromPlanBtn, saveAircraftStatusBtn, recordFluidLogBtn, approveBtn, needsInfoBtn, declineBtn, saveCrewBtn, sendProposalBtn, deleteBtn, addTimelineNoteBtn]
+          .filter(Boolean)
+          .forEach(button => { button.disabled = true; });
+      }
+      renderReleasePanel();
+      if (selected) renderLiveMovementControls(selected);
     }
 
     function bookingWeightEstimate(req) {
@@ -2469,7 +2825,7 @@ END OF MESSAGE</pre>
     }
 
     function switchOpsWorkspace(view) {
-      const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'documents']);
+      const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'aircraft', 'documents']);
       if (!allowedViews.has(view)) view = 'dashboard';
       activeWorkspace = view;
       rememberOpsWorkspace(view);
@@ -2487,6 +2843,7 @@ END OF MESSAGE</pre>
       flightPlanOpsPane.hidden = view !== 'flight-plan';
       weatherOpsPane.hidden = view !== 'weather';
       performanceOpsPane.hidden = view !== 'performance';
+      aircraftOpsPane.hidden = view !== 'aircraft';
       documentsOpsPane.hidden = view !== 'documents';
       if (view === 'flight-plan') {
         toolWorkspaceKicker.textContent = selected?.manualFlight ? 'Pilot-only workflow' : 'Selected flight / Pilot workflow';
@@ -2508,10 +2865,14 @@ END OF MESSAGE</pre>
         toolWorkspaceKicker.textContent = '04 / Preflight dispatch';
         toolWorkspaceTitle.textContent = 'Weather Dispatch';
       } else if (view === 'performance') {
-        toolWorkspaceKicker.textContent = '05 / Aircraft';
+        toolWorkspaceKicker.textContent = '05 / Performance';
         toolWorkspaceTitle.textContent = 'Aircraft Performance';
+      } else if (view === 'aircraft') {
+        toolWorkspaceKicker.textContent = '06 / Aircraft control';
+        toolWorkspaceTitle.textContent = 'Aircraft Status';
+        renderAircraftStatus();
       } else if (view === 'documents') {
-        toolWorkspaceKicker.textContent = '06 / Flight file';
+        toolWorkspaceKicker.textContent = '07 / Flight file';
         toolWorkspaceTitle.textContent = 'Documents';
       }
       updateSuiteContext();
@@ -3520,7 +3881,7 @@ END OF MESSAGE</pre>
         const button = step.button;
         const recorded = ofp[step.field];
         const prerequisiteReady = !step.prerequisite || Boolean(ofp[step.prerequisite]);
-        const ready = Boolean(req && ofp.releaseAccepted && prerequisiteReady && !recorded);
+        const ready = Boolean(req && navigator.onLine && ofp.releaseAccepted && prerequisiteReady && !recorded);
         button.disabled = !ready;
         button.classList.toggle('ready', ready);
         button.classList.toggle('done', Boolean(recorded));
@@ -3530,7 +3891,8 @@ END OF MESSAGE</pre>
           : !req ? 'Select a flight file'
             : !ofp.releaseAccepted ? 'Pilot release required'
               : !prerequisiteReady ? `Await ${step.prerequisite.replace('actual','').toUpperCase()}`
-                : 'Tap to server-stamp';
+                : !navigator.onLine ? 'Connection required'
+                  : 'Tap to server-stamp';
       });
     }
 
@@ -3562,6 +3924,7 @@ END OF MESSAGE</pre>
         flightFileDocumentStatus.textContent = routeReady ? 'AVAILABLE' : 'ROUTE OPEN';
         renderMovementPhases(req);
         renderLiveMovementControls(req);
+        renderReleasePanel(req);
         return;
       }
       const passengers = passengerList(req);
@@ -3603,6 +3966,7 @@ END OF MESSAGE</pre>
       flightFileDocumentStatus.textContent = routeReady ? 'AVAILABLE' : 'INCOMPLETE';
       renderMovementPhases(req);
       renderLiveMovementControls(req);
+      renderReleasePanel(req);
     }
 
     function renderDispatchBoard(req) {
@@ -3730,7 +4094,9 @@ END OF MESSAGE</pre>
       const res = await fetch('/api/pilot-session', { cache:'no-store' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.session) return;
+      pilotSession = data.session;
       pilotRoleBadge.textContent = `${data.session.role} / ${data.session.name}`;
+      renderReleasePanel();
       loadPilotPasskeys().catch(() => {});
     }
 
@@ -3791,13 +4157,122 @@ END OF MESSAGE</pre>
       if (res.ok) loadPilotPasskeys().catch(() => {});
     });
 
+    async function toggleReleaseCheck(check) {
+      if (!selected?.id || !selected.operationalFlightPlan) {
+        mode.textContent = 'MODE: SAVE THE OFP DRAFT BEFORE RELEASE CHECKS';
+        return;
+      }
+      const currentlyCompleted = Boolean(selected.operationalFlightPlan.releaseChecks?.[check]?.completed);
+      mode.textContent = `MODE: ${currentlyCompleted ? 'CLEARING' : 'CONFIRMING'} ${check.replace(/([A-Z])/g, ' $1').toUpperCase()}`;
+      const response = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/release-checks/${encodeURIComponent(check)}`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body:JSON.stringify({ completed:!currentlyCompleted })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        mode.textContent = `MODE: ${data.error || 'RELEASE CHECK UPDATE FAILED'}`;
+        return;
+      }
+      replaceRequest(data.request);
+      loadTimeline(selected.id).catch(() => {});
+      mode.textContent = `MODE: FLIGHT RELEASE CHECK ${currentlyCompleted ? 'CLEARED' : 'CONFIRMED'}`;
+    }
+
+    async function recordPicRelease() {
+      if (!selected?.id) return;
+      if (!window.confirm(`Record the final PIC release for ${selected.id}? This freezes a timestamped release snapshot in the OFP.`)) return;
+      picReleaseBtn.disabled = true;
+      mode.textContent = 'MODE: RECORDING PIC FLIGHT RELEASE';
+      const response = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/flight-release`, { method:'POST' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        mode.textContent = `MODE: ${data.error || 'PIC RELEASE FAILED'}`;
+        renderReleasePanel();
+        return;
+      }
+      replaceRequest(data.request);
+      loadTimeline(selected.id).catch(() => {});
+      mode.textContent = `MODE: ${data.request.operationalFlightPlan?.releaseSnapshot?.releaseId || 'PIC RELEASE'} RECORDED`;
+    }
+
+    async function saveAircraftStatus() {
+      saveAircraftStatusBtn.disabled = true;
+      aircraftUpdatedState.textContent = 'SAVING AIRCRAFT STATUS';
+      const payload = {
+        serviceability:aircraftServiceability.value,
+        fuelOnBoardGal:nullableNumber(aircraftFuelOnBoard.value),
+        oilQuarts:nullableNumber(aircraftOilQuantity.value),
+        tachHours:nullableNumber(aircraftTachHours.value),
+        airframeHours:nullableNumber(aircraftAirframeHours.value),
+        nextMaintenanceDate:aircraftMaintenanceDate.value,
+        nextMaintenanceTachHours:nullableNumber(aircraftMaintenanceTach.value),
+        statusNote:aircraftStatusNote.value.trim(),
+        maintenanceNote:aircraftMaintenanceNote.value.trim()
+      };
+      try {
+        const response = await fetch('/api/booking-ops/aircraft-status', {
+          method:'PATCH',
+          headers:{ 'Content-Type':'application/json' },
+          body:JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'AIRCRAFT STATUS UPDATE FAILED');
+        aircraftStatus = data.aircraftStatus;
+        renderAircraftStatus();
+        mode.textContent = 'MODE: AIRCRAFT STATUS SAVED';
+      } catch (error) {
+        aircraftUpdatedState.textContent = error.message || 'SAVE FAILED';
+        mode.textContent = `MODE: ${error.message || 'AIRCRAFT STATUS UPDATE FAILED'}`;
+      } finally {
+        saveAircraftStatusBtn.disabled = !navigator.onLine;
+      }
+    }
+
+    async function recordFluidCheckpoint() {
+      const fuelGal = nullableNumber(fluidLogFuel.value);
+      const oilQuarts = nullableNumber(fluidLogOil.value);
+      if (fuelGal === null && oilQuarts === null) {
+        fluidLogState.textContent = 'ENTER FUEL OR OIL';
+        return;
+      }
+      recordFluidLogBtn.disabled = true;
+      fluidLogState.textContent = 'RECORDING';
+      try {
+        const response = await fetch('/api/booking-ops/aircraft-status/fuel-log', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body:JSON.stringify({
+            flightId:selected?.id || '',
+            phase:fluidLogPhase.value,
+            fuelGal,
+            oilQuarts,
+            note:fluidLogNote.value.trim()
+          })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'CHECKPOINT RECORD FAILED');
+        aircraftStatus = data.aircraftStatus;
+        renderAircraftStatus();
+        fluidLogFuel.value = '';
+        fluidLogOil.value = '';
+        fluidLogNote.value = '';
+        fluidLogState.textContent = `${data.entry.phase} RECORDED`;
+        mode.textContent = `MODE: ${data.entry.phase} AIRCRAFT CHECKPOINT RECORDED`;
+      } catch (error) {
+        fluidLogState.textContent = error.message || 'RECORD FAILED';
+        mode.textContent = `MODE: ${error.message || 'AIRCRAFT CHECKPOINT FAILED'}`;
+      } finally {
+        recordFluidLogBtn.disabled = !navigator.onLine;
+      }
+    }
+
     async function recordLiveMovement(phase) {
       if (!selected?.id) {
         mode.textContent = 'MODE: SELECT A FLIGHT FILE FIRST';
         return;
       }
       const label = String(phase || '').toUpperCase();
-      if (!window.confirm(`Record ${label} using the server flight clock? The recorded movement time cannot be changed.`)) return;
       mode.textContent = `MODE: RECORDING ${label} / SERVER FLIGHT CLOCK`;
       const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/movements/${encodeURIComponent(phase)}`, { method:'POST' });
       const data = await res.json().catch(() => ({}));
@@ -3865,6 +4340,7 @@ END OF MESSAGE</pre>
     function selectRequest(req) {
       if (selected?.id !== req.id) latestPerformanceData = null;
       selected = req;
+      cacheOperationalSnapshot(req);
       const manualFlight = req.manualFlight === true;
       el('ref').textContent = req.id || '.....';
       el('route').textContent = req.route || '.....';
@@ -3947,21 +4423,39 @@ END OF MESSAGE</pre>
 
     async function loadRequests() {
       mode.textContent = 'MODE: FETCHING BOOKING REQUESTS';
-      const res = await fetch('/api/booking-ops/requests', { cache: 'no-store' });
-      if (res.status === 401) {
-        window.location.href = '/booking-ops';
-        return;
+      try {
+        const res = await fetch('/api/booking-ops/requests', { cache: 'no-store' });
+        if (res.status === 401) {
+          window.location.href = '/booking-ops';
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'BOOKING REQUESTS UNAVAILABLE');
+        requests = data.requests || [];
+        if (data.aircraftStatus) {
+          aircraftStatus = data.aircraftStatus;
+          renderAircraftStatus();
+        }
+        selected = null;
+        renderActiveFlightStrip();
+        renderOpsTotals();
+        renderList();
+        renderCalendar();
+        const firstOperationalRequest = sortQueue(requests)[0];
+        if (firstOperationalRequest) selectRequest(firstOperationalRequest);
+        mode.textContent = 'MODE: BOOKING OPS LIVE / AUTO SYNC 30S';
+      } catch (error) {
+        const snapshot = readOperationalSnapshot();
+        if (!snapshot) throw error;
+        requests = [snapshot];
+        selected = null;
+        renderOpsTotals();
+        renderCalendar();
+        renderList();
+        selectRequest(snapshot);
+        offlineSnapshotState.textContent = `OFFLINE SNAPSHOT / ${snapshot.id} / ${snapshot.cachedAt ? new Date(snapshot.cachedAt).toLocaleString('en-GB', { hour12:false }) : 'CACHED'}`;
+        mode.textContent = 'MODE: OFFLINE / READ-ONLY OPERATIONAL SNAPSHOT';
       }
-      const data = await res.json();
-      requests = data.requests || [];
-      selected = null;
-      renderActiveFlightStrip();
-      renderOpsTotals();
-      renderList();
-      renderCalendar();
-      const firstOperationalRequest = sortQueue(requests)[0];
-      if (firstOperationalRequest) selectRequest(firstOperationalRequest);
-      mode.textContent = 'MODE: BOOKING OPS LIVE / AUTO SYNC 30S';
     }
 
     async function refreshSelectedRequest() {
@@ -3971,6 +4465,10 @@ END OF MESSAGE</pre>
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return selected;
       requests = data.requests || [];
+      if (data.aircraftStatus) {
+        aircraftStatus = data.aircraftStatus;
+        renderAircraftStatus(false);
+      }
       renderOpsTotals();
       renderCalendar();
       const latest = requests.find(request => request.id === selectedId) || null;
@@ -4321,6 +4819,36 @@ END OF MESSAGE</pre>
     });
 
     refreshBtn.addEventListener('click', () => loadRequests());
+    releaseCheckButtons.forEach(button => button.addEventListener('click', () => toggleReleaseCheck(button.dataset.releaseCheck).catch(error => {
+      mode.textContent = `MODE: ${error.message || 'RELEASE CHECK UPDATE FAILED'}`;
+    })));
+    picReleaseBtn.addEventListener('click', () => recordPicRelease().catch(error => {
+      mode.textContent = `MODE: ${error.message || 'PIC RELEASE FAILED'}`;
+      renderReleasePanel();
+    }));
+    saveAircraftStatusBtn.addEventListener('click', saveAircraftStatus);
+    recordFluidLogBtn.addEventListener('click', recordFluidCheckpoint);
+
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installPilotAppBtn.textContent = 'Install Pilot EFB on this device';
+    });
+    installPilotAppBtn.addEventListener('click', async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        return;
+      }
+      window.alert('On iPad: open this page in Safari, tap Share, then Add to Home Screen. Open the installed Pilot EFB once while online to refresh its shell and safe operational snapshot.');
+    });
+    window.addEventListener('online', () => {
+      updateNetworkState();
+      loadRequests().catch(() => {});
+      loadAircraftStatus().catch(() => {});
+    });
+    window.addEventListener('offline', updateNetworkState);
 
     deleteBtn.addEventListener('click', async () => {
       if (!selected) {
@@ -4341,15 +4869,29 @@ END OF MESSAGE</pre>
 
     logoutBtn.addEventListener('click', async () => {
       await fetch('/api/pilot-logout', { method: 'POST' });
+      localStorage.removeItem('nga-pilot-operational-snapshot-v1');
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter(key => key.startsWith('nga-pilot-shell-')).map(key => caches.delete(key)));
+      }
       window.location.href = '/booking-ops';
     });
 
     renderActiveFlightStrip();
+    renderReleasePanel();
+    updateNetworkState();
+    const savedSnapshot = readOperationalSnapshot();
+    if (savedSnapshot?.cachedAt) offlineSnapshotState.textContent = `LATEST SAFE SNAPSHOT / ${savedSnapshot.id} / ${new Date(savedSnapshot.cachedAt).toLocaleString('en-GB', { hour12:false })}`;
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/pilot-sw.js').catch(() => {});
     tick();
     setInterval(tick, 1000);
     setInterval(autoSyncOps, 30000);
     loadPilotSession().catch(() => {});
-    Promise.all([loadRequests(), loadWeatherAirportChoices()])
+    Promise.all([
+      loadRequests(),
+      loadWeatherAirportChoices().catch(() => {}),
+      loadAircraftStatus().catch(() => {})
+    ])
       .then(() => switchOpsWorkspace(location.hash.replace('#', '') || storedOpsWorkspace() || 'dashboard'))
       .catch(() => { mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE'; });
   </script>

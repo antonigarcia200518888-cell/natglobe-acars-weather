@@ -139,6 +139,24 @@ const bookingManageLinkThrottle = new Map();
 const pilotPasskeys = new Map();
 const passkeyRegistrationChallenges = new Map();
 const passkeyAuthenticationChallenges = new Map();
+const AIRCRAFT_STATUS_KEY = 'PA28R-PRIMARY';
+const AIRCRAFT_STATUS_LOG_LIMIT = 120;
+let aircraftOperationalStatus = {
+  version: 'NGA-AIRCRAFT-STATUS-2026-07',
+  aircraftKey: AIRCRAFT_STATUS_KEY,
+  serviceability: 'RESTRICTED',
+  fuelOnBoardGal: null,
+  oilQuarts: null,
+  tachHours: null,
+  airframeHours: null,
+  nextMaintenanceDate: '',
+  nextMaintenanceTachHours: null,
+  maintenanceNote: '',
+  statusNote: '',
+  updatedAt: '',
+  updatedBy: '',
+  fuelLog: []
+};
 let bookingPool = null;
 
 async function initializeBookingStore() {
@@ -184,13 +202,19 @@ async function initializeBookingStore() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         last_used_at TIMESTAMPTZ
       );
+      CREATE TABLE IF NOT EXISTS aircraft_operational_status (
+        aircraft_key TEXT PRIMARY KEY,
+        payload JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `);
     await bookingPool.query("ALTER TABLE booking_timeline ADD COLUMN IF NOT EXISTS actor TEXT NOT NULL DEFAULT 'SYSTEM'");
-    const [requests, availability, timeline, passkeys] = await Promise.all([
+    const [requests, availability, timeline, passkeys, aircraftStatus] = await Promise.all([
       bookingPool.query('SELECT payload FROM booking_requests ORDER BY created_at ASC'),
       bookingPool.query('SELECT date, is_open, note, updated_at FROM booking_availability'),
       bookingPool.query('SELECT id, request_id, event_type, note, actor, created_at FROM booking_timeline ORDER BY created_at ASC'),
-      bookingPool.query('SELECT id, profile_role, profile_name, credential_id, public_key, counter, transports, created_at, last_used_at FROM pilot_passkeys ORDER BY created_at ASC')
+      bookingPool.query('SELECT id, profile_role, profile_name, credential_id, public_key, counter, transports, created_at, last_used_at FROM pilot_passkeys ORDER BY created_at ASC'),
+      bookingPool.query('SELECT payload FROM aircraft_operational_status WHERE aircraft_key = $1', [AIRCRAFT_STATUS_KEY])
     ]);
     bookingRequests.push(...requests.rows.map(row => row.payload));
     availability.rows.forEach(row => bookingAvailability.set(String(row.date).slice(0, 10), {
@@ -216,6 +240,9 @@ async function initializeBookingStore() {
         lastUsedAt: row.last_used_at
       });
     });
+    if (aircraftStatus.rows[0]?.payload) {
+      aircraftOperationalStatus = normalizeAircraftOperationalStatus(aircraftStatus.rows[0].payload, aircraftOperationalStatus);
+    }
     console.log(`BOOKING STORE: loaded ${bookingRequests.length} requests.`);
   } catch (err) {
     bookingPool = null;
@@ -246,6 +273,15 @@ async function persistAvailability(date, item) {
     `INSERT INTO booking_availability (date, is_open, note, updated_at) VALUES ($1, $2, $3, NOW())
      ON CONFLICT (date) DO UPDATE SET is_open = EXCLUDED.is_open, note = EXCLUDED.note, updated_at = NOW()`,
     [date, item.isOpen, item.note || '']
+  );
+}
+
+async function persistAircraftOperationalStatus() {
+  if (!bookingPool) return;
+  await bookingPool.query(
+    `INSERT INTO aircraft_operational_status (aircraft_key, payload, updated_at) VALUES ($1, $2::jsonb, NOW())
+     ON CONFLICT (aircraft_key) DO UPDATE SET payload = EXCLUDED.payload, updated_at = NOW()`,
+    [AIRCRAFT_STATUS_KEY, JSON.stringify(aircraftOperationalStatus)]
   );
 }
 
@@ -1316,6 +1352,59 @@ function operationalPlanNumber(input, fallback = 0, min = -100000, max = 100000)
   return Math.max(min, Math.min(max, Math.round(value * 100) / 100));
 }
 
+function optionalOperationalNumber(input, fallback = null, min = -100000, max = 100000) {
+  if (input === null || input === undefined || String(input).trim() === '') return fallback;
+  return operationalPlanNumber(input, fallback, min, max);
+}
+
+function normalizeAircraftOperationalStatus(input, fallback = aircraftOperationalStatus) {
+  const source = input && typeof input === 'object' ? input : {};
+  const previous = fallback && typeof fallback === 'object' ? fallback : {};
+  const serviceability = String(source.serviceability ?? previous.serviceability ?? 'RESTRICTED').trim().toUpperCase();
+  const allowedServiceability = new Set(['SERVICEABLE', 'RESTRICTED', 'GROUNDED']);
+  const logSource = Array.isArray(source.fuelLog) ? source.fuelLog : Array.isArray(previous.fuelLog) ? previous.fuelLog : [];
+  const fuelLog = logSource.slice(-AIRCRAFT_STATUS_LOG_LIMIT).map(item => ({
+    id: normalizeBookingText(item?.id, 50) || randomUUID(),
+    flightId: normalizeBookingText(item?.flightId, 50).toUpperCase(),
+    phase: normalizeBookingText(item?.phase, 30).toUpperCase(),
+    fuelGal: optionalOperationalNumber(item?.fuelGal, null, 0, AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.usableGallons),
+    oilQuarts: optionalOperationalNumber(item?.oilQuarts, null, 0, 20),
+    note: normalizeBookingText(item?.note, 240),
+    recordedAt: normalizeBookingText(item?.recordedAt, 50),
+    recordedBy: normalizeBookingText(item?.recordedBy, 100)
+  }));
+  return {
+    version: 'NGA-AIRCRAFT-STATUS-2026-07',
+    aircraftKey: AIRCRAFT_STATUS_KEY,
+    serviceability: allowedServiceability.has(serviceability) ? serviceability : 'RESTRICTED',
+    fuelOnBoardGal: optionalOperationalNumber(source.fuelOnBoardGal, previous.fuelOnBoardGal ?? null, 0, AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.usableGallons),
+    oilQuarts: optionalOperationalNumber(source.oilQuarts, previous.oilQuarts ?? null, 0, 20),
+    tachHours: optionalOperationalNumber(source.tachHours, previous.tachHours ?? null, 0, 100000),
+    airframeHours: optionalOperationalNumber(source.airframeHours, previous.airframeHours ?? null, 0, 100000),
+    nextMaintenanceDate: normalizeBookingText(source.nextMaintenanceDate ?? previous.nextMaintenanceDate, 20),
+    nextMaintenanceTachHours: optionalOperationalNumber(source.nextMaintenanceTachHours, previous.nextMaintenanceTachHours ?? null, 0, 100000),
+    maintenanceNote: normalizeBookingText(source.maintenanceNote ?? previous.maintenanceNote, 300),
+    statusNote: normalizeBookingText(source.statusNote ?? previous.statusNote, 300),
+    updatedAt: normalizeBookingText(source.updatedAt ?? previous.updatedAt, 50),
+    updatedBy: normalizeBookingText(source.updatedBy ?? previous.updatedBy, 100),
+    fuelLog
+  };
+}
+
+const OPERATIONAL_RELEASE_CHECK_KEYS = Object.freeze(['weather', 'performance', 'weightBalance', 'fuel']);
+
+function normalizeOperationalReleaseChecks(input) {
+  const source = input && typeof input === 'object' ? input : {};
+  return Object.fromEntries(OPERATIONAL_RELEASE_CHECK_KEYS.map(key => {
+    const item = source[key] && typeof source[key] === 'object' ? source[key] : {};
+    return [key, {
+      completed: item.completed === true || item.completed === 'true',
+      completedAt: normalizeBookingText(item.completedAt, 50),
+      completedBy: normalizeBookingText(item.completedBy, 100)
+    }];
+  }));
+}
+
 function normalizeOperationalPerformanceSnapshot(input) {
   if (!input || typeof input !== 'object') return null;
   const numberOrNull = (value, min = -100000, max = 100000) => {
@@ -1430,6 +1519,7 @@ function normalizeOperationalFlightPlan(input, request) {
     airspaceReviewAccepted: input.airspaceReviewAccepted === true || input.airspaceReviewAccepted === 'true',
     briefingRemarks: textField('briefingRemarks', 500),
     briefingReviewedAt: textField('briefingReviewedAt', 40),
+    releaseChecks: normalizeOperationalReleaseChecks(input.releaseChecks ?? defaults.releaseChecks),
     stabTrim: textField('stabTrim', 20).toUpperCase(),
     releaseName: textField('releaseName', 60).toUpperCase(),
     releaseAccepted: input.releaseAccepted === true || input.releaseAccepted === 'true',
@@ -3545,7 +3635,9 @@ app.get('/portal', (req, res) => {
 });
 
 app.get('/booking-ops', (req, res) => {
-  const fileName = hasPilotAccess(req) ? 'booking-ops.html' : 'pilot-login.html';
+  const pilotAccess = hasPilotAccess(req);
+  const fileName = pilotAccess ? 'booking-ops.html' : 'pilot-login.html';
+  if (pilotAccess) res.setHeader('X-NGA-Pilot-Shell', '1');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', fileName));
 });
@@ -4282,6 +4374,69 @@ app.put('/api/booking-ops/availability/:date', requirePilotAccess, async (req, r
   res.json({ date, ...item });
 });
 
+app.get('/api/booking-ops/aircraft-status', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({ aircraftStatus: aircraftOperationalStatus });
+});
+
+app.patch('/api/booking-ops/aircraft-status', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  if (!requireFlightCrew(req, res)) return;
+  const actor = pilotActor(req);
+  aircraftOperationalStatus = normalizeAircraftOperationalStatus({
+    ...aircraftOperationalStatus,
+    ...req.body,
+    updatedAt: new Date().toISOString(),
+    updatedBy: actor,
+    fuelLog: aircraftOperationalStatus.fuelLog
+  }, aircraftOperationalStatus);
+  await persistAircraftOperationalStatus();
+  res.json({ aircraftStatus: aircraftOperationalStatus });
+});
+
+app.post('/api/booking-ops/aircraft-status/fuel-log', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  if (!requireFlightCrew(req, res)) return;
+  const phase = normalizeBookingText(req.body?.phase, 30).toUpperCase();
+  const allowedPhases = new Set(['PRE-FLIGHT', 'TAXI', 'IN-FLIGHT', 'POST-FLIGHT', 'REFUEL', 'OIL CHECK']);
+  if (!allowedPhases.has(phase)) return res.status(400).json({ error: 'SELECT A VALID FUEL OR OIL CHECKPOINT' });
+  const fuelGal = optionalOperationalNumber(req.body?.fuelGal, null, 0, AIRCRAFT_WEIGHT_BALANCE_PROFILE.stations.fuel.usableGallons);
+  const oilQuarts = optionalOperationalNumber(req.body?.oilQuarts, null, 0, 20);
+  if (fuelGal === null && oilQuarts === null) return res.status(400).json({ error: 'ENTER A FUEL OR OIL READING' });
+  const actor = pilotActor(req);
+  const flightId = normalizeBookingText(req.body?.flightId, 50).toUpperCase();
+  const entry = {
+    id: randomUUID(),
+    flightId,
+    phase,
+    fuelGal,
+    oilQuarts,
+    note: normalizeBookingText(req.body?.note, 240),
+    recordedAt: new Date().toISOString(),
+    recordedBy: actor
+  };
+  aircraftOperationalStatus = normalizeAircraftOperationalStatus({
+    ...aircraftOperationalStatus,
+    fuelOnBoardGal: fuelGal ?? aircraftOperationalStatus.fuelOnBoardGal,
+    oilQuarts: oilQuarts ?? aircraftOperationalStatus.oilQuarts,
+    updatedAt: entry.recordedAt,
+    updatedBy: actor,
+    fuelLog: [...aircraftOperationalStatus.fuelLog, entry]
+  }, aircraftOperationalStatus);
+  await persistAircraftOperationalStatus();
+  const request = flightId ? bookingRequests.find(item => item.id === flightId) : null;
+  if (request) {
+    await addBookingTimelineEvent(
+      request.id,
+      'AIRCRAFT FLUID CHECK',
+      `${phase}${fuelGal === null ? '' : ` / FUEL ${fuelGal} USG`}${oilQuarts === null ? '' : ` / OIL ${oilQuarts} QT`}`,
+      actor
+    );
+  }
+  res.status(201).json({ aircraftStatus: aircraftOperationalStatus, entry });
+});
+
 app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -4289,8 +4444,10 @@ app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
   res.json({
     requests: bookingRequests.slice().reverse().map(request => ({
       ...request,
-      bookingMessage: formatBookingMessage(request)
-    }))
+      bookingMessage: formatBookingMessage(request),
+      releasePanel: operationalReleasePanelState(request)
+    })),
+    aircraftStatus: aircraftOperationalStatus
   });
 });
 
@@ -4595,7 +4752,104 @@ function createOperationalReleaseSnapshot(plan, request, actor) {
       remarks: plan.briefingRemarks,
       reviewedAt: plan.briefingReviewedAt
     },
-    performance: plan.performanceSnapshot
+    performance: plan.performanceSnapshot,
+    releaseChecks: plan.releaseChecks,
+    aircraftStatus: {
+      serviceability: aircraftOperationalStatus.serviceability,
+      fuelOnBoardGal: aircraftOperationalStatus.fuelOnBoardGal,
+      oilQuarts: aircraftOperationalStatus.oilQuarts,
+      tachHours: aircraftOperationalStatus.tachHours,
+      updatedAt: aircraftOperationalStatus.updatedAt,
+      updatedBy: aircraftOperationalStatus.updatedBy
+    }
+  };
+}
+
+function operationalReleasePanelState(request) {
+  const plan = request?.operationalFlightPlan
+    ? normalizeOperationalFlightPlan(request.operationalFlightPlan, request)
+    : null;
+  const checks = normalizeOperationalReleaseChecks(plan?.releaseChecks);
+  const passengers = getRequestPassengers(request);
+  const signedAgreements = passengers.filter(passenger => passenger.agreementSignedAt).length;
+  const documentsReady = request?.manualFlight === true || (passengers.length > 0 && signedAgreements === passengers.length);
+  const weightBalanceWithinLimits = Boolean(plan
+    && plan.crewWeightLb > 0
+    && plan.baggageWeightLb <= plan.baggageLimitLb
+    && plan.fuelWeightLb <= plan.fuelCapacityLb
+    && plan.zeroFuelWeightLb <= plan.maxZeroFuelWeightLb
+    && plan.rampWeightLb <= plan.maxRampWeightLb
+    && plan.takeoffWeightLb <= plan.maxTakeoffWeightLb
+    && plan.landingWeightLb <= plan.maxLandingWeightLb
+    && plan.takeoffCgIn >= plan.forwardCgLimitIn
+    && plan.takeoffCgIn <= plan.aftCgLimitIn);
+  const blockFuelGal = Number(plan?.blockFuelGal);
+  const fuelRecord = aircraftOperationalStatus.fuelOnBoardGal;
+  const fuelOnBoardGal = fuelRecord === null || fuelRecord === undefined || String(fuelRecord).trim() === '' ? Number.NaN : Number(fuelRecord);
+  const fuelQuantityReady = Number.isFinite(blockFuelGal)
+    && blockFuelGal > 0
+    && blockFuelGal <= Number(plan?.fuelCapacityGal || 0)
+    && Number.isFinite(fuelOnBoardGal)
+    && fuelOnBoardGal >= blockFuelGal;
+  const items = {
+    weather: {
+      ready: Boolean(checks.weather.completed && plan?.notamReviewAccepted && plan?.airspaceReviewAccepted),
+      confirmedAt: checks.weather.completedAt,
+      confirmedBy: checks.weather.completedBy,
+      detail: plan?.notamReviewAccepted && plan?.airspaceReviewAccepted ? 'Weather, NOTAM and airspace review acknowledged' : 'Complete weather, NOTAM and airspace review'
+    },
+    performance: {
+      ready: Boolean(checks.performance.completed && plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway),
+      confirmedAt: checks.performance.completedAt,
+      confirmedBy: checks.performance.completedBy,
+      detail: plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway ? 'Departure and arrival performance snapshot captured' : 'Capture both runway performance snapshots'
+    },
+    weightBalance: {
+      ready: Boolean(checks.weightBalance.completed && weightBalanceWithinLimits),
+      confirmedAt: checks.weightBalance.completedAt,
+      confirmedBy: checks.weightBalance.completedBy,
+      detail: weightBalanceWithinLimits ? `TOW ${plan?.takeoffWeightLb || 0} LB / CG ${plan?.takeoffCgIn || 0} IN` : 'Resolve mass, balance, or loading limits'
+    },
+    fuel: {
+      ready: Boolean(checks.fuel.completed && fuelQuantityReady),
+      confirmedAt: checks.fuel.completedAt,
+      confirmedBy: checks.fuel.completedBy,
+      detail: blockFuelGal > 0
+        ? `Block ${blockFuelGal} USG / onboard ${Number.isFinite(fuelOnBoardGal) ? `${fuelOnBoardGal} USG` : 'not recorded'}`
+        : 'Enter and verify block fuel'
+    },
+    documents: {
+      ready: documentsReady,
+      confirmedAt: '',
+      confirmedBy: '',
+      detail: request?.manualFlight ? 'No passenger documents required' : `${signedAgreements}/${passengers.length} passenger agreements signed`
+    },
+    aircraft: {
+      ready: aircraftOperationalStatus.serviceability === 'SERVICEABLE',
+      confirmedAt: aircraftOperationalStatus.updatedAt,
+      confirmedBy: aircraftOperationalStatus.updatedBy,
+      detail: `${aircraftOperationalStatus.serviceability}${aircraftOperationalStatus.statusNote ? ` / ${aircraftOperationalStatus.statusNote}` : ''}`
+    }
+  };
+  const routeReady = Boolean(plan?.departure && plan?.destination && plan?.route && plan?.depRunway && plan?.arrRunway);
+  const commanderReady = Boolean(plan?.commanderName || (request?.crew?.commander && request.crew.commander !== 'UNASSIGNED'));
+  const blockers = [];
+  if (!plan) blockers.push('SAVE THE OFP DRAFT');
+  if (plan && !routeReady) blockers.push('COMPLETE ROUTE AND RUNWAYS');
+  if (!commanderReady) blockers.push('ASSIGN THE COMMANDER');
+  Object.entries(items).forEach(([key, item]) => {
+    if (!item.ready) blockers.push(`${key.replace(/([A-Z])/g, ' $1').toUpperCase()} OPEN`);
+  });
+  return {
+    ready: blockers.length === 0,
+    released: Boolean(plan?.releaseAccepted),
+    releaseId: plan?.releaseSnapshot?.releaseId || '',
+    releasedAt: plan?.releaseSnapshot?.releasedAt || '',
+    releasedBy: plan?.releaseSnapshot?.releasedBy || '',
+    routeReady,
+    commanderReady,
+    items,
+    blockers
   };
 }
 
@@ -5159,6 +5413,70 @@ app.get('/api/booking-ops/requests/:id/operational-flight-plan/pdf', requirePilo
   res.send(pdf);
 });
 
+app.post('/api/booking-ops/requests/:id/release-checks/:check', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  if (!requireFlightCrew(req, res)) return;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  if (!request.operationalFlightPlan) return res.status(409).json({ error: 'SAVE THE OFP DRAFT BEFORE COMPLETING RELEASE CHECKS' });
+  const check = String(req.params.check || '').trim();
+  if (!OPERATIONAL_RELEASE_CHECK_KEYS.includes(check)) return res.status(400).json({ error: 'INVALID RELEASE CHECK' });
+  const completed = req.body?.completed !== false && req.body?.completed !== 'false';
+  const actor = pilotActor(req);
+  const plan = normalizeOperationalFlightPlan(request.operationalFlightPlan, request);
+  plan.releaseChecks = normalizeOperationalReleaseChecks(plan.releaseChecks);
+  plan.releaseChecks[check] = completed
+    ? { completed: true, completedAt: new Date().toISOString(), completedBy: actor }
+    : { completed: false, completedAt: '', completedBy: '' };
+  plan.releaseAccepted = false;
+  request.operationalFlightPlan = normalizeOperationalFlightPlan(plan, request);
+  await persistBookingRequest(request);
+  await addBookingTimelineEvent(
+    request.id,
+    completed ? 'FLIGHT RELEASE CHECK' : 'FLIGHT RELEASE CHECK CLEARED',
+    `${check.replace(/([A-Z])/g, ' $1').toUpperCase()} / ${completed ? 'CONFIRMED' : 'CLEARED'}`,
+    actor
+  );
+  res.json({
+    request: {
+      ...request,
+      bookingMessage: formatBookingMessage(request),
+      releasePanel: operationalReleasePanelState(request)
+    }
+  });
+});
+
+app.post('/api/booking-ops/requests/:id/flight-release', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  if (req.pilotSession?.role !== 'COMMANDER') return res.status(403).json({ error: 'COMMANDER ACCESS REQUIRED FOR PIC RELEASE' });
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
+  if (!request.operationalFlightPlan) return res.status(409).json({ error: 'SAVE THE OFP DRAFT BEFORE PIC RELEASE' });
+  const releaseState = operationalReleasePanelState(request);
+  if (!releaseState.ready) return res.status(400).json({ error: `FLIGHT RELEASE BLOCKED: ${releaseState.blockers.join(' / ')}`, releasePanel: releaseState });
+  const actor = pilotActor(req);
+  const plan = normalizeOperationalFlightPlan(request.operationalFlightPlan, request);
+  plan.commanderName = plan.commanderName || request.crew?.commander || req.pilotSession.name;
+  plan.releaseName = req.pilotSession.name;
+  plan.releaseAccepted = true;
+  plan.releaseSnapshot = createOperationalReleaseSnapshot(plan, request, actor);
+  request.operationalFlightPlan = normalizeOperationalFlightPlan(plan, request);
+  await persistBookingRequest(request);
+  await addBookingTimelineEvent(
+    request.id,
+    'PIC FLIGHT RELEASE',
+    `${request.operationalFlightPlan.releaseSnapshot.releaseId} / ${request.operationalFlightPlan.departure}-${request.operationalFlightPlan.destination}`,
+    actor
+  );
+  res.json({
+    request: {
+      ...request,
+      bookingMessage: formatBookingMessage(request),
+      releasePanel: operationalReleasePanelState(request)
+    }
+  });
+});
+
 app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   if (!requireFlightCrew(req, res)) return;
@@ -5177,6 +5495,7 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   if (stepIndex === -1) return res.status(400).json({ error: 'INVALID MOVEMENT PHASE' });
 
   const previousPlan = normalizeOperationalFlightPlan(request.operationalFlightPlan, request);
+  if (!previousPlan.releaseAccepted) return res.status(409).json({ error: 'PIC FLIGHT RELEASE REQUIRED BEFORE RECORDING MOVEMENT TIMES' });
   const step = movementSteps[stepIndex];
   if (previousPlan[step.field]) return res.status(409).json({ error: `${step.label} TIME IS LOCKED` });
   if (stepIndex > 0 && !previousPlan[movementSteps[stepIndex - 1].field]) {
@@ -5362,8 +5681,11 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
       if (flightPlan.releaseAccepted && req.pilotSession?.role !== 'COMMANDER') {
         return res.status(403).json({ error: 'COMMANDER ACCESS REQUIRED TO RELEASE AN OFP' });
       }
-      if (flightPlan.releaseAccepted && flightPlan.warnings.length) {
-        return res.status(400).json({ error: `OFP RELEASE BLOCKED: ${flightPlan.warnings.join(' / ')}` });
+      if (flightPlan.releaseAccepted) {
+        const releaseState = operationalReleasePanelState({ ...request, operationalFlightPlan: flightPlan });
+        if (!releaseState.ready) {
+          return res.status(400).json({ error: `OFP RELEASE BLOCKED: ${releaseState.blockers.join(' / ')}` });
+        }
       }
       const wasReleased = Boolean(previousPlan?.releaseAccepted);
       if (flightPlan.releaseAccepted && !wasReleased) {

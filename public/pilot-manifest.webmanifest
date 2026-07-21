@@ -1,0 +1,23 @@
+{
+  "name": "NGA Pilot Operations EFB",
+  "short_name": "NGA Pilot EFB",
+  "start_url": "/booking-ops",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05080d",
+  "theme_color": "#05080d",
+  "description": "NGA pilot operations, flight release, aircraft status, and operational flight planning.",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

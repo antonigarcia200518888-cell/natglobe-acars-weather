@@ -31,6 +31,18 @@ PILOT_SESSION_SECRET=<long random secret>
 
 Commander and Secondary sessions can record the locked `OUT`, `OFF`, `ON`, and `IN` movement times. Only the Commander session can acknowledge an OFP release. Pilot Ops records the active role beside new operational timeline entries.
 
+### Flight release and aircraft control
+
+Pilot Ops includes a selected-flight release panel for weather/NOTAM/airspace review, runway performance, mass and balance, fuel, passenger documents, and aircraft serviceability. Operational checks are timestamped with the pilot role. Only a Commander session can record the final PIC release; the resulting release snapshot is stored with the OFP.
+
+After release, either Commander or Secondary can record `OUT`, `OFF`, `ON`, and `IN` with one tap. The server enforces the sequence, locks each timestamp, and writes it into the final OFP PDF.
+
+The Aircraft Status workspace stores serviceability, fuel, oil, tach/airframe time, maintenance due date/time, notes, and pre-flight/in-flight/post-flight/refuel checkpoints. With `DATABASE_URL` configured, this status and its checkpoint history survive Render restarts.
+
+The installed Pilot EFB supports a read-only offline shell and the latest selected non-sensitive operational snapshot. Live weather, database writes, release actions, and new timestamps still require a connection. Passenger identity, medical, agreement, and contact data are not copied into the offline snapshot. Logging out clears the snapshot and pilot shell cache.
+
+The locked aircraft mass-and-balance values currently identified as a ForeFlight aircraft profile were transcribed from the supplied profile. They are not live-synchronized with a ForeFlight account. A future import requires an official supported ForeFlight export or integration data source and must be validated against the current aircraft records and approved flight manual before operational use.
+
 ### Face ID / Touch ID pilot access
 
 Pilot Ops supports device passkeys. Sign in once with the pilot access code, open **Face ID / Touch ID device access** near the bottom of Pilot Ops, then choose **Set up this device**. Your phone or computer uses Face ID, Touch ID, or its device PIN; no biometric data is sent to or stored by NGA Private Aviation.
