@@ -1,1 +1,64 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Private Flight Request Received</title><style>@font-face{font-family:CSN;src:url('/fonts/computer-says-no.woff2')}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#000;color:#fff;font-family:"Courier New",monospace;padding:18px;display:grid;place-items:center}.card{width:min(720px,100%);border:2px solid #66ff99;padding:18px;background:#050505}.eyebrow{color:#66ff99;font-size:11px;text-transform:uppercase}.title{font:clamp(30px,8vw,52px)/1 CSN,monospace;margin:10px 0}.copy{color:#bbb;line-height:1.5;text-transform:uppercase;font-size:12px}.ref{border:1px solid #fff;padding:12px;margin:16px 0;color:#66ff99;font:24px/1 CSN,monospace}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.item{border:1px solid #555;padding:10px;min-height:58px}.item span{display:block;color:#999;font-size:10px;text-transform:uppercase;margin-bottom:5px}.item strong{font-size:13px;text-transform:uppercase;line-height:1.3}.steps{margin-top:14px;border-top:1px solid #555;padding-top:12px}.steps div{border-left:2px solid #555;padding:7px 10px;color:#aaa;font-size:12px;text-transform:uppercase}.steps div:first-child{border-color:#66ff99;color:#66ff99}a{display:block;margin-top:16px;border:2px solid #fff;background:#d0d0d0;color:#000;padding:14px;text-align:center;text-decoration:none;font-weight:700;text-transform:uppercase}@media(max-width:540px){.grid{grid-template-columns:1fr}}</style></head><body><main class="card"><div class="eyebrow">Private Flight</div><h1 class="title">REQUEST RECEIVED</h1><p class="copy">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p><div id="ref" class="ref">REFERENCE PENDING</div><div id="details" class="grid"></div><div class="steps"><div>Request received</div><div>Pilot and operations review</div><div>Payment instructions after approval</div><div>Final flight confirmation</div></div><a href="/booking">Start another request</a></main><script>const d=JSON.parse(sessionStorage.getItem('private-flight-confirmation-v1')||'null');const e=x=>String(x||'TBD').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));document.querySelector('#ref').textContent=d?`REFERENCE ${d.reference}`:'REQUEST REFERENCE NOT AVAILABLE';document.querySelector('#details').innerHTML=d?[['Route',d.route],['Departure',`${d.date} / ${d.time}`],['Trip',d.trip],['Flight time',d.flightTime],['Passengers',`${d.passengers} PAX`],['Flight cost',d.price],['Luggage',d.luggage]].map(([a,b])=>`<div class="item"><span>${a}</span><strong>${e(b)}</strong></div>`).join(''):'<div class="item"><strong>Return to booking if you need to submit a new request.</strong></div>';</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Flight Request Received</title>
+  <style>
+    @font-face { font-family: CSN; src: url('/fonts/computer-says-no.woff2'); }
+    :root { --navy:#071d49; --navy-soft:#193866; --ink:#102543; --muted:#64748b; --silver:#d7e0ea; --cloud:#f1f5f9; --paper:#ffffff; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:linear-gradient(145deg,#eef3f8 0%,#f8fafc 48%,#e9f0f7 100%); color:var(--ink); font-family:"Courier New",monospace; padding:28px 18px; display:grid; place-items:center; }
+    .card { width:min(760px,100%); overflow:hidden; border:1px solid rgba(7,29,73,.17); border-radius:6px; background:var(--paper); box-shadow:0 22px 56px rgba(7,29,73,.16); }
+    .head { padding:30px 32px 28px; background:var(--navy); color:#fff; }
+    .eyebrow { color:#d6e2ef; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+    .title { margin:11px 0 0; font:clamp(30px,6vw,48px)/1 CSN,"Courier New",monospace; letter-spacing:.035em; }
+    .body { padding:28px 32px 32px; }
+    .copy { margin:0; color:var(--muted); font-size:12px; line-height:1.6; text-transform:uppercase; }
+    .ref { margin:20px 0; padding:14px 16px; border:1px solid rgba(7,29,73,.22); background:#f4f7fb; color:var(--navy); font:22px/1 CSN,"Courier New",monospace; letter-spacing:.04em; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .item { min-height:72px; padding:12px; border:1px solid #dce5ee; background:var(--cloud); }
+    .item span { display:block; margin-bottom:6px; color:#66778c; font-size:10px; letter-spacing:.08em; text-transform:uppercase; }
+    .item strong { display:block; color:var(--navy); font-size:13px; line-height:1.35; text-transform:uppercase; word-break:break-word; }
+    .steps { margin-top:22px; padding-top:20px; border-top:1px solid #dce5ee; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; }
+    .steps div { min-height:68px; padding:8px 11px; border-left:1px solid #dce5ee; color:#75859a; font-size:10px; line-height:1.45; text-transform:uppercase; }
+    .steps div:first-child { border-left:0; color:var(--navy); font-weight:700; }
+    .steps div:first-child::before { content:'01'; display:block; margin-bottom:5px; color:var(--navy-soft); font:16px/1 CSN,"Courier New",monospace; }
+    .steps div:nth-child(2)::before { content:'02'; }
+    .steps div:nth-child(3)::before { content:'03'; }
+    .steps div:nth-child(4)::before { content:'04'; }
+    .steps div:not(:first-child)::before { display:block; margin-bottom:5px; color:#9aa8b8; font:16px/1 CSN,"Courier New",monospace; }
+    a { display:inline-flex; align-items:center; justify-content:center; min-height:52px; margin-top:24px; padding:12px 18px; background:var(--navy); color:#fff; text-decoration:none; font-weight:700; font-size:12px; letter-spacing:.04em; text-transform:uppercase; }
+    a:hover { background:var(--navy-soft); }
+    @media (max-width:600px) { body { padding:0; } .card { min-height:100vh; border:0; border-radius:0; } .head,.body { padding-left:20px; padding-right:20px; } .grid,.steps { grid-template-columns:1fr; } .steps div,.steps div:first-child { border-left:0; border-top:1px solid #dce5ee; } .steps div:first-child { border-top:0; } a { width:100%; } }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <header class="head">
+      <div class="eyebrow">Private Flight</div>
+      <h1 class="title">REQUEST RECEIVED</h1>
+    </header>
+    <section class="body">
+      <p class="copy">Your flight request is with the flight team. A pilot will review the route, aircraft, weather, and loading before confirmation.</p>
+      <div id="ref" class="ref">REFERENCE PENDING</div>
+      <div id="details" class="grid"></div>
+      <div class="steps">
+        <div>Request received</div>
+        <div>Pilot and operations review</div>
+        <div>Payment instructions after approval</div>
+        <div>Final flight confirmation</div>
+      </div>
+      <a href="/bookings">Start another request</a>
+    </section>
+  </main>
+  <script>
+    const d = JSON.parse(sessionStorage.getItem('private-flight-confirmation-v1') || 'null');
+    const e = value => String(value || 'TBD').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
+    document.querySelector('#ref').textContent = d ? `REFERENCE ${d.reference}` : 'REQUEST REFERENCE NOT AVAILABLE';
+    document.querySelector('#details').innerHTML = d
+      ? [['Route',d.route],['Departure',`${d.date} / ${d.time}`],['Trip',d.trip],['Flight time',d.flightTime],['Passengers',`${d.passengers} PAX`],['Flight cost',d.price],['Luggage',d.luggage]].map(([label,value]) => `<div class="item"><span>${label}</span><strong>${e(value)}</strong></div>`).join('')
+      : '<div class="item"><strong>Return to booking if you need to submit a new request.</strong></div>';
+  </script>
+</body>
+</html>
