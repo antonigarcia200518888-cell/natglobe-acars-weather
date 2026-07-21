@@ -186,9 +186,14 @@
     .suite-tab strong { margin-top: 5px; color: #fff; font-size: 13px; }
     .suite-tab small { margin-top: 3px; color: #7f909b; font-size: 9px; line-height: 1.25; }
     .suite-tab:hover { background: #0c1620; border-color: #304353; }
-    .suite-tab.active { border-color: #557b9d; background: #102131; box-shadow: inset 3px 0 0 var(--accent); }
+    .suite-tab.active {
+      border-color: var(--live);
+      background: linear-gradient(135deg, rgba(32, 211, 126, .2), #07130d);
+      box-shadow: inset 4px 0 0 var(--live), 0 0 0 1px rgba(32, 211, 126, .12);
+    }
     .suite-tab.active span,
-    .suite-tab.active strong { color: var(--accent); }
+    .suite-tab.active strong { color: var(--live); }
+    .suite-tab.active small { color: #a4d9bd; }
 
     .ops-tool-workspace {
       border: 1px solid #334553;
@@ -1426,6 +1431,53 @@
       .ofp-frame { min-height:760px; height:82vh; }
     }
 
+    /* Keep the main Pilot Ops workspaces within thumb reach on iPad. The
+       coarse-pointer query also covers larger iPad Pro landscape viewports. */
+    @media (min-width:561px) and (max-width:1180px),
+           (min-width:561px) and (hover:none) and (pointer:coarse) {
+      body { padding-bottom:calc(100px + env(safe-area-inset-bottom)); }
+      .ops-suite-nav {
+        position:fixed;
+        z-index:100;
+        inset:auto max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+        display:grid;
+        grid-template-columns:repeat(6,minmax(0,1fr));
+        gap:6px;
+        padding:8px;
+        border-color:#405464;
+        border-radius:10px;
+        background:rgba(5,13,20,.96);
+        box-shadow:0 -12px 34px rgba(0,0,0,.58);
+        -webkit-backdrop-filter:blur(14px);
+        backdrop-filter:blur(14px);
+      }
+      .suite-tab {
+        min-height:68px;
+        padding:8px 5px;
+        text-align:center;
+        touch-action:manipulation;
+      }
+      .suite-tab span { font-size:8px; }
+      .suite-tab strong { margin-top:6px; font-size:clamp(10px,1.65vw,14px); }
+      .suite-tab small { display:none; }
+      .suite-tab.active { box-shadow:inset 0 4px 0 var(--live), 0 0 0 1px rgba(32,211,126,.12); }
+      .quick-filter,
+      .agreement-pdf-btn,
+      .performance-inline button,
+      .performance-actions button,
+      .document-card button,
+      .device-passkey-remove { min-height:48px; }
+      .queue-filters input,
+      .queue-filters select,
+      .weather-toolbar input,
+      .performance-form input,
+      .performance-form select,
+      .perf-control select,
+      .perf-control input,
+      .performance-value input,
+      .performance-value select { min-height:48px; }
+    }
+
     @media (max-width: 560px) {
       .active-flight-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .flight-strip-route { grid-column:1/-1; }
@@ -2398,11 +2450,35 @@ END OF MESSAGE</pre>
       }
     }
 
+    const OPS_WORKSPACE_STORAGE_KEY = 'nga-pilot-ops-active-workspace';
+
+    function storedOpsWorkspace() {
+      try {
+        return localStorage.getItem(OPS_WORKSPACE_STORAGE_KEY) || '';
+      } catch {
+        return '';
+      }
+    }
+
+    function rememberOpsWorkspace(view) {
+      try {
+        localStorage.setItem(OPS_WORKSPACE_STORAGE_KEY, view);
+      } catch {
+        // Pilot Ops remains fully usable when private browsing blocks storage.
+      }
+    }
+
     function switchOpsWorkspace(view) {
       const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'documents']);
       if (!allowedViews.has(view)) view = 'dashboard';
       activeWorkspace = view;
-      suiteTabs.forEach(button => button.classList.toggle('active', button.dataset.suiteView === view));
+      rememberOpsWorkspace(view);
+      suiteTabs.forEach(button => {
+        const isActive = button.dataset.suiteView === view;
+        button.classList.toggle('active', isActive);
+        if (isActive) button.setAttribute('aria-current', 'page');
+        else button.removeAttribute('aria-current');
+      });
       const dashboardActive = view === 'dashboard';
       const flightsActive = view === 'flights';
       dashboardWorkspace.hidden = !dashboardActive;
@@ -4274,7 +4350,7 @@ END OF MESSAGE</pre>
     setInterval(autoSyncOps, 30000);
     loadPilotSession().catch(() => {});
     Promise.all([loadRequests(), loadWeatherAirportChoices()])
-      .then(() => switchOpsWorkspace(location.hash.replace('#', '') || 'dashboard'))
+      .then(() => switchOpsWorkspace(location.hash.replace('#', '') || storedOpsWorkspace() || 'dashboard'))
       .catch(() => { mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE'; });
   </script>
 </body>
