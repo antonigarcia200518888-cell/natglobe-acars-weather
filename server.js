@@ -63,6 +63,7 @@ const SUGGESTED_ALTN_LIMIT = 12;
 
 const OURAIRPORTS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
 const OURAIRPORTS_RUNWAYS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/runways.csv';
+const OURAIRPORTS_NAVAIDS_CSV_URL = 'https://davidmegginson.github.io/ourairports-data/navaids.csv';
 const OPERATING_COST_EUR_PER_HOUR = 300;
 const PUBLIC_AIRCRAFT_TYPE = 'PA-28R';
 const HANKO_SCENIC_EXPERIENCE = 'HANKO_REGATTA_SCENIC';
@@ -1122,6 +1123,12 @@ let runwayDbCache = {
   promise: null
 };
 
+let navaidDbCache = {
+  data: null,
+  loadedAt: 0,
+  promise: null
+};
+
 const responseCache = new Map();
 
 function getCached(key) {
@@ -1492,6 +1499,23 @@ function normalizeOperationalPerformanceSnapshot(input) {
   };
 }
 
+const OPERATIONAL_ROUTE_LEG_TYPES = Object.freeze(['AIRPORT', 'IFR WAYPOINT', 'VFR POINT', 'NAVAID', 'AIRWAY', 'DCT', 'HOLD']);
+
+function normalizeOperationalRouteLegs(input) {
+  if (!Array.isArray(input)) return [];
+  return input.slice(0, 80).map(item => {
+    const type = normalizeBookingText(item?.type, 24).toUpperCase();
+    const ident = normalizeBookingText(item?.ident, 32).toUpperCase().replace(/[^A-Z0-9./+\-]/g, '');
+    if (!ident) return null;
+    return {
+      type: OPERATIONAL_ROUTE_LEG_TYPES.includes(type) ? type : 'IFR WAYPOINT',
+      ident,
+      name: normalizeBookingText(item?.name, 80),
+      source: normalizeBookingText(item?.source, 80).toUpperCase() || 'PILOT ENTRY'
+    };
+  }).filter(Boolean);
+}
+
 function normalizeOperationalFlightPlan(input, request) {
   if (!input || typeof input !== 'object') return null;
   const defaults = operationalFlightPlanDefaults(request);
@@ -1523,6 +1547,14 @@ function normalizeOperationalFlightPlan(input, request) {
     destination: textField('destination', 8).toUpperCase(),
     depRunway: textField('depRunway', 12).toUpperCase(),
     arrRunway: textField('arrRunway', 12).toUpperCase(),
+    routeMode: ['IFR', 'VFR'].includes(textField('routeMode', 8).toUpperCase())
+      ? textField('routeMode', 8).toUpperCase()
+      : (textField('flightRules', 16).toUpperCase() === 'IFR' ? 'IFR' : 'VFR'),
+    departureProcedure: textField('departureProcedure', 40).toUpperCase(),
+    arrivalProcedure: textField('arrivalProcedure', 40).toUpperCase(),
+    approachProcedure: textField('approachProcedure', 40).toUpperCase(),
+    routeDataSource: textField('routeDataSource', 80).toUpperCase() || 'PILOT / CURRENT AIP',
+    routeLegs: normalizeOperationalRouteLegs(input.routeLegs ?? defaults.routeLegs),
     route: textField('route', 240).toUpperCase(),
     clearance: textField('clearance', 240).toUpperCase(),
     alternate: textField('alternate', 16).toUpperCase(),
@@ -1587,6 +1619,77 @@ function normalizeOperationalFlightPlan(input, request) {
   };
   const calculations = operationalFlightPlanCalculations(plan, request);
   return { ...plan, ...calculations };
+}
+
+function operationalPlanDependencyFingerprint(plan, includePerformance = true) {
+  if (!plan) return '';
+  const values = {
+    dateUtc: plan.dateUtc,
+    aircraftRegistration: plan.aircraftRegistration,
+    aircraftModel: plan.aircraftModel,
+    aircraftCode: plan.aircraftCode,
+    commanderName: plan.commanderName,
+    departure: plan.departure,
+    destination: plan.destination,
+    depRunway: plan.depRunway,
+    arrRunway: plan.arrRunway,
+    routeMode: plan.routeMode,
+    departureProcedure: plan.departureProcedure,
+    arrivalProcedure: plan.arrivalProcedure,
+    approachProcedure: plan.approachProcedure,
+    route: plan.route,
+    routeLegs: plan.routeLegs,
+    alternate: plan.alternate,
+    alternateRoute: plan.alternateRoute,
+    flightRules: plan.flightRules,
+    cruiseFlightLevel: plan.cruiseFlightLevel,
+    cruiseSpeedKt: plan.cruiseSpeedKt,
+    distanceNm: plan.distanceNm,
+    estimatedEnrouteMinutes: plan.estimatedEnrouteMinutes,
+    fuelFlowGph: plan.fuelFlowGph,
+    taxiFuelGal: plan.taxiFuelGal,
+    tripFuelGal: plan.tripFuelGal,
+    contingencyFuelGal: plan.contingencyFuelGal,
+    alternateFuelGal: plan.alternateFuelGal,
+    finalReserveFuelGal: plan.finalReserveFuelGal,
+    extraFuelGal: plan.extraFuelGal,
+    loadMode: plan.loadMode,
+    crew1Lb: plan.crew1Lb,
+    crew2Lb: plan.crew2Lb,
+    passengerWeightOverrideLb: plan.passengerWeightOverrideLb,
+    baggageWeightOverrideLb: plan.baggageWeightOverrideLb,
+    stabTrim: plan.stabTrim,
+    notamReviewAccepted: plan.notamReviewAccepted,
+    airspaceReviewAccepted: plan.airspaceReviewAccepted,
+    briefingRemarks: plan.briefingRemarks
+  };
+  if (includePerformance) values.performanceSnapshot = plan.performanceSnapshot;
+  return JSON.stringify(values);
+}
+
+function operationalPerformanceDependencyFingerprint(plan) {
+  if (!plan) return '';
+  return JSON.stringify({
+    aircraftRegistration: plan.aircraftRegistration,
+    aircraftModel: plan.aircraftModel,
+    departure: plan.departure,
+    destination: plan.destination,
+    depRunway: plan.depRunway,
+    arrRunway: plan.arrRunway,
+    loadMode: plan.loadMode,
+    crew1Lb: plan.crew1Lb,
+    crew2Lb: plan.crew2Lb,
+    passengerWeightOverrideLb: plan.passengerWeightOverrideLb,
+    baggageWeightOverrideLb: plan.baggageWeightOverrideLb,
+    bookingPassengerWeightLb: plan.bookingPassengerWeightLb,
+    bookingBaggageWeightLb: plan.bookingBaggageWeightLb,
+    taxiFuelGal: plan.taxiFuelGal,
+    tripFuelGal: plan.tripFuelGal,
+    contingencyFuelGal: plan.contingencyFuelGal,
+    alternateFuelGal: plan.alternateFuelGal,
+    finalReserveFuelGal: plan.finalReserveFuelGal,
+    extraFuelGal: plan.extraFuelGal
+  });
 }
 
 function normalizeBookingEmail(input) {
@@ -2305,6 +2408,44 @@ async function fetchCsvRunways(url) {
     .filter(Boolean);
 }
 
+function normalizeNavaidRow(row) {
+  const ident = String(row.ident || '').trim().toUpperCase();
+  const country = String(row.iso_country || '').trim().toUpperCase();
+  const lat = Number(row.latitude_deg);
+  const lon = Number(row.longitude_deg);
+  const elevationFt = Number(row.elevation_ft);
+  const frequencyKhz = Number(row.frequency_khz);
+
+  if (!/^[A-Z0-9]{2,8}$/.test(ident)) return null;
+  if (!EUROPE_COUNTRIES.has(country)) return null;
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+
+  return {
+    ident,
+    name: String(row.name || '').trim(),
+    type: String(row.type || 'NAVAID').trim().toUpperCase(),
+    country,
+    lat,
+    lon,
+    elevationFt: Number.isFinite(elevationFt) ? Math.round(elevationFt) : null,
+    frequencyKhz: Number.isFinite(frequencyKhz) ? frequencyKhz : null,
+    associatedAirport: String(row.associated_airport || '').trim().toUpperCase()
+  };
+}
+
+async function fetchCsvNavaids(url) {
+  const res = await fetchWithTimeout(
+    url,
+    { headers: { 'User-Agent': 'NatGlobeAviation/1.0' } },
+    FETCH_TIMEOUT_AIRPORT_DB_MS
+  );
+
+  if (!res.ok) throw new Error(`NAVAID DB HTTP ${res.status}`);
+
+  const csv = await res.text();
+  return parseCsv(csv).map(normalizeNavaidRow).filter(Boolean);
+}
+
 async function loadAirportDatabase() {
   const now = Date.now();
 
@@ -2379,6 +2520,73 @@ async function loadRunwayDatabase() {
   })();
 
   return runwayDbCache.promise;
+}
+
+async function loadNavaidDatabase() {
+  const now = Date.now();
+  if (navaidDbCache.data && now - navaidDbCache.loadedAt < AIRPORT_DB_TTL_MS) return navaidDbCache.data;
+  if (navaidDbCache.promise) return navaidDbCache.promise;
+
+  navaidDbCache.promise = (async () => {
+    try {
+      const data = await fetchCsvNavaids(OURAIRPORTS_NAVAIDS_CSV_URL);
+      navaidDbCache.data = data;
+      navaidDbCache.loadedAt = Date.now();
+      navaidDbCache.promise = null;
+      console.log(`Loaded navaid reference DB: ${data.length} European records`);
+      return data;
+    } catch (err) {
+      console.warn('Failed to load navaid reference DB:', err.message);
+      navaidDbCache.data = [];
+      navaidDbCache.loadedAt = Date.now();
+      navaidDbCache.promise = null;
+      return [];
+    }
+  })();
+
+  return navaidDbCache.promise;
+}
+
+async function searchNavigationReference(query) {
+  const normalized = String(query || '').trim().toUpperCase().slice(0, 40);
+  if (normalized.length < 2) return [];
+
+  const [airports, navaids] = await Promise.all([loadAirportDatabase(), loadNavaidDatabase()]);
+  const score = item => {
+    const ident = String(item.ident || item.icao || '').toUpperCase();
+    const name = String(item.name || '').toUpperCase();
+    if (ident === normalized) return 0;
+    if (ident.startsWith(normalized)) return 1;
+    if (name.startsWith(normalized)) return 2;
+    if (ident.includes(normalized)) return 3;
+    return 4;
+  };
+  const airportResults = airports
+    .filter(airport => `${airport.icao} ${airport.name} ${airport.municipality}`.toUpperCase().includes(normalized))
+    .map(airport => ({
+      kind: 'AIRPORT',
+      ident: airport.icao,
+      name: airport.name,
+      detail: [airport.municipality, airport.country].filter(Boolean).join(' / '),
+      lat: airport.lat,
+      lon: airport.lon,
+      source: 'OURAIRPORTS REFERENCE'
+    }));
+  const navaidResults = navaids
+    .filter(navaid => `${navaid.ident} ${navaid.name} ${navaid.type} ${navaid.associatedAirport}`.toUpperCase().includes(normalized))
+    .map(navaid => ({
+      kind: 'NAVAID',
+      ident: navaid.ident,
+      name: navaid.name,
+      detail: [navaid.type, navaid.frequencyKhz ? `${navaid.frequencyKhz} KHZ` : '', navaid.associatedAirport].filter(Boolean).join(' / '),
+      lat: navaid.lat,
+      lon: navaid.lon,
+      source: 'OURAIRPORTS REFERENCE'
+    }));
+
+  return [...airportResults, ...navaidResults]
+    .sort((a, b) => score(a) - score(b) || a.ident.localeCompare(b.ident))
+    .slice(0, 24);
 }
 
 async function findAirportByIcao(icao) {
@@ -4612,6 +4820,18 @@ function operationalFlightPlanDefaults(request) {
     destination: request?.arr || '',
     depRunway: '',
     arrRunway: '',
+    routeMode: 'VFR',
+    departureProcedure: '',
+    arrivalProcedure: '',
+    approachProcedure: '',
+    routeDataSource: 'PILOT / CURRENT AIP',
+    routeLegs: request?.dep && request?.arr
+      ? [
+          { type: 'AIRPORT', ident: request.dep, name: '', source: 'BOOKING PRELOAD' },
+          { type: 'DCT', ident: 'DCT', name: '', source: 'BOOKING PRELOAD' },
+          { type: 'AIRPORT', ident: request.arr, name: '', source: 'BOOKING PRELOAD' }
+        ]
+      : [],
     route: request?.dep && request?.arr ? `${request.dep} DCT ${request.arr}` : '',
     clearance: '',
     alternate: '',
@@ -5230,8 +5450,8 @@ async function createOperationalFlightPlanPdf(request) {
   drawTop(page1, 'BURN', 382.4, 405.2, 10.5, { fallback: '' });
   drawTop(page1, plan.tripFuelGal, 420.1, 405.2, 10.5, { maxWidth: 28 });
   const routeText = clean(plan.route || `${plan.departure} DCT ${plan.destination}`, 'PILOT ROUTE REQUIRED', 68);
-  drawTop(page1, `DEP ${plan.departure} RWY ${plan.depRunway || 'TBD'} ROUTE ${routeText}`, 49.5, 457.6, 10.2, { maxWidth: 480 });
-  drawTop(page1, `ARR ${plan.destination} RWY ${plan.arrRunway || 'TBD'}`, 49.5, 471.1, 10.2, { maxWidth: 475 });
+  drawTop(page1, `DEP ${plan.departure} RWY ${plan.depRunway || 'TBD'} SID ${plan.departureProcedure || 'PILOT'} ROUTE ${routeText}`, 49.5, 457.6, 10.2, { maxWidth: 480, maxChars: 84 });
+  drawTop(page1, `ARR ${plan.destination} RWY ${plan.arrRunway || 'TBD'} STAR ${plan.arrivalProcedure || 'PILOT'} APCH ${plan.approachProcedure || 'PILOT'}`, 49.5, 471.1, 10.2, { maxWidth: 475, maxChars: 82 });
   if (plan.clearance) drawTop(page1, plan.clearance, 49.5, 526, 10.2, { maxWidth: 475, maxChars: 76 });
   drawTop(page1, '---------------------', 207, 588.1, 10.5, { fallback: '' });
   drawTop(page1, `ALTN     ${airportDisplay(plan.alternate || 'TBD')}     FL${String(plan.cruiseFlightLevel || 'VFR').replace(/^FL/, '')}   DIS ${plan.alternateDistanceNm}NM  EET ${plan.alternateEetMinutes}MIN  BURN ${plan.alternateFuelGal}`, 48.6, 601.2, 10.2, { maxWidth: 470 });
@@ -5759,8 +5979,19 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     const previousPlan = request.operationalFlightPlan
       ? normalizeOperationalFlightPlan(request.operationalFlightPlan, request)
       : null;
-    const flightPlan = normalizeOperationalFlightPlan(req.body.operationalFlightPlan, request);
+    let flightPlan = normalizeOperationalFlightPlan(req.body.operationalFlightPlan, request);
     if (flightPlan) {
+      const planningChanged = Boolean(previousPlan
+        && operationalPlanDependencyFingerprint(previousPlan) !== operationalPlanDependencyFingerprint(flightPlan));
+      const performanceInputsChanged = Boolean(previousPlan
+        && operationalPerformanceDependencyFingerprint(previousPlan) !== operationalPerformanceDependencyFingerprint(flightPlan));
+      if (planningChanged) {
+        flightPlan.releaseAccepted = false;
+        flightPlan.releaseSnapshot = null;
+        flightPlan.releaseChecks = normalizeOperationalReleaseChecks({});
+        if (performanceInputsChanged) flightPlan.performanceSnapshot = null;
+        flightPlan = normalizeOperationalFlightPlan(flightPlan, request);
+      }
       const briefingComplete = flightPlan.notamReviewAccepted && flightPlan.airspaceReviewAccepted;
       const briefingWasComplete = previousPlan?.notamReviewAccepted && previousPlan?.airspaceReviewAccepted;
       flightPlan.briefingReviewedAt = briefingComplete
@@ -5784,7 +6015,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
           `${flightPlan.releaseSnapshot.releaseId} / ${flightPlan.departure}-${flightPlan.destination} / TOW ${flightPlan.takeoffWeightLb}LB / BLOCK ${flightPlan.blockFuelGal}USG`,
           actor
         );
-      } else {
+      } else if (!planningChanged) {
         flightPlan.releaseSnapshot = previousPlan?.releaseSnapshot || null;
       }
       request.operationalFlightPlan = flightPlan;
@@ -5802,8 +6033,8 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
       }
       await addBookingTimelineEvent(
         request.id,
-        flightPlan.releaseAccepted ? 'OFP RELEASE ACKNOWLEDGED' : wasReleased ? 'OFP RELEASE CLEARED' : 'OFP DRAFT SAVED',
-        `${flightPlan.departure}-${flightPlan.destination} / ${flightPlan.calculationStatus}`,
+        flightPlan.releaseAccepted ? 'OFP RELEASE ACKNOWLEDGED' : wasReleased || planningChanged ? 'OFP RELEASE CHECKS CLEARED' : 'OFP DRAFT SAVED',
+        `${flightPlan.departure}-${flightPlan.destination} / ${flightPlan.calculationStatus}${planningChanged ? ' / PLANNING INPUT CHANGED' : ''}`,
         actor
       );
     }
@@ -6237,6 +6468,26 @@ app.get('/api/airport-runways', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json([]);
+  }
+});
+
+app.get('/api/booking-ops/navigation-search', requirePilotAccess, async (req, res) => {
+  try {
+    const query = normalizeBookingText(req.query.q, 40);
+    if (query.length < 2) return res.json({
+      source: 'REFERENCE DATA / PILOT VERIFICATION REQUIRED',
+      results: []
+    });
+    const results = await searchNavigationReference(query);
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.json({
+      source: 'OURAIRPORTS REFERENCE / NOT A CERTIFIED NAVIGATION DATABASE',
+      reminder: 'Verify all waypoints, procedures, frequencies, and effective dates against the current AIP and approved navigation source.',
+      results
+    });
+  } catch (err) {
+    console.error('NAVIGATION SEARCH:', err.message);
+    res.status(500).json({ error: 'NAVIGATION REFERENCE SEARCH UNAVAILABLE', results: [] });
   }
 });
 

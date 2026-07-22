@@ -1646,6 +1646,84 @@
       .dashboard-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .masthead-status .badge { display:none; }
     }
+
+    /* Flight deck refinement: navigation is compact and stable while each
+       operational workspace receives the available tablet canvas. */
+    body { background:#02070c; }
+    .frame { max-width:1880px; border-color:#243a4c; background:#050b11; }
+    .efb-masthead {
+      border:1px solid #294357;
+      border-radius:8px;
+      background:linear-gradient(120deg,#07131e 0%,#0a1b29 64%,#0b2233 100%);
+      overflow:hidden;
+    }
+    .title { color:#f5f8fa; letter-spacing:.08em; }
+    .intro { color:#91a7b6; text-transform:none; letter-spacing:0; }
+    .mode { border-top:1px solid #294357; background:#06101a; color:#8ba9bc; }
+    .active-flight-strip { border:1px solid #263d4e; border-radius:7px; overflow:hidden; background:#07101a; }
+    .flight-strip-item { border-color:#263d4e; background:#07101a; }
+    .flight-strip-item span { color:#7f95a4; }
+    .flight-strip-item strong { color:#eff5f8; }
+    .efb-layout { grid-template-columns:178px minmax(0,1fr); gap:10px; }
+    .ops-suite-nav {
+      top:10px;
+      gap:5px;
+      padding:7px;
+      border:1px solid #263d4e;
+      border-radius:8px;
+      background:#07101a;
+      box-shadow:none;
+    }
+    .suite-tab { min-height:58px; border:1px solid transparent; border-radius:5px; padding:9px 10px; background:transparent; }
+    .suite-tab span { color:#667c8b; font-size:8px; }
+    .suite-tab strong { margin-top:4px; color:#cad7df; font-size:12px; letter-spacing:.01em; }
+    .suite-tab small { display:none; }
+    .suite-tab:hover { border-color:#304d62; background:#0b1823; }
+    .suite-tab.active { border-color:#6ea5cc; background:#10283a; box-shadow:inset 3px 0 0 #8ec5ff; }
+    .suite-tab.active span, .suite-tab.active strong { color:#e9f6ff; }
+    .ops-dashboard, .ops-tool-workspace { border-color:#263d4e; border-radius:8px; background:#07101a; }
+    .dashboard-head { border-color:#294356; border-radius:7px; background:#091722; }
+    .dashboard-head h2 { color:#f0f5f8; letter-spacing:.01em; }
+    .dashboard-head p { max-width:680px; color:#8fa2ae; text-transform:none; letter-spacing:0; }
+    .dashboard-head > strong { border-color:#42637a; border-radius:999px; color:#b6ccda; background:#0b1b28; }
+    .dashboard-actions { gap:7px; }
+    .dashboard-action { min-height:106px; border-color:#294356; border-radius:6px; background:#091722; box-shadow:none; }
+    .dashboard-action:hover { border-color:#6a9abb; background:#0d2130; transform:none; }
+    .dashboard-action span { color:#7890a0; }
+    .dashboard-action strong { color:#edf5f9; }
+    .dashboard-action small { color:#879ba8; text-transform:none; }
+    .ops-command-strip, .ops-watch { gap:6px; }
+    .ops-command-card, .ops-watch-card { border-color:#263d4e; border-radius:5px; background:#08131d; }
+    .tool-workspace-head { border-color:#294356; background:#091722; }
+    .tool-workspace-head strong { color:#f0f5f8; }
+    .ofp-frame { border-color:#294356; background:#07101a; }
+
+    @media (min-width:700px) and (max-width:1180px),
+           (min-width:700px) and (hover:none) and (pointer:coarse) {
+      body { padding:0; }
+      .frame { padding:9px; }
+      .efb-layout { display:grid; grid-template-columns:78px minmax(0,1fr); gap:8px; align-items:start; }
+      .ops-suite-nav {
+        position:sticky;
+        inset:auto;
+        top:78px;
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+        padding:6px;
+        border-radius:8px;
+        box-shadow:none;
+        -webkit-backdrop-filter:none;
+        backdrop-filter:none;
+      }
+      .suite-tab { width:100%; min-height:57px; padding:7px 4px; text-align:center; }
+      .suite-tab span { display:none; }
+      .suite-tab strong { margin:0; font-size:9px; line-height:1.15; }
+      .suite-tab.active { box-shadow:inset 0 3px 0 #8ec5ff; }
+      .dashboard-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .ops-tool-workspace { min-height:calc(100vh - 182px); }
+      .ofp-frame { height:calc(100vh - 205px); min-height:690px; }
+    }
   </style>
 </head>
 <body>
@@ -1665,13 +1743,13 @@
     </section>
     <div class="efb-layout">
     <nav class="ops-suite-nav" aria-label="Pilot operations workspaces">
-      <button class="suite-tab active" type="button" data-suite-view="dashboard"><span>01 / Overview</span><strong>Dashboard</strong><small>Operational picture and tools</small></button>
-      <button class="suite-tab" type="button" data-suite-view="flights"><span>02 / Control</span><strong>Flights</strong><small>Queue, crew, passengers, decision</small></button>
-      <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>03 / Plan</span><strong>Flight Plan</strong><small>Route, fuel, load, movement log</small></button>
-      <button class="suite-tab" type="button" data-suite-view="weather"><span>04 / Preflight</span><strong>Weather</strong><small>Live briefing and dispatch data</small></button>
-      <button class="suite-tab" type="button" data-suite-view="performance"><span>05 / Performance</span><strong>Aircraft Performance</strong><small>Runway, wind, density altitude</small></button>
-      <button class="suite-tab" type="button" data-suite-view="aircraft"><span>06 / Aircraft</span><strong>Aircraft Status</strong><small>Fuel, oil, maintenance, serviceability</small></button>
-      <button class="suite-tab" type="button" data-suite-view="documents"><span>07 / Flight file</span><strong>Documents</strong><small>OFP, statement, agreements</small></button>
+      <button class="suite-tab active" type="button" data-suite-view="dashboard"><span>Flight deck</span><strong>Home</strong><small>Operational picture and tools</small></button>
+      <button class="suite-tab" type="button" data-suite-view="flights"><span>Control</span><strong>Flights</strong><small>Queue, crew, passengers, decision</small></button>
+      <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>Plan</span><strong>OFP</strong><small>Route, fuel, load, movement log</small></button>
+      <button class="suite-tab" type="button" data-suite-view="weather"><span>Preflight</span><strong>Weather</strong><small>Live briefing and dispatch data</small></button>
+      <button class="suite-tab" type="button" data-suite-view="performance"><span>Runway</span><strong>Performance</strong><small>Runway, wind, density altitude</small></button>
+      <button class="suite-tab" type="button" data-suite-view="aircraft"><span>Technical</span><strong>Aircraft</strong><small>Fuel, oil, maintenance, serviceability</small></button>
+      <button class="suite-tab" type="button" data-suite-view="documents"><span>Flight file</span><strong>Files</strong><small>OFP, statement, agreements</small></button>
     </nav>
     <div class="efb-content">
     <section id="dashboardWorkspace" class="ops-dashboard">
