@@ -1564,12 +1564,94 @@
       .aircraft-status-metric:last-child { border-bottom:0; }
       .aircraft-field-wide, .fluid-log-form .wide { grid-column:auto; }
     }
+
+    /* iPad EFB shell: compact persistent controls with the operational content
+       taking the full tablet canvas. */
+    .frame { border-color:#314657; background:rgba(3,8,12,.985); }
+    .efb-masthead { box-shadow:0 10px 30px rgba(0,0,0,.18); }
+    .ops-tool-workspace, .dashboard-head, .dashboard-action, .aircraft-panel { border-color:#354c5e; }
+    .suite-tab { transition:background .16s ease,border-color .16s ease,color .16s ease; }
+
+    @media (min-width: 561px) and (max-width: 1180px),
+           (min-width: 561px) and (hover:none) and (pointer:coarse) {
+      html, body { background:#020507; }
+      body { padding:0 0 calc(88px + env(safe-area-inset-bottom)); }
+      .frame { width:100%; min-height:100vh; padding:10px; border:0; border-radius:0; box-shadow:none; }
+      .efb-masthead {
+        position:sticky;
+        z-index:70;
+        top:0;
+        grid-template-columns:minmax(0,1fr) auto;
+        gap:7px 12px;
+        margin:0 0 9px;
+        padding:10px 12px 0;
+        border-radius:8px;
+        background:rgba(5,13,20,.96);
+        -webkit-backdrop-filter:blur(16px);
+        backdrop-filter:blur(16px);
+      }
+      .title { font-size:19px; letter-spacing:.02em; }
+      .intro { display:none; }
+      .masthead-status { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:7px; }
+      .badge { min-height:30px; padding:5px 8px; font-size:10px; }
+      .clock, .offline-indicator { font-size:9px; }
+      .mode { min-height:29px; padding:5px 12px; margin:0 -12px; font-size:9px; }
+      .active-flight-strip {
+        display:flex;
+        gap:1px;
+        overflow-x:auto;
+        overscroll-behavior-inline:contain;
+        scroll-snap-type:x proximity;
+        -webkit-overflow-scrolling:touch;
+        margin-bottom:9px;
+      }
+      .flight-strip-item { flex:0 0 142px; min-height:62px; padding:9px 10px; scroll-snap-align:start; }
+      .flight-strip-route { flex-basis:250px; }
+      #activeFlightWeatherCard { flex-basis:180px; }
+      .flight-strip-item strong { margin-top:5px; font-size:11px; }
+      .flight-strip-item small { margin-top:3px; }
+      .efb-layout { display:block; }
+      .efb-content { width:100%; }
+      .ops-suite-nav {
+        grid-template-columns:repeat(7,minmax(0,1fr));
+        inset:auto max(8px,env(safe-area-inset-right)) max(7px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+        gap:4px;
+        padding:6px;
+      }
+      .suite-tab { min-height:62px; padding:7px 3px; border-radius:6px; }
+      .suite-tab span { font-size:7px; }
+      .suite-tab strong { margin-top:4px; font-size:clamp(9px,1.45vw,12px); line-height:1.05; }
+      .suite-tab small { display:none; }
+      .dashboard-head { padding:14px; }
+      .dashboard-head h2 { font-size:19px; }
+      .dashboard-head p { margin-top:7px; font-size:9px; line-height:1.4; }
+      .dashboard-actions { grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+      .dashboard-action { min-height:102px; padding:11px; border-radius:5px; }
+      .dashboard-action strong { margin:6px 0 4px; font-size:12px; }
+      .dashboard-action small { font-size:8px; }
+      .ops-tool-workspace { min-height:calc(100vh - 196px); border-radius:8px; }
+      .tool-workspace-head { padding:11px 13px; }
+      .tool-workspace-head strong { font-size:14px; }
+      .ops-tool-pane { padding:10px; }
+      .ofp-frame { height:calc(100vh - 222px); min-height:650px; border-radius:6px; }
+      .weather-toolbar { padding:10px 10px 0; }
+      .weather-output-layout { padding:0 10px 10px; }
+      .weather-options { padding:10px; }
+      .queue-panel { max-height:none; }
+    }
+
+    @media (min-width: 561px) and (max-width: 760px) {
+      .suite-tab span { display:none; }
+      .suite-tab strong { font-size:9px; }
+      .dashboard-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .masthead-status .badge { display:none; }
+    }
   </style>
 </head>
 <body>
   <main class="frame">
     <header class="efb-masthead">
-      <div><div class="title">NGA PILOT OPERATIONS CENTRE</div><div class="intro">Selected-flight control, planning, weather, aircraft performance, and documents.</div></div>
+      <div><div class="title">NGA PILOT EFB</div><div class="intro">Flights, planning, weather, performance, aircraft, and documents.</div></div>
       <div class="masthead-status"><div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div><div id="networkStatus" class="offline-indicator">NETWORK CHECK</div><div id="clock" class="clock">UTC --:--:--</div></div>
       <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
     </header>

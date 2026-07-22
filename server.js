@@ -1502,13 +1502,18 @@ function normalizeOperationalFlightPlan(input, request) {
     if (raw === null || raw === undefined || String(raw).trim() === '') return null;
     return operationalPlanNumber(raw, null, min, max);
   };
+  const legacyManualLoad = input.loadMode === null || input.loadMode === undefined
+    ? [input.passengerWeightOverrideLb, input.baggageWeightOverrideLb]
+      .some(value => value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value)))
+    : false;
   const plan = {
     version: 'NGA-OFP-2026-07',
     updatedAt: new Date().toISOString(),
     dateUtc: textField('dateUtc', 20),
-    aircraftRegistration: textField('aircraftRegistration', 16).toUpperCase(),
-    aircraftModel: textField('aircraftModel', 40).toUpperCase(),
-    aircraftCode: textField('aircraftCode', 24).toUpperCase(),
+    aircraftRegistration: textField('aircraftRegistration', 16).toUpperCase() || defaults.aircraftRegistration,
+    aircraftModel: textField('aircraftModel', 40).toUpperCase() || defaults.aircraftModel,
+    aircraftCode: textField('aircraftCode', 24).toUpperCase() || defaults.aircraftCode,
+    loadMode: String(input.loadMode ?? (legacyManualLoad ? 'MANUAL' : defaults.loadMode)).toUpperCase() === 'MANUAL' ? 'MANUAL' : 'BOOKING',
     commanderName: textField('commanderName', 60).toUpperCase(),
     commanderPhone: textField('commanderPhone', 40),
     callsign: textField('callsign', 40).toUpperCase(),
@@ -4596,9 +4601,10 @@ function operationalFlightPlanDefaults(request) {
     : '';
   return {
     dateUtc: request?.requestDate || '',
-    aircraftRegistration: '',
+    aircraftRegistration: 'OH-PMK',
     aircraftModel: 'PA28-200R',
     aircraftCode: 'PA28',
+    loadMode: manualFlight ? 'MANUAL' : 'BOOKING',
     commanderName: commander,
     commanderPhone: '',
     callsign: 'NGA PRIVATE AVIATION',
@@ -4704,8 +4710,9 @@ function operationalFlightPlanCalculations(plan, request) {
   const profile = AIRCRAFT_WEIGHT_BALANCE_PROFILE;
   const bookingPassengerWeightLb = ofpRound(getRequestPassengers(request).reduce((sum, passenger) => sum + (Number(passenger.weightKg) || 0), 0) * 2.20462, 1);
   const bookingBaggageWeightLb = request?.carryOnBags === 'YES' ? ofpRound((Number(request.baggageWeightKg) || 0) * 2.20462, 1) : 0;
-  const hasPassengerOverride = plan.passengerWeightOverrideLb !== null && plan.passengerWeightOverrideLb !== undefined && Number.isFinite(Number(plan.passengerWeightOverrideLb));
-  const hasBaggageOverride = plan.baggageWeightOverrideLb !== null && plan.baggageWeightOverrideLb !== undefined && Number.isFinite(Number(plan.baggageWeightOverrideLb));
+  const manualLoad = request?.manualFlight === true || String(plan.loadMode || '').toUpperCase() === 'MANUAL';
+  const hasPassengerOverride = manualLoad && plan.passengerWeightOverrideLb !== null && plan.passengerWeightOverrideLb !== undefined && Number.isFinite(Number(plan.passengerWeightOverrideLb));
+  const hasBaggageOverride = manualLoad && plan.baggageWeightOverrideLb !== null && plan.baggageWeightOverrideLb !== undefined && Number.isFinite(Number(plan.baggageWeightOverrideLb));
   const passengerWeightLb = hasPassengerOverride ? ofpRound(Number(plan.passengerWeightOverrideLb), 1) : bookingPassengerWeightLb;
   const baggageWeightLb = hasBaggageOverride ? ofpRound(Number(plan.baggageWeightOverrideLb), 1) : bookingBaggageWeightLb;
   const blockFuelGal = ofpRound(
@@ -4763,10 +4770,15 @@ function operationalFlightPlanCalculations(plan, request) {
   return {
     bookingPassengerWeightLb,
     bookingBaggageWeightLb,
+    loadMode: manualLoad ? 'MANUAL' : 'BOOKING',
     passengerWeightLb,
     baggageWeightLb,
-    passengerWeightSource: hasPassengerOverride ? 'PILOT ACTUAL LOAD' : 'BOOKING MANIFEST',
-    baggageWeightSource: hasBaggageOverride ? 'PILOT ACTUAL LOAD' : 'BOOKING MANIFEST',
+    passengerWeightSource: manualLoad
+      ? (hasPassengerOverride ? 'PILOT ACTUAL LOAD' : 'PILOT ENTRY REQUIRED')
+      : 'BOOKING MANIFEST',
+    baggageWeightSource: manualLoad
+      ? (hasBaggageOverride ? 'PILOT ACTUAL LOAD' : 'PILOT ENTRY REQUIRED')
+      : 'BOOKING MANIFEST',
     blockFuelGal,
     fuelWeightLb,
     crewWeightLb,

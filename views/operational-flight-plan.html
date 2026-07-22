@@ -9,9 +9,9 @@
     * { box-sizing:border-box; }
     [hidden] { display:none !important; }
     html, body { margin:0; min-height:100%; background:var(--bg); color:var(--ink); font-family:"Courier New", monospace; }
-    body { padding:20px; background-image:linear-gradient(rgba(142,197,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(142,197,255,.025) 1px,transparent 1px); background-size:30px 30px; }
+    body { padding:20px; background:linear-gradient(155deg,#07111a 0%,#030506 42%,#020304 100%); }
     button, input, select, textarea { font:inherit; }
-    .shell { width:min(1480px,100%); margin:auto; border:1px solid #fff; background:rgba(0,0,0,.97); box-shadow:0 24px 80px rgba(0,0,0,.55); }
+    .shell { width:min(1480px,100%); margin:auto; overflow:hidden; border:1px solid #344b5d; border-radius:9px; background:rgba(2,5,7,.985); box-shadow:0 24px 80px rgba(0,0,0,.55); }
     .topbar { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; padding:20px; border-bottom:1px solid var(--line); }
     .eyebrow { color:var(--blue); font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
     h1 { margin:5px 0 4px; font-size:clamp(22px,3vw,36px); line-height:1; text-transform:uppercase; }
@@ -44,6 +44,7 @@
     label { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
     input, select, textarea { width:100%; min-height:40px; margin-top:5px; border:1px solid #50606b; background:#000; color:#fff; padding:8px 9px; }
     input[readonly] { border-color:#314653; background:#081018; color:var(--blue); cursor:not-allowed; }
+    input:disabled, select:disabled { border-color:#25343f; background:#060b0f; color:#647681; opacity:.86; cursor:not-allowed; }
     textarea { min-height:76px; resize:vertical; }
     input:focus, select:focus, textarea:focus { outline:2px solid rgba(142,197,255,.25); border-color:var(--blue); }
     .inline-action { margin-top:12px; }
@@ -79,6 +80,11 @@
     .source-item strong { display:block; margin-top:5px; color:var(--green); font-size:11px; overflow-wrap:anywhere; }
     .source-item.override strong { color:var(--amber); }
     .load-help { grid-column:1/-1; color:var(--muted); font-size:9px; line-height:1.45; text-transform:uppercase; }
+    .load-mode-control { display:grid; grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr); gap:10px; align-items:stretch; margin-top:12px; padding:12px; border:1px solid #3b596e; border-radius:5px; background:linear-gradient(120deg,#091824,#030608); }
+    .load-mode-control label { align-self:center; }
+    .load-mode-state { display:flex; align-items:center; min-height:48px; border-left:3px solid var(--green); padding:9px 12px; background:#07130d; color:#d8ffe4; font-size:10px; line-height:1.45; text-transform:uppercase; }
+    .load-mode-state.manual { border-left-color:var(--amber); background:#171207; color:#ffe7b0; }
+    .aircraft-select { border-color:#44657b; background:#06111a; color:#eaf7ff; font-weight:700; }
     .route-controls { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; }
     .route-controls .btn { margin-bottom:0; }
     .movement-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:12px; }
@@ -106,12 +112,13 @@
     .performance-leg dt { color:var(--muted); }
     .performance-leg dd { margin:0; color:#fff; text-align:right; }
     html.embedded body { padding:0; background:#000; }
-    html.embedded .shell { width:100%; border:0; box-shadow:none; }
+    html.embedded .shell { width:100%; border:0; border-radius:0; box-shadow:none; }
     html.embedded .topbar { display:none; }
     html.embedded .workspace { padding-top:8px; }
     @media (max-width:1050px) { .workspace { grid-template-columns:1fr; } .console { position:static; grid-template-columns:repeat(2,1fr); } .notice, .save-state { grid-column:1/-1; } }
     @media (min-width:721px) and (max-width:1050px) {
-      body { padding:12px; }
+      body { padding:0; }
+      .shell { border:0; border-radius:0; min-height:100vh; }
       .topbar { padding:16px; }
       .top-actions { justify-content:flex-start; }
       .top-actions .btn { min-height:46px; }
@@ -129,8 +136,15 @@
       label { font-size:11px; }
       .console-card { padding:16px; }
       .metric strong { font-size:19px; }
+      .workspace { padding:10px; gap:10px; }
+      .console { order:-1; grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr); }
+      .console .notice, .console .save-state { grid-column:1/-1; }
+      .metric-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+      .metric { padding:8px; }
+      .metric strong { font-size:14px; }
+      .load-mode-control { grid-template-columns:minmax(210px,.75fr) minmax(0,1.25fr); }
     }
-    @media (max-width:720px) { body { padding:0; } .shell { border-left:0; border-right:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two, .movement-grid, .time-support, .performance-grid { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .route-controls { grid-template-columns:1fr; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .load-source { grid-template-columns:1fr; } .movement-card { min-height:170px; grid-template-columns:auto 1fr; grid-template-rows:auto auto auto; gap:4px 12px; align-items:center; } .movement-card span { grid-column:1; } .movement-time { grid-column:2; grid-row:1/3; margin:0; text-align:right; } .movement-actions, .movement-card .movement-button { grid-column:1/-1; } }
+    @media (max-width:720px) { body { padding:0; } .shell { border:0; border-radius:0; } .topbar { display:block; } .top-actions { margin-top:14px; justify-content:stretch; } .top-actions .btn { flex:1 1 45%; } .statusline { grid-template-columns:repeat(2,1fr); } .statusbox { border-bottom:1px solid var(--line); } .workspace { padding:8px; } .grid, .grid.two, .movement-grid, .time-support, .performance-grid { grid-template-columns:1fr; } .field.wide { grid-column:span 1; } .route-controls { grid-template-columns:1fr; } .console { grid-template-columns:1fr; } .envelope-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .load-source, .load-mode-control { grid-template-columns:1fr; } .load-mode-state { border-left:0; border-top:3px solid var(--green); } .load-mode-state.manual { border-top-color:var(--amber); } .movement-card { min-height:170px; grid-template-columns:auto 1fr; grid-template-rows:auto auto auto; gap:4px 12px; align-items:center; } .movement-card span { grid-column:1; } .movement-time { grid-column:2; grid-row:1/3; margin:0; text-align:right; } .movement-actions, .movement-card .movement-button { grid-column:1/-1; } }
   </style>
 </head>
 <body>
@@ -154,9 +168,9 @@
           <div class="detail-body">
             <div class="grid">
               <label>Date<input data-field="dateUtc" type="date" /></label>
-              <label>Aircraft registration<input data-field="aircraftRegistration" placeholder="Internal use / optional" /></label>
-              <label>Aircraft model<input data-field="aircraftModel" /></label>
-              <label>Aircraft code<input data-field="aircraftCode" /></label>
+              <label>Aircraft registration<select class="aircraft-select" data-field="aircraftRegistration"><option value="OH-PMK">OH-PMK / PRIMARY AIRCRAFT</option></select></label>
+              <label>Aircraft model<select class="aircraft-select" data-field="aircraftModel"><option value="PA28-200R">PIPER PA-28R-200 ARROW II</option></select></label>
+              <label>ICAO aircraft code<select class="aircraft-select" data-field="aircraftCode"><option value="PA28">PA28</option></select></label>
               <label><span id="departureFieldLabel">Operational departure ICAO</span><input data-field="departure" maxlength="4" placeholder="EFHV" /></label>
               <label><span id="destinationFieldLabel">Operational destination ICAO</span><input data-field="destination" maxlength="4" placeholder="EFHN" /></label>
               <label>Departure runway<select id="depRunwaySelect" data-field="depRunway"><option value="">Loading runway database...</option></select></label>
@@ -193,7 +207,7 @@
           </div>
         </details>
 
-        <details open>
+        <details>
           <summary>03 / Fuel release</summary>
           <div class="detail-body">
             <div class="grid">
@@ -213,20 +227,24 @@
           <summary>04 / Mass and balance / locked profile</summary>
           <div class="detail-body">
             <div class="locked-profile"><div><strong>ForeFlight aircraft profile</strong><small id="profileVersion">Authoritative station and structural limits are protected by the server.</small></div><span class="lock-badge">LOCKED</span></div>
+            <div class="load-mode-control">
+              <label>Weight manifest source<select id="loadModeSelect" class="aircraft-select" data-field="loadMode"><option value="BOOKING">AUTO / BOOKING MANIFEST</option><option value="MANUAL">MANUAL / ACTUAL LOAD</option></select></label>
+              <div id="loadModeState" class="load-mode-state">Booking passenger and baggage weights are loaded automatically.</div>
+            </div>
             <div class="grid">
               <label>Basic empty mass (LB)<input data-field="bemLb" type="number" readonly /></label>
               <label>BEM arm (IN)<input data-field="bemArmIn" type="number" readonly /></label>
               <label>Crew 1 (LB)<input data-field="crew1Lb" type="number" min="0" step="1" /></label>
               <label>Crew 2 (LB)<input data-field="crew2Lb" type="number" min="0" step="1" /></label>
               <label><span id="bookingPassengerLabel">Booking passenger total (LB)</span><input data-field="bookingPassengerWeightLb" type="number" readonly /></label>
-              <label>Actual passenger total (LB)<input data-field="passengerWeightOverrideLb" type="number" min="0" max="1200" step="0.1" placeholder="Uses booking manifest" /></label>
+              <label>Manual passenger total (LB)<input data-field="passengerWeightOverrideLb" data-manual-load type="number" min="0" max="1200" step="0.1" placeholder="Select manual load mode" /></label>
               <label><span id="bookingBaggageLabel">Booking baggage / cargo (LB)</span><input data-field="bookingBaggageWeightLb" type="number" readonly /></label>
-              <label>Actual baggage / cargo (LB)<input data-field="baggageWeightOverrideLb" type="number" min="0" max="600" step="0.1" placeholder="Uses booking manifest" /></label>
+              <label>Manual baggage / cargo (LB)<input data-field="baggageWeightOverrideLb" data-manual-load type="number" min="0" max="600" step="0.1" placeholder="Select manual load mode" /></label>
               <div class="load-source">
                 <div id="passengerSourceCard" class="source-item"><span>Passenger load source</span><strong id="passengerSource">BOOKING MANIFEST</strong></div>
                 <div id="baggageSourceCard" class="source-item"><span>Baggage / cargo source</span><strong id="baggageSource">BOOKING MANIFEST</strong></div>
-                <button id="resetLoadBtn" class="btn" type="button">Reset to booking</button>
-                <div class="load-help">Leave actual-load fields blank to use the booking automatically. Enter the measured total only when the passenger or cargo load changes before flight.</div>
+                <button id="resetLoadBtn" class="btn" type="button">Use booking manifest</button>
+                <div class="load-help">Auto mode uses the latest declared passenger and baggage totals from the booking. Select manual only when the actual measured load differs.</div>
               </div>
               <label>Cockpit arm (IN)<input data-field="crewArmIn" type="number" readonly /></label>
               <label>Rear seats arm (IN)<input data-field="passengerArmIn" type="number" readonly /></label>
@@ -253,7 +271,7 @@
           </div>
         </details>
 
-        <details open>
+        <details>
           <summary>05 / Briefing review</summary>
           <div class="detail-body">
             <div class="grid two">
@@ -264,7 +282,7 @@
           </div>
         </details>
 
-        <details open>
+        <details>
           <summary>06 / Aircraft Performance</summary>
           <div class="detail-body">
             <div class="performance-actions"><button id="capturePerformanceBtn" class="btn" type="button">Capture runway &amp; weather inputs</button><button id="openWeatherPerformanceBtn" class="btn" type="button">Open weather workspace</button></div>
@@ -273,7 +291,7 @@
           </div>
         </details>
 
-        <details open>
+        <details>
           <summary>07 / Pilot release</summary>
           <div class="detail-body">
             <div class="grid two"><label>Commander / release name<input data-field="releaseName" /></label><label>Commander phone<input data-field="commanderPhone" /></label></div>
@@ -358,8 +376,10 @@
       el('destinationFieldLabel').textContent = manual ? 'Destination ICAO' : 'Operational destination ICAO';
       el('bookingPassengerLabel').textContent = manual ? 'Loaded passenger total (LB)' : 'Booking passenger total (LB)';
       el('bookingBaggageLabel').textContent = manual ? 'Loaded baggage / cargo (LB)' : 'Booking baggage / cargo (LB)';
-      inputFor('passengerWeightOverrideLb').placeholder = manual ? 'Enter actual passenger load' : 'Uses booking manifest';
-      inputFor('baggageWeightOverrideLb').placeholder = manual ? 'Enter actual baggage / cargo' : 'Uses booking manifest';
+      inputFor('passengerWeightOverrideLb').placeholder = 'Enter actual passenger load';
+      inputFor('baggageWeightOverrideLb').placeholder = 'Enter actual baggage / cargo';
+      const bookingOption = el('loadModeSelect').querySelector('option[value="BOOKING"]');
+      if (bookingOption) bookingOption.disabled = manual;
     }
 
     async function populate(refreshRunways = true) {
@@ -417,8 +437,9 @@
       const blockFuelGal = round(['taxiFuelGal','tripFuelGal','contingencyFuelGal','alternateFuelGal','finalReserveFuelGal','extraFuelGal'].reduce((sum, key) => sum + num(plan[key]), 0), 1);
       const fuelWeightLb = round(blockFuelGal * profile.fuelWeightPerGallonLbs, 1);
       const crewWeightLb = round(num(plan.crew1Lb) + num(plan.crew2Lb), 1);
-      const passengerOverride = optionalNum(plan.passengerWeightOverrideLb);
-      const baggageOverride = optionalNum(plan.baggageWeightOverrideLb);
+      const manualLoad = request?.manualFlight === true || String(plan.loadMode || '').toUpperCase() === 'MANUAL';
+      const passengerOverride = manualLoad ? optionalNum(plan.passengerWeightOverrideLb) : null;
+      const baggageOverride = manualLoad ? optionalNum(plan.baggageWeightOverrideLb) : null;
       const passengerWeightLb = passengerOverride === null ? num(plan.bookingPassengerWeightLb) : passengerOverride;
       const baggageWeightLb = baggageOverride === null ? num(plan.bookingBaggageWeightLb) : baggageOverride;
       const zfw = round(profile.basicEmptyWeightLbs + crewWeightLb + passengerWeightLb + baggageWeightLb, 1);
@@ -459,7 +480,7 @@
       if (!plan.notamReviewAccepted) warnings.push('NOTAM review acknowledgement is required.');
       if (!plan.airspaceReviewAccepted) warnings.push('Airspace review acknowledgement is required.');
       if (!plan.performanceSnapshot?.departure?.runway || !plan.performanceSnapshot?.arrival?.runway) warnings.push('Runway and weather performance inputs must be captured.');
-      return { profile, blockFuelGal, fuelWeightLb, crewWeightLb, passengerWeightLb, baggageWeightLb, passengerOverride, baggageOverride, zfw, ramp, tow, landing, cg, gearUpCg, zfwEnvelope, takeoffEnvelope, gearUpEnvelope, landingEnvelope, warnings };
+      return { profile, blockFuelGal, fuelWeightLb, crewWeightLb, passengerWeightLb, baggageWeightLb, manualLoad, passengerOverride, baggageOverride, zfw, ramp, tow, landing, cg, gearUpCg, zfwEnvelope, takeoffEnvelope, gearUpEnvelope, landingEnvelope, warnings };
     }
 
     function setMetric(id, value, danger, warning = false) {
@@ -475,10 +496,18 @@
       el('paxWeight').textContent = `${calc.passengerWeightLb.toFixed(1)} LB`;
       setMetric('bagWeight', `${calc.baggageWeightLb.toFixed(1)} LB`, calc.baggageWeightLb > calc.profile.stations.baggage.weightLimitLbs);
       const manualFlight = request?.manualFlight === true;
-      el('passengerSource').textContent = calc.passengerOverride === null ? manualFlight ? 'PILOT ENTRY REQUIRED' : 'BOOKING MANIFEST' : 'PILOT ACTUAL LOAD';
-      el('baggageSource').textContent = calc.baggageOverride === null ? manualFlight ? 'PILOT ENTRY REQUIRED' : 'BOOKING MANIFEST' : 'PILOT ACTUAL LOAD';
-      el('passengerSourceCard').classList.toggle('override', calc.passengerOverride !== null);
-      el('baggageSourceCard').classList.toggle('override', calc.baggageOverride !== null);
+      const manualSource = calc.manualLoad;
+      el('loadModeSelect').value = manualSource ? 'MANUAL' : 'BOOKING';
+      document.querySelectorAll('[data-manual-load]').forEach(input => { input.disabled = !manualSource; });
+      el('resetLoadBtn').disabled = !manualSource || manualFlight;
+      el('loadModeState').classList.toggle('manual', manualSource);
+      el('loadModeState').textContent = manualSource
+        ? 'Manual mode active. Enter verified actual passenger and baggage totals before release.'
+        : `Auto manifest active. ${num(plan.bookingPassengerWeightLb).toFixed(1)} LB passengers and ${num(plan.bookingBaggageWeightLb).toFixed(1)} LB baggage loaded from the booking.`;
+      el('passengerSource').textContent = manualSource ? calc.passengerOverride === null ? 'PILOT ENTRY REQUIRED' : 'PILOT ACTUAL LOAD' : 'BOOKING MANIFEST / AUTO';
+      el('baggageSource').textContent = manualSource ? calc.baggageOverride === null ? 'PILOT ENTRY REQUIRED' : 'PILOT ACTUAL LOAD' : 'BOOKING MANIFEST / AUTO';
+      el('passengerSourceCard').classList.toggle('override', manualSource);
+      el('baggageSourceCard').classList.toggle('override', manualSource);
       setMetric('zeroFuelWeight', `${calc.zfw.toFixed(1)} LB`, calc.zfw > calc.profile.maxZeroFuelWeightLbs || !calc.zfwEnvelope.valid);
       setMetric('rampWeight', `${calc.ramp.toFixed(1)} LB`, calc.ramp > calc.profile.maxRampWeightLbs);
       setMetric('takeoffWeight', `${calc.tow.toFixed(1)} LB`, calc.tow > calc.profile.maxTakeoffWeightLbs);
@@ -696,7 +725,23 @@
     });
     el('capturePerformanceBtn').addEventListener('click', () => capturePerformance().catch(error => { el('performanceState').textContent = error.message; }));
     el('openWeatherPerformanceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
+    el('loadModeSelect').addEventListener('change', () => {
+      const manual = el('loadModeSelect').value === 'MANUAL';
+      plan.loadMode = manual ? 'MANUAL' : 'BOOKING';
+      if (manual) {
+        if (inputFor('passengerWeightOverrideLb').value === '') inputFor('passengerWeightOverrideLb').value = plan.bookingPassengerWeightLb || '';
+        if (inputFor('baggageWeightOverrideLb').value === '') inputFor('baggageWeightOverrideLb').value = plan.bookingBaggageWeightLb || '0';
+      } else {
+        inputFor('passengerWeightOverrideLb').value = '';
+        inputFor('baggageWeightOverrideLb').value = '';
+      }
+      if (inputFor('releaseAccepted').checked) inputFor('releaseAccepted').checked = false;
+      saved = false;
+      render();
+    });
     el('resetLoadBtn').addEventListener('click', () => {
+      el('loadModeSelect').value = 'BOOKING';
+      plan.loadMode = 'BOOKING';
       inputFor('passengerWeightOverrideLb').value = '';
       inputFor('baggageWeightOverrideLb').value = '';
       if (inputFor('releaseAccepted').checked) inputFor('releaseAccepted').checked = false;
