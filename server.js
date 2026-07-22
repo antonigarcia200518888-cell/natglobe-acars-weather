@@ -5790,7 +5790,6 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   if (!requireFlightCrew(req, res)) return;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
-  if (!request.operationalFlightPlan) return res.status(409).json({ error: 'SAVE THE OFP DRAFT BEFORE RECORDING MOVEMENT TIMES' });
 
   const phase = String(req.params.phase || '').trim().toLowerCase();
   const movementSteps = [
@@ -5802,13 +5801,12 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   const stepIndex = movementSteps.findIndex(item => item.phase === phase);
   if (stepIndex === -1) return res.status(400).json({ error: 'INVALID MOVEMENT PHASE' });
 
-  const previousPlan = normalizeOperationalFlightPlan(request.operationalFlightPlan, request);
-  if (!previousPlan.releaseAccepted) return res.status(409).json({ error: 'PIC FLIGHT RELEASE REQUIRED BEFORE RECORDING MOVEMENT TIMES' });
+  const previousPlan = normalizeOperationalFlightPlan(
+    request.operationalFlightPlan || operationalFlightPlanDefaults(request),
+    request
+  );
   const step = movementSteps[stepIndex];
-  if (previousPlan[step.field]) return res.status(409).json({ error: `${step.label} TIME IS LOCKED` });
-  if (stepIndex > 0 && !previousPlan[movementSteps[stepIndex - 1].field]) {
-    return res.status(409).json({ error: `RECORD ${movementSteps[stepIndex - 1].label} BEFORE ${step.label}` });
-  }
+  const previousTimestamp = previousPlan[step.field] || '';
 
   const manualTime = String(req.body?.localTime || '').trim();
   const timestamp = manualTime
@@ -5819,13 +5817,18 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   const flightPlan = normalizeOperationalFlightPlan({ ...previousPlan, [step.field]: timestamp }, request);
   request.operationalFlightPlan = flightPlan;
   await persistBookingRequest(request);
-  await addBookingTimelineEvent(request.id, 'MOVEMENT TIME LOCKED', `${step.label} ${timestamp} / ${source}`, pilotActor(req));
+  await addBookingTimelineEvent(
+    request.id,
+    previousTimestamp ? 'MOVEMENT TIME CORRECTED' : 'MOVEMENT TIME RECORDED',
+    `${step.label} ${previousTimestamp ? `${previousTimestamp} > ` : ''}${timestamp} / ${source}`,
+    pilotActor(req)
+  );
   res.json({
     request: {
       ...request,
       bookingMessage: formatBookingMessage(request)
     },
-    movement: { phase: step.label, timestamp, source }
+    movement: { phase: step.label, timestamp, source, replaced: Boolean(previousTimestamp), previousTimestamp }
   });
 });
 

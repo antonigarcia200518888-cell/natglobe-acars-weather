@@ -978,7 +978,7 @@
     .movement-command small { display:block; margin-top:4px; color:#91a0aa; font-size:8px; line-height:1.2; }
     .movement-command.ready { border-color:var(--live); background:#06130b; }
     .movement-command.ready span, .movement-command.ready strong { color:var(--live); }
-    .movement-command.done { border-color:var(--live); background:#06130b; cursor:default; }
+    .movement-command.done { border-color:var(--live); background:#06130b; cursor:pointer; }
     .movement-command.done span, .movement-command.done strong { color:var(--live); }
     .movement-command:disabled { opacity:.58; cursor:not-allowed; }
 
@@ -1679,8 +1679,8 @@
     .suite-tab strong { margin-top:4px; color:#cad7df; font-size:12px; letter-spacing:.01em; }
     .suite-tab small { display:none; }
     .suite-tab:hover { border-color:#304d62; background:#0b1823; }
-    .suite-tab.active { border-color:#6ea5cc; background:#10283a; box-shadow:inset 3px 0 0 #8ec5ff; }
-    .suite-tab.active span, .suite-tab.active strong { color:#e9f6ff; }
+    .suite-tab.active { border-color:var(--live); background:#0b2a1d; box-shadow:inset 3px 0 0 var(--live); }
+    .suite-tab.active span, .suite-tab.active strong { color:var(--live); }
     .ops-dashboard, .ops-tool-workspace { border-color:#263d4e; border-radius:8px; background:#07101a; }
     .dashboard-head { border-color:#294356; border-radius:7px; background:#091722; }
     .dashboard-head h2 { color:#f0f5f8; letter-spacing:.01em; }
@@ -1697,6 +1697,29 @@
     .tool-workspace-head { border-color:#294356; background:#091722; }
     .tool-workspace-head strong { color:#f0f5f8; }
     .ofp-frame { border-color:#294356; background:#07101a; }
+    .flight-file-library { display:grid; gap:10px; }
+    .flight-file-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:17px; border:1px solid #294356; border-radius:7px; background:#091722; }
+    .flight-file-head span { display:block; color:var(--live); font-size:8px; letter-spacing:.14em; text-transform:uppercase; }
+    .flight-file-head h2 { margin:5px 0 4px; color:#f2f7fa; font:700 22px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:uppercase; }
+    .flight-file-head p { max-width:650px; margin:0; color:#8fa2ae; font:500 10px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:none; }
+    .flight-file-head > strong { max-width:360px; border:1px solid #3f5e71; border-radius:999px; padding:8px 11px; color:#c8dae5; font-size:10px; text-align:right; overflow-wrap:anywhere; }
+    .flight-file-library .suite-doc-summary { grid-template-columns:repeat(4,minmax(0,1fr)); margin:0; }
+    .flight-file-library .suite-doc-summary > div { border-color:#294356; border-radius:5px; background:#08131d; }
+    .flight-file-library .suite-doc-summary strong { color:#dce8ef; }
+    .flight-file-groups { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .flight-file-group { border:1px solid #294356; border-radius:7px; background:#07111a; overflow:hidden; }
+    .flight-file-group > header { padding:12px 13px; border-bottom:1px solid #294356; background:#0a1823; }
+    .flight-file-group > header span { display:block; color:#7891a0; font-size:8px; letter-spacing:.13em; text-transform:uppercase; }
+    .flight-file-group > header strong { display:block; margin-top:4px; color:#edf4f8; font:650 13px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .flight-file-row { display:grid; grid-template-columns:38px minmax(0,1fr) auto; gap:10px; align-items:center; min-height:82px; padding:11px 12px; border-bottom:1px solid #203543; }
+    .flight-file-row:last-child { border-bottom:0; }
+    .file-type { display:grid; place-items:center; width:38px; height:38px; border:1px solid #3b5d71; border-radius:5px; background:#0a1b27; color:#9bc2da; font-size:9px; font-weight:700; }
+    .flight-file-row strong, .flight-file-row small { display:block; }
+    .flight-file-row strong { color:#edf4f7; font:650 11px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .flight-file-row small { margin-top:4px; color:#8296a2; font:500 9px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:none; }
+    .flight-file-row button { min-width:112px; min-height:38px; border:1px solid #4d7187; border-radius:4px; background:#091722; color:#c7dce8; padding:7px 9px; font:700 9px "Courier New",monospace; text-transform:uppercase; cursor:pointer; }
+    .flight-file-row button:hover { border-color:var(--live); color:var(--live); }
+    .flight-file-row button:disabled { opacity:.38; cursor:not-allowed; }
 
     @media (min-width:700px) and (max-width:1180px),
            (min-width:700px) and (hover:none) and (pointer:coarse) {
@@ -1719,10 +1742,19 @@
       .suite-tab { width:100%; min-height:57px; padding:7px 4px; text-align:center; }
       .suite-tab span { display:none; }
       .suite-tab strong { margin:0; font-size:9px; line-height:1.15; }
-      .suite-tab.active { box-shadow:inset 0 3px 0 #8ec5ff; }
+      .suite-tab.active { box-shadow:inset 0 3px 0 var(--live); }
+      .flight-file-head { display:block; }
+      .flight-file-head > strong { display:inline-block; margin-top:10px; max-width:100%; text-align:left; }
+      .flight-file-library .suite-doc-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .flight-file-groups { grid-template-columns:1fr; }
       .dashboard-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .ops-tool-workspace { min-height:calc(100vh - 182px); }
       .ofp-frame { height:calc(100vh - 205px); min-height:690px; }
+    }
+
+    @media (min-width:700px) and (max-width:899px) {
+      .flight-file-row { grid-template-columns:38px minmax(0,1fr); }
+      .flight-file-row button { grid-column:1/-1; width:100%; }
     }
   </style>
 </head>
@@ -1971,18 +2003,28 @@ LOAD DATA TO CALCULATE.</pre>
         </div>
       </div>
       <div id="documentsOpsPane" class="ops-tool-pane" hidden>
-        <div class="suite-doc-summary">
-          <div><span>Selected flight</span><strong id="suiteDocFlight">NO FLIGHT SELECTED</strong></div>
-          <div><span>OFP</span><strong id="suiteDocOfp">NOT STARTED</strong></div>
-          <div><span>Statement</span><strong id="suiteDocStatement">NOT SAVED</strong></div>
-          <div><span>Agreements</span><strong id="suiteDocAgreements">0 / 0</strong></div>
-        </div>
-        <div class="suite-document-actions">
-          <button id="suiteOpenOfpBtn" type="button">Build / edit OFP</button>
-          <button id="suiteOpenOfpPdfBtn" type="button">Open OFP PDF</button>
-          <button id="suiteOpenStatementBtn" type="button">Reimbursement statement</button>
-          <button id="suiteOpenFlightFileBtn" type="button">Operations flight file PDF</button>
-        </div>
+        <section class="flight-file-library" aria-label="Selected flight document library">
+          <header class="flight-file-head"><div><span>Controlled documents</span><h2>Flight File</h2><p>One organized record for planning, passenger documents, payment, and the final operations archive.</p></div><strong id="suiteDocFlight">NO FLIGHT SELECTED</strong></header>
+          <div class="suite-doc-summary">
+            <div><span>OFP state</span><strong id="suiteDocOfp">NOT STARTED</strong></div>
+            <div><span>Cost statement</span><strong id="suiteDocStatement">NOT SAVED</strong></div>
+            <div><span>Passenger agreements</span><strong id="suiteDocAgreements">0 / 0</strong></div>
+            <div><span>Payment</span><strong id="suiteDocPayment">NOT SET</strong></div>
+          </div>
+          <div class="flight-file-groups">
+            <section class="flight-file-group">
+              <header><span>Pilot documents</span><strong>Planning and operations</strong></header>
+              <article class="flight-file-row"><div class="file-type">OFP</div><div><strong>Operational Flight Plan</strong><small>Route, fuel, load, briefing, movement log, and PIC release.</small></div><button id="suiteOpenOfpBtn" type="button">Open builder</button></article>
+              <article class="flight-file-row"><div class="file-type">PDF</div><div><strong>Released OFP document</strong><small>Printable controlled output generated from the current saved plan.</small></div><button id="suiteOpenOfpPdfBtn" type="button">Open PDF</button></article>
+              <article class="flight-file-row"><div class="file-type">OPS</div><div><strong>Operations flight file</strong><small>Booking request, operational details, and internal dispatch record.</small></div><button id="suiteOpenFlightFileBtn" type="button">Open PDF</button></article>
+            </section>
+            <section class="flight-file-group">
+              <header><span>Passenger and payment</span><strong>Issued flight documents</strong></header>
+              <article class="flight-file-row"><div class="file-type">EUR</div><div><strong>Reimbursement statement</strong><small>Cost allocation, payment terms, and passenger contribution.</small></div><button id="suiteOpenStatementBtn" type="button">Open editor</button></article>
+              <article class="flight-file-row"><div class="file-type">SIG</div><div><strong>Passenger agreements</strong><small>Individual signature state and signed agreement PDFs for the manifest.</small></div><button id="suiteOpenAgreementsBtn" type="button">View manifest</button></article>
+            </section>
+          </div>
+        </section>
       </div>
     </section>
     <div id="bookingsWorkspace" hidden>
@@ -2083,12 +2125,12 @@ LOAD DATA TO CALCULATE.</pre>
               <div class="release-action"><div id="releaseBlockers" class="release-blockers"><strong>Release blocked:</strong> Select a flight file.</div><button id="picReleaseBtn" class="pic-release-button" type="button" disabled>Record PIC release</button></div>
             </section>
             <div class="live-movement-console" aria-label="Live flight movement controls">
-              <div class="live-movement-intro"><span>PM quick record</span><strong>OFP movement clock</strong><small>Either pilot can tap the next phase. Server-stamped, sequence-controlled, and written into the final OFP.</small></div>
+              <div class="live-movement-intro"><span>PM quick record</span><strong>OFP movement clock</strong><small>Stamp any movement phase when it occurs. Existing values can be corrected and every change is written to the timeline.</small></div>
               <div class="live-movement-actions">
-                <button id="recordOutBtn" class="movement-command" type="button"><span>OUT / TAXI</span><strong>RECORD OUT</strong><small>Release required</small></button>
-                <button id="recordOffBtn" class="movement-command" type="button"><span>OFF / AIRBORNE</span><strong>RECORD OFF</strong><small>Await OUT</small></button>
-                <button id="recordOnBtn" class="movement-command" type="button"><span>ON / LANDED</span><strong>RECORD ON</strong><small>Await OFF</small></button>
-                <button id="recordInBtn" class="movement-command" type="button"><span>IN / STAND</span><strong>RECORD IN</strong><small>Await ON</small></button>
+                <button id="recordOutBtn" class="movement-command" type="button"><span>OUT / TAXI</span><strong>STAMP OUT</strong><small>Tap to record now</small></button>
+                <button id="recordOffBtn" class="movement-command" type="button"><span>OFF / AIRBORNE</span><strong>STAMP OFF</strong><small>Tap to record now</small></button>
+                <button id="recordOnBtn" class="movement-command" type="button"><span>ON / LANDED</span><strong>STAMP ON</strong><small>Tap to record now</small></button>
+                <button id="recordInBtn" class="movement-command" type="button"><span>IN / STAND</span><strong>STAMP IN</strong><small>Tap to record now</small></button>
               </div>
             </div>
             <div class="document-dashboard" aria-label="Document dashboard" hidden>
@@ -2379,6 +2421,7 @@ END OF MESSAGE</pre>
     const suiteOpenOfpPdfBtn = el('suiteOpenOfpPdfBtn');
     const suiteOpenStatementBtn = el('suiteOpenStatementBtn');
     const suiteOpenFlightFileBtn = el('suiteOpenFlightFileBtn');
+    const suiteOpenAgreementsBtn = el('suiteOpenAgreementsBtn');
     const aircraftServiceabilityHero = el('aircraftServiceabilityHero');
     const aircraftFuelHero = el('aircraftFuelHero');
     const aircraftOilHero = el('aircraftOilHero');
@@ -2728,10 +2771,12 @@ END OF MESSAGE</pre>
       el('suiteDocOfp').textContent = req?.operationalFlightPlan?.releaseAccepted ? 'RELEASED' : req?.operationalFlightPlan ? 'DRAFT SAVED' : 'NOT STARTED';
       el('suiteDocStatement').textContent = req?.reimbursementStatement ? 'SAVED' : 'NOT SAVED';
       el('suiteDocAgreements').textContent = req ? `${signed} / ${passengers.length} SIGNED` : '0 / 0';
+      el('suiteDocPayment').textContent = req?.paymentStatus || 'NOT SET';
       suiteOpenOfpBtn.disabled = !req;
       suiteOpenOfpPdfBtn.disabled = !req?.operationalFlightPlan;
       suiteOpenStatementBtn.disabled = !req;
       suiteOpenFlightFileBtn.disabled = !req;
+      suiteOpenAgreementsBtn.disabled = !req;
       applyPerformanceToOfpBtn.disabled = !req;
       openPerformanceOfpBtn.disabled = !req;
       if (req) {
@@ -4032,27 +4077,24 @@ END OF MESSAGE</pre>
     function renderLiveMovementControls(req) {
       const ofp = req?.operationalFlightPlan || {};
       const steps = [
-        { field:'actualOut', phase:'out', label:'OUT', button:recordOutBtn, prerequisite:null },
-        { field:'actualOff', phase:'off', label:'OFF', button:recordOffBtn, prerequisite:'actualOut' },
-        { field:'actualOn', phase:'on', label:'ON', button:recordOnBtn, prerequisite:'actualOff' },
-        { field:'actualIn', phase:'in', label:'IN', button:recordInBtn, prerequisite:'actualOn' }
+        { field:'actualOut', phase:'out', label:'OUT', button:recordOutBtn },
+        { field:'actualOff', phase:'off', label:'OFF', button:recordOffBtn },
+        { field:'actualOn', phase:'on', label:'ON', button:recordOnBtn },
+        { field:'actualIn', phase:'in', label:'IN', button:recordInBtn }
       ];
       steps.forEach(step => {
         const button = step.button;
         const recorded = ofp[step.field];
-        const prerequisiteReady = !step.prerequisite || Boolean(ofp[step.prerequisite]);
-        const ready = Boolean(req && navigator.onLine && ofp.releaseAccepted && prerequisiteReady && !recorded);
+        const ready = Boolean(req && navigator.onLine);
         button.disabled = !ready;
-        button.classList.toggle('ready', ready);
+        button.classList.toggle('ready', ready && !recorded);
         button.classList.toggle('done', Boolean(recorded));
-        button.querySelector('strong').textContent = recorded ? `${step.label} LOCKED` : `RECORD ${step.label}`;
+        button.querySelector('strong').textContent = recorded ? `UPDATE ${step.label}` : `STAMP ${step.label}`;
         button.querySelector('small').textContent = recorded
           ? recorded
           : !req ? 'Select a flight file'
-            : !ofp.releaseAccepted ? 'Pilot release required'
-              : !prerequisiteReady ? `Await ${step.prerequisite.replace('actual','').toUpperCase()}`
-                : !navigator.onLine ? 'Connection required'
-                  : 'Tap to server-stamp';
+            : !navigator.onLine ? 'Connection required'
+              : 'Tap to server-stamp';
       });
     }
 
@@ -4433,6 +4475,8 @@ END OF MESSAGE</pre>
         return;
       }
       const label = String(phase || '').toUpperCase();
+      const existing = selected.operationalFlightPlan?.[`actual${label[0]}${label.slice(1).toLowerCase()}`] || '';
+      if (existing && !window.confirm(`Replace ${label} ${existing} with the current server time?`)) return;
       mode.textContent = `MODE: RECORDING ${label} / SERVER FLIGHT CLOCK`;
       const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/movements/${encodeURIComponent(phase)}`, { method:'POST' });
       const data = await res.json().catch(() => ({}));
@@ -4442,7 +4486,7 @@ END OF MESSAGE</pre>
         return;
       }
       replaceRequest(data.request);
-      mode.textContent = `MODE: ${data.movement?.phase || label} ${data.movement?.timestamp || 'RECORDED'} / LOCKED`;
+      mode.textContent = `MODE: ${data.movement?.phase || label} ${data.movement?.timestamp || 'RECORDED'} / ${data.movement?.replaced ? 'CORRECTED' : 'SAVED'}`;
       loadTimeline(selected.id).catch(() => {});
     }
 
@@ -4848,6 +4892,10 @@ END OF MESSAGE</pre>
     });
     suiteOpenStatementBtn.addEventListener('click', () => openStatementControlBtn.click());
     suiteOpenFlightFileBtn.addEventListener('click', () => openFlightFileControlBtn.click());
+    suiteOpenAgreementsBtn.addEventListener('click', () => {
+      switchOpsWorkspace('flights');
+      document.getElementById('manifestList')?.scrollIntoView({ behavior:'smooth', block:'center' });
+    });
 
     copyBriefBtn.addEventListener('click', async () => {
       if (!selected) {
