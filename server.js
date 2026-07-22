@@ -158,31 +158,88 @@ let aircraftOperationalStatus = {
   fuelLog: []
 };
 let bookingPool = null;
+let bookingStoreStatus = {
+  mode: 'INITIALIZING',
+  loadedRequests: 0,
+  warning: ''
+};
 
 async function initializeBookingStore() {
   if (!process.env.DATABASE_URL) {
+    bookingStoreStatus = {
+      mode: 'TEMPORARY',
+      loadedRequests: 0,
+      warning: 'DATABASE_URL NOT SET'
+    };
     console.warn('BOOKING STORE: DATABASE_URL not set; using temporary runtime storage.');
     return;
   }
 
+  let pool = null;
   try {
     const { Pool } = await import('pg');
-    bookingPool = new Pool({
+    pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
     });
-    await bookingPool.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS booking_requests (
         id TEXT PRIMARY KEY,
         payload JSONB NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
+      )
+    `);
+    const requests = await pool.query('SELECT payload FROM booking_requests ORDER BY created_at ASC');
+    bookingPool = pool;
+    bookingRequests.push(...requests.rows.map(row => row.payload));
+    bookingStoreStatus = {
+      mode: 'POSTGRESQL',
+      loadedRequests: bookingRequests.length,
+      warning: ''
+    };
+  } catch (err) {
+    if (pool) await pool.end().catch(() => {});
+    bookingPool = null;
+    bookingStoreStatus = {
+      mode: 'TEMPORARY',
+      loadedRequests: 0,
+      warning: String(err.message || 'DATABASE CONNECTION FAILED').slice(0, 240)
+    };
+    console.error('BOOKING STORE: database unavailable; using temporary runtime storage.', err.message);
+    return;
+  }
+
+  const loadSupportingStore = async (label, operation) => {
+    try {
+      await operation();
+    } catch (err) {
+      bookingStoreStatus.warning = [bookingStoreStatus.warning, `${label}: ${err.message}`]
+        .filter(Boolean)
+        .join(' / ')
+        .slice(0, 500);
+      console.error(`BOOKING STORE: ${label} unavailable; core booking records remain connected.`, err.message);
+    }
+  };
+
+  await loadSupportingStore('availability', async () => {
+    await bookingPool.query(`
       CREATE TABLE IF NOT EXISTS booking_availability (
         date DATE PRIMARY KEY,
         is_open BOOLEAN NOT NULL,
         note TEXT NOT NULL DEFAULT '',
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
+      )
+    `);
+    const availability = await bookingPool.query('SELECT date, is_open, note, updated_at FROM booking_availability');
+    availability.rows.forEach(row => bookingAvailability.set(String(row.date).slice(0, 10), {
+      isOpen: row.is_open,
+      note: row.note,
+      updatedAt: row.updated_at
+    }));
+  });
+
+  await loadSupportingStore('timeline', async () => {
+    await bookingPool.query(`
       CREATE TABLE IF NOT EXISTS booking_timeline (
         id TEXT PRIMARY KEY,
         request_id TEXT NOT NULL,
@@ -190,7 +247,19 @@ async function initializeBookingStore() {
         note TEXT NOT NULL DEFAULT '',
         actor TEXT NOT NULL DEFAULT 'SYSTEM',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
+      )
+    `);
+    await bookingPool.query("ALTER TABLE booking_timeline ADD COLUMN IF NOT EXISTS actor TEXT NOT NULL DEFAULT 'SYSTEM'");
+    const timeline = await bookingPool.query('SELECT id, request_id, event_type, note, actor, created_at FROM booking_timeline ORDER BY created_at ASC');
+    timeline.rows.forEach(row => {
+      const items = bookingTimeline.get(row.request_id) || [];
+      items.push({ id: row.id, type: row.event_type, note: row.note, actor: row.actor || 'SYSTEM', createdAt: row.created_at });
+      bookingTimeline.set(row.request_id, items);
+    });
+  });
+
+  await loadSupportingStore('passkeys', async () => {
+    await bookingPool.query(`
       CREATE TABLE IF NOT EXISTS pilot_passkeys (
         id TEXT PRIMARY KEY,
         profile_role TEXT NOT NULL,
@@ -201,32 +270,9 @@ async function initializeBookingStore() {
         transports JSONB NOT NULL DEFAULT '[]'::jsonb,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         last_used_at TIMESTAMPTZ
-      );
-      CREATE TABLE IF NOT EXISTS aircraft_operational_status (
-        aircraft_key TEXT PRIMARY KEY,
-        payload JSONB NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
+      )
     `);
-    await bookingPool.query("ALTER TABLE booking_timeline ADD COLUMN IF NOT EXISTS actor TEXT NOT NULL DEFAULT 'SYSTEM'");
-    const [requests, availability, timeline, passkeys, aircraftStatus] = await Promise.all([
-      bookingPool.query('SELECT payload FROM booking_requests ORDER BY created_at ASC'),
-      bookingPool.query('SELECT date, is_open, note, updated_at FROM booking_availability'),
-      bookingPool.query('SELECT id, request_id, event_type, note, actor, created_at FROM booking_timeline ORDER BY created_at ASC'),
-      bookingPool.query('SELECT id, profile_role, profile_name, credential_id, public_key, counter, transports, created_at, last_used_at FROM pilot_passkeys ORDER BY created_at ASC'),
-      bookingPool.query('SELECT payload FROM aircraft_operational_status WHERE aircraft_key = $1', [AIRCRAFT_STATUS_KEY])
-    ]);
-    bookingRequests.push(...requests.rows.map(row => row.payload));
-    availability.rows.forEach(row => bookingAvailability.set(String(row.date).slice(0, 10), {
-      isOpen: row.is_open,
-      note: row.note,
-      updatedAt: row.updated_at
-    }));
-    timeline.rows.forEach(row => {
-      const items = bookingTimeline.get(row.request_id) || [];
-      items.push({ id: row.id, type: row.event_type, note: row.note, actor: row.actor || 'SYSTEM', createdAt: row.created_at });
-      bookingTimeline.set(row.request_id, items);
-    });
+    const passkeys = await bookingPool.query('SELECT id, profile_role, profile_name, credential_id, public_key, counter, transports, created_at, last_used_at FROM pilot_passkeys ORDER BY created_at ASC');
     passkeys.rows.forEach(row => {
       pilotPasskeys.set(row.credential_id, {
         id: row.id,
@@ -240,14 +286,23 @@ async function initializeBookingStore() {
         lastUsedAt: row.last_used_at
       });
     });
+  });
+
+  await loadSupportingStore('aircraft status', async () => {
+    await bookingPool.query(`
+      CREATE TABLE IF NOT EXISTS aircraft_operational_status (
+        aircraft_key TEXT PRIMARY KEY,
+        payload JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    const aircraftStatus = await bookingPool.query('SELECT payload FROM aircraft_operational_status WHERE aircraft_key = $1', [AIRCRAFT_STATUS_KEY]);
     if (aircraftStatus.rows[0]?.payload) {
       aircraftOperationalStatus = normalizeAircraftOperationalStatus(aircraftStatus.rows[0].payload, aircraftOperationalStatus);
     }
-    console.log(`BOOKING STORE: loaded ${bookingRequests.length} requests.`);
-  } catch (err) {
-    bookingPool = null;
-    console.error('BOOKING STORE: database unavailable; using temporary runtime storage.', err.message);
-  }
+  });
+
+  console.log(`BOOKING STORE: loaded ${bookingRequests.length} requests from PostgreSQL.`);
 }
 
 const bookingStoreReady = initializeBookingStore();
@@ -4435,6 +4490,27 @@ app.post('/api/booking-ops/aircraft-status/fuel-log', requirePilotAccess, async 
     );
   }
   res.status(201).json({ aircraftStatus: aircraftOperationalStatus, entry });
+});
+
+app.get('/api/booking-ops/storage-health', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  let persistedRequests = null;
+  let liveWarning = bookingStoreStatus.warning;
+  if (bookingPool) {
+    try {
+      const result = await bookingPool.query('SELECT COUNT(*)::int AS count FROM booking_requests');
+      persistedRequests = Number(result.rows[0]?.count || 0);
+    } catch (err) {
+      liveWarning = [liveWarning, `booking count: ${err.message}`].filter(Boolean).join(' / ').slice(0, 500);
+    }
+  }
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    mode: bookingStoreStatus.mode,
+    loadedRequests: bookingRequests.length,
+    persistedRequests,
+    warning: liveWarning
+  });
 });
 
 app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
