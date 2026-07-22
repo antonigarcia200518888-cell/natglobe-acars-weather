@@ -295,6 +295,18 @@
     .route-preview { display:flex; align-items:center; min-height:38px; margin:0; border-left:3px solid var(--green); border-radius:4px; padding:8px 10px; background:#0a1a17; color:#ccebd8; }
     .raw-route { padding:0 12px 12px; }
     .raw-route textarea { min-height:58px; }
+    .foreflight-bridge { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px 14px; align-items:center; margin:0 12px 12px; border:1px solid #365a72; border-radius:6px; padding:12px; background:#081824; }
+    .foreflight-bridge-copy span { display:block; color:#8fb6ce; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:.14em; text-transform:uppercase; }
+    .foreflight-bridge-copy strong { display:block; margin-top:4px; color:#f2f7fa; font:700 14px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .foreflight-bridge-copy small { display:block; max-width:630px; margin-top:5px; color:#89a0ae; font:500 9px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .foreflight-bridge-actions { display:grid; grid-template-columns:auto auto; gap:7px; }
+    .foreflight-bridge-actions .btn { min-height:40px; border-radius:4px; white-space:nowrap; }
+    .foreflight-bridge-actions .launch { border-color:#76a9c8; background:#0c2637; color:#d9edf8; }
+    .foreflight-bridge-actions .launch:not(:disabled):hover { border-color:var(--green); color:var(--green); }
+    .foreflight-handoff-preview { grid-column:1/-1; display:flex; justify-content:space-between; gap:12px; min-width:0; border-top:1px solid #294657; padding-top:10px; }
+    .foreflight-handoff-preview code { min-width:0; color:#c7d9e4; font:700 10px/1.4 "Courier New",monospace; overflow-wrap:anywhere; }
+    .foreflight-handoff-preview span { flex:0 0 auto; align-self:flex-start; border:1px solid #4d7187; border-radius:999px; padding:4px 8px; color:#8fb6ce; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+    .foreflight-handoff-preview.ready span { border-color:rgba(102,255,153,.55); color:var(--green); background:#0a2118; }
     .planning-drawer { margin-top:10px; border-color:#263f51; border-radius:6px; background:#07121b; }
     .planning-drawer > summary { padding:11px 12px; color:#b8c6ce; font-size:10px; }
     .planning-drawer > .detail-body { padding:0 12px 12px; }
@@ -354,6 +366,11 @@
       .route-composer.smart { grid-template-columns:1fr; }
       .route-command-row { grid-template-columns:1fr; }
       .route-preview { grid-column:auto; }
+      .foreflight-bridge { grid-template-columns:1fr; }
+      .foreflight-bridge-actions { grid-template-columns:1fr 1fr; }
+      .foreflight-bridge-actions .btn { width:100%; }
+      .foreflight-handoff-preview { display:block; }
+      .foreflight-handoff-preview span { display:inline-block; margin-top:8px; }
       .console { grid-template-columns:1fr; }
     }
   </style>
@@ -417,6 +434,11 @@
                 <div id="routePreview" class="route-preview">Route not yet built.</div>
               </div>
               <label class="raw-route">Operational route string<textarea id="routeText" data-field="route" placeholder="Route sequence appears here and remains directly editable"></textarea></label>
+              <section class="foreflight-bridge" aria-label="ForeFlight Mobile handoff">
+                <div class="foreflight-bridge-copy"><span>External flight deck</span><strong>ForeFlight Mobile handoff</strong><small>Sends this pilot-entered route, planning speed, fuel flow, altitude, aircraft profile, and ETD to ForeFlight Maps. Verify all transferred data in ForeFlight before operational use.</small></div>
+                <div class="foreflight-bridge-actions"><button id="copyForeFlightBtn" class="btn" type="button">Copy handoff</button><button id="openForeFlightBtn" class="btn launch" type="button">Open in ForeFlight</button></div>
+                <div id="foreFlightHandoffPreview" class="foreflight-handoff-preview"><code id="foreFlightHandoffText">ENTER DEPARTURE AND DESTINATION ICAO</code><span id="foreFlightHandoffState">ONE-WAY HANDOFF</span></div>
+              </section>
             </section>
 
             <details class="planning-drawer">
@@ -740,6 +762,85 @@
       } catch { el('routeHistory').innerHTML = ''; }
     }
 
+    function foreFlightAltitudeToken(value) {
+      const altitude = String(value || '').trim().toUpperCase().replace(/\s+/g, '');
+      const flightLevel = altitude.match(/^FL(\d{2,3})$/);
+      if (flightLevel) return `${Number(flightLevel[1]) * 100}ft`;
+      const feet = altitude.match(/^(\d{3,5})(?:FT)?$/);
+      if (feet) return `${Number(feet[1])}ft`;
+      const metres = altitude.match(/^(\d{2,5})M$/);
+      if (metres) return `${Number(metres[1])}m`;
+      return '';
+    }
+
+    function helsinkiLocalEtDToken(dateValue, timeValue) {
+      const dateMatch = String(dateValue || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const timeMatch = String(timeValue || '').trim().match(/(?:^|\/)(\d{1,2}):?(\d{2})([ZL])?$/i);
+      if (!dateMatch || !timeMatch) return '';
+      const [, year, month, day] = dateMatch;
+      const hour = String(timeMatch[1]).padStart(2, '0');
+      const minute = timeMatch[2];
+      if (String(timeMatch[3] || '').toUpperCase() === 'Z') return `${year}${month}${day}T${hour}:${minute}:00Z`;
+      const target = Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+      let candidate = target;
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone:'Europe/Helsinki', year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', hourCycle:'h23'
+      });
+      for (let index = 0; index < 2; index += 1) {
+        const parts = Object.fromEntries(formatter.formatToParts(new Date(candidate)).map(part => [part.type, part.value]));
+        const observed = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute));
+        candidate += target - observed;
+      }
+      return new Date(candidate).toISOString().replaceAll('-', '').replace(/\.\d{3}Z$/, 'Z');
+    }
+
+    function buildForeFlightHandoff() {
+      const departure = String(inputFor('departure')?.value || '').trim().toUpperCase();
+      const destination = String(inputFor('destination')?.value || '').trim().toUpperCase();
+      const ready = /^[A-Z0-9]{4}$/.test(departure) && /^[A-Z0-9]{4}$/.test(destination);
+      let route = routeLegs.map(leg => String(leg.ident || '').trim().toUpperCase()).filter(Boolean);
+      if (!route.length) route = routeTextElements();
+      if (ready) {
+        if (route[0] !== departure) route.unshift(departure);
+        if (route.at(-1) !== destination) route.push(destination);
+        if (route.length === 2) route.splice(1, 0, 'DCT');
+      }
+      route = route.filter((value, index) => value && value !== route[index - 1]);
+      const speed = Math.max(0, Math.round(num(inputFor('cruiseSpeedKt')?.value)));
+      const fuelFlow = Math.max(0, num(inputFor('fuelFlowGph')?.value));
+      const altitude = foreFlightAltitudeToken(inputFor('cruiseFlightLevel')?.value);
+      const aircraft = String(inputFor('aircraftRegistration')?.value || '').trim().toUpperCase();
+      const date = inputFor('dateUtc')?.value || request?.requestDate || '';
+      const plannedTime = inputFor('scheduledOut')?.value || request?.requestTime || '';
+      const etd = helsinkiLocalEtDToken(date, plannedTime);
+      const planning = [
+        speed ? `${speed}kts` : '',
+        fuelFlow ? `${round(fuelFlow, 1)}gph` : '',
+        altitude,
+        /^[A-Z0-9-]{3,12}$/.test(aircraft) ? aircraft : '',
+        etd
+      ].filter(Boolean);
+      const searchTokens = [...route, ...planning];
+      const searchString = searchTokens.join(' ');
+      const url = ready
+        ? `foreflightmobile://maps/search?q=${searchTokens.map(value => encodeURIComponent(value)).join('+')}`
+        : '';
+      const summary = ready
+        ? [route.join(' '), speed ? `TAS ${speed} KT` : '', fuelFlow ? `${round(fuelFlow, 1)} GPH` : '', altitude ? altitude.toUpperCase() : '', etd || 'ETD NOT SET'].filter(Boolean).join(' / ')
+        : 'ENTER DEPARTURE AND DESTINATION ICAO';
+      return { ready, url, searchString, summary };
+    }
+
+    function renderForeFlightBridge() {
+      const handoff = buildForeFlightHandoff();
+      el('copyForeFlightBtn').disabled = !handoff.ready;
+      el('openForeFlightBtn').disabled = !handoff.ready;
+      el('foreFlightHandoffText').textContent = handoff.summary;
+      el('foreFlightHandoffPreview').classList.toggle('ready', handoff.ready);
+      el('foreFlightHandoffState').textContent = handoff.ready ? 'READY / ONE-WAY' : 'ICAO REQUIRED';
+    }
+
     function renderRouteComposer() {
       el('routeTokens').innerHTML = routeLegs.length
         ? routeLegs.map((leg, index) => `<span class="route-token" title="${escapeHtml([leg.name, leg.source].filter(Boolean).join(' / '))}"><em>${escapeHtml(leg.type === 'DCT' ? 'DIRECT' : leg.type)}</em>${escapeHtml(leg.ident)}<button type="button" data-remove-route-token="${index}" aria-label="Remove ${escapeHtml(leg.ident)}">×</button></span>`).join('')
@@ -758,6 +859,7 @@
         star ? `ARR ${star}` : 'ARR PILOT SELECT',
         approach ? `APCH ${approach}` : 'APCH PILOT SELECT'
       ].join('  /  ');
+      renderForeFlightBridge();
       el('routeTokens').querySelectorAll('[data-remove-route-token]').forEach(button => button.addEventListener('click', () => {
         routeLegs.splice(Number(button.dataset.removeRouteToken), 1);
         syncRouteFields();
@@ -1040,7 +1142,12 @@
         routeLegs = routeTextElements().map(value => inferRouteLeg(value));
         plan.routeLegs = routeLegs.map(leg => ({ ...leg }));
       }
-      if (['route', 'routeMode', 'flightRules', 'departureProcedure', 'arrivalProcedure', 'approachProcedure'].includes(input.dataset.field)) renderRouteComposer();
+      if ([
+        'departure', 'destination', 'route', 'routeMode', 'flightRules',
+        'departureProcedure', 'arrivalProcedure', 'approachProcedure',
+        'cruiseFlightLevel', 'cruiseSpeedKt', 'fuelFlowGph',
+        'aircraftRegistration', 'dateUtc', 'scheduledOut'
+      ].includes(input.dataset.field)) renderRouteComposer();
       if (input.dataset.field !== 'releaseAccepted' && inputFor('releaseAccepted').checked) {
         inputFor('releaseAccepted').checked = false;
         el('saveState').textContent = 'Pilot release cleared because the OFP was changed.';
@@ -1169,6 +1276,30 @@
       if (event.key !== 'Enter') return;
       event.preventDefault();
       addRouteElement(el('routeTokenInput').value);
+    });
+    el('copyForeFlightBtn').addEventListener('click', async () => {
+      readPlan();
+      const handoff = buildForeFlightHandoff();
+      if (!handoff.ready) {
+        el('saveState').textContent = 'Enter valid four-character departure and destination ICAO codes before creating a ForeFlight handoff.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(handoff.searchString);
+        el('saveState').textContent = 'ForeFlight handoff copied. Paste it into ForeFlight Maps search and verify the resulting route.';
+      } catch {
+        el('saveState').textContent = 'Clipboard access is unavailable. Use Open in ForeFlight from this iPad instead.';
+      }
+    });
+    el('openForeFlightBtn').addEventListener('click', () => {
+      readPlan();
+      const handoff = buildForeFlightHandoff();
+      if (!handoff.ready) {
+        el('saveState').textContent = 'Enter valid four-character departure and destination ICAO codes before opening ForeFlight.';
+        return;
+      }
+      el('saveState').textContent = 'Opening ForeFlight Mobile. Verify the transferred route, aircraft, altitude, speed, fuel flow, and ETD before use.';
+      window.location.href = handoff.url;
     });
     ['departureProcedure', 'arrivalProcedure', 'approachProcedure'].forEach(field => inputFor(field).addEventListener('change', event => {
       event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9 ./+-]/g, '').slice(0, 40);
