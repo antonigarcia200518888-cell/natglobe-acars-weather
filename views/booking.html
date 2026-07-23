@@ -6292,12 +6292,14 @@
       display: grid;
       gap: 7px;
       padding: 7px 8px;
+      border: 1px solid rgba(190, 48, 61, 0.20);
       border-radius: 6px;
-      color: #7a879a;
+      background: #fff6f7;
+      color: #b32638;
       font: 700 10px/1.2 "Courier New", monospace;
       text-decoration: none;
       text-transform: uppercase;
-      transition: color 180ms ease, background 180ms ease;
+      transition: color 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
 
     .luxury-booking .progress-steps a i {
@@ -6306,7 +6308,7 @@
       height: 4px;
       overflow: hidden;
       border-radius: 999px;
-      background: #e0e5ec;
+      background: #cf4655;
     }
 
     .luxury-booking .progress-steps a i::after {
@@ -6318,7 +6320,35 @@
       transition: right 240ms ease;
     }
 
+    .luxury-booking .progress-step-copy {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .luxury-booking .progress-step-copy b {
+      display: grid;
+      place-items: center;
+      flex: 0 0 24px;
+      width: 24px;
+      height: 24px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      color: #b32638;
+      font: 700 9px/1 "Courier New", monospace;
+      transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+    }
+
+    .luxury-booking .progress-step-copy span {
+      min-width: 0;
+      color: #9f2f3d;
+      font: 700 10px/1.15 "Courier New", monospace;
+    }
+
     .luxury-booking .progress-steps a.is-complete {
+      border-color: rgba(47, 191, 88, 0.28);
+      background: #f1fbf4;
       color: #071d49;
     }
 
@@ -6326,9 +6356,18 @@
       right: 0;
     }
 
+    .luxury-booking .progress-steps a.is-complete .progress-step-copy b {
+      border-color: #2fbf58;
+      background: #2fbf58;
+      color: #fff;
+    }
+
+    .luxury-booking .progress-steps a.is-complete .progress-step-copy span {
+      color: #16723a;
+    }
+
     .luxury-booking .progress-steps a.is-current {
-      background: #eef2f7;
-      color: #071d49;
+      box-shadow: inset 0 0 0 1px #071d49;
     }
 
     .luxury-booking .booking-workspace {
@@ -7280,6 +7319,23 @@
         text-align: center;
       }
 
+      .luxury-booking .progress-step-copy {
+        justify-content: center;
+        gap: 3px;
+      }
+
+      .luxury-booking .progress-step-copy b {
+        flex-basis: 20px;
+        width: 20px;
+        height: 20px;
+        font-size: 7px;
+      }
+
+      .luxury-booking .progress-step-copy span {
+        font-size: 7px;
+        letter-spacing: 0;
+      }
+
       .luxury-booking .booking-workspace {
         gap: 10px;
       }
@@ -7925,7 +7981,7 @@
     }
 
     .luxury-booking .progress-steps a.is-current {
-      background: #edf1f6;
+      box-shadow: inset 0 0 0 1px var(--nga-navy);
     }
 
     .luxury-booking .booking-workspace {
@@ -10812,11 +10868,11 @@
         <small id="draftStatus" aria-live="polite">Your request is saved on this device</small>
       </div>
       <div class="progress-steps">
-        <a href="#itinerarySection" data-progress-step="route"><i aria-hidden="true"></i>Itinerary</a>
-        <a href="#passengerSection" data-progress-step="travellers"><i aria-hidden="true"></i>Passengers</a>
-        <a href="#luggageSection" data-progress-step="luggage"><i aria-hidden="true"></i>Luggage</a>
-        <a href="#extrasSection" data-progress-step="extras"><i aria-hidden="true"></i>Requests</a>
-        <a href="#reviewSection" data-progress-step="review"><i aria-hidden="true"></i>Review</a>
+        <a href="#itinerarySection" data-progress-step="route" data-step-label="Itinerary"><i aria-hidden="true"></i><span class="progress-step-copy"><b>01</b><span>Itinerary</span></span></a>
+        <a href="#passengerSection" data-progress-step="travellers" data-step-label="Passengers"><i aria-hidden="true"></i><span class="progress-step-copy"><b>02</b><span>Passengers</span></span></a>
+        <a href="#luggageSection" data-progress-step="luggage" data-step-label="Luggage"><i aria-hidden="true"></i><span class="progress-step-copy"><b>03</b><span>Luggage</span></span></a>
+        <a href="#extrasSection" data-progress-step="extras" data-step-label="Requests"><i aria-hidden="true"></i><span class="progress-step-copy"><b>04</b><span>Requests</span></span></a>
+        <a href="#reviewSection" data-progress-step="review" data-step-label="Review"><i aria-hidden="true"></i><span class="progress-step-copy"><b>05</b><span>Review</span></span></a>
       </div>
     </div>
 
@@ -12178,6 +12234,9 @@
     function setMobileMarker(step, complete) {
       document.querySelectorAll(`[data-progress-step="${step}"]`).forEach(marker => {
         marker.classList.toggle('is-complete', complete);
+        marker.classList.toggle('is-incomplete', !complete);
+        marker.dataset.progressState = complete ? 'complete' : 'incomplete';
+        marker.setAttribute('aria-label', `${marker.dataset.stepLabel || step}: ${complete ? 'complete' : 'incomplete'}`);
       });
       document.querySelectorAll(`[data-journey-step="${step}"]`).forEach(marker => {
         marker.classList.toggle('is-complete', complete);
