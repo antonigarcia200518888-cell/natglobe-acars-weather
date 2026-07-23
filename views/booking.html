@@ -11302,15 +11302,32 @@
   ></script>
   <script>
     const FALLBACK_AIRPORTS = [
-      { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', lat: 60.3172, lon: 24.9633 },
+      { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki-Vantaa', country: 'Finland', network: 'Finavia', lat: 60.3172, lon: 24.9633 },
+      { icao: 'EFHA', short: 'KEV', name: 'Halli', city: 'Halli', country: 'Finland', network: 'Finavia', lat: 61.8560, lon: 24.7867 },
+      { icao: 'EFIV', short: 'IVL', name: 'Ivalo', city: 'Ivalo', country: 'Finland', network: 'Finavia', lat: 68.6073, lon: 27.4053 },
+      { icao: 'EFJO', short: 'JOE', name: 'Joensuu', city: 'Joensuu', country: 'Finland', network: 'Finavia', lat: 62.6629, lon: 29.6075 },
+      { icao: 'EFJY', short: 'JYV', name: 'Jyväskylä', city: 'Jyväskylä', country: 'Finland', network: 'Finavia', lat: 62.3995, lon: 25.6783 },
+      { icao: 'EFKI', short: 'KAJ', name: 'Kajaani', city: 'Kajaani', country: 'Finland', network: 'Finavia', lat: 64.2855, lon: 27.6924 },
+      { icao: 'EFKE', short: 'KEM', name: 'Kemi-Tornio', city: 'Kemi-Tornio', country: 'Finland', network: 'Finavia', lat: 65.7787, lon: 24.5821 },
+      { icao: 'EFKT', short: 'KTT', name: 'Kittilä', city: 'Kittilä', country: 'Finland', network: 'Finavia', lat: 67.7010, lon: 24.8468 },
+      { icao: 'EFKK', short: 'KOK', name: 'Kokkola-Pietarsaari', city: 'Kokkola-Pietarsaari', country: 'Finland', network: 'Finavia', lat: 63.7212, lon: 23.1431 },
+      { icao: 'EFKU', short: 'KUO', name: 'Kuopio', city: 'Kuopio', country: 'Finland', network: 'Finavia', lat: 63.0071, lon: 27.7978 },
+      { icao: 'EFKS', short: 'KAO', name: 'Kuusamo', city: 'Kuusamo', country: 'Finland', network: 'Finavia', lat: 65.9876, lon: 29.2394 },
+      { icao: 'EFMA', short: 'MHQ', name: 'Mariehamn', city: 'Mariehamn', country: 'Finland', network: 'Finavia', lat: 60.1222, lon: 19.8982 },
+      { icao: 'EFOU', short: 'OUL', name: 'Oulu', city: 'Oulu', country: 'Finland', network: 'Finavia', lat: 64.9301, lon: 25.3546 },
+      { icao: 'EFPO', short: 'POR', name: 'Pori', city: 'Pori', country: 'Finland', network: 'Finavia', lat: 61.4617, lon: 21.7999 },
+      { icao: 'EFRO', short: 'RVN', name: 'Rovaniemi', city: 'Rovaniemi', country: 'Finland', network: 'Finavia', lat: 66.5648, lon: 25.8304 },
+      { icao: 'EFSA', short: 'SVL', name: 'Savonlinna', city: 'Savonlinna', country: 'Finland', network: 'Finavia', lat: 61.9431, lon: 28.9451 },
+      { icao: 'EFTP', short: 'TMP', name: 'Tampere-Pirkkala', city: 'Tampere-Pirkkala', country: 'Finland', network: 'Finavia', lat: 61.4141, lon: 23.6044 },
+      { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', network: 'Finavia', lat: 60.5141, lon: 22.2628 },
+      { icao: 'EFUT', short: 'UTI', name: 'Utti', city: 'Utti', country: 'Finland', network: 'Finavia', lat: 60.8964, lon: 26.9384 },
+      { icao: 'EFVA', short: 'VAA', name: 'Vaasa', city: 'Vaasa', country: 'Finland', network: 'Finavia', lat: 63.0507, lon: 21.7622 },
       { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkää', country: 'Finland', lat: 60.6544, lon: 24.8811 },
       { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', lat: 60.3339, lon: 24.2964 },
       { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtää', country: 'Finland', lat: 60.4844, lon: 26.5439 },
       { icao: 'EFHN', short: 'HNK', name: 'Hanko', city: 'Hanko', country: 'Finland', lat: 59.8489, lon: 23.0836 },
       { icao: 'EFRY', short: 'RAY', name: 'Rayskala', city: 'Räyskälä', country: 'Finland', lat: 60.7447, lon: 24.1078 },
       { icao: 'EFLA', short: 'LAH', name: 'Lahti-Vesivehmaa', city: 'Lahti', country: 'Finland', lat: 61.1442, lon: 25.6935 },
-      { icao: 'EFTU', short: 'TKU', name: 'Turku', city: 'Turku', country: 'Finland', lat: 60.5141, lon: 22.2628 },
-      { icao: 'EFTP', short: 'TMP', name: 'Tampere-Pirkkala', city: 'Tampere', country: 'Finland', lat: 61.4141, lon: 23.6044 },
       { icao: 'EETN', short: 'TLL', name: 'Tallinn', city: 'Tallinn', country: 'Estonia', lat: 59.4133, lon: 24.8328 },
       { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Kuressaare', country: 'Estonia', lat: 58.2300, lon: 22.5095 },
       { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', lat: 59.3544, lon: 17.9417 }
@@ -12778,12 +12795,20 @@
         HELSINKI_CITY_SIGHTSEEING_AIRPORT,
         ...catalog.filter(airport => airport.icao !== HELSINKI_CITY_SIGHTSEEING_CODE)
       ];
-      const departureOptions = airports.filter(airport => airport.icao !== HELSINKI_CITY_SIGHTSEEING_CODE).map(airport =>
-        `<option value="${escapeHtml(airport.icao)}">${escapeHtml(airportLabel(airport))}</option>`
-      ).join('');
-      const arrivalOptions = airports.map(airport =>
-        `<option value="${escapeHtml(airport.icao)}">${escapeHtml(airportLabel(airport))}</option>`
-      ).join('');
+      const airportOption = airport =>
+        `<option value="${escapeHtml(airport.icao)}">${escapeHtml(airportLabel(airport))}</option>`;
+      const groupedAirportOptions = includeSightseeing => {
+        const physicalAirports = airports.filter(airport => airport.icao !== HELSINKI_CITY_SIGHTSEEING_CODE);
+        const finaviaAirports = physicalAirports.filter(airport => airport.network === 'Finavia');
+        const otherAirports = physicalAirports.filter(airport => airport.network !== 'Finavia');
+        return [
+          includeSightseeing ? airportOption(HELSINKI_CITY_SIGHTSEEING_AIRPORT) : '',
+          finaviaAirports.length ? `<optgroup label="Finavia airports">${finaviaAirports.map(airportOption).join('')}</optgroup>` : '',
+          otherAirports.length ? `<optgroup label="Other airports">${otherAirports.map(airportOption).join('')}</optgroup>` : ''
+        ].join('');
+      };
+      const departureOptions = groupedAirportOptions(false);
+      const arrivalOptions = groupedAirportOptions(true);
       el('dep').innerHTML = departureOptions;
       el('arr').innerHTML = arrivalOptions;
       el('dep').value = airports.some(airport => airport.icao === 'EFHV') ? 'EFHV' : airports[0]?.icao || '';
