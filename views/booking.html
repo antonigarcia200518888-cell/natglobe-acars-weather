@@ -12775,8 +12775,8 @@
     function populateAirports(list) {
       const catalog = list && list.length ? list : FALLBACK_AIRPORTS;
       airports = [
-        ...catalog.filter(airport => airport.icao !== HELSINKI_CITY_SIGHTSEEING_CODE),
-        HELSINKI_CITY_SIGHTSEEING_AIRPORT
+        HELSINKI_CITY_SIGHTSEEING_AIRPORT,
+        ...catalog.filter(airport => airport.icao !== HELSINKI_CITY_SIGHTSEEING_CODE)
       ];
       const departureOptions = airports.filter(airport => airport.icao !== HELSINKI_CITY_SIGHTSEEING_CODE).map(airport =>
         `<option value="${escapeHtml(airport.icao)}">${escapeHtml(airportLabel(airport))}</option>`

@@ -915,9 +915,9 @@ async function deliverApprovalNotification(request) {
 }
 
 const bookingAirports = [
+  { icao: HELSINKI_CITY_SIGHTSEEING_CODE, short: 'HKI', name: 'Helsinki City sightseeing', city: 'Helsinki City sightseeing', country: 'Finland', type: 'scenic experience', lat: 60.1699, lon: 24.9384 },
   { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', type: 'controlled', lat: 60.3172, lon: 24.9633 },
   { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.6544, lon: 24.8811 },
-  { icao: HELSINKI_CITY_SIGHTSEEING_CODE, short: 'HKI', name: 'Helsinki City sightseeing', city: 'Helsinki City sightseeing', country: 'Finland', type: 'scenic experience', lat: 60.1699, lon: 24.9384 },
   { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', type: 'GA / uncontrolled', lat: 60.3339, lon: 24.2964 },
   { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.4844, lon: 26.5439 },
   { icao: 'EFHN', short: 'HNK', name: 'Hanko', city: 'Hanko', country: 'Finland', type: 'GA / uncontrolled', lat: 59.8489, lon: 23.0836 },
