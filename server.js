@@ -68,6 +68,7 @@ const OPERATING_COST_EUR_PER_HOUR = 300;
 const PUBLIC_AIRCRAFT_TYPE = 'PA-28R';
 const HANKO_SCENIC_EXPERIENCE = 'HANKO_REGATTA_SCENIC';
 const HELSINKI_CITY_SCENIC_EXPERIENCE = 'HELSINKI_CITY_SCENIC';
+const HELSINKI_CITY_SIGHTSEEING_CODE = 'HKI';
 const HELSINKI_DAY_VARIANT = 'DAY';
 const HELSINKI_NIGHT_VARIANT = 'NIGHT';
 const HANKO_SCENIC_DURATION_MIN = 30;
@@ -916,6 +917,7 @@ async function deliverApprovalNotification(request) {
 const bookingAirports = [
   { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki', country: 'Finland', type: 'controlled', lat: 60.3172, lon: 24.9633 },
   { icao: 'EFHV', short: 'HYV', name: 'Hyvinkaa', city: 'Hyvinkaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.6544, lon: 24.8811 },
+  { icao: HELSINKI_CITY_SIGHTSEEING_CODE, short: 'HKI', name: 'Helsinki City sightseeing', city: 'Helsinki City sightseeing', country: 'Finland', type: 'scenic experience', lat: 60.1699, lon: 24.9384 },
   { icao: 'EFNU', short: 'NUM', name: 'Nummela', city: 'Nummela', country: 'Finland', type: 'GA / uncontrolled', lat: 60.3339, lon: 24.2964 },
   { icao: 'EFPR', short: 'PYT', name: 'Pyhtaa Redstone', city: 'Pyhtaa', country: 'Finland', type: 'GA / uncontrolled', lat: 60.4844, lon: 26.5439 },
   { icao: 'EFHN', short: 'HNK', name: 'Hanko', city: 'Hanko', country: 'Finland', type: 'GA / uncontrolled', lat: 59.8489, lon: 23.0836 },
@@ -1791,6 +1793,7 @@ function estimateBoardingPassFlightMinutes(depIcao, arrIcao) {
   const arrAirport = bookingAirports.find(airport => airport.icao === arrIcao);
   if (!depAirport || !arrAirport) return null;
   if (depAirport.icao === 'EFHN' && arrAirport.icao === 'EFHN') return HANKO_SCENIC_DURATION_MIN;
+  if (depAirport.icao === 'EFHV' && arrAirport.icao === HELSINKI_CITY_SIGHTSEEING_CODE) return HELSINKI_CITY_SCENIC_DURATION_MIN;
   if (['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao) return HELSINKI_CITY_SCENIC_DURATION_MIN;
   return Math.max(10, Math.round((kmToNm(haversineKm(depAirport, arrAirport)) / AIRCRAFT_PROFILE.cruiseTasKt) * 60));
 }
@@ -2050,7 +2053,9 @@ function normalizeBookingItineraryUpdate(body, fallbackTripType = 'ONE_WAY') {
   const tripType = body?.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : fallbackTripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE_WAY';
   const flightExperience = normalizeBookingText(body?.flightExperience, 40);
   const isHankoScenic = flightExperience === HANKO_SCENIC_EXPERIENCE && depAirport.icao === 'EFHN' && arrAirport.icao === 'EFHN';
-  const isHelsinkiCityScenic = ['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao && (!flightExperience || flightExperience === HELSINKI_CITY_SCENIC_EXPERIENCE);
+  const isHelsinkiCitySightseeing = depAirport.icao === 'EFHV' && arrAirport.icao === HELSINKI_CITY_SIGHTSEEING_CODE;
+  const isLegacyHelsinkiCityScenic = ['EFHV', 'EFNU'].includes(depAirport.icao) && depAirport.icao === arrAirport.icao;
+  const isHelsinkiCityScenic = (isHelsinkiCitySightseeing || isLegacyHelsinkiCityScenic) && (!flightExperience || flightExperience === HELSINKI_CITY_SCENIC_EXPERIENCE);
   if (depAirport.icao === arrAirport.icao && !isHankoScenic && !isHelsinkiCityScenic) return { error: 'CHOOSE DIFFERENT DEPARTURE AND DESTINATION OR SELECT A SCENIC FLIGHT' };
 
   const normalizedExperience = isHankoScenic ? HANKO_SCENIC_EXPERIENCE : isHelsinkiCityScenic ? HELSINKI_CITY_SCENIC_EXPERIENCE : '';

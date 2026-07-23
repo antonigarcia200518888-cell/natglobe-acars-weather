@@ -11315,6 +11315,16 @@
       { icao: 'EEKE', short: 'URE', name: 'Kuressaare', city: 'Kuressaare', country: 'Estonia', lat: 58.2300, lon: 22.5095 },
       { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', lat: 59.3544, lon: 17.9417 }
     ];
+    const HELSINKI_CITY_SIGHTSEEING_AIRPORT = {
+      icao: 'HKI',
+      short: 'HKI',
+      name: 'Helsinki City sightseeing',
+      city: 'Helsinki City sightseeing',
+      country: 'Finland',
+      lat: 60.1699,
+      lon: 24.9384,
+      scenicExperience: true
+    };
 
     const PASSPORT_COUNTRIES = [
       ['Finland', '🇫🇮 Finland'],
@@ -11381,6 +11391,7 @@
     const OPERATING_COST_EUR_PER_HOUR = 300;
     const HANKO_SCENIC_EXPERIENCE = 'HANKO_REGATTA_SCENIC';
     const HELSINKI_CITY_SCENIC_EXPERIENCE = 'HELSINKI_CITY_SCENIC';
+    const HELSINKI_CITY_SIGHTSEEING_CODE = 'HKI';
     const HELSINKI_DAY_VARIANT = 'DAY';
     const HELSINKI_NIGHT_VARIANT = 'NIGHT';
     const HANKO_SCENIC_DURATION_MIN = 30;
@@ -11504,6 +11515,7 @@
     }
 
     function airportLabel(airport) {
+      if (airport.icao === HELSINKI_CITY_SIGHTSEEING_CODE) return '(HKI) Helsinki City sightseeing';
       const place = airport.icao === 'EFHK' ? 'Helsinki-Vantaa' : (airport.city || airport.name);
       return `(${airport.short || airport.icao}) ${place}, ${airport.country}`;
     }
@@ -11536,7 +11548,11 @@
     }
 
     function isHelsinkiCityScenicSelected() {
-      return el('flightExperience').value === HELSINKI_CITY_SCENIC_EXPERIENCE && ['EFHV', 'EFNU'].includes(el('dep').value) && el('arr').value === el('dep').value;
+      if (el('flightExperience').value !== HELSINKI_CITY_SCENIC_EXPERIENCE) return false;
+      const depIcao = el('dep').value;
+      const arrIcao = el('arr').value;
+      return (depIcao === 'EFHV' && arrIcao === HELSINKI_CITY_SIGHTSEEING_CODE) ||
+        (['EFHV', 'EFNU'].includes(depIcao) && arrIcao === depIcao);
     }
 
     function isHelsinkiNightSelected() {
@@ -12512,8 +12528,18 @@
     }
 
     function syncAutomaticScenicExperience() {
-      const depIcao = el('dep').value;
+      let depIcao = el('dep').value;
       const arrIcao = el('arr').value;
+      if (arrIcao === HELSINKI_CITY_SIGHTSEEING_CODE) {
+        if (depIcao !== 'EFHV') {
+          el('dep').value = 'EFHV';
+          depIcao = 'EFHV';
+        }
+        const departureHour = Number(String(el('requestTime').value || '12:00').split(':')[0]);
+        el('flightExperience').value = HELSINKI_CITY_SCENIC_EXPERIENCE;
+        el('scenicVariant').value = departureHour >= 18 || departureHour < 6 ? HELSINKI_NIGHT_VARIANT : HELSINKI_DAY_VARIANT;
+        return;
+      }
       const sameAirport = depIcao && depIcao === arrIcao;
       if (sameAirport && ['EFHV', 'EFNU'].includes(depIcao)) {
         const departureHour = Number(String(el('requestTime').value || '12:00').split(':')[0]);
@@ -12747,12 +12773,19 @@
     }
 
     function populateAirports(list) {
-      airports = list && list.length ? list : FALLBACK_AIRPORTS;
-      const options = airports.map(airport =>
+      const catalog = list && list.length ? list : FALLBACK_AIRPORTS;
+      airports = [
+        ...catalog.filter(airport => airport.icao !== HELSINKI_CITY_SIGHTSEEING_CODE),
+        HELSINKI_CITY_SIGHTSEEING_AIRPORT
+      ];
+      const departureOptions = airports.filter(airport => airport.icao !== HELSINKI_CITY_SIGHTSEEING_CODE).map(airport =>
         `<option value="${escapeHtml(airport.icao)}">${escapeHtml(airportLabel(airport))}</option>`
       ).join('');
-      el('dep').innerHTML = options;
-      el('arr').innerHTML = options;
+      const arrivalOptions = airports.map(airport =>
+        `<option value="${escapeHtml(airport.icao)}">${escapeHtml(airportLabel(airport))}</option>`
+      ).join('');
+      el('dep').innerHTML = departureOptions;
+      el('arr').innerHTML = arrivalOptions;
       el('dep').value = airports.some(airport => airport.icao === 'EFHV') ? 'EFHV' : airports[0]?.icao || '';
       el('arr').value = airports.some(airport => airport.icao === 'EFHN') ? 'EFHN' : airports.find(airport => airport.icao !== el('dep').value)?.icao || '';
       refreshSummary();
@@ -12924,6 +12957,12 @@
       queueDraftSave();
     });
     el('swapRoute').addEventListener('click', () => {
+      if (el('arr').value === HELSINKI_CITY_SIGHTSEEING_CODE) {
+        el('dep').value = 'EFHV';
+        setStatus('Helsinki City sightseeing departures are operated from Hyvinkää.');
+        refreshSummary();
+        return;
+      }
       const depValue = el('dep').value;
       el('flightExperience').value = '';
       el('scenicVariant').value = '';
