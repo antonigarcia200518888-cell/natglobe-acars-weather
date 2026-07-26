@@ -260,7 +260,7 @@
     .acars-console-head span { color:#7890a1; font-size:8px; letter-spacing:.14em; text-transform:uppercase; }
     .acars-console-head strong { display:block; margin-top:4px; color:#fff; font-size:15px; text-transform:uppercase; }
     .acars-live-badge { flex:0 0 auto; border:1px solid var(--live); border-radius:999px; padding:5px 9px; color:var(--live); font-size:8px; text-transform:uppercase; }
-    .weather-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 150px auto auto; gap:9px; align-items:end; padding:13px 14px 0; }
+    .weather-toolbar { display:grid; grid-template-columns:minmax(190px,1fr) repeat(3,minmax(118px,150px)) auto auto; gap:9px; align-items:end; padding:13px 14px 0; }
     .weather-route { min-height:52px; border:1px solid #334654; border-radius:4px; padding:9px 11px; background:#020507; }
     .weather-route span, .aircraft-identity span { display:block; color:#7890a1; font-size:8px; letter-spacing:.12em; text-transform:uppercase; }
     .weather-route strong { display:block; margin-top:6px; color:#fff; font-size:15px; }
@@ -275,7 +275,29 @@
     .weather-option-group input { accent-color:var(--live); }
     .weather-status, .performance-status { border-left:3px solid var(--accent); padding:9px 12px; margin:0 14px 12px; color:#aec0cc; background:#0a141e; font-size:9px; line-height:1.45; text-transform:uppercase; }
     .weather-status.offline { border-left-color:var(--danger); color:#ffd1d1; background:#1a0909; }
-    .weather-output-layout { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); gap:10px; padding:0 14px 14px; }
+    .weather-category-strip { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:0 14px 12px; }
+    .weather-category-strip.has-alternate { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .weather-category-tile { position:relative; min-width:0; min-height:88px; border:1px solid #334957; border-radius:4px; background:linear-gradient(145deg,#0d1923,#050a0f); padding:10px 12px 9px 16px; overflow:hidden; }
+    .weather-category-tile::before { content:""; position:absolute; inset:0 auto 0 0; width:4px; background:#526572; }
+    .weather-category-tile.vfr::before { background:#20d37e; }
+    .weather-category-tile.mvfr::before { background:#4b9cff; }
+    .weather-category-tile.ifr::before { background:#ff4b55; }
+    .weather-category-tile.lifr::before { background:#df5dff; }
+    .weather-category-tile.unknown::before, .weather-category-tile.no-data::before { background:#ffb13b; }
+    .weather-category-tile.stale { box-shadow:inset 0 0 0 1px rgba(255,177,59,.2); }
+    .weather-category-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .weather-category-role { color:#8195a4; font-size:7px; letter-spacing:.13em; text-transform:uppercase; }
+    .weather-category-icao { display:block; margin-top:4px; color:#fff; font-size:12px; }
+    .weather-category-value { color:#aebbc4; font-size:20px; line-height:1; letter-spacing:.04em; text-align:right; }
+    .weather-category-tile.vfr .weather-category-value { color:#20d37e; }
+    .weather-category-tile.mvfr .weather-category-value { color:#66adff; }
+    .weather-category-tile.ifr .weather-category-value { color:#ff6971; }
+    .weather-category-tile.lifr .weather-category-value { color:#e77dff; }
+    .weather-category-tile.unknown .weather-category-value, .weather-category-tile.no-data .weather-category-value { color:#ffc05c; font-size:14px; }
+    .weather-category-meta { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-top:10px; padding-top:8px; border-top:1px solid #243542; }
+    .weather-category-meta span { min-width:0; color:#758a99; font-size:7px; text-transform:uppercase; overflow-wrap:anywhere; }
+    .weather-category-meta strong { display:block; margin-top:3px; color:#dce6eb; font-size:8px; }
+    .weather-output-layout { display:grid; grid-template-columns:minmax(310px,.7fr) minmax(0,1.3fr); gap:10px; padding:0 14px 14px; }
     .acars-preview { min-width:0; border:1px solid #354b5c; background:#000; padding:14px; }
     .acars-preview-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:11px; padding-bottom:9px; border-bottom:1px solid #263b49; color:var(--accent); font-size:9px; text-transform:uppercase; }
     .acars-preview pre { min-height:420px; margin:0; color:#f2f6f8; font:11px/1.5 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
@@ -284,9 +306,18 @@
     .weather-card-head { display:flex; justify-content:space-between; gap:10px; padding:10px 11px; border-bottom:1px solid #253643; background:#0c1721; }
     .weather-card-head span { display:block; color:#738797; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
     .weather-card-head h3 { margin:4px 0 0; color:#fff; font-size:11px; }
+    .weather-card-category { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 11px; border-bottom:1px solid #253643; background:#050b10; }
+    .weather-card-category span { color:#778c9b; font-size:7px; letter-spacing:.11em; text-transform:uppercase; }
+    .weather-card-category strong { color:#aebbc4; font-size:14px; letter-spacing:.05em; }
+    .weather-card-category.vfr strong { color:#20d37e; }
+    .weather-card-category.mvfr strong { color:#66adff; }
+    .weather-card-category.ifr strong { color:#ff6971; }
+    .weather-card-category.lifr strong { color:#e77dff; }
+    .weather-card-category.unknown strong, .weather-card-category.no-data strong { color:#ffc05c; }
     .weather-source { align-self:flex-start; border:1px solid #486074; border-radius:999px; padding:3px 6px; color:var(--accent); font-size:7px; white-space:nowrap; }
     .weather-source.live { border-color:var(--live); color:var(--live); }
     .weather-source.fallback { border-color:var(--warn); color:var(--warn); }
+    .weather-source.stale { border-color:var(--warn); color:var(--warn); }
     .weather-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; background:#22313c; }
     .weather-metric { min-width:0; padding:7px 8px; background:#070d13; }
     .weather-metric span { display:block; color:#718391; font-size:7px; text-transform:uppercase; }
@@ -1549,6 +1580,8 @@
       .weather-route { grid-column:auto; }
       .weather-options { grid-template-columns:1fr; }
       .weather-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .weather-category-strip { display:flex; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:10px; }
+      .weather-category-tile { flex:0 0 min(82vw,250px); scroll-snap-align:start; }
       .winds-grid { grid-template-columns:1fr repeat(3,minmax(0,1fr)); overflow-x:auto; }
       .aircraft-identity h2 { font-size:18px; }
       .performance-metrics { grid-template-columns:1fr; }
@@ -1756,6 +1789,36 @@
       .flight-file-row { grid-template-columns:38px minmax(0,1fr); }
       .flight-file-row button { grid-column:1/-1; width:100%; }
     }
+
+    @media (max-width:699px) {
+      .efb-layout { display:block; grid-template-columns:none; }
+      .efb-content { width:100%; min-width:0; }
+      .ops-suite-nav {
+        position:static;
+        display:flex;
+        gap:4px;
+        margin:0 0 8px;
+        padding:5px;
+        overflow-x:auto;
+        overscroll-behavior-inline:contain;
+        scroll-snap-type:x proximity;
+      }
+      .suite-tab {
+        flex:0 0 86px;
+        width:auto;
+        min-height:50px;
+        padding:7px 5px;
+        text-align:center;
+        scroll-snap-align:start;
+      }
+      .suite-tab span, .suite-tab small { display:none; }
+      .suite-tab strong { margin:0; font-size:10px; }
+      .suite-tab.active { box-shadow:inset 0 3px 0 var(--live); }
+      .ops-tool-workspace { width:100%; min-width:0; }
+      .ops-tool-pane { padding:8px; }
+      .tool-workspace-head { padding:10px; }
+      .weather-console { width:100%; }
+    }
   </style>
 </head>
 <body>
@@ -1814,7 +1877,7 @@
       <header class="tool-workspace-head"><div><span id="toolWorkspaceKicker">Pilot tool</span><strong id="toolWorkspaceTitle">Operations workspace</strong></div><div id="toolFlightContext" class="tool-flight-context">NO FLIGHT SELECTED</div></header>
       <div id="weatherOpsPane" class="ops-tool-pane" hidden>
         <div class="weather-console">
-          <header class="acars-console-head"><div><span>NGA flight operations</span><strong>ACARS weather dispatch</strong></div><em class="acars-live-badge">Live data link</em></header>
+          <header class="acars-console-head"><div><span>Preflight intelligence / live data</span><strong>Weather operations</strong></div><em class="acars-live-badge">Live data link</em></header>
           <div class="weather-toolbar">
             <div class="weather-route"><span>Dispatch route</span><strong id="weatherRoute">ENTER ICAO ROUTE</strong></div>
             <label>Departure ICAO<input id="weatherDep" list="weatherAirportOptions" maxlength="4" placeholder="EFHV" /></label>
@@ -1831,11 +1894,12 @@
             <div class="weather-option-group"><strong>EXTRAS</strong><label><input id="wxWinds" type="checkbox" checked /> WINDS ALOFT</label></div>
           </div>
           <div id="weatherStatus" class="weather-status">Enter departure and arrival ICAO codes, or open a flight to preload its route.</div>
+          <div id="weatherCategoryStrip" class="weather-category-strip" aria-label="Route flight categories"></div>
           <div class="weather-output-layout">
-            <section class="acars-preview"><header class="acars-preview-head"><span>Dispatch preview</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
+            <div id="weatherAirportGrid" class="weather-data-stack"></div>
+            <section class="acars-preview"><header class="acars-preview-head"><span>ACARS dispatch document</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
 --------------------
 ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
-            <div id="weatherAirportGrid" class="weather-data-stack"></div>
           </div>
           <div class="weather-lower">
             <section class="weather-brief"><h3>Winds aloft</h3><div id="weatherWinds" class="winds-grid"></div></section>
@@ -2386,6 +2450,7 @@ END OF MESSAGE</pre>
     const refreshWeatherBtn = el('refreshWeatherBtn');
     const openWeatherPdfBtn = el('openWeatherPdfBtn');
     const weatherStatus = el('weatherStatus');
+    const weatherCategoryStrip = el('weatherCategoryStrip');
     const weatherAirportGrid = el('weatherAirportGrid');
     const weatherWinds = el('weatherWinds');
     const weatherDecision = el('weatherDecision');
@@ -2738,10 +2803,21 @@ END OF MESSAGE</pre>
       activeFlightPhaseDetail.textContent = phase.detail;
       activeFlightFuel.textContent = req ? (ofp.blockFuelGal ? `BLOCK ${ofp.blockFuelGal} USG` : 'FUEL TBC') : 'TBC';
       activeFlightLoad.textContent = req ? `${load.totalKg} KG DECLARED` : '--';
-      activeFlightWeather.textContent = !req ? 'NOT BRIEFED' : weatherReady ? (weatherPartial ? 'PARTIAL DATA' : 'BRIEFED') : 'NOT BRIEFED';
+      const depCategory = weatherCategory(latestWeatherData?.departure);
+      const arrCategory = weatherCategory(latestWeatherData?.arrival);
+      const categoryRisk = [depCategory, arrCategory].some(category => ['IFR', 'LIFR'].includes(category))
+        ? 'danger'
+        : [depCategory, arrCategory].some(category => ['MVFR', 'UNKNOWN', 'NO DATA'].includes(category))
+          ? 'warn'
+          : 'good';
+      activeFlightWeather.textContent = !req
+        ? 'NOT BRIEFED'
+        : weatherReady
+          ? (weatherPartial ? 'PARTIAL DATA' : `${depCategory} > ${arrCategory}`)
+          : 'NOT BRIEFED';
       activeFlightDocs.textContent = docsLabel;
       setStripTone(activeFlightPhaseCard, phase.tone);
-      setStripTone(activeFlightWeatherCard, weatherReady ? (weatherPartial ? 'warn' : 'good') : (req ? 'warn' : ''));
+      setStripTone(activeFlightWeatherCard, weatherReady ? (weatherPartial ? 'warn' : categoryRisk) : (req ? 'warn' : ''));
     }
 
     function updateSuiteContext(req = selected) {
@@ -2805,6 +2881,57 @@ END OF MESSAGE</pre>
       return `<div class="weather-metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value ?? 'N/A')}</strong></div>`;
     }
 
+    function weatherCategory(wx) {
+      const category = String(wx?.flightCategory || '').toUpperCase();
+      return ['VFR', 'MVFR', 'IFR', 'LIFR', 'UNKNOWN', 'NO DATA'].includes(category) ? category : 'NO DATA';
+    }
+
+    function weatherCategoryClass(category) {
+      return String(category || 'NO DATA').toLowerCase().replace(/\s+/g, '-');
+    }
+
+    function weatherVisibility(wx) {
+      return Number.isFinite(wx?.visibilityM) ? (wx.visibilityM >= 9999 ? '10 KM+' : `${wx.visibilityM} M`) : 'N/A';
+    }
+
+    function weatherCeiling(wx) {
+      return Number.isFinite(wx?.ceilingFt) ? `${wx.ceilingFt} FT` : 'UNLIMITED / N/A';
+    }
+
+    function weatherObservationAge(wx) {
+      if (!Number.isFinite(wx?.metarAgeMinutes)) return 'TIME N/A';
+      if (wx.metarAgeMinutes < 60) return `${wx.metarAgeMinutes} MIN`;
+      const hours = Math.floor(wx.metarAgeMinutes / 60);
+      const minutes = wx.metarAgeMinutes % 60;
+      return `${hours}H ${String(minutes).padStart(2, '0')}M`;
+    }
+
+    function weatherCategoryTile(role, wx) {
+      if (!wx) return '';
+      const category = weatherCategory(wx);
+      const stale = Number.isFinite(wx?.metarAgeMinutes) && wx.metarAgeMinutes > 75;
+      return `<article class="weather-category-tile ${weatherCategoryClass(category)}${stale ? ' stale' : ''}">
+        <div class="weather-category-top">
+          <div><span class="weather-category-role">${escapeHtml(role)} WX</span><strong class="weather-category-icao">${escapeHtml(wx.icao || '----')}</strong></div>
+          <strong class="weather-category-value">${escapeHtml(category)}</strong>
+        </div>
+        <div class="weather-category-meta">
+          <span>Visibility<strong>${escapeHtml(weatherVisibility(wx))}</strong></span>
+          <span>Ceiling<strong>${escapeHtml(weatherCeiling(wx))}</strong></span>
+          <span>METAR age<strong>${escapeHtml(weatherObservationAge(wx))}</strong></span>
+        </div>
+      </article>`;
+    }
+
+    function renderWeatherCategoryStrip(data) {
+      weatherCategoryStrip.classList.toggle('has-alternate', Boolean(data?.alternate));
+      weatherCategoryStrip.innerHTML = [
+        weatherCategoryTile('DEP', data?.departure),
+        weatherCategoryTile('ARR', data?.arrival),
+        data?.alternate ? weatherCategoryTile('ALTN', data.alternate) : ''
+      ].join('');
+    }
+
     function weatherIcao(value) {
       return String(value || '').trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
     }
@@ -2844,16 +2971,19 @@ END OF MESSAGE</pre>
 
     function weatherAirportCard(role, wx) {
       if (!wx) return '';
-      const sourceClass = wx.mode === 'NO DATA' ? '' : (wx.metarFallback ? 'fallback' : 'live');
-      const sourceLabel = wx.mode === 'NO DATA' ? 'NO DATA' : (wx.metarFallback ? 'NEARBY DATA' : 'LIVE DATA');
+      const stale = Number.isFinite(wx.metarAgeMinutes) && wx.metarAgeMinutes > 75;
+      const sourceClass = wx.mode === 'NO DATA' ? '' : (stale ? 'stale' : (wx.metarFallback ? 'fallback' : 'live'));
+      const sourceLabel = wx.mode === 'NO DATA' ? 'NO DATA' : (stale ? 'STALE METAR' : (wx.metarFallback ? 'NEARBY DATA' : 'LIVE DATA'));
       const wind = wx.wind?.raw || 'NOT REPORTED';
-      const visibility = Number.isFinite(wx.visibilityM) ? (wx.visibilityM >= 9999 ? '10 KM+' : `${wx.visibilityM} M`) : 'N/A';
-      const ceiling = Number.isFinite(wx.ceilingFt) ? `${wx.ceilingFt} FT` : 'N/A';
+      const visibility = weatherVisibility(wx);
+      const ceiling = weatherCeiling(wx);
       const oat = Number.isFinite(wx.oatC) ? `${wx.oatC} C` : 'N/A';
       const qnh = Number.isFinite(wx.qnhHpa) ? `${wx.qnhHpa} HPA` : 'N/A';
       const densityAltitude = Number.isFinite(wx.densityAltitudeFt) ? `${Math.round(wx.densityAltitudeFt)} FT` : 'N/A';
+      const category = weatherCategory(wx);
       return `<article class="weather-card">
-        <header class="weather-card-head"><div><span>${escapeHtml(role)}</span><h3>${escapeHtml(wx.icao)} / ${escapeHtml(wx.name)}</h3></div><em class="weather-source ${sourceClass}">${sourceLabel}</em></header>
+        <header class="weather-card-head"><div><span>${escapeHtml(role)} WX</span><h3>${escapeHtml(wx.icao)} / ${escapeHtml(wx.name)}</h3></div><em class="weather-source ${sourceClass}">${sourceLabel}</em></header>
+        <div class="weather-card-category ${weatherCategoryClass(category)}"><span>Current flight category / METAR ${escapeHtml(weatherObservationAge(wx))} old</span><strong>${escapeHtml(category)}</strong></div>
         <div class="weather-metrics">${weatherMetric('Wind', wind)}${weatherMetric('Visibility', visibility)}${weatherMetric('Ceiling', ceiling)}${weatherMetric('OAT', oat)}${weatherMetric('QNH', qnh)}${weatherMetric('Density alt', densityAltitude)}</div>
         <div class="weather-report"><span>METAR</span><code>${escapeHtml(wx.metar || 'NOT AVAILABLE')}</code><small>${escapeHtml(weatherSourceLabel(wx, 'METAR'))}</small></div>
         <div class="weather-report"><span>TAF</span><code>${escapeHtml(wx.taf || 'NOT AVAILABLE')}</code><small>${escapeHtml(weatherSourceLabel(wx, 'TAF'))}</small></div>
@@ -2872,12 +3002,17 @@ END OF MESSAGE</pre>
     function renderWeatherBriefing(data) {
       latestWeatherData = data;
       weatherAcarsReport.textContent = data.reportText || 'ACARS WEATHER REPORT\n--------------------\nNO REPORT DATA.';
-      weatherReportMode.textContent = data.departure?.mode === 'NO DATA' || data.arrival?.mode === 'NO DATA' ? 'PARTIAL DATA' : 'LIVE / GENERATED';
+      const departureCategory = weatherCategory(data.departure);
+      const arrivalCategory = weatherCategory(data.arrival);
+      weatherReportMode.textContent = data.departure?.mode === 'NO DATA' || data.arrival?.mode === 'NO DATA'
+        ? 'PARTIAL DATA'
+        : `${departureCategory} > ${arrivalCategory}`;
       weatherAirportGrid.innerHTML = [
         weatherAirportCard('Departure', data.departure),
         weatherAirportCard('Arrival', data.arrival),
         data.alternate ? weatherAirportCard('Alternate', data.alternate) : ''
       ].join('');
+      renderWeatherCategoryStrip(data);
       renderWindsAloft(data);
       const alternateMessage = data.operational?.arrivalNeedsAlternate
         ? `<strong>ARRIVAL WEATHER TRIGGERS ALTERNATE REVIEW.</strong>${data.operational?.suggestedAlternate ? ` Suggested: ${escapeHtml(data.operational.suggestedAlternate.airport)} / ${escapeHtml(data.operational.suggestedAlternate.distanceNm)} NM.` : ' Select and verify a suitable alternate.'}`
@@ -2919,6 +3054,7 @@ END OF MESSAGE</pre>
       if (!/^[A-Z]{4}$/.test(dep) || !/^[A-Z]{4}$/.test(arr)) {
         weatherStatus.textContent = 'ENTER BOTH FOUR-LETTER ICAO CODES TO GENERATE WEATHER.';
         weatherAirportGrid.innerHTML = '';
+        weatherCategoryStrip.innerHTML = '';
         weatherWinds.innerHTML = '';
         weatherDecision.textContent = 'No weather briefing loaded.';
         weatherAcarsReport.textContent = 'ACARS WEATHER REPORT\n--------------------\nENTER DEPARTURE AND ARRIVAL ICAO CODES.';
@@ -2941,6 +3077,7 @@ END OF MESSAGE</pre>
         weatherStatus.textContent = `OFFLINE / ${error.message || 'WEATHER BRIEFING UNAVAILABLE'} / USE AN APPROVED INDEPENDENT SOURCE`;
         weatherStatus.classList.add('offline');
         weatherAirportGrid.innerHTML = '';
+        weatherCategoryStrip.innerHTML = '';
         weatherWinds.innerHTML = '';
         weatherDecision.textContent = 'Weather data could not be loaded. Retry and use an approved independent source.';
         weatherAcarsReport.textContent = `ACARS WEATHER REPORT\n--------------------\n${String(error.message || 'WEATHER DATA UNAVAILABLE').toUpperCase()}`;

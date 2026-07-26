@@ -2872,6 +2872,81 @@ function parseCloudBase(metar) {
   return lowest;
 }
 
+function currentMetarConditions(metar) {
+  return String(metar || '')
+    .toUpperCase()
+    .split(/\s+(?:TEMPO|BECMG|NOSIG|RMK)\b/, 1)[0]
+    .trim();
+}
+
+function parseMetarVisibilityMiles(metar) {
+  const text = currentMetarConditions(metar);
+  if (!text) return null;
+  if (/\bCAVOK\b/.test(text)) return 6.2;
+
+  const smMatch = text.match(/\b(P?)(\d+)?\s?(\d\/\d)?SM\b/);
+  if (smMatch) {
+    let total = smMatch[1] === 'P' ? 6 : 0;
+    if (smMatch[2]) total += Number(smMatch[2]) || 0;
+    if (smMatch[3]) {
+      const [numerator, denominator] = smMatch[3].split('/').map(Number);
+      if (denominator) total += numerator / denominator;
+    }
+    return total || (smMatch[1] === 'P' ? 6 : null);
+  }
+
+  const visibilityM = parseVisibility(text);
+  return Number.isFinite(visibilityM) ? visibilityM / 1609.344 : null;
+}
+
+function parseMetarCeilingFt(metar) {
+  const text = currentMetarConditions(metar);
+  let lowest = null;
+  const ceilingRegex = /\b(BKN|OVC|VV)(\d{3})\b/g;
+  let match;
+
+  while ((match = ceilingRegex.exec(text)) !== null) {
+    const feet = Number(match[2]) * 100;
+    if (Number.isFinite(feet) && (lowest === null || feet < lowest)) lowest = feet;
+  }
+
+  return lowest;
+}
+
+function getMetarFlightCategory(metar) {
+  const text = String(metar || '').trim().toUpperCase();
+  if (!text || text === 'NOT AVAILABLE') return 'NO DATA';
+
+  const visibilityMiles = parseMetarVisibilityMiles(text);
+  const ceilingFt = parseMetarCeilingFt(text);
+  if (visibilityMiles === null && ceilingFt === null && !/\b(CAVOK|SKC|CLR|NSC|NCD)\b/.test(text)) return 'UNKNOWN';
+  if ((visibilityMiles !== null && visibilityMiles < 1) || (ceilingFt !== null && ceilingFt < 500)) return 'LIFR';
+  if ((visibilityMiles !== null && visibilityMiles < 3) || (ceilingFt !== null && ceilingFt < 1000)) return 'IFR';
+  if ((visibilityMiles !== null && visibilityMiles < 5) || (ceilingFt !== null && ceilingFt <= 3000)) return 'MVFR';
+  return 'VFR';
+}
+
+function getMetarObservationData(metar, now = new Date()) {
+  const match = String(metar || '').toUpperCase().match(/\b(\d{2})(\d{2})(\d{2})Z\b/);
+  if (!match) return { observedAt: null, ageMinutes: null };
+
+  const day = Number(match[1]);
+  const hour = Number(match[2]);
+  const minute = Number(match[3]);
+  if (day < 1 || day > 31 || hour > 23 || minute > 59) return { observedAt: null, ageMinutes: null };
+
+  let observed = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute));
+  if (observed.getTime() > now.getTime() + (36 * 60 * 60 * 1000)) {
+    observed = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, day, hour, minute));
+  }
+
+  const ageMinutes = Math.max(0, Math.round((now.getTime() - observed.getTime()) / 60000));
+  return {
+    observedAt: observed.toISOString(),
+    ageMinutes
+  };
+}
+
 function parseTemperatureC(metar) {
   const match = metar.match(/\b(M?\d{2})\/(M?\d{2})\b/);
   if (!match) return null;
@@ -6540,6 +6615,8 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
       const elevationFt = Number.isFinite(airport?.elevationFt) ? Math.round(airport.elevationFt) : null;
       const oatC = parseTemperatureC(metar);
       const qnhHpa = parseQnhHpa(metar);
+      const ceilingFt = parseMetarCeilingFt(metar);
+      const observation = getMetarObservationData(metar);
       return {
         icao,
         name: airport?.name || icao,
@@ -6555,7 +6632,10 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
         tafDistanceNm: wx.tafDistanceNm,
         wind: parseWindDetailed(metar),
         visibilityM: parseVisibility(metar),
-        ceilingFt: parseCloudBase(metar),
+        ceilingFt,
+        flightCategory: getMetarFlightCategory(metar),
+        metarObservedAt: observation.observedAt,
+        metarAgeMinutes: observation.ageMinutes,
         oatC,
         qnhHpa,
         densityAltitudeFt: computeDensityAltitudeFt(elevationFt, oatC, qnhHpa)
