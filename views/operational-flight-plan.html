@@ -470,6 +470,45 @@
       .movement-actions { grid-template-columns:1fr; }
       .movement-actions .btn { width:100%; }
     }
+
+    .import-drawer { margin-top:10px; border-color:#375166; }
+    .import-grid { display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:10px; }
+    .import-grid textarea {
+      width:100%;
+      min-height:130px;
+      resize:vertical;
+      border:1px solid #3a5366;
+      border-radius:4px;
+      background:#03080d;
+      color:#eef6fa;
+      padding:10px;
+      font:11px/1.5 "Courier New",monospace;
+      text-transform:uppercase;
+    }
+    .import-actions { display:grid; align-content:start; gap:8px; }
+    .import-file {
+      min-height:42px;
+      display:flex;
+      align-items:center;
+      border:1px solid #334b5d;
+      border-radius:4px;
+      background:#09131c;
+      color:#aebfca;
+      padding:8px;
+      font-size:9px;
+    }
+    .import-preview {
+      min-height:92px;
+      margin:10px 0 0;
+      border-left:3px solid #46677e;
+      background:#07111a;
+      color:#9eb1bd;
+      padding:10px 12px;
+      white-space:pre-wrap;
+      font:10px/1.55 "Courier New",monospace;
+    }
+    .import-preview.ready { border-left-color:var(--live); color:#eaf4f8; }
+    @media (max-width:700px) { .import-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -534,6 +573,21 @@
               <details class="raw-route-drawer">
                 <summary>Manual route string</summary>
                 <div class="detail-body"><label class="raw-route">Operational route<textarea id="routeText" data-field="route" placeholder="Route sequence appears here and remains directly editable"></textarea></label></div>
+              </details>
+              <details class="import-drawer">
+                <summary>Import flight-plan text or file</summary>
+                <div class="detail-body">
+                  <div class="section-heading"><div><span>Review before apply</span><strong>Flight-plan import</strong></div><p>Paste ICAO flight-plan text, a route string, or load a local .fpl/.txt file. Nothing changes until you apply the preview.</p></div>
+                  <div class="import-grid">
+                    <textarea id="flightPlanImportText" aria-label="Flight plan import text" placeholder="(FPL-CALLSIGN-VG&#10;-PA28/L-S/C&#10;-EFHV1200&#10;-N0120A025 DCT ...&#10;-EFHN0040)"></textarea>
+                    <div class="import-actions">
+                      <input id="flightPlanImportFile" class="import-file" type="file" accept=".fpl,.txt,text/plain" aria-label="Choose flight plan file" />
+                      <button id="parseFlightPlanBtn" class="btn" type="button">Preview import</button>
+                      <button id="applyFlightPlanBtn" class="btn primary-soft" type="button" disabled>Apply reviewed data</button>
+                    </div>
+                  </div>
+                  <pre id="flightPlanImportPreview" class="import-preview">No import parsed. Existing OFP data will remain unchanged.</pre>
+                </div>
               </details>
             </section>
 
@@ -747,6 +801,121 @@
     }
 
     function inputFor(name) { return document.querySelector(`[data-field="${name}"]`); }
+    let pendingFlightPlanImport = null;
+
+    function importLineValue(source, labels) {
+      for (const label of labels) {
+        const match = source.match(new RegExp(`(?:^|\\n)\\s*${label}\\s*[:=]\\s*([^\\n]+)`, 'i'));
+        if (match) return match[1].trim().toUpperCase();
+      }
+      return '';
+    }
+
+    function parseImportedFlightPlan(source) {
+      const raw = String(source || '').trim();
+      if (!raw) return { error:'Paste flight-plan text or choose a local file first.' };
+      const normalized = raw.toUpperCase().replace(/\r/g, '').replace(/[ \t]+/g, ' ').trim();
+      const parsed = {
+        departure:importLineValue(normalized, ['DEP(?:ARTURE)?', 'FROM']),
+        destination:importLineValue(normalized, ['DEST(?:INATION)?', 'ARR(?:IVAL)?', 'TO']),
+        alternate:importLineValue(normalized, ['ALTN', 'ALTERNATE']),
+        route:importLineValue(normalized, ['ROUTE']),
+        cruiseFlightLevel:importLineValue(normalized, ['LEVEL', 'ALT(?:ITUDE)?']),
+        flightRules:importLineValue(normalized, ['RULES', 'FLIGHT RULES']),
+        estimatedEnrouteMinutes:null,
+        sourceType:'PILOT TEXT'
+      };
+
+      const fplText = normalized.replace(/^\(/, '').replace(/\)$/, '');
+      const segments = fplText.split(/\s*-\s*/).map(value => value.trim()).filter(Boolean);
+      if (segments[0] === 'FPL' && segments.length >= 6) {
+        parsed.sourceType = 'ICAO FPL TEXT';
+        const rulesSegment = segments[2] || '';
+        if (/^[IVYZ]/.test(rulesSegment)) parsed.flightRules = rulesSegment[0] === 'I' ? 'IFR' : 'VFR';
+        const departureIndex = segments.findIndex(segment => /^[A-Z]{4}\d{4}(?:Z)?$/.test(segment));
+        if (departureIndex >= 0) {
+          parsed.departure = segments[departureIndex].slice(0, 4);
+          const routeSegment = segments[departureIndex + 1] || '';
+          parsed.route = routeSegment.replace(/^[KN]\d{4}[AF]\d{3}\s*/, '').trim();
+          const destinationSegment = segments[departureIndex + 2] || '';
+          const destinationMatch = destinationSegment.match(/^([A-Z]{4})(\d{4})(?:\s+([A-Z]{4}))?/);
+          if (destinationMatch) {
+            parsed.destination = destinationMatch[1];
+            parsed.estimatedEnrouteMinutes = (Number(destinationMatch[2].slice(0, 2)) * 60) + Number(destinationMatch[2].slice(2));
+            parsed.alternate = destinationMatch[3] || parsed.alternate;
+          }
+          const levelMatch = routeSegment.match(/^[KN]\d{4}([AF]\d{3})/);
+          if (levelMatch) parsed.cruiseFlightLevel = levelMatch[1];
+        }
+      }
+
+      parsed.departure = String(parsed.departure || '').match(/[A-Z]{4}/)?.[0] || '';
+      parsed.destination = String(parsed.destination || '').match(/[A-Z]{4}/)?.[0] || '';
+      parsed.alternate = String(parsed.alternate || '').match(/[A-Z]{4}/)?.[0] || '';
+      parsed.flightRules = String(parsed.flightRules || '').startsWith('I') ? 'IFR' : String(parsed.flightRules || '').startsWith('V') ? 'VFR' : '';
+      parsed.route = String(parsed.route || '').replace(/[^A-Z0-9 ./+-]/g, ' ').replace(/\s+/g, ' ').trim();
+
+      if (!parsed.route) {
+        const tokens = normalized.replace(/[()]/g, ' ').split(/\s+/).map(value => value.replace(/[^A-Z0-9./+-]/g, '')).filter(Boolean);
+        const airports = tokens.filter(value => /^[A-Z]{4}$/.test(value));
+        if (!parsed.departure && airports.length) parsed.departure = airports[0];
+        if (!parsed.destination && airports.length > 1) parsed.destination = airports[airports.length - 1];
+        parsed.route = tokens.filter(value => value !== parsed.departure && value !== parsed.destination && !['FPL', 'ROUTE'].includes(value)).join(' ');
+      }
+
+      if (!parsed.departure && !parsed.destination && !parsed.route) return { error:'No usable departure, destination, or route data was found.' };
+      return parsed;
+    }
+
+    function renderFlightPlanImportPreview(result) {
+      const preview = el('flightPlanImportPreview');
+      if (result.error) {
+        pendingFlightPlanImport = null;
+        preview.classList.remove('ready');
+        preview.textContent = result.error;
+        el('applyFlightPlanBtn').disabled = true;
+        return;
+      }
+      pendingFlightPlanImport = result;
+      preview.classList.add('ready');
+      preview.textContent = [
+        `SOURCE       ${result.sourceType}`,
+        `DEPARTURE    ${result.departure || 'NOT PROVIDED'}`,
+        `DESTINATION  ${result.destination || 'NOT PROVIDED'}`,
+        `ALTERNATE    ${result.alternate || 'NOT PROVIDED'}`,
+        `RULES        ${result.flightRules || 'NOT PROVIDED'}`,
+        `LEVEL        ${result.cruiseFlightLevel || 'NOT PROVIDED'}`,
+        `EET          ${Number.isFinite(result.estimatedEnrouteMinutes) ? `${result.estimatedEnrouteMinutes} MIN` : 'NOT PROVIDED'}`,
+        `ROUTE        ${result.route || 'NOT PROVIDED'}`,
+        '',
+        'Review these values before applying them to the current OFP.'
+      ].join('\n');
+      el('applyFlightPlanBtn').disabled = false;
+    }
+
+    async function applyFlightPlanImport() {
+      if (!pendingFlightPlanImport) return;
+      const imported = pendingFlightPlanImport;
+      if (imported.departure) inputFor('departure').value = imported.departure;
+      if (imported.destination) inputFor('destination').value = imported.destination;
+      if (imported.alternate) inputFor('alternate').value = imported.alternate;
+      if (imported.flightRules) inputFor('flightRules').value = imported.flightRules;
+      if (imported.cruiseFlightLevel) inputFor('cruiseFlightLevel').value = imported.cruiseFlightLevel;
+      if (Number.isFinite(imported.estimatedEnrouteMinutes)) inputFor('estimatedEnrouteMinutes').value = imported.estimatedEnrouteMinutes;
+      if (imported.route) {
+        inputFor('route').value = imported.route;
+        routeLegs = imported.route.split(/\s+/).map(value => inferRouteLeg(value)).filter(leg => leg.ident);
+      }
+      inputFor('routeDataSource').value = `${imported.sourceType} / PILOT REVIEW REQUIRED`;
+      readPlan();
+      syncRouteFields();
+      await populateRunwaySelectors();
+      saved = false;
+      renderRouteComposer();
+      render();
+      el('saveState').textContent = 'Imported planning data applied to the draft. Verify every field, then save the OFP.';
+    }
+
     async function getRunways(icao) {
       if (!icao) return [];
       const response = await fetch(`/api/airport-runways?icao=${encodeURIComponent(icao)}`, { cache:'no-store' });
@@ -1331,6 +1500,21 @@
       if (event.key !== 'Enter') return;
       event.preventDefault();
       addRouteElement(el('routeTokenInput').value);
+    });
+    el('parseFlightPlanBtn').addEventListener('click', () => renderFlightPlanImportPreview(parseImportedFlightPlan(el('flightPlanImportText').value)));
+    el('applyFlightPlanBtn').addEventListener('click', () => applyFlightPlanImport().catch(error => {
+      el('saveState').textContent = error.message || 'Unable to apply imported planning data.';
+    }));
+    el('flightPlanImportFile').addEventListener('change', async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (file.size > 1024 * 1024) {
+        renderFlightPlanImportPreview({ error:'The selected flight-plan file is larger than 1 MB.' });
+        return;
+      }
+      const contents = await file.text();
+      el('flightPlanImportText').value = contents;
+      renderFlightPlanImportPreview(parseImportedFlightPlan(contents));
     });
     ['departureProcedure', 'arrivalProcedure', 'approachProcedure'].forEach(field => inputFor(field).addEventListener('change', event => {
       event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9 ./+-]/g, '').slice(0, 40);

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05080d" />
+  <title>NGA Pilot EFB / Offline</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05080d;
+      --surface: #09131d;
+      --line: #334b5d;
+      --text: #edf4f8;
+      --muted: #91a3af;
+      --warn: #ffcc66;
+      --accent: #8ec5ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Courier New", Courier, monospace;
+    }
+    main {
+      width: min(620px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: clamp(22px, 5vw, 42px);
+      box-shadow: 0 24px 80px rgba(0,0,0,.42);
+    }
+    span { color: var(--warn); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 12px 0 0; font-size: clamp(24px, 6vw, 42px); text-transform: uppercase; }
+    p { margin: 16px 0 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+    button {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 24px;
+      border: 1px solid var(--accent);
+      border-radius: 5px;
+      background: #0c2030;
+      color: #fff;
+      font: 700 12px "Courier New", Courier, monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <span>Offline / no authenticated shell available</span>
+    <h1>NGA Pilot EFB</h1>
+    <p>The EFB cannot reach operations and this device has no previously authenticated application shell. Passenger records and private documents are never stored on this offline page.</p>
+    <p>Reconnect to the network, then retry. Do not use stale operational information as a substitute for current weather, NOTAM, performance, or flight-release checks.</p>
+    <button type="button" onclick="location.reload()">Retry connection</button>
+  </main>
+</body>
+</html>

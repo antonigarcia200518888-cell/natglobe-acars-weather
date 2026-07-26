@@ -1846,13 +1846,302 @@
       .tool-workspace-head { padding:10px; }
       .weather-console { width:100%; }
     }
+
+    /* Cohesive EFB application shell */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    .efb-masthead {
+      position: sticky;
+      top: 8px;
+      z-index: 80;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      background: #07101a;
+      box-shadow: 0 12px 32px rgba(0,0,0,.28);
+    }
+
+    .masthead-brand { min-width: 0; }
+    .masthead-brand .title { font-size: 19px; line-height: 1; letter-spacing: .04em; }
+    .masthead-brand .intro { margin-top: 5px; }
+    .masthead-status {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 7px;
+    }
+
+    .masthead-status .badge,
+    .masthead-status .offline-indicator {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 9px;
+      border-radius: 4px;
+      font-size: 9px;
+    }
+
+    .masthead-status .clock { min-width: 158px; text-align: right; }
+    .mode {
+      grid-column: 1 / -1;
+      min-height: 30px;
+      padding: 6px 10px;
+      margin: 0 -12px -10px;
+      font-size: 9px;
+    }
+
+    .shell-icon-button {
+      min-width: 38px;
+      min-height: 38px;
+      border: 1px solid #304657;
+      border-radius: 5px;
+      background: #0a1722;
+      color: #dce8ef;
+      padding: 7px 9px;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .shell-icon-button:hover { border-color: var(--accent); background: #0e2030; }
+    .shell-icon-button .count {
+      min-width: 17px;
+      height: 17px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 5px;
+      border-radius: 9px;
+      background: var(--danger);
+      color: #fff;
+      font-size: 8px;
+    }
+
+    .shell-search-button {
+      min-width: 162px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      color: #aebdca;
+      text-align: left;
+    }
+
+    .shell-search-button kbd {
+      border: 1px solid #405465;
+      border-radius: 3px;
+      padding: 2px 5px;
+      background: #050b11;
+      color: #8295a4;
+      font: 8px "Courier New", monospace;
+    }
+
+    .ops-suite-nav { transition: width .18s ease; }
+    .suite-nav-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 36px;
+      padding: 0 3px 7px;
+      border-bottom: 1px solid #223442;
+      color: #78909f;
+      font-size: 8px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .suite-nav-tools button { min-width: 30px; min-height: 30px; padding: 4px; }
+
+    body.sidebar-collapsed .efb-layout { grid-template-columns: 78px minmax(0, 1fr); }
+    body.sidebar-collapsed .suite-tab { min-height: 58px; padding: 8px 4px; text-align: center; }
+    body.sidebar-collapsed .suite-tab span,
+    body.sidebar-collapsed .suite-tab small,
+    body.sidebar-collapsed .suite-nav-label { display: none; }
+    body.sidebar-collapsed .suite-tab strong { margin: 0; font-size: 10px; }
+    body.sidebar-collapsed .suite-tab.active { box-shadow: inset 0 3px 0 var(--live); }
+
+    .shell-dialog {
+      width: min(680px, calc(100vw - 24px));
+      max-height: min(720px, calc(100vh - 32px));
+      margin: max(16px, 8vh) auto auto;
+      padding: 0;
+      border: 1px solid #466176;
+      border-radius: 8px;
+      background: #07101a;
+      color: var(--fg);
+      box-shadow: 0 24px 90px rgba(0,0,0,.68);
+    }
+    .shell-dialog::backdrop { background: rgba(0,5,10,.78); }
+    .shell-dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #2d4353;
+    }
+    .shell-dialog-head strong { font-size: 13px; text-transform: uppercase; }
+    .shell-dialog-head button { min-width: 36px; min-height: 36px; }
+    .shell-dialog-body { padding: 14px 16px 18px; overflow: auto; }
+    .command-input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid #456176;
+      border-radius: 5px;
+      background: #03080d;
+      color: #fff;
+      padding: 11px 13px;
+      text-transform: uppercase;
+    }
+    .command-results { display: grid; gap: 6px; margin-top: 10px; }
+    .command-result {
+      width: 100%;
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid #263d4e;
+      border-radius: 5px;
+      background: #0a151f;
+      color: #dce7ed;
+      padding: 9px 11px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .command-result:hover { border-color: var(--accent); background: #0d1e2c; }
+    .command-result strong, .command-result small { display: block; }
+    .command-result strong { font-size: 11px; }
+    .command-result small { margin-top: 4px; color: #8195a3; font-size: 8px; }
+    .command-result span { color: var(--live); font-size: 8px; }
+
+    .notification-list { display: grid; gap: 7px; }
+    .notification-item {
+      width: 100%;
+      min-height: 62px;
+      border: 1px solid #304655;
+      border-left: 4px solid var(--warn);
+      border-radius: 4px;
+      background: #0a141d;
+      color: #eaf1f5;
+      padding: 10px 11px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .notification-item.danger { border-left-color: var(--danger); }
+    .notification-item.info { border-left-color: var(--accent); }
+    .notification-item strong, .notification-item small { display: block; }
+    .notification-item strong { font-size: 10px; }
+    .notification-item small { margin-top: 5px; color: #8da0ad; font-size: 8px; line-height: 1.35; }
+    .notification-empty { color: #8ca0ae; padding: 22px 4px; text-align: center; font-size: 10px; }
+
+    .user-session-card {
+      display: grid;
+      gap: 6px;
+      padding: 12px;
+      border: 1px solid #314858;
+      border-radius: 5px;
+      background: #0a151f;
+    }
+    .user-session-card span { color: #78909f; font-size: 8px; text-transform: uppercase; }
+    .user-session-card strong { color: #fff; font-size: 13px; }
+    .user-session-card small { color: #9eb0bc; font-size: 9px; }
+    .user-menu-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+
+    .offline-indicator.offline { border-color: var(--danger); color: var(--danger); }
+    .offline-indicator.online { border-color: var(--live); color: var(--live); }
+
+    @media (max-width: 1180px) {
+      .shell-search-button { min-width: 42px; width: 42px; justify-content: center; }
+      .shell-search-button::before { content: "Find"; }
+      .shell-search-button .shell-search-label,
+      .shell-search-button kbd,
+      .masthead-brand .intro,
+      .masthead-status .badge { display: none; }
+      .masthead-status .clock { min-width: 112px; font-size: 8px; }
+    }
+
+    @media (max-width: 699px) {
+      body { padding: 0 0 72px; }
+      .frame { border: 0; border-radius: 0; padding: 7px; box-shadow: none; }
+      .efb-masthead { top: 0; grid-template-columns: minmax(0,1fr) auto; padding: 9px 10px; border-radius: 0 0 6px 6px; }
+      .efb-masthead > .shell-icon-button:first-child { display: none; }
+      .masthead-brand .title { font-size: 16px; }
+      .masthead-status { gap: 4px; }
+      .masthead-status .clock { display: none; }
+      .shell-icon-button { min-width: 38px; min-height: 38px; padding: 6px; }
+      .mode { grid-column: 1 / -1; font-size: 8px; }
+      .active-flight-strip {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        border-radius: 5px;
+      }
+      .flight-strip-route { grid-column: 1 / -1; }
+      .flight-strip-item { min-height: 62px; padding: 9px; }
+      .ops-suite-nav {
+        position: fixed;
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 100;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0,1fr));
+        gap: 1px;
+        margin: 0;
+        padding: 5px max(4px, env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left));
+        border: 1px solid #2e4352;
+        border-width: 1px 0 0;
+        border-radius: 0;
+        background: #050b12;
+        box-shadow: 0 -10px 30px rgba(0,0,0,.42);
+        overflow: visible;
+      }
+      .suite-nav-tools { display: none; }
+      .suite-tab {
+        width: auto;
+        min-width: 0;
+        min-height: 52px;
+        padding: 7px 2px;
+        border-radius: 3px;
+      }
+      .suite-tab strong { font-size: 8px; overflow-wrap: anywhere; }
+      .suite-tab.active { border-color: #34566a; background: #0b1d17; box-shadow: inset 0 3px 0 var(--live); }
+      .dashboard-actions { grid-template-columns: 1fr; }
+      .dashboard-action { min-height: 82px; }
+      .shell-dialog { margin: 8px auto auto; max-height: calc(100vh - 16px); }
+      .user-menu-actions { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
   </style>
 </head>
 <body>
   <main class="frame">
     <header class="efb-masthead">
-      <div><div class="title">NGA PILOT EFB</div><div class="intro">Flights, planning, weather, performance, aircraft, and documents.</div></div>
-      <div class="masthead-status"><div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div><div id="networkStatus" class="offline-indicator">NETWORK CHECK</div><div id="clock" class="clock">UTC --:--:--</div></div>
+      <button id="sidebarToggle" class="shell-icon-button" type="button" aria-label="Collapse navigation">NAV</button>
+      <div class="masthead-brand"><div class="title">NGA PILOT EFB</div><div class="intro">Flights, planning, weather, performance, aircraft, and documents.</div></div>
+      <div class="masthead-status">
+        <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button"><span class="shell-search-label">Search flights and tools</span><kbd>CTRL K</kbd></button>
+        <button id="notificationsBtn" class="shell-icon-button" type="button">Alerts <span id="notificationCount" class="count">0</span></button>
+        <button id="userMenuBtn" class="shell-icon-button" type="button">Crew</button>
+        <button id="appUpdateBtn" class="shell-icon-button" type="button" hidden>Update ready</button>
+        <div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div>
+        <div id="networkStatus" class="offline-indicator">NETWORK CHECK</div>
+        <div id="clock" class="clock">UTC --:--:--</div>
+      </div>
       <div id="mode" class="mode">MODE: LOADING BOOKING REQUESTS</div>
     </header>
     <section id="activeFlightStrip" class="active-flight-strip" aria-label="Active flight status" data-active="false">
@@ -1865,11 +2154,12 @@
     </section>
     <div class="efb-layout">
     <nav class="ops-suite-nav" aria-label="Pilot operations workspaces">
+      <div class="suite-nav-tools"><span class="suite-nav-label">Workspaces</span><button id="sidebarRailToggle" class="shell-icon-button" type="button" aria-label="Collapse navigation rail">&lt;&lt;</button></div>
       <button class="suite-tab active" type="button" data-suite-view="dashboard"><span>Flight deck</span><strong>Home</strong><small>Operational picture and tools</small></button>
       <button class="suite-tab" type="button" data-suite-view="flights"><span>Control</span><strong>Flights</strong><small>Queue, crew, passengers, decision</small></button>
       <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>Plan</span><strong>OFP</strong><small>Route, fuel, load, movement log</small></button>
       <button class="suite-tab" type="button" data-suite-view="weather"><span>Preflight</span><strong>Weather</strong><small>Raw METAR, TAF, and dispatch PDF</small></button>
-      <button class="suite-tab" type="button" data-suite-view="performance"><span>Runway</span><strong>Performance</strong><small>Runway, wind, density altitude</small></button>
+      <button class="suite-tab" type="button" data-suite-view="performance"><span>Runway</span><strong>Perf</strong><small>Runway, wind, density altitude</small></button>
       <button class="suite-tab" type="button" data-suite-view="aircraft"><span>Technical</span><strong>Aircraft</strong><small>Fuel, oil, maintenance, serviceability</small></button>
       <button class="suite-tab" type="button" data-suite-view="documents"><span>Flight file</span><strong>Files</strong><small>OFP, statement, agreements</small></button>
     </nav>
@@ -2139,7 +2429,10 @@ LOAD DATA TO CALCULATE.</pre></details>
         <div class="queue-filters">
           <input id="filterQuery" type="search" placeholder="Search route or passenger" />
           <select id="filterStatus"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option><option value="CANCELLED">Cancelled</option></select>
-          <input id="filterDate" type="date" aria-label="Filter by departure date" />
+          <input id="filterDate" type="date" aria-label="Departure date from" title="Departure date from" />
+          <input id="filterDateTo" type="date" aria-label="Departure date to" title="Departure date to" />
+          <select id="filterPilot" aria-label="Filter by assigned pilot"><option value="ALL">All assigned pilots</option></select>
+          <select id="filterPayment" aria-label="Filter by payment state"><option value="ALL">All payment states</option><option value="UNPAID">Unpaid</option><option value="DEPOSIT PAID">Deposit paid</option><option value="PAID">Paid</option><option value="REFUNDED">Refunded</option></select>
           <select id="filterSort" aria-label="Sort request queue"><option value="PRIORITY">Sort: operational priority</option><option value="DEPARTURE">Sort: departure soonest</option><option value="NEWEST">Sort: newest request</option><option value="ROUTE">Sort: route</option></select>
           <div class="quick-filters" aria-label="Quick filters">
             <button class="quick-filter active" type="button" data-quick-filter="ALL">All</button>
@@ -2346,6 +2639,30 @@ END OF MESSAGE</pre>
     </div>
   </main>
 
+  <dialog id="commandDialog" class="shell-dialog" aria-labelledby="commandDialogTitle">
+    <div class="shell-dialog-head"><strong id="commandDialogTitle">Search EFB</strong><button class="shell-icon-button" type="button" data-close-dialog="commandDialog">Close</button></div>
+    <div class="shell-dialog-body">
+      <input id="commandInput" class="command-input" type="search" autocomplete="off" placeholder="Search flight reference, route, passenger, or workspace" />
+      <div id="commandResults" class="command-results" role="listbox" aria-label="Search results"></div>
+    </div>
+  </dialog>
+
+  <dialog id="notificationsDialog" class="shell-dialog" aria-labelledby="notificationsDialogTitle">
+    <div class="shell-dialog-head"><strong id="notificationsDialogTitle">Operations alerts</strong><button class="shell-icon-button" type="button" data-close-dialog="notificationsDialog">Close</button></div>
+    <div class="shell-dialog-body"><div id="notificationList" class="notification-list"></div></div>
+  </dialog>
+
+  <dialog id="userDialog" class="shell-dialog" aria-labelledby="userDialogTitle">
+    <div class="shell-dialog-head"><strong id="userDialogTitle">Crew session</strong><button class="shell-icon-button" type="button" data-close-dialog="userDialog">Close</button></div>
+    <div class="shell-dialog-body">
+      <div class="user-session-card"><span>Signed in</span><strong id="userSessionName">Loading session</strong><small id="userSessionMeta">Role and expiry pending</small></div>
+      <div class="user-menu-actions">
+        <button id="userPasskeyBtn" class="btn ghost" type="button">Device access</button>
+        <button id="userLogoutBtn" class="btn ghost danger" type="button">Log out</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script>
     const el = (id) => document.getElementById(id);
@@ -2376,6 +2693,9 @@ END OF MESSAGE</pre>
     const filterQuery = el('filterQuery');
     const filterStatus = el('filterStatus');
     const filterDate = el('filterDate');
+    const filterDateTo = el('filterDateTo');
+    const filterPilot = el('filterPilot');
+    const filterPayment = el('filterPayment');
     const filterSort = el('filterSort');
     const commander = el('commander');
     const secondary = el('secondary');
@@ -2554,6 +2874,23 @@ END OF MESSAGE</pre>
     const aircraftLog = el('aircraftLog');
     const installPilotAppBtn = el('installPilotAppBtn');
     const offlineSnapshotState = el('offlineSnapshotState');
+    const sidebarToggle = el('sidebarToggle');
+    const sidebarRailToggle = el('sidebarRailToggle');
+    const globalSearchBtn = el('globalSearchBtn');
+    const notificationsBtn = el('notificationsBtn');
+    const notificationCount = el('notificationCount');
+    const userMenuBtn = el('userMenuBtn');
+    const commandDialog = el('commandDialog');
+    const commandInput = el('commandInput');
+    const commandResults = el('commandResults');
+    const notificationsDialog = el('notificationsDialog');
+    const notificationList = el('notificationList');
+    const userDialog = el('userDialog');
+    const userSessionName = el('userSessionName');
+    const userSessionMeta = el('userSessionMeta');
+    const userPasskeyBtn = el('userPasskeyBtn');
+    const userLogoutBtn = el('userLogoutBtn');
+    const appUpdateBtn = el('appUpdateBtn');
 
     let requests = [];
     let selected = null;
@@ -2568,6 +2905,8 @@ END OF MESSAGE</pre>
     let weatherAirportCatalog = [];
     let activeWorkspace = 'dashboard';
     let pilotSession = null;
+    let pilotCapabilities = {};
+    let pilotSessionExpiresAt = '';
     let aircraftStatus = null;
     let deferredInstallPrompt = null;
 
@@ -2596,6 +2935,123 @@ END OF MESSAGE</pre>
 
     function text(value, fallback = '.....') {
       return value === 0 || value ? String(value) : fallback;
+    }
+
+    const workspaceCommands = [
+      { view:'dashboard', label:'Operations dashboard', detail:'Live overview, queue totals, schedule, and operational watch' },
+      { view:'flights', label:'Flights', detail:'Booking queue, crew, decisions, passenger files, and timeline' },
+      { view:'flight-plan', label:'Operational flight plan', detail:'Route, fuel, load, release, and movement log' },
+      { view:'weather', label:'Weather dispatch', detail:'Raw METAR, TAF, flight category, and dispatch PDF' },
+      { view:'performance', label:'Aircraft performance', detail:'Takeoff, landing, runway, wind, and density altitude' },
+      { view:'aircraft', label:'Aircraft status', detail:'Serviceability, fuel, oil, hours, and maintenance' },
+      { view:'documents', label:'Flight files', detail:'OFP, agreements, statement, and operations documents' }
+    ];
+
+    function openShellDialog(dialog, focusTarget) {
+      if (!dialog) return;
+      [commandDialog, notificationsDialog, userDialog].forEach(item => {
+        if (item && item !== dialog && item.open) item.close();
+      });
+      if (!dialog.open) dialog.showModal();
+      window.setTimeout(() => (focusTarget || dialog.querySelector('button, input'))?.focus(), 20);
+    }
+
+    function requestSearchText(req) {
+      return [
+        req.id,
+        req.route,
+        req.dep,
+        req.arr,
+        req.depName,
+        req.arrName,
+        req.name,
+        ...(Array.isArray(req.passengers) ? req.passengers.map(passenger => passenger.name) : [])
+      ].filter(Boolean).join(' ').toUpperCase();
+    }
+
+    function renderCommandResults(query = '') {
+      const normalized = String(query || '').trim().toUpperCase();
+      const modules = workspaceCommands.filter(command => !normalized || `${command.label} ${command.detail}`.toUpperCase().includes(normalized));
+      const flights = sortQueue(requests.filter(req => !normalized || requestSearchText(req).includes(normalized))).slice(0, 8);
+      const moduleMarkup = modules.map(command => `
+        <button class="command-result" type="button" data-command-view="${escapeHtml(command.view)}">
+          <div><strong>${escapeHtml(command.label)}</strong><small>${escapeHtml(command.detail)}</small></div><span>OPEN TOOL</span>
+        </button>
+      `).join('');
+      const flightMarkup = flights.map(req => `
+        <button class="command-result" type="button" data-command-request="${escapeHtml(req.id)}">
+          <div><strong>${escapeHtml(req.id)} / ${escapeHtml(req.route || 'MANUAL OFP')}</strong><small>${escapeHtml([req.requestDate, req.requestTime, req.name || 'PILOT FILE', req.status].filter(Boolean).join(' / '))}</small></div><span>OPEN FLIGHT</span>
+        </button>
+      `).join('');
+      commandResults.innerHTML = moduleMarkup + flightMarkup || '<div class="notification-empty">No matching tools or flights.</div>';
+    }
+
+    function operationalNotifications() {
+      const items = [];
+      requests.filter(req => req.managementRequest?.status === 'PENDING').forEach(req => items.push({
+        requestId:req.id,
+        tone:'danger',
+        title:`${req.id} / PASSENGER CHANGE REQUEST`,
+        detail:req.managementRequest.type || 'Passenger response requires operations review.'
+      }));
+      requests.filter(req => !req.manualFlight && req.status === 'REQUESTED').forEach(req => items.push({
+        requestId:req.id,
+        tone:'info',
+        title:`${req.id} / NEW FLIGHT REQUEST`,
+        detail:`${req.route || 'ROUTE OPEN'} / ${req.requestDate || 'DATE OPEN'} ${req.requestTime || ''}`
+      }));
+      conflictPairs().forEach(([first, second]) => items.push({
+        requestId:first.id,
+        tone:'danger',
+        title:`SCHEDULE WATCH / ${first.id}`,
+        detail:`Potential operating overlap with ${second.id}.`
+      }));
+      requests.filter(req => req.status === 'CONFIRMED' && agreementCount(req) < passengerList(req).length).forEach(req => items.push({
+        requestId:req.id,
+        tone:'warn',
+        title:`${req.id} / AGREEMENT OUTSTANDING`,
+        detail:`${passengerList(req).length - agreementCount(req)} passenger signature${passengerList(req).length - agreementCount(req) === 1 ? '' : 's'} remaining.`
+      }));
+      if (aircraftStatus && aircraftStatus.serviceability !== 'SERVICEABLE') items.unshift({
+        view:'aircraft',
+        tone:'danger',
+        title:`AIRCRAFT ${aircraftStatus.serviceability || 'REVIEW REQUIRED'}`,
+        detail:aircraftStatus.statusNote || 'Open aircraft control before assigning the next flight.'
+      });
+      return items.slice(0, 20);
+    }
+
+    function renderNotifications() {
+      if (!notificationList || !notificationCount) return;
+      const items = operationalNotifications();
+      notificationCount.textContent = String(items.length);
+      notificationCount.hidden = items.length === 0;
+      notificationList.innerHTML = items.length ? items.map((item, index) => `
+        <button class="notification-item ${escapeHtml(item.tone || 'warn')}" type="button" data-notification-index="${index}">
+          <strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small>
+        </button>
+      `).join('') : '<div class="notification-empty">No active operational alerts.</div>';
+      notificationList._items = items;
+    }
+
+    function enforceCapabilityControls() {
+      const canManage = pilotCapabilities.manageBookings === true;
+      const canFly = pilotCapabilities.editOFP === true;
+      const canRecord = pilotCapabilities.recordMovements === true;
+      const canEditAircraft = pilotCapabilities.editAircraft === true;
+      [
+        approveBtn, needsInfoBtn, declineBtn, saveCrewBtn, sendProposalBtn, deleteBtn,
+        applyManagementRequestBtn, declineManagementRequestBtn, paymentStatus, commander, secondary, webPassBtn
+      ].filter(Boolean).forEach(control => {
+        const unavailableForManual = selected?.manualFlight && [approveBtn, needsInfoBtn, declineBtn, paymentStatus].includes(control);
+        control.disabled = !canManage || unavailableForManual;
+      });
+      [createManualOfpBtn, createManualOfpFromPlanBtn].filter(Boolean).forEach(control => { control.disabled = !canFly || !navigator.onLine; });
+      [recordOutBtn, recordOffBtn, recordOnBtn, recordInBtn].filter(Boolean).forEach(control => { control.disabled = !canRecord || !selected || !navigator.onLine; });
+      [saveAircraftStatusBtn, recordFluidLogBtn].filter(Boolean).forEach(control => { control.disabled = !canEditAircraft || !navigator.onLine; });
+      releaseCheckButtons.forEach(control => { control.disabled = !canFly || !selected || !navigator.onLine; });
+      if (picReleaseBtn) picReleaseBtn.disabled = pilotCapabilities.releaseFlight !== true || !selected || !navigator.onLine;
+      document.body.dataset.pilotRole = pilotSession?.role || 'UNKNOWN';
     }
 
     function nullableNumber(value) {
@@ -2744,6 +3200,7 @@ END OF MESSAGE</pre>
         <div class="aircraft-log-entry"><span>${escapeHtml(entry.phase || 'CHECK')}</span><strong>${escapeHtml([entry.flightId, entry.fuelGal === null || entry.fuelGal === undefined ? '' : `FUEL ${entry.fuelGal} USG`, entry.oilQuarts === null || entry.oilQuarts === undefined ? '' : `OIL ${entry.oilQuarts} QT`, entry.note].filter(Boolean).join(' / '))}</strong><small>${escapeHtml(entry.recordedAt ? new Date(entry.recordedAt).toLocaleString('en-GB', { hour12:false }) : '')}<br>${escapeHtml(entry.recordedBy || '')}</small></div>
       `).join('') : '<div class="aircraft-empty">No fuel or oil checkpoints recorded.</div>';
       renderReleasePanel();
+      renderNotifications();
     }
 
     async function loadAircraftStatus() {
@@ -2757,6 +3214,7 @@ END OF MESSAGE</pre>
 
     function cacheOperationalSnapshot(req) {
       if (!req?.id || !req.operationalFlightPlan) return;
+      const plan = req.operationalFlightPlan;
       const snapshot = {
         id:req.id,
         route:req.route,
@@ -2768,17 +3226,41 @@ END OF MESSAGE</pre>
         requestTime:req.requestTime,
         status:'OFFLINE SNAPSHOT',
         manualFlight:true,
-        crew:req.crew,
-        operationalFlightPlan:req.operationalFlightPlan,
+        operationalFlightPlan:{
+          departure:plan.departure,
+          destination:plan.destination,
+          route:plan.route,
+          alternate:plan.alternate,
+          dateUtc:plan.dateUtc,
+          estimatedOffBlock:plan.estimatedOffBlock,
+          estimatedTakeoff:plan.estimatedTakeoff,
+          estimatedLanding:plan.estimatedLanding,
+          estimatedOnBlock:plan.estimatedOnBlock,
+          actualOut:plan.actualOut,
+          actualOff:plan.actualOff,
+          actualOn:plan.actualOn,
+          actualIn:plan.actualIn,
+          estimatedEnrouteMinutes:plan.estimatedEnrouteMinutes,
+          blockFuelGal:plan.blockFuelGal,
+          taxiFuelGal:plan.taxiFuelGal,
+          tripFuelGal:plan.tripFuelGal,
+          reserveFuelGal:plan.reserveFuelGal,
+          takeoffWeightLb:plan.takeoffWeightLb,
+          landingWeightLb:plan.landingWeightLb,
+          calculationStatus:plan.calculationStatus,
+          releaseAccepted:Boolean(plan.releaseAccepted)
+        },
         cachedAt:new Date().toISOString()
       };
-      localStorage.setItem('nga-pilot-operational-snapshot-v1', JSON.stringify(snapshot));
+      localStorage.removeItem('nga-pilot-operational-snapshot-v1');
+      localStorage.setItem('nga-pilot-operational-snapshot-v2', JSON.stringify(snapshot));
       offlineSnapshotState.textContent = `LATEST SAFE SNAPSHOT / ${snapshot.id} / ${new Date(snapshot.cachedAt).toLocaleString('en-GB', { hour12:false })}`;
     }
 
     function readOperationalSnapshot() {
       try {
-        const snapshot = JSON.parse(localStorage.getItem('nga-pilot-operational-snapshot-v1') || 'null');
+        localStorage.removeItem('nga-pilot-operational-snapshot-v1');
+        const snapshot = JSON.parse(localStorage.getItem('nga-pilot-operational-snapshot-v2') || 'null');
         return snapshot?.id ? snapshot : null;
       } catch {
         return null;
@@ -2794,6 +3276,7 @@ END OF MESSAGE</pre>
           .filter(Boolean)
           .forEach(button => { button.disabled = true; });
       }
+      enforceCapabilityControls();
       renderReleasePanel();
       if (selected) renderLiveMovementControls(selected);
     }
@@ -4085,6 +4568,7 @@ END OF MESSAGE</pre>
       opsUnpaid.textContent = customerRequests.filter(req => isOperationallyActive(req) && req.paymentStatus !== 'PAID').length;
       opsToday.textContent = customerRequests.filter(req => isOperationallyActive(req) && req.requestDate === today).length;
       renderOpsWatch();
+      renderNotifications();
     }
 
     function sortQueue(items) {
@@ -4501,7 +4985,12 @@ END OF MESSAGE</pre>
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.session) return;
       pilotSession = data.session;
-      pilotRoleBadge.textContent = `${data.session.role} / ${data.session.name}`;
+      pilotCapabilities = data.capabilities || {};
+      pilotSessionExpiresAt = data.expiresAt || '';
+      pilotRoleBadge.textContent = `${pilotCapabilities.appRole || data.session.role} / ${data.session.name}`;
+      userSessionName.textContent = data.session.name;
+      userSessionMeta.textContent = `${pilotCapabilities.appRole || data.session.role}${pilotSessionExpiresAt ? ` / SESSION EXPIRES ${new Date(pilotSessionExpiresAt).toLocaleString('en-GB', { hour12:false })}` : ''}`;
+      enforceCapabilityControls();
       renderReleasePanel();
       loadPilotPasskeys().catch(() => {});
     }
@@ -4700,12 +5189,33 @@ END OF MESSAGE</pre>
       if (res.ok) renderTimeline(data.events || []);
     }
 
+    function renderCrewFilterOptions() {
+      const selectedPilot = filterPilot.value || 'ALL';
+      const pilots = [...new Set(requests.flatMap(req => [req.crew?.commander, req.crew?.secondary]).filter(name => name && !['UNASSIGNED', 'NONE'].includes(name)))].sort();
+      filterPilot.innerHTML = `<option value="ALL">All assigned pilots</option>${pilots.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}`;
+      filterPilot.value = pilots.includes(selectedPilot) ? selectedPilot : 'ALL';
+    }
+
+    function requestUtcTime(req) {
+      const schedule = requestSchedule(req);
+      if (!schedule?.start) return '--:--Z';
+      return `${schedule.start.toLocaleTimeString('en-GB', { timeZone:'UTC', hour:'2-digit', minute:'2-digit', hour12:false })}Z`;
+    }
+
     function renderList() {
       const query = filterQuery.value.trim().toUpperCase();
       renderQuickFilterState();
       const visible = sortQueue(requests.filter(req => {
         const matchesQuery = !query || `${req.id} ${req.route} ${req.name}`.toUpperCase().includes(query);
-        return matchesQuery && matchesQuickFilter(req) && (filterStatus.value === 'ALL' || req.status === filterStatus.value) && (!filterDate.value || req.requestDate === filterDate.value);
+        const crew = [req.crew?.commander, req.crew?.secondary];
+        const dateInRange = (!filterDate.value || req.requestDate >= filterDate.value)
+          && (!filterDateTo.value || req.requestDate <= filterDateTo.value);
+        return matchesQuery
+          && matchesQuickFilter(req)
+          && (filterStatus.value === 'ALL' || req.status === filterStatus.value)
+          && dateInRange
+          && (filterPilot.value === 'ALL' || crew.includes(filterPilot.value))
+          && (filterPayment.value === 'ALL' || req.paymentStatus === filterPayment.value);
       }));
       requestList.innerHTML = visible.map(req => {
         if (req.manualFlight) return `
@@ -4725,8 +5235,8 @@ END OF MESSAGE</pre>
         return `
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
           <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
-          ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}<br>
-          ${escapeHtml(req.name)} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
+          ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}L / ${escapeHtml(requestUtcTime(req))}<br>
+          ${escapeHtml(req.aircraft || 'AIRCRAFT OPEN')} / ${escapeHtml(req.crew?.commander || 'CMD UNASSIGNED')} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
           <div class="request-state-row"><span class="request-state ${priority.tone === 'info' ? 'state-info' : `state-${priority.tone}`}">${escapeHtml(priority.label.replace(' PRIORITY', ''))}</span><span class="request-state ${actionClass}">${needsOpsAction(req) ? 'ACTION' : 'READY'}</span><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span>${req.timeProposal ? `<span class="request-state ${proposalClass}">TIME ${escapeHtml(proposal || 'PENDING')}</span>` : ''}</div>
         </div>
       `;
@@ -4797,12 +5307,14 @@ END OF MESSAGE</pre>
       renderReadiness(req);
       renderManifest(req);
       updateWalletControls(req);
+      enforceCapabilityControls();
       loadTimeline(req.id).catch(() => {});
       renderList();
     }
 
     function replaceRequest(req) {
       requests = requests.map(item => item.id === req.id ? req : item);
+      renderCrewFilterOptions();
       renderOpsTotals();
       renderCalendar();
       selectRequest(req);
@@ -4840,6 +5352,7 @@ END OF MESSAGE</pre>
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'BOOKING REQUESTS UNAVAILABLE');
         requests = data.requests || [];
+        renderCrewFilterOptions();
         if (data.aircraftStatus) {
           aircraftStatus = data.aircraftStatus;
           renderAircraftStatus();
@@ -4873,6 +5386,7 @@ END OF MESSAGE</pre>
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return selected;
       requests = data.requests || [];
+      renderCrewFilterOptions();
       if (data.aircraftStatus) {
         aircraftStatus = data.aircraftStatus;
         renderAircraftStatus(false);
@@ -4917,7 +5431,7 @@ END OF MESSAGE</pre>
       if (req) selectRequest(req);
     });
 
-    [filterQuery, filterStatus, filterDate].forEach(input => input.addEventListener('input', renderList));
+    [filterQuery, filterStatus, filterDate, filterDateTo, filterPilot, filterPayment].forEach(input => input.addEventListener('input', renderList));
     filterStatus.addEventListener('change', renderList);
     filterSort.addEventListener('change', renderList);
     document.querySelectorAll('[data-quick-filter]').forEach(button => {
@@ -5283,6 +5797,7 @@ END OF MESSAGE</pre>
     logoutBtn.addEventListener('click', async () => {
       await fetch('/api/pilot-logout', { method: 'POST' });
       localStorage.removeItem('nga-pilot-operational-snapshot-v1');
+      localStorage.removeItem('nga-pilot-operational-snapshot-v2');
       if ('caches' in window) {
         const keys = await caches.keys();
         await Promise.all(keys.filter(key => key.startsWith('nga-pilot-shell-')).map(key => caches.delete(key)));
@@ -5290,12 +5805,112 @@ END OF MESSAGE</pre>
       window.location.href = '/booking-ops';
     });
 
+    function toggleSidebar() {
+      document.body.classList.toggle('sidebar-collapsed');
+      const collapsed = document.body.classList.contains('sidebar-collapsed');
+      sidebarToggle.setAttribute('aria-label', collapsed ? 'Expand navigation' : 'Collapse navigation');
+      sidebarRailToggle.textContent = collapsed ? '>>' : '<<';
+      try {
+        localStorage.setItem('nga-pilot-sidebar-collapsed', collapsed ? '1' : '0');
+      } catch {
+        // The rail still works when storage is unavailable.
+      }
+    }
+
+    try {
+      document.body.classList.toggle('sidebar-collapsed', localStorage.getItem('nga-pilot-sidebar-collapsed') === '1');
+    } catch {
+      // Use the expanded navigation by default.
+    }
+    sidebarRailToggle.textContent = document.body.classList.contains('sidebar-collapsed') ? '>>' : '<<';
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    sidebarRailToggle.addEventListener('click', toggleSidebar);
+
+    globalSearchBtn.addEventListener('click', () => {
+      commandInput.value = '';
+      renderCommandResults('');
+      openShellDialog(commandDialog, commandInput);
+    });
+    commandInput.addEventListener('input', () => renderCommandResults(commandInput.value));
+    commandResults.addEventListener('click', event => {
+      const button = event.target.closest('[data-command-view], [data-command-request]');
+      if (!button) return;
+      if (button.dataset.commandView) switchOpsWorkspace(button.dataset.commandView);
+      if (button.dataset.commandRequest) {
+        const request = requests.find(item => item.id === button.dataset.commandRequest);
+        if (request) {
+          selectRequest(request);
+          switchOpsWorkspace('flights');
+        }
+      }
+      commandDialog.close();
+    });
+
+    notificationsBtn.addEventListener('click', () => {
+      renderNotifications();
+      openShellDialog(notificationsDialog);
+    });
+    notificationList.addEventListener('click', event => {
+      const button = event.target.closest('[data-notification-index]');
+      if (!button) return;
+      const item = notificationList._items?.[Number(button.dataset.notificationIndex)];
+      if (!item) return;
+      if (item.requestId) {
+        const request = requests.find(candidate => candidate.id === item.requestId);
+        if (request) selectRequest(request);
+        switchOpsWorkspace('flights');
+      } else if (item.view) {
+        switchOpsWorkspace(item.view);
+      }
+      notificationsDialog.close();
+    });
+
+    userMenuBtn.addEventListener('click', () => openShellDialog(userDialog));
+    userPasskeyBtn.addEventListener('click', () => {
+      userDialog.close();
+      switchOpsWorkspace('flights');
+      passkeySetupBtn?.scrollIntoView({ behavior:'smooth', block:'center' });
+    });
+    userLogoutBtn.addEventListener('click', () => logoutBtn.click());
+    appUpdateBtn.addEventListener('click', () => window.location.reload());
+
+    document.querySelectorAll('[data-close-dialog]').forEach(button => {
+      button.addEventListener('click', () => el(button.dataset.closeDialog)?.close());
+    });
+    [commandDialog, notificationsDialog, userDialog].forEach(dialog => {
+      dialog?.addEventListener('click', event => {
+        if (event.target === dialog) dialog.close();
+      });
+    });
+    document.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        commandInput.value = '';
+        renderCommandResults('');
+        openShellDialog(commandDialog, commandInput);
+      }
+    });
+
     renderActiveFlightStrip();
     renderReleasePanel();
     updateNetworkState();
     const savedSnapshot = readOperationalSnapshot();
     if (savedSnapshot?.cachedAt) offlineSnapshotState.textContent = `LATEST SAFE SNAPSHOT / ${savedSnapshot.id} / ${new Date(savedSnapshot.cachedAt).toLocaleString('en-GB', { hour12:false })}`;
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/pilot-sw.js').catch(() => {});
+    if ('serviceWorker' in navigator) {
+      const showAppUpdate = () => {
+        appUpdateBtn.hidden = false;
+      };
+      navigator.serviceWorker.register('/pilot-sw.js').then(registration => {
+        if (registration.waiting) showAppUpdate();
+        registration.addEventListener('updatefound', () => {
+          const worker = registration.installing;
+          worker?.addEventListener('statechange', () => {
+            if (worker.state === 'installed' && navigator.serviceWorker.controller) showAppUpdate();
+          });
+        });
+      }).catch(() => {});
+      navigator.serviceWorker.addEventListener('controllerchange', showAppUpdate);
+    }
     tick();
     setInterval(tick, 1000);
     setInterval(autoSyncOps, 30000);

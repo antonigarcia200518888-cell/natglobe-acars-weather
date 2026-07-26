@@ -1,5 +1,6 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-07-v2';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-07-v3';
 const PILOT_SHELL_ASSETS = [
+  '/pilot-offline.html',
   '/pilot-manifest.webmanifest',
   '/icon-192.png',
   '/icon-512.png',
@@ -35,7 +36,7 @@ self.addEventListener('fetch', event => {
           }
           return response;
         })
-        .catch(async () => (await caches.match('/booking-ops')) || Response.error())
+        .catch(async () => (await caches.match('/booking-ops')) || (await caches.match('/pilot-offline.html')) || Response.error())
     );
     return;
   }

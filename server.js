@@ -21,7 +21,10 @@ const PORT = process.env.PORT || 3000;
 const PILOT_ACCESS_CODE = process.env.PILOT_ACCESS_CODE || 'NATGLOBEOPS';
 const PILOT_COOKIE_NAME = 'ng_pilot_access';
 const PILOT_SESSION_SECRET = String(process.env.PILOT_SESSION_SECRET || PILOT_ACCESS_CODE || 'NATGLOBEOPS');
-const PILOT_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+const PILOT_SESSION_MAX_AGE_SECONDS = Math.max(
+  15 * 60,
+  Number(process.env.PILOT_SESSION_MAX_AGE_SECONDS) || (12 * 60 * 60)
+);
 const WALLET_ASSETS_DIR = path.join(__dirname, 'wallet-assets');
 const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || 'https://ngaprivateaviation.com').replace(/\/$/, '');
 const WEBAUTHN_RP_NAME = 'NGA Private Aviation Pilot Ops';
@@ -1177,6 +1180,15 @@ function normalizeIcao(input) {
     .slice(0, 4);
 }
 
+function parseIcaoQuery(input, required = false) {
+  const raw = String(input || '').trim().toUpperCase();
+  if (!raw && !required) return { valid: true, value: '' };
+  return {
+    valid: /^[A-Z]{4}$/.test(raw),
+    value: raw
+  };
+}
+
 function normalizeFlight(input) {
   return String(input || '')
     .trim()
@@ -1247,23 +1259,48 @@ function pilotAccessProfiles() {
     {
       code: PILOT_ACCESS_CODE,
       role: 'COMMANDER',
-      name: normalizeBookingText(process.env.PILOT_COMMANDER_NAME || 'PILOT COMMANDER', 60).toUpperCase()
+      name: normalizeBookingText(process.env.PILOT_COMMANDER_NAME || 'PILOT COMMANDER', 60).toUpperCase(),
+      active: String(process.env.PILOT_COMMANDER_ACTIVE || 'true').toLowerCase() !== 'false'
     }
   ];
   const optionalProfiles = [
-    ['PILOT_SECONDARY_CODE', 'PILOT_SECONDARY_NAME', 'SECONDARY', 'SECONDARY PILOT'],
-    ['PILOT_DISPATCH_CODE', 'PILOT_DISPATCH_NAME', 'DISPATCH', 'FLIGHT DISPATCH']
+    ['PILOT_SECONDARY_CODE', 'PILOT_SECONDARY_NAME', 'PILOT_SECONDARY_ACTIVE', 'SECONDARY', 'SECONDARY PILOT'],
+    ['PILOT_DISPATCH_CODE', 'PILOT_DISPATCH_NAME', 'PILOT_DISPATCH_ACTIVE', 'DISPATCH', 'FLIGHT DISPATCH'],
+    ['PILOT_VIEWER_CODE', 'PILOT_VIEWER_NAME', 'PILOT_VIEWER_ACTIVE', 'VIEWER', 'OPERATIONS VIEWER']
   ];
-  optionalProfiles.forEach(([codeKey, nameKey, role, fallbackName]) => {
+  optionalProfiles.forEach(([codeKey, nameKey, activeKey, role, fallbackName]) => {
     const code = String(process.env[codeKey] || '').trim();
     if (!code || profiles.some(profile => profile.code === code)) return;
     profiles.push({
       code,
       role,
-      name: normalizeBookingText(process.env[nameKey] || fallbackName, 60).toUpperCase()
+      name: normalizeBookingText(process.env[nameKey] || fallbackName, 60).toUpperCase(),
+      active: String(process.env[activeKey] || 'true').toLowerCase() !== 'false'
     });
   });
   return profiles;
+}
+
+function pilotCapabilities(profile) {
+  const role = String(profile?.role || '').toUpperCase();
+  const flightCrew = ['COMMANDER', 'SECONDARY'].includes(role);
+  const operationsControl = ['COMMANDER', 'DISPATCH'].includes(role);
+  return {
+    appRole: role === 'DISPATCH' ? 'OPERATIONS' : role === 'COMMANDER' ? 'ADMIN / PILOT' : role === 'VIEWER' ? 'VIEWER' : 'PILOT',
+    viewDashboard: true,
+    viewFlights: true,
+    viewOFP: true,
+    viewWeather: true,
+    viewPerformance: true,
+    viewAircraft: true,
+    viewDocuments: true,
+    createOFP: flightCrew,
+    editOFP: flightCrew,
+    recordMovements: flightCrew,
+    editAircraft: flightCrew,
+    manageBookings: operationsControl,
+    releaseFlight: role === 'COMMANDER'
+  };
 }
 
 function webAuthnConfiguration() {
@@ -1353,7 +1390,12 @@ function readPilotSession(req) {
 }
 
 function hasPilotAccess(req) {
-  return Boolean(readPilotSession(req));
+  const session = readPilotSession(req);
+  return Boolean(session && pilotAccessProfiles().some(profile => (
+    profile.active
+    && profile.role === session.role
+    && profile.name === session.name
+  )));
 }
 
 function pilotActor(req) {
@@ -1363,8 +1405,12 @@ function pilotActor(req) {
 
 function requirePilotAccess(req, res, next) {
   const session = readPilotSession(req);
-  if (session) {
+  const activeProfile = session
+    ? pilotAccessProfiles().find(profile => profile.active && profile.role === session.role && profile.name === session.name)
+    : null;
+  if (session && activeProfile) {
     req.pilotSession = session;
+    req.pilotProfile = activeProfile;
     return next();
   }
   return res.status(401).json({ error: 'PILOT ACCESS REQUIRED' });
@@ -1373,6 +1419,12 @@ function requirePilotAccess(req, res, next) {
 function requireFlightCrew(req, res) {
   if (['COMMANDER', 'SECONDARY'].includes(req.pilotSession?.role)) return true;
   res.status(403).json({ error: 'COMMANDER OR SECONDARY PILOT ACCESS REQUIRED' });
+  return false;
+}
+
+function requireOperationsControl(req, res) {
+  if (['COMMANDER', 'DISPATCH'].includes(req.pilotSession?.role)) return true;
+  res.status(403).json({ error: 'COMMANDER OR OPERATIONS ACCESS REQUIRED' });
   return false;
 }
 
@@ -4213,14 +4265,27 @@ app.post('/api/pilot-login', (req, res) => {
   if (!profile) {
     return res.status(401).json({ error: 'INVALID PILOT CODE' });
   }
+  if (!profile.active) {
+    return res.status(403).json({ error: 'PILOT PROFILE IS INACTIVE' });
+  }
 
   res.setHeader('Set-Cookie', pilotCookieOptions(profile));
-  res.json({ ok: true, role: profile.role, name: profile.name });
+  res.json({
+    ok: true,
+    role: profile.role,
+    name: profile.name,
+    capabilities: pilotCapabilities(profile),
+    expiresInSeconds: PILOT_SESSION_MAX_AGE_SECONDS
+  });
 });
 
 app.get('/api/pilot-session', requirePilotAccess, (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.json({ session: req.pilotSession });
+  res.json({
+    session: req.pilotSession,
+    capabilities: pilotCapabilities(req.pilotProfile),
+    expiresAt: new Date(req.pilotSession.exp * 1000).toISOString()
+  });
 });
 
 app.get('/api/pilot-passkeys', requirePilotAccess, async (req, res) => {
@@ -4704,6 +4769,7 @@ app.get('/api/booking-ops/availability', requirePilotAccess, async (req, res) =>
 
 app.put('/api/booking-ops/availability/:date', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
+  if (!requireOperationsControl(req, res)) return;
   const date = String(req.params.date || '').trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'VALID DATE REQUIRED' });
   const isOpen = req.body?.isOpen === true || req.body?.isOpen === 'true';
@@ -5946,6 +6012,7 @@ app.get('/api/booking-ops/requests/:id/pdf', requirePilotAccess, async (req, res
 
 app.post('/api/booking-ops/requests/:id/time-proposal', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
+  if (!requireOperationsControl(req, res)) return;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
   const date = normalizeBookingText(req.body?.date, 20);
@@ -5983,6 +6050,19 @@ app.post('/api/booking-ops/requests/:id/time-proposal', requirePilotAccess, asyn
 
 app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const hasFlightPlanUpdate = Boolean(body.operationalFlightPlan && typeof body.operationalFlightPlan === 'object');
+  const operationsFields = [
+    'paymentStatus',
+    'pilotDecision',
+    'crew',
+    'additionalEmailContacts',
+    'itinerary',
+    'reimbursementStatement'
+  ];
+  const hasOperationsUpdate = operationsFields.some(field => Object.prototype.hasOwnProperty.call(body, field));
+  if (hasFlightPlanUpdate && !requireFlightCrew(req, res)) return;
+  if (hasOperationsUpdate && !requireOperationsControl(req, res)) return;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
   const actor = pilotActor(req);
@@ -6132,6 +6212,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
 
 app.post('/api/booking-ops/requests/:id/management-request', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
+  if (!requireOperationsControl(req, res)) return;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
   const managementRequest = request.managementRequest;
@@ -6192,6 +6273,7 @@ app.post('/api/booking-ops/requests/:id/management-request', requirePilotAccess,
 
 app.delete('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
+  if (!requireOperationsControl(req, res)) return;
   const requestId = String(req.params.id || '').trim().toUpperCase();
   const index = bookingRequests.findIndex(item => item.id === requestId);
   if (index === -1) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
@@ -6234,6 +6316,7 @@ app.get('/api/booking-ops/requests/:id/wallet-pass/:passengerNumber', requirePil
 
 app.post('/api/booking-ops/requests/:id/boarding-pass/:passengerNumber/link', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
+  if (!requireOperationsControl(req, res)) return;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
   if (!isBoardingPassReady(request)) {
@@ -6571,10 +6654,17 @@ app.get('/api/booking-ops/navigation-search', requirePilotAccess, async (req, re
 
 app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
   try {
-    const dep = normalizeIcao(req.query.dep);
-    const arr = normalizeIcao(req.query.arr);
-    const altn = normalizeIcao(req.query.altn);
-    if (!dep || !arr) return res.status(400).json({ error: 'DEPARTURE AND ARRIVAL ARE REQUIRED' });
+    const depInput = parseIcaoQuery(req.query.dep, true);
+    const arrInput = parseIcaoQuery(req.query.arr, true);
+    const altnInput = parseIcaoQuery(req.query.altn);
+    if (!depInput.valid || !arrInput.valid || !altnInput.valid) {
+      return res.status(400).json({
+        error: 'USE EXACTLY FOUR LETTERS FOR EACH ICAO AIRPORT CODE'
+      });
+    }
+    const dep = depInput.value;
+    const arr = arrInput.value;
+    const altn = altnInput.value;
 
     const [depWx, arrWx, altnWx, depAirport, arrAirport, altnAirport, depWinds, arrWinds] = await Promise.all([
       getAirportWeather(dep),
