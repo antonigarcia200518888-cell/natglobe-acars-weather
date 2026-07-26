@@ -297,10 +297,16 @@
     .weather-category-meta { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-top:10px; padding-top:8px; border-top:1px solid #243542; }
     .weather-category-meta span { min-width:0; color:#758a99; font-size:7px; text-transform:uppercase; overflow-wrap:anywhere; }
     .weather-category-meta strong { display:block; margin-top:3px; color:#dce6eb; font-size:8px; }
-    .weather-output-layout { display:grid; grid-template-columns:minmax(310px,.7fr) minmax(0,1.3fr); gap:10px; padding:0 14px 14px; }
+    .weather-output-layout { display:block; padding:0 14px 14px; }
     .acars-preview { min-width:0; border:1px solid #354b5c; background:#000; padding:14px; }
     .acars-preview-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:11px; padding-bottom:9px; border-bottom:1px solid #263b49; color:var(--accent); font-size:9px; text-transform:uppercase; }
-    .acars-preview pre { min-height:420px; margin:0; color:#f2f6f8; font:11px/1.5 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .acars-preview pre { min-height:520px; margin:0; color:#f2f6f8; font:13px/1.52 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .wx-report-category { font-weight:700; }
+    .wx-report-category.vfr { color:#20d37e; }
+    .wx-report-category.mvfr { color:#66adff; }
+    .wx-report-category.ifr { color:#ff6971; }
+    .wx-report-category.lifr { color:#e77dff; }
+    .wx-report-category.unknown, .wx-report-category.no-data { color:#ffc05c; }
     .weather-data-stack { display:grid; gap:8px; align-content:start; }
     .weather-card { min-width:0; border:1px solid #344754; border-radius:4px; background:#080f16; overflow:hidden; }
     .weather-card-head { display:flex; justify-content:space-between; gap:10px; padding:10px 11px; border-bottom:1px solid #253643; background:#0c1721; }
@@ -342,64 +348,85 @@
     .weather-decision p:last-child { margin-bottom:0; }
     .weather-decision .weather-caution { color:#8fa0ab; font-size:8px; }
 
-    .aircraft-performance-head { display:flex; align-items:stretch; justify-content:space-between; gap:12px; border-bottom:1px solid #385064; background:linear-gradient(120deg,#102332,#080f16 72%); padding:14px 16px; }
-    .aircraft-identity h2 { margin:5px 0 4px; color:#fff; font-size:19px; text-transform:uppercase; }
-    .aircraft-identity strong { color:var(--accent); font-size:11px; }
-    .aircraft-specs { display:grid; grid-template-columns:repeat(3,minmax(92px,1fr)); gap:7px; }
-    .aircraft-specs div { border-left:1px solid #405567; padding:7px 12px; }
-    .aircraft-specs span { display:block; color:#748998; font-size:7px; text-transform:uppercase; }
+    .performance-console { border-color:#314a5e; background:#071019; }
+    .aircraft-performance-head { display:flex; align-items:center; justify-content:space-between; gap:18px; border-bottom:1px solid #314a5e; background:linear-gradient(115deg,#102a3d,#071019 68%); padding:18px 20px; }
+    .aircraft-identity h2 { margin:5px 0 4px; color:#fff; font-size:22px; text-transform:uppercase; }
+    .aircraft-identity strong { color:#9fc4dc; font-size:11px; }
+    .aircraft-specs { display:grid; grid-template-columns:repeat(3,minmax(100px,1fr)); gap:0; border:1px solid #38566c; border-radius:4px; overflow:hidden; }
+    .aircraft-specs div { padding:10px 13px; border-right:1px solid #38566c; background:#081621; }
+    .aircraft-specs div:last-child { border-right:0; }
+    .aircraft-specs span { display:block; color:#7892a4; font-size:7px; text-transform:uppercase; }
     .aircraft-specs strong { display:block; margin-top:5px; color:#fff; font-size:10px; }
-    .performance-context { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:11px 14px; border-bottom:1px solid #2d414f; background:#03080c; }
-    .performance-context strong { color:#fff; font-size:11px; }
-    .performance-context span { display:block; margin-top:3px; color:#7890a1; font-size:8px; text-transform:uppercase; }
-    .performance-run { min-height:40px; border:1px solid var(--live); border-radius:3px; background:var(--live); color:#001308; padding:8px 13px; font:700 10px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
-    .performance-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:0 14px 14px; }
-    .performance-block { min-width:0; border:1px solid #40505c; border-radius:4px; background:#080f16; overflow:hidden; }
-    .performance-block-header { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:66px; padding:11px 12px; border-bottom:1px solid #2d414f; background:#0c1721; }
-    .performance-block-header small { display:block; color:#718896; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
-    .performance-block-header h3 { margin:5px 0 0; color:#fff; font-size:15px; text-transform:uppercase; }
-    .perf-status-badge { border:1px solid var(--live); border-radius:3px; padding:5px 7px; color:var(--live); font-size:8px; font-style:normal; text-transform:uppercase; }
-    .performance-section-title { padding:7px 10px; border-top:1px solid #2a3d4b; border-bottom:1px solid #2a3d4b; background:#0a141d; color:var(--accent); font-size:8px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .performance-context { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:center; padding:14px 20px; background:#050c12; }
+    .performance-context strong { color:#fff; font-size:13px; }
+    .performance-context span { display:block; max-width:760px; margin-top:5px; color:#8195a4; font-size:8px; line-height:1.45; text-transform:uppercase; }
+    .performance-run { min-height:44px; border:1px solid var(--live); border-radius:4px; background:var(--live); color:#001308; padding:9px 16px; font:700 10px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
+    .performance-stage-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; padding:0 14px 12px; }
+    .performance-stage-tabs button { position:relative; min-height:68px; border:1px solid #334b5d; border-radius:4px; background:#08131d; color:#8195a4; padding:10px 14px; font-family:"Courier New",monospace; text-align:left; cursor:pointer; }
+    .performance-stage-tabs button:focus { outline:0; }
+    .performance-stage-tabs button:focus-visible { box-shadow:0 0 0 2px #79a9c7; }
+    .performance-stage-tabs button::after { content:""; position:absolute; inset:auto 10px 0; height:3px; background:transparent; }
+    .performance-stage-tabs button.active { border-color:#60819a; background:#0d2030; color:#fff; }
+    .performance-stage-tabs button.active::after { background:var(--live); }
+    .performance-stage-tabs span, .performance-stage-tabs small { display:block; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
+    .performance-stage-tabs strong { display:block; margin:5px 0 3px; color:inherit; font-size:14px; text-transform:uppercase; }
+    .performance-stage-tabs small { color:#7590a2; }
+    .performance-results { display:block; padding:0 14px 14px; }
+    .performance-block { display:none; min-width:0; border:1px solid #3a5264; border-radius:5px; background:#08121b; overflow:hidden; }
+    .performance-block.active { display:block; }
+    .performance-block-header { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:64px; padding:12px 16px; border-bottom:1px solid #304757; background:#0b1a26; }
+    .performance-block-header small { display:block; color:#7891a3; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
+    .performance-block-header h3 { margin:5px 0 0; color:#fff; font-size:16px; text-transform:uppercase; }
+    .perf-status-badge { border:1px solid var(--live); border-radius:999px; padding:6px 10px; color:var(--live); font-size:8px; font-style:normal; text-transform:uppercase; }
+    .performance-workspace-grid { display:grid; grid-template-columns:minmax(350px,.72fr) minmax(480px,1.28fr); align-items:start; }
+    .performance-control-column { position:sticky; top:8px; border-right:1px solid #304757; background:#071019; }
+    .performance-output-column { min-width:0; background:#050b10; }
+    .performance-section-title { padding:9px 12px; border-top:1px solid #253a49; border-bottom:1px solid #253a49; background:#0a1721; color:#9fc4dc; font-size:8px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
     .performance-rows { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .performance-item { display:grid; grid-template-columns:minmax(72px,.8fr) minmax(0,1.2fr); gap:7px; align-items:center; min-width:0; min-height:39px; padding:6px 9px; border-right:1px solid #263744; border-bottom:1px solid #263744; }
+    .performance-control-column .performance-rows { grid-template-columns:1fr; }
+    .performance-item { display:grid; grid-template-columns:minmax(82px,.75fr) minmax(0,1.25fr); gap:8px; align-items:center; min-width:0; min-height:44px; padding:7px 10px; border-right:1px solid #223543; border-bottom:1px solid #223543; }
     .performance-item:nth-child(2n) { border-right:0; }
-    .performance-label { color:#758692; font-size:7px; line-height:1.25; text-transform:uppercase; }
-    .performance-value { min-width:0; color:#fff; font-size:9px; text-align:right; overflow-wrap:anywhere; }
+    .performance-control-column .performance-item { border-right:0; }
+    .performance-label { color:#7e93a1; font-size:8px; line-height:1.25; text-transform:uppercase; }
+    .performance-value { min-width:0; color:#fff; font-size:10px; text-align:right; overflow-wrap:anywhere; }
     .performance-value.live { color:var(--live); }
     .performance-value.warn { color:var(--warn); }
-    .performance-value input, .performance-value select { width:100%; min-height:30px; border:1px solid #405361; border-radius:2px; background:#000; color:#fff; padding:5px 6px; font:9px "Courier New", monospace; text-align:right; text-transform:uppercase; }
-    .performance-value[contenteditable="true"] { min-height:26px; border:1px solid transparent; border-radius:2px; padding:6px; cursor:text; }
-    .performance-value[contenteditable="true"]:hover, .performance-value[contenteditable="true"]:focus { border-color:#405361; background:#000; outline:0; }
+    .performance-value input, .performance-value select { width:100%; min-height:34px; border:1px solid #425d70; border-radius:3px; background:#020507; color:#fff; padding:6px 8px; font:10px "Courier New", monospace; text-align:right; text-transform:uppercase; }
+    .performance-value[contenteditable="true"] { min-height:28px; border:1px solid transparent; border-radius:3px; padding:7px; cursor:text; }
+    .performance-value[contenteditable="true"]:hover, .performance-value[contenteditable="true"]:focus { border-color:#4d6c82; background:#020507; outline:0; }
     .performance-inline { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:5px; align-items:center; }
-    .performance-inline button { min-height:30px; min-width:39px; border:1px solid var(--accent); border-radius:2px; background:#07131d; color:var(--accent); padding:4px; font:700 7px "Courier New", monospace; cursor:pointer; }
+    .performance-inline button { min-height:34px; min-width:43px; border:1px solid #5d849e; border-radius:3px; background:#0b1c29; color:#a8cce2; padding:4px; font:700 7px "Courier New", monospace; cursor:pointer; }
     .performance-inline button.manual { border-color:var(--warn); color:var(--warn); }
-    .performance-derived { padding:9px 10px; border-top:1px solid #2a3d4b; color:#91a5b2; background:#050b10; font-size:8px; line-height:1.45; text-transform:uppercase; }
-    .performance-derived strong { color:var(--accent); }
-    .performance-visual-wrap { padding:10px; background:#020405; }
-    .performance-visual-title { margin-bottom:7px; color:#7890a1; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
-    .runway-visual { min-height:600px; border:1px solid #243847; background:radial-gradient(circle at 50% 40%,#0f1c26 0,#030608 67%); overflow:hidden; }
-    .runway-visual svg { display:block; width:100%; height:auto; aspect-ratio:1080 / 1500; }
-    .runway-legend { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin-top:7px; }
-    .runway-legend div { border:1px solid #263744; padding:6px; background:#071018; }
-    .runway-legend span { display:block; color:#718492; font-size:6px; text-transform:uppercase; }
-    .runway-legend strong { display:block; margin-top:4px; color:#fff; font-size:8px; }
-    .performance-messages { min-height:42px; padding:9px 10px; color:var(--warn); font-size:8px; line-height:1.45; text-transform:uppercase; }
-    .performance-note { padding:0 10px 10px; color:#8294a0; font-size:7px; line-height:1.5; text-transform:uppercase; }
-    .performance-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; padding:0 10px 10px; }
-    .performance-actions button { min-height:39px; border:1px solid var(--accent); border-radius:3px; background:#03080c; color:var(--accent); padding:8px; font:700 9px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
+    .performance-derived { padding:11px 12px; border-top:1px solid #2a3d4b; color:#91a5b2; background:#050b10; font-size:8px; line-height:1.5; text-transform:uppercase; }
+    .performance-derived strong { color:#a9d0e8; }
+    .performance-visual-wrap { padding:12px; background:#020507; }
+    .performance-visual-title { margin-bottom:9px; color:#7f95a4; font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
+    .runway-visual { height:min(62vh,660px); min-height:500px; border:1px solid #294254; border-radius:4px; background:radial-gradient(circle at 50% 40%,#0f1c26 0,#030608 67%); overflow:hidden; }
+    .runway-visual svg { display:block; width:100%; height:100%; object-fit:contain; }
+    .runway-legend { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin-top:8px; }
+    .runway-legend div { border-top:2px solid #52738a; padding:8px; background:#08131d; }
+    .runway-legend span { display:block; color:#7890a0; font-size:7px; text-transform:uppercase; }
+    .runway-legend strong { display:block; margin-top:4px; color:#fff; font-size:9px; }
+    .performance-messages { min-height:42px; margin:0 10px 9px; border-left:3px solid var(--warn); padding:9px 10px; color:var(--warn); background:#141106; font-size:8px; line-height:1.45; text-transform:uppercase; }
+    .performance-note { padding:0 12px 12px; color:#8294a0; font-size:7px; line-height:1.5; text-transform:uppercase; }
+    .performance-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; padding:11px 10px; }
+    .performance-actions button { min-height:42px; border:1px solid #6f9ab5; border-radius:3px; background:#07131d; color:#b8d7e9; padding:8px; font:700 9px "Courier New", monospace; cursor:pointer; text-transform:uppercase; }
     .performance-actions button.primary { border-color:var(--live); background:var(--live); color:#001208; }
-    .performance-acars-block { margin:0 10px 10px; border:1px solid #314758; background:#000; color:#f2f6f8; padding:12px; font:10px/1.5 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .performance-document-preview { margin:0 10px 10px; border:1px solid #314758; background:#020507; }
+    .performance-document-preview summary { padding:10px 12px; color:#9fc4dc; font-size:8px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; }
+    .performance-acars-block { margin:0; border:0; border-top:1px solid #314758; background:#000; color:#f2f6f8; padding:14px; font:11px/1.5 "Courier New", monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
     .performance-footer-actions { display:grid; grid-template-columns:repeat(2,minmax(0,220px)); gap:8px; padding:0 14px 14px; }
-    @media (max-width:1080px) { .performance-results { grid-template-columns:1fr; } }
+    @media (max-width:1100px) { .performance-workspace-grid { grid-template-columns:1fr; } .performance-control-column { position:static; border-right:0; border-bottom:1px solid #304757; } .performance-control-column .performance-rows { grid-template-columns:repeat(2,minmax(0,1fr)); } .performance-control-column .performance-item:nth-child(odd) { border-right:1px solid #223543; } }
     @media (max-width:680px) {
       .aircraft-performance-head { display:block; }
       .aircraft-specs { margin-top:11px; }
       .performance-context { grid-template-columns:1fr; }
+      .performance-stage-tabs { padding:0 8px 8px; }
       .performance-results { padding:0 8px 8px; }
-      .performance-rows { grid-template-columns:1fr; }
+      .performance-rows, .performance-control-column .performance-rows { grid-template-columns:1fr; }
       .performance-item, .performance-item:nth-child(2n) { border-right:0; }
-      .runway-visual { min-height:390px; }
-      .runway-visual svg { min-height:390px; height:auto; }
+      .runway-visual { height:430px; min-height:430px; }
+      .runway-visual svg { min-height:0; height:100%; }
     }
 
     .movement-phase-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:10px 0; }
@@ -1841,7 +1868,7 @@
       <button class="suite-tab active" type="button" data-suite-view="dashboard"><span>Flight deck</span><strong>Home</strong><small>Operational picture and tools</small></button>
       <button class="suite-tab" type="button" data-suite-view="flights"><span>Control</span><strong>Flights</strong><small>Queue, crew, passengers, decision</small></button>
       <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>Plan</span><strong>OFP</strong><small>Route, fuel, load, movement log</small></button>
-      <button class="suite-tab" type="button" data-suite-view="weather"><span>Preflight</span><strong>Weather</strong><small>Live briefing and dispatch data</small></button>
+      <button class="suite-tab" type="button" data-suite-view="weather"><span>Preflight</span><strong>Weather</strong><small>Raw METAR, TAF, and dispatch PDF</small></button>
       <button class="suite-tab" type="button" data-suite-view="performance"><span>Runway</span><strong>Performance</strong><small>Runway, wind, density altitude</small></button>
       <button class="suite-tab" type="button" data-suite-view="aircraft"><span>Technical</span><strong>Aircraft</strong><small>Fuel, oil, maintenance, serviceability</small></button>
       <button class="suite-tab" type="button" data-suite-view="documents"><span>Flight file</span><strong>Files</strong><small>OFP, statement, agreements</small></button>
@@ -1851,7 +1878,7 @@
       <header class="dashboard-head"><div><span>Pilot EFB / Operations Control</span><h2>Operations Dashboard</h2><p>Start with the current flight picture, then open the workspace you need without carrying the full booking queue into every task.</p></div><strong>Live operations view</strong></header>
       <div class="dashboard-actions" aria-label="Operations tools">
         <button class="dashboard-action" type="button" data-dashboard-view="flights"><span>Flight control</span><strong>Open flights</strong><small>Review the queue, assign crew, update decisions, and manage passenger files.</small></button>
-        <button class="dashboard-action" type="button" data-dashboard-view="weather"><span>Preflight dispatch</span><strong>Weather</strong><small>Enter any ICAO route or load the selected flight route for a live dispatch briefing.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="weather"><span>Preflight dispatch</span><strong>Weather</strong><small>Enter any ICAO route or load the selected flight for raw METAR, TAF, category, and PDF.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="flight-plan"><span>Controlled document</span><strong>Flight plan</strong><small>Build the OFP, record movement times, fuel, load, release, and PDF.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="aircraft"><span>Aircraft control</span><strong>Aircraft status</strong><small>Record fuel and oil, serviceability, hours, and scheduled maintenance.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="documents"><span>Flight file</span><strong>Documents</strong><small>Open the OFP, reimbursement statement, agreements, and operations PDF.</small></button>
@@ -1877,7 +1904,7 @@
       <header class="tool-workspace-head"><div><span id="toolWorkspaceKicker">Pilot tool</span><strong id="toolWorkspaceTitle">Operations workspace</strong></div><div id="toolFlightContext" class="tool-flight-context">NO FLIGHT SELECTED</div></header>
       <div id="weatherOpsPane" class="ops-tool-pane" hidden>
         <div class="weather-console">
-          <header class="acars-console-head"><div><span>Preflight intelligence / live data</span><strong>Weather operations</strong></div><em class="acars-live-badge">Live data link</em></header>
+          <header class="acars-console-head"><div><span>Pilot weather dispatch</span><strong>ACARS weather</strong></div><em class="acars-live-badge">Raw METAR / TAF</em></header>
           <div class="weather-toolbar">
             <div class="weather-route"><span>Dispatch route</span><strong id="weatherRoute">ENTER ICAO ROUTE</strong></div>
             <label>Departure ICAO<input id="weatherDep" list="weatherAirportOptions" maxlength="4" placeholder="EFHV" /></label>
@@ -1891,20 +1918,18 @@
             <div class="weather-option-group"><strong>DEPARTURE</strong><label><input id="wxDepMetar" type="checkbox" checked /> METAR</label><label><input id="wxDepTaf" type="checkbox" checked /> TAF</label></div>
             <div class="weather-option-group"><strong>ARRIVAL</strong><label><input id="wxArrMetar" type="checkbox" checked /> METAR</label><label><input id="wxArrTaf" type="checkbox" checked /> TAF</label></div>
             <div class="weather-option-group"><strong>ALTERNATE</strong><label><input id="wxAltnMetar" type="checkbox" checked /> METAR</label><label><input id="wxAltnTaf" type="checkbox" checked /> TAF</label></div>
-            <div class="weather-option-group"><strong>EXTRAS</strong><label><input id="wxWinds" type="checkbox" checked /> WINDS ALOFT</label></div>
+            <input id="wxWinds" type="hidden" value="false" />
           </div>
           <div id="weatherStatus" class="weather-status">Enter departure and arrival ICAO codes, or open a flight to preload its route.</div>
-          <div id="weatherCategoryStrip" class="weather-category-strip" aria-label="Route flight categories"></div>
           <div class="weather-output-layout">
-            <div id="weatherAirportGrid" class="weather-data-stack"></div>
-            <section class="acars-preview"><header class="acars-preview-head"><span>ACARS dispatch document</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
+            <section class="acars-preview"><header class="acars-preview-head"><span>Raw aviation weather report</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
 --------------------
 ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
           </div>
-          <div class="weather-lower">
-            <section class="weather-brief"><h3>Winds aloft</h3><div id="weatherWinds" class="winds-grid"></div></section>
-            <section class="weather-brief"><h3>Operational weather review</h3><div id="weatherDecision" class="weather-decision">No weather briefing loaded.</div></section>
-          </div>
+          <div id="weatherCategoryStrip" hidden></div>
+          <div id="weatherAirportGrid" hidden></div>
+          <div id="weatherWinds" hidden></div>
+          <div id="weatherDecision" hidden></div>
         </div>
       </div>
       <div id="flightPlanOpsPane" class="ops-tool-pane" hidden>
@@ -1924,9 +1949,15 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
             <button id="runPerformanceBtn" class="performance-run" type="button">Load / refresh both</button>
           </div>
           <div id="performanceStatus" class="performance-status">Select a flight and runway ends. Current weather, wind components, density altitude, and runway data will load automatically.</div>
+          <div class="performance-stage-tabs" role="tablist" aria-label="Aircraft performance phase">
+            <button class="active" type="button" role="tab" aria-selected="true" data-performance-stage="takeoff"><span>Departure</span><strong>Takeoff</strong><small id="takeoffStageSummary">Select runway</small></button>
+            <button type="button" role="tab" aria-selected="false" data-performance-stage="landing"><span>Arrival</span><strong>Landing</strong><small id="landingStageSummary">Select runway</small></button>
+          </div>
           <div class="performance-results">
-            <section class="performance-block">
+            <section class="performance-block active" data-performance-panel="takeoff">
               <header class="performance-block-header"><div><small>Departure analysis</small><h3>Takeoff performance</h3></div><em id="takeoffPerfBadge" class="perf-status-badge">Ready</em></header>
+              <div class="performance-workspace-grid">
+              <div class="performance-control-column">
               <div class="performance-section-title">Airport and weather</div>
               <div id="takeoffPerformanceMetrics" class="performance-rows">
                 <div class="performance-item"><span class="performance-label">APT</span><span class="performance-value"><input id="perfDep" maxlength="4" placeholder="EFHV" /></span></div>
@@ -1950,6 +1981,10 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
                 <div class="performance-item"><span class="performance-label">POWER</span><span class="performance-value"><select id="perfTakeoffPower"><option value="FULL">FULL</option><option value="SHORT FIELD">SHORT FIELD</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">AC</span><span class="performance-value"><select id="perfTakeoffAc"><option>OFF</option><option>ON</option></select></span></div>
               </div>
+              <div id="takeoffPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
+              <div class="performance-actions"><button id="calculateTakeoffBtn" class="primary" type="button">Calculate takeoff</button><button id="openTakeoffPdfBtn" type="button">Open PDF</button></div>
+              </div>
+              <div class="performance-output-column">
               <div class="performance-section-title">Outputs</div>
               <div id="takeoffPerformanceOutputs" class="performance-rows">
                 <div class="performance-item"><span class="performance-label">VR</span><strong id="perfTakeoffVr" class="performance-value live" contenteditable="true">N/A</strong></div>
@@ -1965,17 +2000,19 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
                 <div class="performance-item"><span class="performance-label">XWIND LIMIT</span><strong id="perfTakeoffXwindLimit" class="performance-value" contenteditable="true">17 KT</strong></div>
                 <div class="performance-item"><span class="performance-label">WIND COMP</span><strong id="perfTakeoffWindComp" class="performance-value" contenteditable="true">HW 00 / XW 00</strong></div>
               </div>
-              <div id="takeoffPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
               <div class="performance-section-title">Visual runway</div><div class="performance-visual-wrap"><div class="performance-visual-title">Calculated takeoff roll, 50 ft requirement, accelerate-stop point, and remaining runway</div><div id="takeoffRunwayVisual" class="runway-visual"></div><div id="takeoffRunwayLegend" class="runway-legend"></div></div>
               <div class="performance-section-title">Remarks</div><div id="takeoffPerformanceMessages" class="performance-messages" contenteditable="true">LOAD DATA TO CALCULATE</div>
               <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
-              <div class="performance-actions"><button id="calculateTakeoffBtn" class="primary" type="button">Calculate</button><button id="openTakeoffPdfBtn" type="button">Open PDF</button></div>
-              <pre id="perfTakeoffAcars" class="performance-acars-block">TAKEOFF PERFORMANCE
+              <details class="performance-document-preview"><summary>Takeoff document preview</summary><pre id="perfTakeoffAcars" class="performance-acars-block">TAKEOFF PERFORMANCE
 ------------------------
-LOAD DATA TO CALCULATE.</pre>
+LOAD DATA TO CALCULATE.</pre></details>
+              </div>
+              </div>
             </section>
-            <section class="performance-block">
+            <section class="performance-block" data-performance-panel="landing">
               <header class="performance-block-header"><div><small>Arrival analysis</small><h3>Landing performance</h3></div><em id="landingPerfBadge" class="perf-status-badge">Ready</em></header>
+              <div class="performance-workspace-grid">
+              <div class="performance-control-column">
               <div class="performance-section-title">Airport and weather</div>
               <div id="landingPerformanceMetrics" class="performance-rows">
                 <div class="performance-item"><span class="performance-label">APT</span><span class="performance-value"><input id="perfArr" maxlength="4" placeholder="EFHN" /></span></div>
@@ -1999,6 +2036,10 @@ LOAD DATA TO CALCULATE.</pre>
                 <div class="performance-item"><span class="performance-label">BRAKING</span><span class="performance-value"><select id="perfLandingBraking"><option value="MAX">MAX</option><option value="MOD">MOD</option><option value="MIN">MIN</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">AC</span><span class="performance-value"><select id="perfLandingAc"><option>OFF</option><option>ON</option></select></span></div>
               </div>
+              <div id="landingPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
+              <div class="performance-actions"><button id="calculateLandingBtn" class="primary" type="button">Calculate landing</button><button id="openLandingPdfBtn" type="button">Open PDF</button></div>
+              </div>
+              <div class="performance-output-column">
               <div class="performance-section-title">Outputs</div>
               <div id="landingPerformanceOutputs" class="performance-rows">
                 <div class="performance-item"><span class="performance-label">VREF</span><strong id="perfLandingVref" class="performance-value live" contenteditable="true">N/A</strong></div>
@@ -2008,16 +2049,16 @@ LOAD DATA TO CALCULATE.</pre>
                 <div class="performance-item"><span class="performance-label">LDG DIST REQ</span><strong id="perfLandingDistReq" class="performance-value" contenteditable="true">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">RWY WIDTH</span><strong id="perfLandingRwyWidth" class="performance-value" contenteditable="true">N/A</strong></div>
               </div>
-              <div id="landingPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
               <div class="performance-section-title">Go-around</div>
               <div class="performance-rows"><div class="performance-item"><span class="performance-label">POWER</span><strong id="perfLandingGoAroundPower" class="performance-value" contenteditable="true">FULL</strong></div><div class="performance-item"><span class="performance-label">FLAPS UP SPEED</span><strong id="perfLandingFlapsUpSpeed" class="performance-value" contenteditable="true">87 MIAS</strong></div></div>
               <div class="performance-section-title">Visual runway</div><div class="performance-visual-wrap"><div class="performance-visual-title">Calculated landing requirement, threshold crossing, stopping point, and remaining runway</div><div id="landingRunwayVisual" class="runway-visual"></div><div id="landingRunwayLegend" class="runway-legend"></div></div>
               <div class="performance-section-title">Remarks</div><div id="landingPerformanceMessages" class="performance-messages" contenteditable="true">LOAD DATA TO CALCULATE</div>
               <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
-              <div class="performance-actions"><button id="calculateLandingBtn" class="primary" type="button">Calculate</button><button id="openLandingPdfBtn" type="button">Open PDF</button></div>
-              <pre id="perfLandingAcars" class="performance-acars-block">LANDING PERFORMANCE
+              <details class="performance-document-preview"><summary>Landing document preview</summary><pre id="perfLandingAcars" class="performance-acars-block">LANDING PERFORMANCE
 ------------------------
-LOAD DATA TO CALCULATE.</pre>
+LOAD DATA TO CALCULATE.</pre></details>
+              </div>
+              </div>
             </section>
           </div>
           <div class="performance-footer-actions"><button id="applyPerformanceToOfpBtn" class="efb-action primary" type="button">Apply snapshot to OFP</button><button id="openPerformanceOfpBtn" class="efb-action" type="button">Open flight plan</button></div>
@@ -2482,6 +2523,8 @@ END OF MESSAGE</pre>
     const calculateLandingBtn = el('calculateLandingBtn');
     const openTakeoffPdfBtn = el('openTakeoffPdfBtn');
     const openLandingPdfBtn = el('openLandingPdfBtn');
+    const performanceStageTabs = [...document.querySelectorAll('[data-performance-stage]')];
+    const performancePanels = [...document.querySelectorAll('[data-performance-panel]')];
     const suiteOpenOfpBtn = el('suiteOpenOfpBtn');
     const suiteOpenOfpPdfBtn = el('suiteOpenOfpPdfBtn');
     const suiteOpenStatementBtn = el('suiteOpenStatementBtn');
@@ -2999,9 +3042,21 @@ END OF MESSAGE</pre>
       weatherWinds.innerHTML = rows.flat().map((value, index) => `<div${index < 4 ? ' class="winds-head"' : ''}>${escapeHtml(value)}</div>`).join('');
     }
 
+    function weatherReportMarkup(reportText) {
+      return String(reportText || '')
+        .split('\n')
+        .map(line => {
+          const match = line.match(/^(DEP WX|ARR WX|ALTN WX)\s+\(([A-Z0-9]{4})\)\s+(VFR|MVFR|IFR|LIFR|UNKNOWN|NO DATA)$/);
+          if (!match) return escapeHtml(line);
+          const category = match[3];
+          return `${escapeHtml(match[1])} <span class="wx-report-category ${weatherCategoryClass(category)}">(${escapeHtml(match[2])}) ${escapeHtml(category)}</span>`;
+        })
+        .join('\n');
+    }
+
     function renderWeatherBriefing(data) {
       latestWeatherData = data;
-      weatherAcarsReport.textContent = data.reportText || 'ACARS WEATHER REPORT\n--------------------\nNO REPORT DATA.';
+      weatherAcarsReport.innerHTML = weatherReportMarkup(data.reportText || 'ACARS WEATHER REPORT\n--------------------\nNO REPORT DATA.');
       const departureCategory = weatherCategory(data.departure);
       const arrivalCategory = weatherCategory(data.arrival);
       weatherReportMode.textContent = data.departure?.mode === 'NO DATA' || data.arrival?.mode === 'NO DATA'
@@ -3019,7 +3074,7 @@ END OF MESSAGE</pre>
         : '<strong class="weather-ok">NO AUTOMATED ALTERNATE TRIGGER.</strong> Continue normal pilot review.';
       weatherDecision.innerHTML = `<p>${alternateMessage}</p><p><span>Automated watch:</span> ${escapeHtml(data.operational?.remarks || 'NO AUTOMATED WEATHER REMARKS')}</p><p class="weather-caution">Pilot must verify report validity, forecast timing, runway state, NOTAMs, minima, and the complete operational picture before release.</p>`;
       const generated = data.generatedAt ? new Date(data.generatedAt).toLocaleString('en-GB', { timeZone:'Europe/Helsinki', hour12:false }) : 'NOW';
-      weatherStatus.textContent = `BRIEFING LOADED ${generated} HELSINKI TIME / ${data.route.dep}-${data.route.arr}`;
+      weatherStatus.textContent = `RAW METAR / TAF LOADED ${generated} HELSINKI TIME / ${data.route.dep}-${data.route.arr}`;
       weatherStatus.classList.remove('offline');
       renderActiveFlightStrip(selected);
     }
@@ -3065,7 +3120,7 @@ END OF MESSAGE</pre>
       if (!force && latestWeatherData && weatherDataKey === context) return;
       weatherDataKey = context;
       refreshWeatherBtn.disabled = true;
-      weatherStatus.textContent = `LOADING LIVE WEATHER / ${dep}-${arr}`;
+      weatherStatus.textContent = `LOADING RAW METAR / TAF / ${dep}-${arr}`;
       try {
         const query = weatherQuery();
         const response = await fetch(`/api/booking-ops/weather?${query}`, { cache:'no-store' });
@@ -3231,6 +3286,16 @@ END OF MESSAGE</pre>
 
     function performanceMetric(label, value, tone = '') {
       return `<div class="performance-metric"><span>${escapeHtml(label)}</span><strong class="${tone}">${escapeHtml(value ?? 'N/A')}</strong></div>`;
+    }
+
+    function setPerformanceStage(stage) {
+      const selectedStage = stage === 'landing' ? 'landing' : 'takeoff';
+      performanceStageTabs.forEach(button => {
+        const active = button.dataset.performanceStage === selectedStage;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+      });
+      performancePanels.forEach(panel => panel.classList.toggle('active', panel.dataset.performancePanel === selectedStage));
     }
 
     function finite(value) {
@@ -3559,6 +3624,8 @@ END OF MESSAGE</pre>
       badge.textContent = calc.cautions.length ? 'Review' : 'Calculated';
       badge.style.borderColor = calc.cautions.length ? 'var(--warn)' : 'var(--live)';
       badge.style.color = calc.cautions.length ? 'var(--warn)' : 'var(--live)';
+      const stageSummary = el(kind === 'takeoff' ? 'takeoffStageSummary' : 'landingStageSummary');
+      stageSummary.textContent = `${wx.apt?.icao || '----'} RWY ${wx.rwy || '--'} / ${Math.round(calc.required || 0)} FT REQ / ${Math.round(calc.remaining || 0)} FT REM`;
       renderRunwayVisual(kind, data, calc);
       el(kind === 'takeoff' ? 'perfTakeoffAcars' : 'perfLandingAcars').textContent = performanceAcarsText(kind, data, calc);
     }
@@ -4951,6 +5018,7 @@ END OF MESSAGE</pre>
       weatherDataKey = '';
       loadWeatherWorkspace(true).catch(() => {});
     }));
+    performanceStageTabs.forEach(button => button.addEventListener('click', () => setPerformanceStage(button.dataset.performanceStage)));
     runPerformanceBtn.addEventListener('click', runPerformanceReview);
     [perfDepRunway, perfArrRunway].forEach(input => input.addEventListener('change', () => {
       latestPerformanceData = null;

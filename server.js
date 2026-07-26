@@ -3397,32 +3397,16 @@ function buildWeatherSectionLines(label, wx, wantMetar, wantTaf) {
   if (!wx || (!wantMetar && !wantTaf)) return [];
 
   const lines = [];
-  lines.push(`${label} (${wx.airport})`);
+  lines.push(`${label} (${wx.airport}) ${getMetarFlightCategory(wx.metar)}`);
 
   if (wantMetar) {
-    if (wx.metarFallback && wx.metarSource) {
-      lines.push('METAR MODE FALLBACK');
-      lines.push(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`);
-    } else if (wx.metar && wx.metar !== 'NOT AVAILABLE') {
-      lines.push('METAR MODE LIVE');
-    } else {
-      lines.push('METAR MODE NO DATA');
-    }
-
+    lines.push('METAR');
     lines.push(wx.metar || 'NOT AVAILABLE');
     lines.push('');
   }
 
   if (wantTaf) {
-    if (wx.tafFallback && wx.tafSource) {
-      lines.push('TAF MODE FALLBACK');
-      lines.push(`TAF SRC ${wx.tafSource}/${wx.tafDistanceNm}NM`);
-    } else if (wx.taf && wx.taf !== 'NOT AVAILABLE') {
-      lines.push('TAF MODE LIVE');
-    } else {
-      lines.push('TAF MODE NO DATA');
-    }
-
+    lines.push('TAF');
     lines.push(wx.taf || 'NOT AVAILABLE');
     lines.push('');
   }
@@ -3854,14 +3838,14 @@ async function dispatchToPdfBuffer(data) {
   const indent = 12;
   let y = pageHeight - 36;
 
-  const drawLine = (text, size = 10, bold = false, x = left) => {
+  const drawLine = (text, size = 10, bold = false, x = left, color = black) => {
     y -= size;
     page.drawText(text, {
       x,
       y,
       size,
       font: bold ? boldFont : regularFont,
-      color: black
+      color
     });
     y -= 3.5;
   };
@@ -3884,32 +3868,26 @@ async function dispatchToPdfBuffer(data) {
   const drawWeatherSection = (title, wx, wantMetar, wantTaf) => {
     if (!wx || (!wantMetar && !wantTaf)) return;
 
-    drawLine(`${title} (${wx.airport})`, 10.5, true);
+    const category = getMetarFlightCategory(wx.metar);
+    const categoryColor = category === 'VFR'
+      ? rgb(0.05, 0.55, 0.25)
+      : category === 'MVFR'
+        ? rgb(0.08, 0.32, 0.78)
+        : category === 'IFR'
+          ? rgb(0.78, 0.08, 0.12)
+          : category === 'LIFR'
+            ? rgb(0.58, 0.08, 0.68)
+            : rgb(0.35, 0.35, 0.35);
+    drawLine(`${title} (${wx.airport}) ${category}`, 10.5, true, left, categoryColor);
 
     if (wantMetar) {
-      if (wx.metarFallback && wx.metarSource) {
-        drawLine('METAR MODE FALLBACK', 9.2, true);
-        drawLine(`METAR SRC ${wx.metarSource}/${wx.metarDistanceNm}NM`, 9.2, true);
-      } else if (wx.metar && wx.metar !== 'NOT AVAILABLE') {
-        drawLine('METAR MODE LIVE', 9.2, true);
-      } else {
-        drawLine('METAR MODE NO DATA', 9.2, true);
-      }
-
+      drawLine('METAR', 9.2, true);
       drawWrappedText(wx.metar || 'NOT AVAILABLE');
       y -= 4;
     }
 
     if (wantTaf) {
-      if (wx.tafFallback && wx.tafSource) {
-        drawLine('TAF MODE FALLBACK', 9.2, true);
-        drawLine(`TAF SRC ${wx.tafSource}/${wx.tafDistanceNm}NM`, 9.2, true);
-      } else if (wx.taf && wx.taf !== 'NOT AVAILABLE') {
-        drawLine('TAF MODE LIVE', 9.2, true);
-      } else {
-        drawLine('TAF MODE NO DATA', 9.2, true);
-      }
-
+      drawLine('TAF', 9.2, true);
       drawWrappedText(wx.taf || 'NOT AVAILABLE');
       y -= 4;
     }
