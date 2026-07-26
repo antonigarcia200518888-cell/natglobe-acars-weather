@@ -1062,7 +1062,7 @@ const EUROPE_COUNTRIES = new Set([
 const RUNWAY_IDENT_RE = /^(0?[1-9]|[1-2][0-9]|3[0-6])([LCRT])?$/i;
 
 const AIRCRAFT_WEIGHT_BALANCE_PROFILE = Object.freeze({
-  profileVersion: 'FOREFLIGHT-2026-07-16',
+  profileVersion: 'NGA-WB-2026-07-16',
   locked: true,
   weightUnits: 'LB',
   armUnits: 'IN',
