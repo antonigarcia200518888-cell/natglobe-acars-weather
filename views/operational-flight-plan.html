@@ -695,36 +695,417 @@
     @media (prefers-reduced-motion:reduce) {
       .save-state::before { animation:none !important; }
     }
+
+    /* Dispatch builder: a staged, app-native workflow around the locked OFP. */
+    :root {
+      --dispatch-bg:#050b11;
+      --dispatch-surface:#091620;
+      --dispatch-raised:#0d1d29;
+      --dispatch-edge:#29465a;
+      --dispatch-ink:#f2f7fa;
+      --dispatch-muted:#8da2af;
+      --dispatch-blue:#8bc8ec;
+      --dispatch-live:#66d997;
+    }
+    body { background:var(--dispatch-bg); }
+    .shell { background:var(--dispatch-bg); }
+    .topbar {
+      min-height:62px;
+      padding:10px 14px;
+      border-bottom-color:#254154;
+      background:rgba(5,13,20,.98);
+    }
+    .topbar-title { min-width:0; }
+    .topbar h1 { margin-top:3px; color:var(--dispatch-ink); font-size:20px; }
+    .topbar .sub { color:#7f95a2; }
+    .top-actions { gap:6px; }
+    .top-actions .btn { min-width:auto; min-height:40px; padding:8px 12px; }
+    .btn.primary {
+      border-color:#b9d9ea;
+      background:#dcebf3;
+      color:#071923;
+    }
+    .btn.primary:hover { border-color:#fff; background:#eef7fb; }
+    .dispatch-overview {
+      display:grid;
+      grid-template-columns:minmax(215px,.82fr) minmax(420px,1.7fr) minmax(210px,.72fr);
+      gap:1px;
+      margin:8px;
+      overflow:hidden;
+      border:1px solid var(--dispatch-edge);
+      border-radius:7px;
+      background:#263e4f;
+    }
+    .dispatch-identity,
+    .overview-readiness { min-width:0; padding:12px 14px; background:var(--dispatch-surface); }
+    .dispatch-identity > span,
+    .overview-readiness span {
+      color:#7f98a8;
+      font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .dispatch-route { display:flex; align-items:center; gap:10px; margin-top:5px; }
+    .dispatch-route strong {
+      color:#f5f9fb;
+      font:700 22px/1 "Courier New",monospace;
+      letter-spacing:.03em;
+    }
+    .dispatch-route i { color:var(--dispatch-blue); font:400 18px/1 sans-serif; }
+    .dispatch-identity small { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:7px; }
+    .dispatch-identity small b,
+    .dispatch-identity small em {
+      overflow:hidden;
+      color:#aebfc9;
+      font:700 8px/1.2 "Courier New",monospace;
+      font-style:normal;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .dispatch-identity small em { padding-left:7px; border-left:1px solid #395163; }
+    .dispatch-overview .statusline {
+      display:grid;
+      grid-template-columns:1fr 1.25fr 1.15fr 1.25fr;
+      gap:1px;
+      padding:0;
+      background:#263e4f;
+    }
+    .dispatch-overview .statusbox {
+      display:flex;
+      min-width:0;
+      min-height:100%;
+      flex-direction:column;
+      justify-content:center;
+      padding:11px;
+      border:0;
+      background:#08141e;
+    }
+    .dispatch-overview .statusbox span { color:#6f8796; font-size:7px; }
+    .dispatch-overview .statusbox strong { margin-top:6px; font-size:10px; }
+    .overview-readiness { display:flex; flex-direction:column; justify-content:center; }
+    .overview-readiness > div:first-child,
+    .brief-progress > div:first-child { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .overview-readiness strong,
+    .brief-progress strong { color:#d8e6ed; font:700 9px/1.2 "Courier New",monospace; }
+    .readiness-track {
+      width:100%;
+      height:6px;
+      margin-top:9px;
+      overflow:hidden;
+      border-radius:999px;
+      background:#1c2d38;
+    }
+    .readiness-track > span {
+      display:block;
+      width:0;
+      height:100%;
+      border-radius:inherit;
+      background:var(--dispatch-blue);
+      transition:width .24s ease,background-color .24s ease;
+    }
+    .readiness-track > span.complete { background:var(--dispatch-live); }
+    .overview-readiness small { margin-top:7px; color:#7e919d; font:600 8px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .dispatch-meta-row {
+      display:grid;
+      grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);
+      gap:6px;
+      margin:0 8px 7px;
+    }
+    .dispatch-meta-row .flight-source,
+    .dispatch-meta-row .save-state { min-height:42px; margin:0; }
+    .dispatch-meta-row .save-state { justify-content:flex-start; }
+    .ofp-workspaces {
+      display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:4px;
+      position:sticky;
+      top:62px;
+      z-index:32;
+      margin:0 8px 8px;
+      border-color:#294759;
+      background:rgba(5,12,18,.97);
+      backdrop-filter:blur(14px);
+    }
+    .ofp-workspace-button { min-width:0; min-height:62px; padding:8px 7px 8px 37px; border-radius:4px; }
+    .ofp-workspace-button strong { white-space:nowrap; }
+    .ofp-workspace-button[aria-selected="true"] {
+      border-color:#4a7590;
+      background:#102a3b;
+      box-shadow:inset 3px 0 0 var(--dispatch-blue);
+    }
+    .workspace { grid-template-columns:minmax(0,1fr) 340px; gap:9px; }
+    .editor > details { min-width:0; background:#07131d; }
+    .editor > details > .detail-body { padding:0 15px 15px; }
+    .section-heading { padding:15px 0 12px; }
+    .section-heading span { color:var(--dispatch-blue); }
+    .section-heading strong { font-size:17px; }
+    .section-heading p { max-width:490px; font-size:11px; }
+    .flight-core-grid { gap:10px; }
+    label { font-size:10px; }
+    input, select, textarea { min-height:46px; font-size:13px; }
+    input::placeholder, textarea::placeholder { color:#536976; opacity:1; }
+    .dispatch-meta-row .save-state { grid-column:auto; }
+    .schedule-workbench {
+      margin-top:12px;
+      overflow:hidden;
+      border:1px solid #2b495c;
+      border-radius:7px;
+      background:#06111a;
+    }
+    .schedule-workbench-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:11px 12px;
+      border-bottom:1px solid #294455;
+      background:#0a1a26;
+    }
+    .schedule-workbench-head span { display:block; color:#7f98a7; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+    .schedule-workbench-head strong { display:block; margin-top:4px; color:#edf5f8; font:700 13px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .schedule-workbench-head small { color:#78909f; font:700 8px/1.2 "Courier New",monospace; }
+    .schedule-primary-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr 1.35fr;
+      gap:9px;
+      align-items:end;
+      padding:12px;
+    }
+    .schedule-estimate {
+      display:flex;
+      min-height:46px;
+      flex-direction:column;
+      justify-content:center;
+      border:1px solid #2f4d60;
+      border-radius:5px;
+      padding:7px 10px;
+      background:#091722;
+    }
+    .schedule-estimate span { color:#7d94a2; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:uppercase; }
+    .schedule-estimate strong { margin-top:4px; color:#cae6f5; font:700 11px/1.2 "Courier New",monospace; }
+    .schedule-drawer { margin:0 12px 12px; border-color:#263e4e; border-radius:5px; background:#07131c; }
+    .schedule-drawer > summary { padding:10px 11px; color:#98abb6; font-size:9px; }
+    .schedule-drawer > .detail-body { padding:0 10px 10px; border:0; }
+    .schedule-drawer .time-support { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .route-workbench { margin-top:12px; }
+    .route-composer.smart { grid-template-columns:minmax(220px,1fr) auto auto auto; }
+    .route-token { min-height:31px; padding:5px 9px; }
+    .planning-drawer { margin-top:11px; }
+    .fuel-ladder,
+    .load-margin-strip {
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:1px;
+      margin-top:12px;
+      overflow:hidden;
+      border:1px solid #2c495c;
+      border-radius:6px;
+      background:#294455;
+    }
+    .fuel-ladder > div,
+    .load-margin-strip > div { min-width:0; padding:10px 11px; background:#07141e; }
+    .fuel-ladder span,
+    .load-margin-strip span { display:block; color:#7e95a3; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:uppercase; }
+    .fuel-ladder strong,
+    .load-margin-strip strong { display:inline-block; margin-top:5px; color:#eaf3f7; font:700 17px/1 "Courier New",monospace; }
+    .fuel-ladder small { margin-left:4px; color:#718895; font:700 7px/1 "Courier New",monospace; }
+    .fuel-ladder .fuel-total { background:#0b2430; }
+    .fuel-ladder .fuel-total strong { color:#bfe6fa; }
+    .load-margin-strip { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .load-margin-strip strong { font-size:14px; }
+    .load-margin-strip strong.good { color:var(--dispatch-live); }
+    .load-margin-strip strong.danger { color:var(--red); }
+    .briefing-modules { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+    .briefing-modules button {
+      position:relative;
+      min-height:96px;
+      border:1px solid #315267;
+      border-radius:6px;
+      padding:12px;
+      background:#081722;
+      color:#edf5f8;
+      text-align:left;
+      cursor:pointer;
+    }
+    .briefing-modules button:hover { border-color:var(--dispatch-blue); background:#0d2130; }
+    .briefing-modules span { display:block; color:#77909f; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:.1em; text-transform:uppercase; }
+    .briefing-modules strong { display:block; margin-top:5px; font:700 14px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .briefing-modules small { display:block; margin-top:5px; color:#8ea1ad; font:500 9px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .briefing-modules em { position:absolute; top:11px; right:11px; color:var(--amber); font:700 7px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-style:normal; letter-spacing:.08em; }
+    .briefing-modules em.complete { color:var(--dispatch-live); }
+    .console { top:138px; gap:8px; }
+    .console-mode-switch { position:sticky; top:138px; z-index:12; }
+    .console-summary { gap:8px; }
+    .dispatch-brief-card {
+      overflow:hidden;
+      border:1px solid #34566c;
+      border-radius:7px;
+      background:#0a1823;
+      box-shadow:0 12px 30px rgba(0,0,0,.2);
+    }
+    .dispatch-brief-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:11px 12px;
+      border-bottom:1px solid #2d485b;
+      background:#0d2130;
+    }
+    .dispatch-brief-head span { display:block; color:#84a0b1; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:.1em; text-transform:uppercase; }
+    .dispatch-brief-head strong { display:block; margin-top:3px; color:#e6f1f6; font:700 10px/1.2 "Courier New",monospace; }
+    .dispatch-brief-head b { padding:5px 7px; border:1px solid #557082; border-radius:999px; color:#aabcc6; font:700 7px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:.08em; }
+    .dispatch-brief-head b.ready { border-color:var(--dispatch-live); color:var(--dispatch-live); }
+    .brief-route { display:flex; align-items:center; justify-content:center; gap:12px; padding:15px 12px 11px; }
+    .brief-route strong { color:#fff; font:700 24px/1 "Courier New",monospace; }
+    .brief-route i { color:var(--dispatch-blue); font:400 18px/1 sans-serif; }
+    .brief-facts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid #223b4b; border-bottom:1px solid #223b4b; }
+    .brief-facts div { min-width:0; padding:9px 7px; border-right:1px solid #223b4b; }
+    .brief-facts div:last-child { border-right:0; }
+    .brief-facts span { display:block; color:#718896; font:700 7px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:uppercase; }
+    .brief-facts strong { display:block; margin-top:4px; overflow:hidden; color:#dce8ee; font:700 9px/1.2 "Courier New",monospace; text-overflow:ellipsis; white-space:nowrap; }
+    .brief-progress { padding:11px 12px; }
+    .brief-progress span { color:#8096a4; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:uppercase; }
+    .brief-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:0 12px 7px; }
+    .brief-actions .btn { min-height:38px; }
+    .dispatch-generate { width:calc(100% - 24px); min-height:46px; margin:0 12px 12px; }
+    .console-card { padding:12px; }
+    .readiness-card .warning-list { gap:5px; }
+    .warning-list .warning {
+      display:block;
+      width:100%;
+      border-top:0;
+      border-right:0;
+      border-bottom:0;
+      text-align:left;
+      cursor:pointer;
+    }
+    button.warning:hover { filter:brightness(1.15); }
+    .ofp-action-dock { grid-template-columns:repeat(5,minmax(0,1fr)); }
+
+    @media (max-width:1180px) {
+      .dispatch-overview { grid-template-columns:minmax(190px,.8fr) minmax(390px,1.6fr) minmax(185px,.7fr); }
+      .dispatch-overview .statusline { grid-template-columns:1fr 1.2fr 1fr; }
+      .dispatch-overview .statusbox:last-child { display:none; }
+      .workspace { grid-template-columns:minmax(0,1fr) 300px; }
+      .console { position:sticky; order:0; display:grid; grid-template-columns:1fr; }
+      .console-summary { display:grid; grid-template-columns:1fr; }
+      .console-summary .utility-card { grid-column:auto; }
+    }
+    @media (max-width:980px) {
+      body { padding-bottom:70px; }
+      .dispatch-overview { grid-template-columns:minmax(190px,.8fr) minmax(0,1.6fr); }
+      .overview-readiness { grid-column:1/-1; }
+      .dispatch-meta-row { grid-template-columns:1fr; }
+      .ofp-workspaces { top:62px; overflow-x:auto; display:flex; scroll-snap-type:x proximity; }
+      .ofp-workspace-button { flex:0 0 145px; scroll-snap-align:start; }
+      .workspace { grid-template-columns:1fr; }
+      .console { position:static; order:0; display:grid; grid-template-columns:1fr 1fr; }
+      .console-mode-switch { position:static; grid-column:1/-1; }
+      .console-summary { grid-column:1/-1; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+      .dispatch-brief-card { grid-column:1/-1; }
+      .console-summary .utility-card { grid-column:1/-1; }
+      .pdf-preview-panel { grid-column:1/-1; }
+      .schedule-drawer .time-support { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width:720px) {
+      .topbar { min-height:56px; padding:8px; }
+      .topbar-title { display:none !important; }
+      .top-actions { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .top-actions #backBtn, .top-actions #weatherBtn { display:none; }
+      .top-actions .btn { min-height:42px; padding:7px 5px; font-size:9px; }
+      .dispatch-overview { display:block; margin:6px; }
+      .dispatch-identity { padding:11px 12px; }
+      .dispatch-route strong { font-size:20px; }
+      .dispatch-overview .statusline { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .dispatch-overview .statusbox { min-height:54px; }
+      .dispatch-overview .statusbox:last-child { display:flex; }
+      .overview-readiness { border-top:1px solid #263f50; }
+      .dispatch-meta-row { margin:0 6px 6px; }
+      .dispatch-meta-row .flight-source { display:none; }
+      .ofp-workspaces { top:56px; margin:0 6px 6px; }
+      .ofp-workspace-button { flex-basis:126px; min-height:58px; }
+      .workspace { padding:0 6px 6px; }
+      .editor > details > .detail-body { padding:0 11px 11px; }
+      .section-heading { display:block; }
+      .section-heading strong { font-size:16px; }
+      .section-heading p { margin-top:6px; text-align:left; }
+      .flight-core-grid { grid-template-columns:1fr 1fr; }
+      .flight-core-grid > label, .flight-core-grid > .airport-field, .flight-core-grid > .runway-field { grid-column:span 1; }
+      .flight-core-grid > .aircraft-profile-field { grid-column:1/-1; }
+      .route-swap { grid-column:1/-1; }
+      .schedule-primary-grid { grid-template-columns:1fr 1fr; padding:10px; }
+      .schedule-estimate { grid-column:1/-1; }
+      .schedule-workbench-head { align-items:flex-start; }
+      .schedule-workbench-head small { max-width:92px; text-align:right; }
+      .route-composer.smart { grid-template-columns:1fr; }
+      .route-command-row { grid-template-columns:1fr; }
+      .console { grid-template-columns:1fr; }
+      .console-summary { grid-template-columns:1fr; }
+      .brief-route strong { font-size:22px; }
+      .movement-grid { grid-template-columns:1fr; }
+      .fuel-ladder { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .fuel-ladder .fuel-total { grid-column:1/-1; }
+      .load-margin-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .briefing-modules { grid-template-columns:1fr; }
+      .movement-card { min-height:142px; }
+      .ofp-action-dock { gap:3px; padding-left:5px; padding-right:5px; }
+      .ofp-action-dock .btn { min-width:0; padding:6px 3px; font-size:8px; }
+    }
+    @media (max-width:430px) {
+      .dispatch-overview .statusline { grid-template-columns:1fr 1fr; }
+      .dispatch-overview .statusbox strong { font-size:9px; }
+      .schedule-primary-grid, .schedule-drawer .time-support { grid-template-columns:1fr; }
+      .flight-core-grid { grid-template-columns:1fr; }
+      .flight-core-grid > label, .flight-core-grid > .aircraft-profile-field, .flight-core-grid > .airport-field, .flight-core-grid > .runway-field { grid-column:1; }
+      .brief-facts { grid-template-columns:1fr 1fr; }
+      .brief-facts div:nth-child(2) { border-right:0; }
+      .brief-facts div:nth-child(-n+2) { border-bottom:1px solid #223b4b; }
+    }
   </style>
 </head>
 <body>
   <main class="shell">
     <header class="topbar">
-      <div><div class="eyebrow">NGA Pilot EFB</div><h1>Flight Plan</h1><div class="sub">Plan, calculate, operate, and release one controlled flight record.</div></div>
-      <div class="top-actions"><button id="backBtn" class="btn" type="button">Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather</button><button id="saveBtn" class="btn primary" type="button">Save Plan</button><button id="previewBtn" class="btn" type="button">Preview PDF</button><button id="pdfBtn" class="btn" type="button">Open PDF</button></div>
+      <div class="topbar-title"><div class="eyebrow">NGA Pilot EFB / Dispatch</div><h1>Operational Flight Plan</h1><div class="sub">Build the plan, verify the release gates, and generate the controlled flight document.</div></div>
+      <div class="top-actions"><button id="backBtn" class="btn" type="button">Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather</button><button id="saveBtn" class="btn" type="button">Save Draft</button><button id="previewBtn" class="btn primary" type="button">Generate OFP</button><button id="pdfBtn" class="btn" type="button">Open PDF</button></div>
     </header>
-    <section class="statusline">
-      <div class="statusbox"><span>Reference</span><strong id="refStatus">...</strong></div>
-      <div class="statusbox"><span>Route</span><strong id="routeStatus">...</strong></div>
-      <div class="statusbox"><span>Schedule</span><strong id="scheduleStatus">...</strong></div>
-      <div class="statusbox"><span>Commander</span><strong id="crewStatus">...</strong></div>
-      <div class="statusbox"><span>Document</span><strong id="documentStatus">DRAFT</strong></div>
+    <section class="dispatch-overview" aria-label="Current flight dispatch summary">
+      <div class="dispatch-identity">
+        <span>Active flight plan</span>
+        <div class="dispatch-route"><strong id="overviewDeparture">----</strong><i aria-hidden="true">&#8594;</i><strong id="overviewDestination">----</strong></div>
+        <small><b id="refStatus">...</b><em id="overviewRules">VFR</em><em id="overviewAircraft">PA28</em></small>
+      </div>
+      <div class="statusline">
+        <div class="statusbox"><span>Route</span><strong id="routeStatus">...</strong></div>
+        <div class="statusbox"><span>Schedule</span><strong id="scheduleStatus">...</strong></div>
+        <div class="statusbox"><span>Commander</span><strong id="crewStatus">...</strong></div>
+        <div class="statusbox"><span>Document</span><strong id="documentStatus">DRAFT</strong></div>
+      </div>
+      <div class="overview-readiness">
+        <div><span>Planning readiness</span><strong id="planningReadinessText">0 / 5 gates</strong></div>
+        <div class="readiness-track" role="progressbar" aria-label="Planning readiness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="planningReadinessBar"></span></div>
+        <small id="planningReadinessHint">Complete flight setup to begin.</small>
+      </div>
     </section>
-    <section id="flightSource" class="flight-source"><div id="flightSourceBadge" class="flight-source-badge">BOOKING PRELOAD</div><div><strong id="flightSourceTitle">Selected flight loaded</strong><span id="flightSourceDetail">Schedule and declared load are prefilled. Pilot planning fields remain editable.</span></div></section>
-    <div id="saveState" class="save-state loading" role="status" aria-live="polite">Loading flight file...</div>
+    <div class="dispatch-meta-row">
+      <section id="flightSource" class="flight-source"><div id="flightSourceBadge" class="flight-source-badge">BOOKING PRELOAD</div><div><strong id="flightSourceTitle">Selected flight loaded</strong><span id="flightSourceDetail">Schedule and declared load are prefilled. Pilot planning fields remain editable.</span></div></section>
+      <div id="saveState" class="save-state loading" role="status" aria-live="polite">Loading flight file...</div>
+    </div>
     <nav class="ofp-workspaces" aria-label="Operational flight plan workspaces">
-      <button class="ofp-workspace-button" type="button" data-workspace="PLAN" data-step="1" aria-selected="true"><span>Plan</span><strong>Route</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="LOAD" data-step="2" aria-selected="false"><span>Calculate</span><strong>Fuel &amp; Load</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="FLY" data-step="3" aria-selected="false"><span>Operate</span><strong>Flight Times</strong><em class="workspace-state">0 / 4</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="BRIEF" data-step="4" aria-selected="false"><span>Review</span><strong>Briefing</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="RELEASE" data-step="5" aria-selected="false"><span>Command</span><strong>PIC Release</strong><em class="workspace-state">Pending</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="SETUP" data-step="1" aria-selected="true"><span>Flight</span><strong>Setup</strong><em class="workspace-state">Open</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="ROUTE" data-step="2" aria-selected="false"><span>Navigation</span><strong>Route</strong><em class="workspace-state">Open</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="LOAD" data-step="3" aria-selected="false"><span>Planning</span><strong>Fuel &amp; Load</strong><em class="workspace-state">Open</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="BRIEF" data-step="4" aria-selected="false"><span>Preflight</span><strong>Briefing</strong><em class="workspace-state">Open</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="FLY" data-step="5" aria-selected="false"><span>Operate</span><strong>Times</strong><em class="workspace-state">0 / 4</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="RELEASE" data-step="6" aria-selected="false"><span>Command</span><strong>Release</strong><em class="workspace-state">Pending</em></button>
     </nav>
     <div class="workspace">
       <section class="editor">
         <details id="flightSetupSection" open>
-          <summary>Flight setup and route</summary>
+          <summary>Flight setup</summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Active plan</span><strong>Build the operational route</strong></div><p>Booking data preloads the flight. Every operational field remains pilot editable.</p></div>
+            <div class="section-heading"><div><span>Flight setup</span><strong>Define the flight</strong></div><p>Confirm the aircraft, operating rules, airports, and planned schedule before routing.</p></div>
             <div class="flight-core-grid">
               <label>Date<input data-field="dateUtc" type="date" /></label>
               <label class="aircraft-profile-field">Aircraft profile<select class="aircraft-select" data-field="aircraftRegistration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select><small>ICAO PA28 / locked aircraft data</small></label>
@@ -739,6 +1120,29 @@
               <label class="airport-field"><span id="destinationFieldLabel">Destination ICAO</span><input data-field="destination" maxlength="4" placeholder="EFHN" autocomplete="off" /></label>
               <label class="runway-field">Arrival runway<select id="arrRunwaySelect" data-field="arrRunway"><option value="">Enter destination ICAO</option></select></label>
             </div>
+
+            <section class="schedule-workbench" aria-label="Planned flight schedule">
+              <div class="schedule-workbench-head"><div><span>Planned schedule</span><strong>Departure and elapsed time</strong></div><small>LOCAL / PILOT VERIFIED</small></div>
+              <div class="schedule-primary-grid">
+                <label>Scheduled OUT<input data-field="scheduledOut" placeholder="1420Z / 1720L" /></label>
+                <label>Planned EET (MIN)<input data-field="estimatedEnrouteMinutes" type="number" min="0" step="1" /></label>
+                <div class="schedule-estimate"><span>Estimated arrival</span><strong id="estimatedArrivalSummary">CALCULATED AFTER STD / EET</strong></div>
+              </div>
+              <details class="schedule-drawer">
+                <summary>Detailed schedule fields</summary>
+                <div class="detail-body time-support">
+                  <label>Scheduled OFF<input data-field="scheduledOff" /></label><label>Scheduled ON<input data-field="scheduledOn" /></label><label>Scheduled IN<input data-field="scheduledIn" /></label>
+                  <label>Estimated OUT<input data-field="estimatedOut" placeholder="1420Z / 1720L" /></label><label>Estimated OFF<input data-field="estimatedOff" /></label><label>Estimated ON<input data-field="estimatedOn" /></label><label>Estimated IN<input data-field="estimatedIn" /></label>
+                </div>
+              </details>
+            </section>
+          </div>
+        </details>
+
+        <details id="routeSection" open>
+          <summary>Route planning</summary>
+          <div class="detail-body">
+            <div class="section-heading"><div><span>Navigation</span><strong>Build and verify the route</strong></div><p>Compose the route, select procedures, and review the alternate against current approved sources.</p></div>
 
             <section class="route-workbench" aria-label="Smart route builder">
               <div class="route-workbench-head"><div><span>Route builder</span><strong id="routeBuilderTitle">VFR route sequence</strong><small>Type an identifier and add it. The builder identifies airports, airways, DCT, and navigation points automatically.</small></div><div class="data-source-badge">PILOT VERIFIED</div></div>
@@ -811,12 +1215,7 @@
               <article class="movement-card" data-movement-card="actualOn"><strong class="movement-code">ON</strong><span>Landed / touchdown</span><div id="actualOnDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual ON local time" data-manual-time="actualOn" /><button class="btn" type="button" data-manual-field="actualOn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOn">Stamp now</button></article>
               <article class="movement-card" data-movement-card="actualIn"><strong class="movement-code">IN</strong><span>On stand / brakes set</span><div id="actualInDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual IN local time" data-manual-time="actualIn" /><button class="btn" type="button" data-manual-field="actualIn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualIn">Stamp now</button></article>
             </div>
-            <div class="time-support">
-              <label>Scheduled OUT<input data-field="scheduledOut" /></label><label>Scheduled OFF<input data-field="scheduledOff" /></label><label>Scheduled ON<input data-field="scheduledOn" /></label><label>Scheduled IN<input data-field="scheduledIn" /></label>
-              <label>Estimated OUT<input data-field="estimatedOut" placeholder="1420Z/1720L" /></label><label>Estimated OFF<input data-field="estimatedOff" /></label><label>Estimated ON<input data-field="estimatedOn" /></label><label>Estimated IN<input data-field="estimatedIn" /></label>
-              <label>Planned EET (MIN)<input data-field="estimatedEnrouteMinutes" type="number" min="0" step="1" /></label>
-              <label hidden>Actual OUT<input data-field="actualOut" /></label><label hidden>Actual OFF<input data-field="actualOff" /></label><label hidden>Actual ON<input data-field="actualOn" /></label><label hidden>Actual IN<input data-field="actualIn" /></label>
-            </div>
+            <div hidden><label>Actual OUT<input data-field="actualOut" /></label><label>Actual OFF<input data-field="actualOff" /></label><label>Actual ON<input data-field="actualOn" /></label><label>Actual IN<input data-field="actualIn" /></label></div>
           </div>
         </details>
 
@@ -824,6 +1223,13 @@
           <summary>Fuel planning</summary>
           <div class="detail-body">
             <div class="section-heading"><div><span>Fuel plan</span><strong>Build block fuel</strong></div><p>Start from planned time, then apply the pilot fuel policy, alternate, reserve, and operational conditions.</p></div>
+            <div class="fuel-ladder" aria-label="Fuel plan summary">
+              <div><span>Taxi</span><strong id="fuelTaxiSummary">0.0</strong><small>USG</small></div>
+              <div><span>Trip</span><strong id="fuelTripSummary">0.0</strong><small>USG</small></div>
+              <div><span>Reserve + alternate</span><strong id="fuelReserveSummary">0.0</strong><small>USG</small></div>
+              <div><span>Extra</span><strong id="fuelExtraSummary">0.0</strong><small>USG</small></div>
+              <div class="fuel-total"><span>Block fuel</span><strong id="fuelBlockSummary">0.0</strong><small>USG</small></div>
+            </div>
             <div class="grid">
               <label>Planning fuel flow (USG/H)<input data-field="fuelFlowGph" type="number" min="0" step="0.1" /></label>
               <label>Taxi / start (USG)<input data-field="taxiFuelGal" type="number" min="0" step="0.1" /></label>
@@ -833,7 +1239,7 @@
               <label>Final reserve (USG)<input data-field="finalReserveFuelGal" type="number" min="0" step="0.1" /></label>
               <label>Extra fuel (USG)<input data-field="extraFuelGal" type="number" min="0" step="0.1" /></label>
             </div>
-            <button id="fuelCalcBtn" class="btn inline-action" type="button">Recalculate fuel from EET</button>
+            <button id="fuelCalcBtn" class="btn inline-action" type="button">Calculate fuel from planned EET</button>
           </div>
         </details>
 
@@ -845,6 +1251,12 @@
             <div class="load-mode-control">
               <label>Weight manifest source<select id="loadModeSelect" class="aircraft-select" data-field="loadMode"><option value="BOOKING">AUTO / BOOKING MANIFEST</option><option value="MANUAL">MANUAL / ACTUAL LOAD</option></select></label>
               <div id="loadModeState" class="load-mode-state">Booking passenger and baggage weights are loaded automatically.</div>
+            </div>
+            <div class="load-margin-strip" aria-label="Weight and balance margins">
+              <div><span>Payload</span><strong id="payloadSummary">0 LB</strong></div>
+              <div><span>Takeoff margin</span><strong id="takeoffMarginSummary">0 LB</strong></div>
+              <div><span>Landing margin</span><strong id="landingMarginSummary">0 LB</strong></div>
+              <div><span>Takeoff CG</span><strong id="cgSummary">0.00 IN</strong></div>
             </div>
             <div class="grid">
               <label>Basic empty mass (LB)<input data-field="bemLb" type="number" readonly /></label>
@@ -895,6 +1307,10 @@
           <summary>Briefing review</summary>
           <div class="detail-body">
             <div class="section-heading"><div><span>Operational review</span><strong>Weather, NOTAM and airspace</strong></div><p>Aircraft Performance remains in its dedicated Pilot Ops workspace.</p></div>
+            <div class="briefing-modules">
+              <button id="openWeatherWorkspaceBtn" type="button"><span>Live module</span><strong>Weather Dispatch</strong><small>Raw METAR, TAF, and category</small><em id="weatherModuleState">REVIEW OPEN</em></button>
+              <button id="openPerformanceWorkspaceBtn" type="button"><span>Live module</span><strong>Aircraft Performance</strong><small>Departure and arrival runway analysis</small><em id="performanceModuleState">DATA OPEN</em></button>
+            </div>
             <div class="grid two">
               <label class="checkline"><input data-field="notamReviewAccepted" type="checkbox" />Current NOTAMs, published restrictions, and airport operating information have been reviewed from approved sources.</label>
               <label class="checkline"><input data-field="airspaceReviewAccepted" type="checkbox" />Airspace, weather routing, fuel suitability, daylight, and alternate considerations have been reviewed for this operation.</label>
@@ -921,6 +1337,22 @@
           <button id="pdfInspectorBtn" type="button" role="tab" aria-selected="false" aria-controls="pdfPreviewPanel">PDF preview</button>
         </div>
         <div id="consoleSummary" class="console-summary">
+        <section class="dispatch-brief-card" aria-label="Live dispatch brief">
+          <div class="dispatch-brief-head"><div><span>Live dispatch brief</span><strong id="briefReference">FLIGHT FILE</strong></div><b id="briefState">PLANNING</b></div>
+          <div class="brief-route"><strong id="briefDeparture">----</strong><i aria-hidden="true">&#8594;</i><strong id="briefDestination">----</strong></div>
+          <div class="brief-facts">
+            <div><span>STD</span><strong id="briefSchedule">--:--</strong></div>
+            <div><span>EET</span><strong id="briefEet">-- MIN</strong></div>
+            <div><span>Rules</span><strong id="briefRules">VFR</strong></div>
+            <div><span>Aircraft</span><strong id="briefAircraft">PA28</strong></div>
+          </div>
+          <div class="brief-progress"><div><span>Preflight gates</span><strong id="briefProgressLabel">0 / 5 READY</strong></div><div class="readiness-track"><span id="briefProgressBar"></span></div></div>
+          <div class="brief-actions">
+            <button id="previousWorkspaceBtn" class="btn subtle" type="button">Previous</button>
+            <button id="nextWorkspaceBtn" class="btn" type="button">Continue</button>
+          </div>
+          <button id="generateOfpBtn" class="btn primary dispatch-generate" type="button">Save &amp; Generate OFP</button>
+        </section>
         <section class="console-card"><div class="console-title">Flight totals</div><div class="metric-grid primary-metrics">
           <div class="metric"><span>Block fuel</span><strong id="blockFuel">0.0 USG</strong></div>
           <div id="towMetric" class="metric"><span>Takeoff weight</span><strong id="takeoffWeight">0 LB</strong></div>
@@ -966,9 +1398,11 @@
       </aside>
     </div>
     <nav class="ofp-action-dock" aria-label="Flight plan actions">
-      <button id="dockSaveBtn" class="btn primary" type="button">Save draft</button>
-      <button id="dockPreviewBtn" class="btn" type="button">Preview</button>
-      <button id="dockPdfBtn" class="btn" type="button">Open PDF</button>
+      <button id="dockPreviousBtn" class="btn subtle" type="button">Back</button>
+      <button id="dockSaveBtn" class="btn" type="button">Save</button>
+      <button id="dockNextBtn" class="btn" type="button">Next</button>
+      <button id="dockPreviewBtn" class="btn primary" type="button">Generate</button>
+      <button id="dockPdfBtn" class="btn" type="button">PDF</button>
     </nav>
   </main>
   <script>
@@ -989,12 +1423,16 @@
     let previewLoadToken = 0;
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
     const workspaceSections = {
-      PLAN:['flightSetupSection'],
+      SETUP:['flightSetupSection'],
+      ROUTE:['routeSection'],
       LOAD:['fuelSection', 'loadSection'],
-      FLY:['movementSection'],
       BRIEF:['dispatchSection'],
+      FLY:['movementSection'],
       RELEASE:['releaseSection']
     };
+    const workspaceOrder = ['SETUP', 'ROUTE', 'LOAD', 'BRIEF', 'FLY', 'RELEASE'];
+    const workspaceLabels = { SETUP:'Flight Setup', ROUTE:'Route', LOAD:'Fuel & Load', BRIEF:'Briefing', FLY:'Flight Times', RELEASE:'PIC Release' };
+    let currentWorkspace = 'SETUP';
 
     function setSaveState(state, message) {
       const node = el('saveState');
@@ -1056,7 +1494,9 @@
     }
 
     function setWorkspace(workspace, persist = true) {
-      const selected = Object.prototype.hasOwnProperty.call(workspaceSections, workspace) ? workspace : 'PLAN';
+      const migrated = workspace === 'PLAN' ? 'SETUP' : workspace;
+      const selected = Object.prototype.hasOwnProperty.call(workspaceSections, migrated) ? migrated : 'SETUP';
+      currentWorkspace = selected;
       const visible = new Set(workspaceSections[selected]);
       document.querySelector('.shell').dataset.workspace = selected;
       Object.values(workspaceSections).flat().forEach(id => {
@@ -1067,7 +1507,22 @@
       document.querySelectorAll('[data-workspace]').forEach(button => {
         button.setAttribute('aria-selected', String(button.dataset.workspace === selected));
       });
-      if (persist) localStorage.setItem('nga-ofp-workspace-v1', selected);
+      const index = workspaceOrder.indexOf(selected);
+      el('previousWorkspaceBtn').disabled = index <= 0;
+      el('nextWorkspaceBtn').disabled = index >= workspaceOrder.length - 1;
+      el('previousWorkspaceBtn').textContent = index > 0 ? `Back to ${workspaceLabels[workspaceOrder[index - 1]]}` : 'Previous';
+      el('nextWorkspaceBtn').textContent = index < workspaceOrder.length - 1 ? `Continue to ${workspaceLabels[workspaceOrder[index + 1]]}` : 'Release review';
+      el('dockPreviousBtn').disabled = index <= 0;
+      el('dockNextBtn').disabled = index >= workspaceOrder.length - 1;
+      if (persist) localStorage.setItem('nga-ofp-workspace-v2', selected);
+    }
+
+    function moveWorkspace(direction) {
+      const index = workspaceOrder.indexOf(currentWorkspace);
+      const next = workspaceOrder[Math.max(0, Math.min(workspaceOrder.length - 1, index + direction))];
+      if (!next || next === currentWorkspace) return;
+      setWorkspace(next);
+      document.querySelector('.ofp-workspaces').scrollIntoView({ behavior:'smooth', block:'nearest' });
     }
 
     function inputFor(name) { return document.querySelector(`[data-field="${name}"]`); }
@@ -1485,19 +1940,43 @@
     }
 
     function setWorkspaceState(workspace, label, complete = false) {
-      const button = document.querySelector(`[data-workspace="${workspace}"]`);
+      const button = [...document.querySelectorAll('.ofp-workspace-button')]
+        .find(candidate => candidate.dataset.workspace === workspace);
       if (!button) return;
       button.dataset.state = complete ? 'complete' : 'open';
-      const state = button.querySelector('.workspace-state');
+      const state = button.querySelector(':scope > .workspace-state');
       if (state) state.textContent = label;
     }
 
+    function scheduleMinutes(value) {
+      const text = String(value || '').toUpperCase();
+      const colon = text.match(/(?:^|\D)(\d{2}):(\d{2})(?:\D|$)/);
+      const compact = text.match(/(?:^|\D)(\d{2})(\d{2})(?:Z|L|\D|$)/);
+      const match = colon || compact;
+      if (!match) return null;
+      const hour = Number(match[1]);
+      const minute = Number(match[2]);
+      return hour <= 23 && minute <= 59 ? (hour * 60) + minute : null;
+    }
+
+    function formatClockMinutes(value) {
+      const normalized = ((value % 1440) + 1440) % 1440;
+      return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`;
+    }
+
     function renderWorkspaceProgress(calc) {
-      const routeReady = /^[A-Z0-9]{4}$/.test(String(plan.departure || ''))
-        && /^[A-Z0-9]{4}$/.test(String(plan.destination || ''))
+      const airportsReady = /^[A-Z0-9]{4}$/.test(String(plan.departure || ''))
+        && /^[A-Z0-9]{4}$/.test(String(plan.destination || ''));
+      const setupReady = airportsReady
+        && Boolean(String(plan.dateUtc || '').trim())
+        && Boolean(String(plan.aircraftRegistration || '').trim())
+        && Boolean(String(plan.scheduledOut || '').trim())
+        && num(plan.estimatedEnrouteMinutes) > 0;
+      const routeReady = airportsReady
         && Boolean(String(plan.route || '').trim())
         && Boolean(String(plan.depRunway || '').trim())
-        && Boolean(String(plan.arrRunway || '').trim());
+        && Boolean(String(plan.arrRunway || '').trim())
+        && Boolean(String(plan.alternate || '').trim());
       const loadReady = calc.blockFuelGal > 0
         && calc.crewWeightLb > 0
         && calc.ramp <= calc.profile.maxRampWeightLbs
@@ -1507,18 +1986,59 @@
         && calc.landingEnvelope.valid;
       const movementCount = ['actualOut','actualOff','actualOn','actualIn']
         .filter(field => Boolean(String(inputFor(field).value || '').trim())).length;
-      const briefReady = Boolean(plan.notamReviewAccepted && plan.airspaceReviewAccepted);
+      const reviewReady = Boolean(plan.notamReviewAccepted && plan.airspaceReviewAccepted);
+      const performanceReady = Boolean(plan.performanceSnapshot?.departure?.runway && plan.performanceSnapshot?.arrival?.runway);
+      const briefReady = reviewReady && performanceReady;
       const released = Boolean(inputFor('releaseAccepted').checked);
-      setWorkspaceState('PLAN', routeReady ? 'Route ready' : 'Route / runway open', routeReady);
+      setWorkspaceState('SETUP', setupReady ? 'Flight defined' : 'Setup open', setupReady);
+      setWorkspaceState('ROUTE', routeReady ? 'Route ready' : 'Route / runway open', routeReady);
       setWorkspaceState('LOAD', loadReady ? 'Within limits' : 'Check load', loadReady);
       setWorkspaceState('FLY', `${movementCount} / 4`, movementCount === 4);
-      setWorkspaceState('BRIEF', briefReady ? 'Reviewed' : 'Review open', briefReady);
+      setWorkspaceState('BRIEF', briefReady ? 'Brief complete' : performanceReady ? 'Review open' : 'Perf / review open', briefReady);
       setWorkspaceState('RELEASE', released ? 'Released' : 'Pending', released);
+      const gates = [
+        { ready:setupReady, label:'Complete flight setup and planned schedule.' },
+        { ready:routeReady, label:'Verify route, runways, and alternate.' },
+        { ready:loadReady, label:'Complete fuel, crew weights, and loading.' },
+        { ready:reviewReady, label:'Acknowledge weather, NOTAM, and airspace review.' },
+        { ready:performanceReady, label:'Capture departure and arrival performance.' }
+      ];
+      const completed = gates.filter(gate => gate.ready).length;
+      const percent = Math.round((completed / gates.length) * 100);
+      const firstOpen = gates.find(gate => !gate.ready);
+      el('planningReadinessText').textContent = `${completed} / ${gates.length} gates`;
+      el('planningReadinessHint').textContent = firstOpen?.label || 'Preflight planning gates complete. Review the PIC release.';
+      el('planningReadinessBar').style.width = `${percent}%`;
+      el('planningReadinessBar').classList.toggle('complete', percent === 100);
+      el('planningReadinessBar').parentElement.setAttribute('aria-valuenow', String(percent));
+      el('briefProgressLabel').textContent = `${completed} / ${gates.length} READY`;
+      el('briefProgressBar').style.width = `${percent}%`;
+      el('briefProgressBar').classList.toggle('complete', percent === 100);
+      el('briefState').textContent = released ? 'RELEASED' : percent === 100 ? 'READY TO RELEASE' : 'PLANNING';
+      el('briefState').classList.toggle('ready', percent === 100 || released);
+      return { setupReady, routeReady, loadReady, reviewReady, performanceReady, briefReady, movementCount, released, completed, percent };
+    }
+
+    function warningWorkspace(message) {
+      const value = String(message || '').toUpperCase();
+      if (/CREW|BAGGAGE|FUEL|WEIGHT|CG|RAMP|LANDING POINT|TAKEOFF POINT|ZERO FUEL/.test(value)) return 'LOAD';
+      if (/NOTAM|AIRSPACE|PERFORMANCE/.test(value)) return 'BRIEF';
+      if (/ROUTE|RUNWAY|ALTERNATE/.test(value)) return 'ROUTE';
+      return 'SETUP';
     }
 
     function render() {
       const calc = calculations();
       el('blockFuel').textContent = `${calc.blockFuelGal.toFixed(1)} USG`;
+      const reserveFuel = num(plan.contingencyFuelGal) + num(plan.alternateFuelGal) + num(plan.finalReserveFuelGal);
+      el('fuelTaxiSummary').textContent = num(plan.taxiFuelGal).toFixed(1);
+      el('fuelTripSummary').textContent = num(plan.tripFuelGal).toFixed(1);
+      el('fuelReserveSummary').textContent = reserveFuel.toFixed(1);
+      el('fuelExtraSummary').textContent = num(plan.extraFuelGal).toFixed(1);
+      el('fuelBlockSummary').textContent = calc.blockFuelGal.toFixed(1);
+      el('fuelCalcBtn').textContent = num(plan.estimatedEnrouteMinutes) > 0
+        ? `Calculate fuel from ${Math.round(num(plan.estimatedEnrouteMinutes))} minute EET`
+        : 'Calculate fuel from planned EET';
       setMetric('fuelWeight', `${calc.fuelWeightLb.toFixed(1)} LB`, calc.fuelWeightLb > calc.profile.stations.fuel.weightLimitLbs);
       el('paxWeight').textContent = `${calc.passengerWeightLb.toFixed(1)} LB`;
       setMetric('bagWeight', `${calc.baggageWeightLb.toFixed(1)} LB`, calc.baggageWeightLb > calc.profile.stations.baggage.weightLimitLbs);
@@ -1541,15 +2061,52 @@
       setMetric('landingWeight', `${calc.landing.toFixed(1)} LB`, calc.landing > calc.profile.maxLandingWeightLbs || !calc.landingEnvelope.valid);
       setMetric('takeoffCg', `${calc.cg.toFixed(2)} IN`, !calc.takeoffEnvelope.valid);
       setMetric('gearUpCg', `${calc.gearUpCg.toFixed(2)} IN`, !calc.gearUpEnvelope.valid);
+      const payload = calc.crewWeightLb + calc.passengerWeightLb + calc.baggageWeightLb;
+      const takeoffMargin = calc.profile.maxTakeoffWeightLbs - calc.tow;
+      const landingMargin = calc.profile.maxLandingWeightLbs - calc.landing;
+      el('payloadSummary').textContent = `${payload.toFixed(1)} LB`;
+      el('takeoffMarginSummary').textContent = `${takeoffMargin.toFixed(1)} LB`;
+      el('landingMarginSummary').textContent = `${landingMargin.toFixed(1)} LB`;
+      el('cgSummary').textContent = `${calc.cg.toFixed(2)} IN`;
+      el('takeoffMarginSummary').className = takeoffMargin < 0 ? 'danger' : 'good';
+      el('landingMarginSummary').className = landingMargin < 0 ? 'danger' : 'good';
+      el('cgSummary').className = calc.takeoffEnvelope.valid ? 'good' : 'danger';
       const primaryWarnings = calc.warnings.slice(0, 3);
       const additionalWarnings = calc.warnings.slice(3);
       el('warningCount').textContent = calc.warnings.length ? `${calc.warnings.length} OPEN` : 'READY';
       el('warningCount').style.color = calc.warnings.length ? 'var(--amber)' : 'var(--green)';
       el('warningList').innerHTML = calc.warnings.length
-        ? `${primaryWarnings.map(item => `<div class="warning">${escapeHtml(item)}</div>`).join('')}${additionalWarnings.length ? `<details class="warning-overflow"><summary>${additionalWarnings.length} more checks</summary>${additionalWarnings.map(item => `<div class="warning">${escapeHtml(item)}</div>`).join('')}</details>` : ''}`
+        ? `${primaryWarnings.map(item => `<button type="button" class="warning" data-warning-workspace="${warningWorkspace(item)}">${escapeHtml(item)}</button>`).join('')}${additionalWarnings.length ? `<details class="warning-overflow"><summary>${additionalWarnings.length} more checks</summary>${additionalWarnings.map(item => `<button type="button" class="warning" data-warning-workspace="${warningWorkspace(item)}">${escapeHtml(item)}</button>`).join('')}</details>` : ''}`
         : '<div class="warning good">Administrative calculations complete. Pilot verification remains required.</div>';
+      el('warningList').querySelectorAll('[data-warning-workspace]').forEach(button => button.addEventListener('click', () => setWorkspace(button.dataset.warningWorkspace)));
       const released = inputFor('releaseAccepted').checked;
-      renderWorkspaceProgress(calc);
+      const progress = renderWorkspaceProgress(calc);
+      el('weatherModuleState').textContent = progress.reviewReady ? 'REVIEWED' : 'REVIEW OPEN';
+      el('weatherModuleState').classList.toggle('complete', progress.reviewReady);
+      el('performanceModuleState').textContent = progress.performanceReady ? 'SNAPSHOT READY' : 'DATA OPEN';
+      el('performanceModuleState').classList.toggle('complete', progress.performanceReady);
+      const departure = String(plan.departure || '----').toUpperCase();
+      const destination = String(plan.destination || '----').toUpperCase();
+      const rules = String(plan.flightRules || plan.routeMode || 'VFR').toUpperCase();
+      const aircraft = String(plan.aircraftCode || 'PA28').toUpperCase();
+      const schedule = String(plan.scheduledOut || request?.requestTime || '--:--').toUpperCase();
+      const eet = Math.max(0, Math.round(num(plan.estimatedEnrouteMinutes)));
+      const startMinutes = scheduleMinutes(schedule);
+      const arrival = startMinutes === null || !eet ? 'CALCULATED AFTER STD / EET' : `${formatClockMinutes(startMinutes + eet)} / PLANNED IN-FLIGHT ARRIVAL`;
+      el('overviewDeparture').textContent = departure;
+      el('overviewDestination').textContent = destination;
+      el('overviewRules').textContent = rules;
+      el('overviewAircraft').textContent = aircraft;
+      el('briefReference').textContent = request?.id || 'FLIGHT FILE';
+      el('briefDeparture').textContent = departure;
+      el('briefDestination').textContent = destination;
+      el('briefSchedule').textContent = schedule || '--:--';
+      el('briefEet').textContent = eet ? `${eet} MIN` : '-- MIN';
+      el('briefRules').textContent = rules;
+      el('briefAircraft').textContent = aircraft;
+      el('estimatedArrivalSummary').textContent = arrival;
+      el('routeStatus').textContent = `${departure}-${destination}`;
+      el('scheduleStatus').textContent = `${plan.dateUtc || request?.requestDate || 'DATE'} ${schedule}`;
       el('documentStatus').textContent = released ? 'RELEASE ACKNOWLEDGED' : saved ? 'DRAFT SAVED' : 'UNSAVED DRAFT';
       el('documentStatus').style.color = released ? 'var(--green)' : 'var(--amber)';
       el('crewStatus').textContent = inputFor('releaseName').value || inputFor('commanderName')?.value || plan.commanderName || 'UNASSIGNED';
@@ -1812,7 +2369,11 @@
       el(id).addEventListener('change', renderConversions);
     });
     document.querySelectorAll('[data-workspace]').forEach(button => button.addEventListener('click', () => setWorkspace(button.dataset.workspace)));
-    setWorkspace(localStorage.getItem('nga-ofp-workspace-v1') || 'PLAN', false);
+    el('previousWorkspaceBtn').addEventListener('click', () => moveWorkspace(-1));
+    el('nextWorkspaceBtn').addEventListener('click', () => moveWorkspace(1));
+    el('dockPreviousBtn').addEventListener('click', () => moveWorkspace(-1));
+    el('dockNextBtn').addEventListener('click', () => moveWorkspace(1));
+    setWorkspace(localStorage.getItem('nga-ofp-workspace-v2') || localStorage.getItem('nga-ofp-workspace-v1') || 'SETUP', false);
     renderConversions();
     el('loadModeSelect').addEventListener('change', () => {
       const manual = el('loadModeSelect').value === 'MANUAL';
@@ -1840,6 +2401,7 @@
     const saveDraft = () => save().catch(error => setSaveState('failed', error.message || 'Unable to save OFP.'));
     el('saveBtn').addEventListener('click', saveDraft);
     el('previewBtn').addEventListener('click', refreshPdfPreview);
+    el('generateOfpBtn').addEventListener('click', refreshPdfPreview);
     el('pdfBtn').addEventListener('click', openCurrentPdf);
     el('summaryInspectorBtn').addEventListener('click', () => setInspector('SUMMARY'));
     el('pdfInspectorBtn').addEventListener('click', () => setInspector('PDF'));
@@ -1851,6 +2413,8 @@
     el('dockPdfBtn').addEventListener('click', openCurrentPdf);
     el('backBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops'; });
     el('weatherBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
+    el('openWeatherWorkspaceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
+    el('openPerformanceWorkspaceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#performance'; });
     document.addEventListener('keydown', event => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
