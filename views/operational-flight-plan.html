@@ -956,14 +956,6 @@
     .dispatch-brief-head strong { display:block; margin-top:3px; color:#e6f1f6; font:700 10px/1.2 "Courier New",monospace; }
     .dispatch-brief-head b { padding:5px 7px; border:1px solid #557082; border-radius:999px; color:#aabcc6; font:700 7px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:.08em; }
     .dispatch-brief-head b.ready { border-color:var(--dispatch-live); color:var(--dispatch-live); }
-    .brief-route { display:flex; align-items:center; justify-content:center; gap:12px; padding:15px 12px 11px; }
-    .brief-route strong { color:#fff; font:700 24px/1 "Courier New",monospace; }
-    .brief-route i { color:var(--dispatch-blue); font:400 18px/1 sans-serif; }
-    .brief-facts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid #223b4b; border-bottom:1px solid #223b4b; }
-    .brief-facts div { min-width:0; padding:9px 7px; border-right:1px solid #223b4b; }
-    .brief-facts div:last-child { border-right:0; }
-    .brief-facts span { display:block; color:#718896; font:700 7px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:uppercase; }
-    .brief-facts strong { display:block; margin-top:4px; overflow:hidden; color:#dce8ee; font:700 9px/1.2 "Courier New",monospace; text-overflow:ellipsis; white-space:nowrap; }
     .brief-progress { padding:11px 12px; }
     .brief-progress span { color:#8096a4; font:700 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-transform:uppercase; }
     .brief-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:0 12px 7px; }
@@ -1042,7 +1034,6 @@
       .route-command-row { grid-template-columns:1fr; }
       .console { grid-template-columns:1fr; }
       .console-summary { grid-template-columns:1fr; }
-      .brief-route strong { font-size:22px; }
       .movement-grid { grid-template-columns:1fr; }
       .fuel-ladder { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .fuel-ladder .fuel-total { grid-column:1/-1; }
@@ -1058,9 +1049,305 @@
       .schedule-primary-grid, .schedule-drawer .time-support { grid-template-columns:1fr; }
       .flight-core-grid { grid-template-columns:1fr; }
       .flight-core-grid > label, .flight-core-grid > .aircraft-profile-field, .flight-core-grid > .airport-field, .flight-core-grid > .runway-field { grid-column:1; }
-      .brief-facts { grid-template-columns:1fr 1fr; }
-      .brief-facts div:nth-child(2) { border-right:0; }
-      .brief-facts div:nth-child(-n+2) { border-bottom:1px solid #223b4b; }
+    }
+
+    /* Native flight-deck polish: calmer hierarchy, larger touch targets, and
+       progressive disclosure for authoritative aircraft data. */
+    :root {
+      --app-canvas:#070b11;
+      --app-material:#101720;
+      --app-material-raised:#151e29;
+      --app-material-soft:#0b1118;
+      --app-separator:rgba(159,190,211,.17);
+      --app-label:#f5f8fa;
+      --app-secondary:#8f9eaa;
+      --app-accent:#4bb3fd;
+      --app-complete:#5bd28b;
+    }
+    html, body { background:var(--app-canvas); }
+    body { color:var(--app-label); }
+    .shell {
+      border-color:var(--app-separator);
+      border-radius:16px;
+      background:var(--app-canvas);
+      box-shadow:0 28px 80px rgba(0,0,0,.34);
+    }
+    .topbar {
+      border-color:var(--app-separator);
+      background:rgba(12,18,26,.9);
+      box-shadow:0 1px 0 rgba(255,255,255,.025);
+      backdrop-filter:saturate(140%) blur(22px);
+      -webkit-backdrop-filter:saturate(140%) blur(22px);
+    }
+    .topbar h1 { font-weight:680; letter-spacing:-.015em; }
+    .topbar .sub { color:var(--app-secondary); }
+    .btn {
+      min-height:44px;
+      border-color:rgba(99,166,209,.38);
+      border-radius:10px;
+      background:#142231;
+      color:#d6eeff;
+      font-weight:650;
+      letter-spacing:0;
+      text-transform:none;
+      transition:transform .14s ease,background-color .14s ease,border-color .14s ease;
+    }
+    .btn:hover { border-color:rgba(99,183,238,.75); background:#193044; }
+    .btn:active { transform:scale(.985); }
+    .btn.primary { border-color:#c5e4f7; background:#e8f4fb; color:#092033; }
+    .dispatch-overview {
+      gap:0;
+      border-color:var(--app-separator);
+      border-radius:14px;
+      background:transparent;
+      box-shadow:0 10px 34px rgba(0,0,0,.16);
+    }
+    .dispatch-identity,
+    .overview-readiness,
+    .dispatch-overview .statusline { background:var(--app-material); }
+    .dispatch-overview .statusline { gap:0; }
+    .dispatch-overview .statusbox { border-left:1px solid var(--app-separator); background:transparent; }
+    .dispatch-route strong { letter-spacing:-.025em; }
+    .dispatch-meta-row .flight-source,
+    .dispatch-meta-row .save-state {
+      border-color:var(--app-separator);
+      border-radius:11px;
+      background:var(--app-material-soft);
+    }
+    .ofp-workspaces {
+      gap:5px;
+      padding:5px;
+      border-color:var(--app-separator);
+      border-radius:14px;
+      background:rgba(12,18,26,.92);
+      box-shadow:0 8px 30px rgba(0,0,0,.14);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+    }
+    .ofp-workspace-button {
+      min-height:64px;
+      border-radius:10px;
+      transition:background-color .16s ease,box-shadow .16s ease,color .16s ease;
+    }
+    .ofp-workspace-button::before { border-color:#4b6171; background:#0d151e; }
+    .ofp-workspace-button[aria-selected="true"] {
+      border-color:rgba(75,179,253,.4);
+      background:rgba(42,111,158,.23);
+      box-shadow:inset 0 0 0 1px rgba(75,179,253,.24);
+    }
+    .ofp-workspace-button[aria-selected="true"]::before { border-color:var(--app-accent); background:var(--app-accent); color:#06111a; }
+    .ofp-workspace-button[aria-selected="true"] span { color:#a7d9fb; }
+    .ofp-workspace-button[aria-selected="true"] strong { color:#f7fbfd; }
+    .ofp-workspace-button[data-state="complete"] .workspace-state { color:var(--app-complete); }
+    .workspace { gap:12px; padding:0 8px 10px; }
+    .editor { gap:10px; }
+    .editor > details {
+      border-color:var(--app-separator);
+      border-radius:14px;
+      background:var(--app-material);
+      box-shadow:0 12px 34px rgba(0,0,0,.12);
+    }
+    .editor > details > summary {
+      padding:15px 17px;
+      border-color:var(--app-separator);
+      background:rgba(19,28,38,.72);
+      font-size:13px;
+      letter-spacing:0;
+    }
+    .editor > details > .detail-body { padding:0 17px 17px; }
+    .section-heading { padding:17px 0 14px; border-color:var(--app-separator); }
+    .section-heading span { color:#86ccfa; }
+    .section-heading strong { margin-top:5px; font-size:18px; letter-spacing:-.01em; }
+    .section-heading p { color:var(--app-secondary); font-size:11px; }
+    label { color:#a1afba; font-size:10px; font-weight:620; letter-spacing:.01em; text-transform:none; }
+    input, select, textarea {
+      min-height:48px;
+      border-color:var(--app-separator);
+      border-radius:10px;
+      background:#080d13;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+      font-size:13px;
+    }
+    input:focus, select:focus, textarea:focus { outline:3px solid rgba(75,179,253,.16); border-color:rgba(75,179,253,.8); }
+    .schedule-workbench,
+    .route-workbench,
+    .planning-drawer,
+    .console-card,
+    .utility-card,
+    .dispatch-brief-card,
+    .console-details {
+      border-color:var(--app-separator);
+      border-radius:12px;
+      background:var(--app-material-soft);
+    }
+    .schedule-workbench-head,
+    .route-workbench-head,
+    .dispatch-brief-head { border-color:var(--app-separator); background:var(--app-material-raised); }
+    .schedule-estimate,
+    .route-tokens,
+    .metric,
+    .utility-output { border-color:var(--app-separator); border-radius:9px; background:#080e15; }
+    .route-swap { min-height:48px; border-color:var(--app-separator); border-radius:10px; background:#0d151e; }
+    .route-token { border-radius:8px; }
+    .fuel-ladder,
+    .load-margin-strip { border-color:var(--app-separator); border-radius:11px; background:var(--app-separator); }
+    .fuel-ladder > div,
+    .load-margin-strip > div { background:#0b121a; }
+    .movement-card { border-color:var(--app-separator); border-radius:12px; background:#0b121a; }
+    .briefing-modules button { border-color:var(--app-separator); border-radius:11px; background:#0b141d; }
+    .console { gap:10px; }
+    .console-mode-switch { padding:4px; border:1px solid var(--app-separator); border-radius:11px; background:#0b121a; }
+    .console-mode-switch button { min-height:40px; border-radius:8px; }
+    .console-mode-switch button[aria-selected="true"] { background:#1a2b3b; box-shadow:0 2px 10px rgba(0,0,0,.2); }
+
+    .aircraft-profile-field { position:relative; min-width:0; }
+    .aircraft-profile-caption { display:block; margin-bottom:5px; color:#a1afba; font-size:10px; font-weight:620; }
+    .aircraft-profile-select {
+      position:absolute !important;
+      width:1px !important;
+      height:1px !important;
+      min-height:0 !important;
+      margin:0 !important;
+      padding:0 !important;
+      overflow:hidden;
+      clip:rect(0 0 0 0);
+      clip-path:inset(50%);
+      white-space:nowrap;
+    }
+    .aircraft-profile-button {
+      display:grid;
+      grid-template-columns:52px minmax(0,1fr) auto;
+      gap:12px;
+      align-items:center;
+      width:100%;
+      min-height:68px;
+      border:1px solid var(--app-separator);
+      border-radius:12px;
+      padding:9px 12px 9px 9px;
+      background:linear-gradient(135deg,#111d28,#0b1118);
+      color:var(--app-label);
+      text-align:left;
+      cursor:pointer;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+      transition:border-color .16s ease,background-color .16s ease,transform .14s ease;
+    }
+    .aircraft-profile-button:hover { border-color:rgba(75,179,253,.58); background:linear-gradient(135deg,#142434,#0c141d); }
+    .aircraft-profile-button:active { transform:scale(.992); }
+    .aircraft-profile-button:focus-visible,
+    .profile-close:focus-visible { outline:3px solid rgba(75,179,253,.28); outline-offset:2px; }
+    .aircraft-profile-code {
+      display:grid;
+      place-items:center;
+      width:52px;
+      height:48px;
+      border-radius:10px;
+      background:#1a2a38;
+      color:#9bd5fb;
+      font:700 13px/1 "Courier New",monospace;
+      letter-spacing:.04em;
+    }
+    .aircraft-profile-copy { min-width:0; }
+    .aircraft-profile-copy strong { display:block; overflow:hidden; color:#f4f8fa; font:670 14px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; text-overflow:ellipsis; white-space:nowrap; }
+    .aircraft-profile-copy small { display:flex; flex-wrap:wrap; gap:6px; margin-top:5px; color:#8295a2; font:600 9px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .aircraft-profile-copy small b { color:var(--app-complete); font-weight:650; }
+    .aircraft-profile-chevron { color:#7f94a2; font:500 24px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+
+    .aircraft-profile-dialog {
+      width:min(620px,calc(100vw - 28px));
+      max-height:min(760px,calc(100vh - 40px));
+      margin:auto;
+      overflow:auto;
+      border:1px solid rgba(164,198,220,.24);
+      border-radius:20px;
+      padding:0;
+      background:#121923;
+      color:var(--app-label);
+      box-shadow:0 30px 100px rgba(0,0,0,.65);
+    }
+    .aircraft-profile-dialog::backdrop { background:rgba(1,5,9,.66); backdrop-filter:blur(9px); -webkit-backdrop-filter:blur(9px); }
+    .aircraft-profile-sheet { margin:0; }
+    .profile-sheet-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 20px 14px; border-bottom:1px solid var(--app-separator); }
+    .profile-sheet-head span { display:block; color:#8396a3; font-size:10px; font-weight:650; }
+    .profile-sheet-head h2 { margin:4px 0 0; font-size:21px; letter-spacing:-.02em; }
+    .profile-close { width:34px; height:34px; border:0; border-radius:50%; background:#28323e; color:#c7d2da; cursor:pointer; font-size:18px; }
+    .profile-sheet-hero { display:grid; grid-template-columns:68px minmax(0,1fr); gap:14px; align-items:center; padding:18px 20px; }
+    .profile-sheet-code { display:grid; place-items:center; width:68px; height:62px; border-radius:16px; background:#1a2d3e; color:#a5dcff; font:700 17px/1 "Courier New",monospace; }
+    .profile-sheet-hero strong { display:block; font-size:17px; }
+    .profile-sheet-hero span { display:block; margin-top:5px; color:#8fa0ab; font:600 10px/1.3 "Courier New",monospace; }
+    .profile-sheet-hero .profile-sheet-code { display:grid; place-items:center; margin:0; color:#a5dcff; font-size:17px; }
+    .profile-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; margin:0 20px; overflow:hidden; border:1px solid var(--app-separator); border-radius:12px; background:var(--app-separator); }
+    .profile-facts div { min-width:0; padding:13px; background:#0b1118; }
+    .profile-facts span { display:block; color:#82939f; font-size:9px; font-weight:650; }
+    .profile-facts strong { display:block; margin-top:6px; overflow-wrap:anywhere; color:#f0f5f8; font:700 14px/1.25 "Courier New",monospace; }
+    .profile-locked-note { display:flex; gap:11px; align-items:flex-start; margin:16px 20px 20px; border-radius:12px; padding:13px 14px; background:#0c2118; color:#bcebd0; font-size:11px; line-height:1.45; }
+    .profile-locked-note b { flex:0 0 auto; color:var(--app-complete); font-size:15px; }
+    .profile-sheet-actions { padding:0 20px 20px; }
+    .profile-sheet-actions .btn { width:100%; }
+
+    .dispatch-brief-card { padding:0; box-shadow:0 16px 42px rgba(0,0,0,.18); }
+    .dispatch-brief-head { padding:14px 15px; }
+    .dispatch-brief-head span { letter-spacing:.04em; text-transform:none; }
+    .dispatch-brief-head b { border-radius:999px; padding:6px 8px; }
+    .brief-next-action { padding:17px 15px 15px; }
+    .brief-next-action > span { display:block; color:#78909f; font-size:9px; font-weight:650; }
+    .brief-next-action > strong { display:block; margin-top:6px; color:#f4f8fa; font-size:18px; line-height:1.18; letter-spacing:-.01em; }
+    .brief-next-action p { min-height:38px; margin:7px 0 13px; color:#8fa0ab; font-size:10px; line-height:1.45; }
+    .brief-next-action .btn { width:100%; }
+    .brief-progress { padding:13px 15px; border-top:1px solid var(--app-separator); }
+    .brief-progress span { letter-spacing:.02em; text-transform:none; }
+    .brief-actions { gap:7px; padding:0 15px 8px; }
+    .dispatch-generate { width:calc(100% - 30px); min-height:48px; margin:0 15px 15px; }
+
+    @media (max-width:1100px) {
+      .workspace { grid-template-columns:1fr; }
+      .console { position:static; display:grid; grid-template-columns:1fr 1fr; }
+      .console-mode-switch { position:static; grid-column:1/-1; }
+      .console-summary { grid-column:1/-1; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+      .dispatch-brief-card,
+      .console-summary .utility-card,
+      .pdf-preview-panel { grid-column:1/-1; }
+    }
+    @media (max-width:980px) {
+      .shell { border-radius:0; }
+      .console-summary { gap:10px; }
+      .aircraft-profile-dialog { max-height:calc(100vh - 28px); }
+    }
+    @media (max-width:720px) {
+      body { background:var(--app-canvas); }
+      .shell { min-height:100vh; }
+      .topbar { display:grid; gap:8px; padding:9px 8px 10px; }
+      .topbar-title { display:block !important; }
+      .topbar .eyebrow,
+      .topbar .sub { display:none; }
+      .topbar h1 { margin:0; font-size:16px; }
+      .dispatch-overview { border-radius:12px; }
+      .ofp-workspaces { border-radius:12px; }
+      .ofp-workspace-button { flex-basis:132px; min-height:62px; }
+      .editor > details { border-radius:12px; }
+      .editor > details > .detail-body { padding:0 13px 13px; }
+      .aircraft-profile-button { min-height:66px; }
+      .aircraft-profile-dialog {
+        width:100%;
+        max-width:none;
+        max-height:88vh;
+        margin:auto 0 0;
+        border-width:1px 0 0;
+        border-radius:20px 20px 0 0;
+      }
+      .profile-facts { grid-template-columns:1fr 1fr; }
+      .profile-sheet-head { padding-top:14px; }
+      .console-mode-switch { position:static; }
+      .ofp-action-dock { background:rgba(9,14,20,.94); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+    }
+    @media (max-width:430px) {
+      .aircraft-profile-button { grid-template-columns:46px minmax(0,1fr) auto; gap:9px; padding-left:8px; }
+      .aircraft-profile-code { width:46px; height:46px; }
+      .aircraft-profile-copy strong { font-size:13px; }
+      .profile-sheet-hero,
+      .profile-sheet-head { padding-left:16px; padding-right:16px; }
+      .profile-facts { margin-left:16px; margin-right:16px; }
+      .profile-locked-note { margin-left:16px; margin-right:16px; }
+      .profile-sheet-actions { padding-left:16px; padding-right:16px; }
     }
   </style>
 </head>
@@ -1108,7 +1395,15 @@
             <div class="section-heading"><div><span>Flight setup</span><strong>Define the flight</strong></div><p>Confirm the aircraft, operating rules, airports, and planned schedule before routing.</p></div>
             <div class="flight-core-grid">
               <label>Date<input data-field="dateUtc" type="date" /></label>
-              <label class="aircraft-profile-field">Aircraft profile<select class="aircraft-select" data-field="aircraftRegistration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select><small>ICAO PA28 / locked aircraft data</small></label>
+              <div class="aircraft-profile-field">
+                <span class="aircraft-profile-caption">Aircraft profile</span>
+                <select class="aircraft-select aircraft-profile-select" data-field="aircraftRegistration" aria-label="Aircraft registration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select>
+                <button id="aircraftProfileBtn" class="aircraft-profile-button" type="button" aria-haspopup="dialog" aria-controls="aircraftProfileDialog">
+                  <span id="aircraftProfileButtonCode" class="aircraft-profile-code">PA28</span>
+                  <span class="aircraft-profile-copy"><strong id="aircraftProfileButtonModel">Piper PA-28R-200 Arrow II</strong><small><span id="aircraftProfileButtonRegistration">PRIMARY AIRCRAFT</span><b>Operational profile locked</b></small></span>
+                  <span class="aircraft-profile-chevron" aria-hidden="true">&#8250;</span>
+                </button>
+              </div>
               <input data-field="aircraftModel" type="hidden" value="PA28-200R" />
               <input data-field="aircraftCode" type="hidden" value="PA28" />
               <label>Flight rules<select id="flightRulesSelect" data-field="flightRules"><option value="VFR">VFR</option><option value="IFR">IFR</option></select></label>
@@ -1337,19 +1632,18 @@
           <button id="pdfInspectorBtn" type="button" role="tab" aria-selected="false" aria-controls="pdfPreviewPanel">PDF preview</button>
         </div>
         <div id="consoleSummary" class="console-summary">
-        <section class="dispatch-brief-card" aria-label="Live dispatch brief">
-          <div class="dispatch-brief-head"><div><span>Live dispatch brief</span><strong id="briefReference">FLIGHT FILE</strong></div><b id="briefState">PLANNING</b></div>
-          <div class="brief-route"><strong id="briefDeparture">----</strong><i aria-hidden="true">&#8594;</i><strong id="briefDestination">----</strong></div>
-          <div class="brief-facts">
-            <div><span>STD</span><strong id="briefSchedule">--:--</strong></div>
-            <div><span>EET</span><strong id="briefEet">-- MIN</strong></div>
-            <div><span>Rules</span><strong id="briefRules">VFR</strong></div>
-            <div><span>Aircraft</span><strong id="briefAircraft">PA28</strong></div>
+        <section class="dispatch-brief-card" aria-label="Flight planning readiness">
+          <div class="dispatch-brief-head"><div><span>Flight readiness</span><strong id="briefReference">FLIGHT FILE</strong></div><b id="briefState">PLANNING</b></div>
+          <div class="brief-next-action">
+            <span id="briefGatePosition">NEXT ACTION</span>
+            <strong id="briefNextAction">Complete flight setup</strong>
+            <p id="briefNextDetail">Confirm the aircraft, airports, schedule, and planned flight time.</p>
+            <button id="openNextGateBtn" class="btn" type="button">Open next task</button>
           </div>
           <div class="brief-progress"><div><span>Preflight gates</span><strong id="briefProgressLabel">0 / 5 READY</strong></div><div class="readiness-track"><span id="briefProgressBar"></span></div></div>
           <div class="brief-actions">
             <button id="previousWorkspaceBtn" class="btn subtle" type="button">Previous</button>
-            <button id="nextWorkspaceBtn" class="btn" type="button">Continue</button>
+            <button id="nextWorkspaceBtn" class="btn" type="button">Next stage</button>
           </div>
           <button id="generateOfpBtn" class="btn primary dispatch-generate" type="button">Save &amp; Generate OFP</button>
         </section>
@@ -1404,6 +1698,28 @@
       <button id="dockPreviewBtn" class="btn primary" type="button">Generate</button>
       <button id="dockPdfBtn" class="btn" type="button">PDF</button>
     </nav>
+    <dialog id="aircraftProfileDialog" class="aircraft-profile-dialog" aria-labelledby="aircraftProfileTitle">
+      <form method="dialog" class="aircraft-profile-sheet">
+        <header class="profile-sheet-head">
+          <div><span>Authoritative aircraft data</span><h2 id="aircraftProfileTitle">Aircraft profile</h2></div>
+          <button class="profile-close" type="submit" value="close" aria-label="Close aircraft profile">&#215;</button>
+        </header>
+        <div class="profile-sheet-hero">
+          <span id="profileDialogCode" class="profile-sheet-code">PA28</span>
+          <div><strong id="profileDialogModel">Piper PA-28R-200 Arrow II</strong><span id="profileDialogRegistration">PRIMARY AIRCRAFT</span></div>
+        </div>
+        <div class="profile-facts">
+          <div><span>Profile</span><strong id="profileDialogVersion">LOCKED</strong></div>
+          <div><span>Basic empty mass</span><strong id="profileDialogBem">-- LB</strong></div>
+          <div><span>Maximum takeoff</span><strong id="profileDialogMtow">-- LB</strong></div>
+          <div><span>Usable fuel</span><strong id="profileDialogFuel">-- USG</strong></div>
+          <div><span>Seats</span><strong id="profileDialogSeats">4 TOTAL</strong></div>
+          <div><span>Baggage limit</span><strong id="profileDialogBaggage">-- LB</strong></div>
+        </div>
+        <div class="profile-locked-note"><b aria-hidden="true">&#10003;</b><span>Structural limits, station arms, and the approved CG envelope are server protected. Operational load values remain editable in Fuel &amp; Load.</span></div>
+        <div class="profile-sheet-actions"><button class="btn primary" type="submit" value="close">Done</button></div>
+      </form>
+    </dialog>
   </main>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
@@ -1847,6 +2163,27 @@
       render();
     }
 
+    function renderAircraftProfile() {
+      const profile = plan?.weightBalanceProfile || {};
+      const stations = profile.stations || {};
+      const code = String(plan?.aircraftCode || 'PA28').toUpperCase();
+      const model = String(request?.aircraft || 'Piper PA-28R-200 Arrow II').trim();
+      const registration = String(plan?.aircraftRegistration || 'PRIMARY AIRCRAFT').toUpperCase();
+      const totalSeats = num(stations.cockpit?.seats) + num(stations.rearSeats?.seats);
+      el('aircraftProfileButtonCode').textContent = code;
+      el('aircraftProfileButtonModel').textContent = model;
+      el('aircraftProfileButtonRegistration').textContent = registration;
+      el('profileDialogCode').textContent = code;
+      el('profileDialogModel').textContent = model;
+      el('profileDialogRegistration').textContent = `${registration} / ${profile.weightUnits || 'LB'} & ${profile.armUnits || 'IN'}`;
+      el('profileDialogVersion').textContent = profile.profileVersion || 'LOCKED';
+      el('profileDialogBem').textContent = `${num(profile.basicEmptyWeightLbs).toFixed(0)} LB`;
+      el('profileDialogMtow').textContent = `${num(profile.maxTakeoffWeightLbs).toFixed(0)} LB`;
+      el('profileDialogFuel').textContent = `${num(stations.fuel?.usableGallons).toFixed(0)} USG`;
+      el('profileDialogSeats').textContent = `${totalSeats || 4} TOTAL`;
+      el('profileDialogBaggage').textContent = `${num(stations.baggage?.weightLimitLbs).toFixed(0)} LB`;
+    }
+
     function readPlan() {
       fields().forEach(input => { plan[input.dataset.field] = input.type === 'checkbox' ? input.checked : input.value; });
       plan.routeLegs = routeLegs.map(leg => ({ ...leg }));
@@ -1997,17 +2334,17 @@
       setWorkspaceState('BRIEF', briefReady ? 'Brief complete' : performanceReady ? 'Review open' : 'Perf / review open', briefReady);
       setWorkspaceState('RELEASE', released ? 'Released' : 'Pending', released);
       const gates = [
-        { ready:setupReady, label:'Complete flight setup and planned schedule.' },
-        { ready:routeReady, label:'Verify route, runways, and alternate.' },
-        { ready:loadReady, label:'Complete fuel, crew weights, and loading.' },
-        { ready:reviewReady, label:'Acknowledge weather, NOTAM, and airspace review.' },
-        { ready:performanceReady, label:'Capture departure and arrival performance.' }
+        { ready:setupReady, workspace:'SETUP', title:'Complete flight setup', detail:'Confirm the aircraft, airports, schedule, and planned flight time.' },
+        { ready:routeReady, workspace:'ROUTE', title:'Verify the operational route', detail:'Confirm the route sequence, runways, procedures, and alternate.' },
+        { ready:loadReady, workspace:'LOAD', title:'Resolve fuel and loading', detail:'Verify crew weights, fuel, payload, structural margins, and CG.' },
+        { ready:reviewReady, workspace:'BRIEF', title:'Complete the flight briefing', detail:'Acknowledge current weather, NOTAM, and airspace review.' },
+        { ready:performanceReady, workspace:'BRIEF', title:'Capture performance data', detail:'Complete departure and arrival runway performance in the dedicated workspace.' }
       ];
       const completed = gates.filter(gate => gate.ready).length;
       const percent = Math.round((completed / gates.length) * 100);
       const firstOpen = gates.find(gate => !gate.ready);
       el('planningReadinessText').textContent = `${completed} / ${gates.length} gates`;
-      el('planningReadinessHint').textContent = firstOpen?.label || 'Preflight planning gates complete. Review the PIC release.';
+      el('planningReadinessHint').textContent = firstOpen?.detail || 'Preflight planning gates complete. Review the PIC release.';
       el('planningReadinessBar').style.width = `${percent}%`;
       el('planningReadinessBar').classList.toggle('complete', percent === 100);
       el('planningReadinessBar').parentElement.setAttribute('aria-valuenow', String(percent));
@@ -2016,7 +2353,18 @@
       el('briefProgressBar').classList.toggle('complete', percent === 100);
       el('briefState').textContent = released ? 'RELEASED' : percent === 100 ? 'READY TO RELEASE' : 'PLANNING';
       el('briefState').classList.toggle('ready', percent === 100 || released);
-      return { setupReady, routeReady, loadReady, reviewReady, performanceReady, briefReady, movementCount, released, completed, percent };
+      const action = released
+        ? { workspace:'RELEASE', title:'Flight released', detail:'Review the frozen release snapshot and controlled document before operation.' }
+        : percent === 100
+          ? { workspace:'RELEASE', title:'Complete PIC release', detail:'All planning gates are ready. Review the final checks and acknowledge command release.' }
+          : firstOpen;
+      const openIndex = firstOpen ? gates.indexOf(firstOpen) + 1 : gates.length;
+      el('briefGatePosition').textContent = released ? 'RELEASE COMPLETE' : percent === 100 ? 'FINAL COMMAND ACTION' : `NEXT / GATE ${openIndex} OF ${gates.length}`;
+      el('briefNextAction').textContent = action.title;
+      el('briefNextDetail').textContent = action.detail;
+      el('openNextGateBtn').dataset.workspace = action.workspace;
+      el('openNextGateBtn').textContent = released ? 'Review release' : percent === 100 ? 'Open PIC release' : 'Open next task';
+      return { setupReady, routeReady, loadReady, reviewReady, performanceReady, briefReady, movementCount, released, completed, percent, firstOpen };
     }
 
     function warningWorkspace(message) {
@@ -2029,6 +2377,7 @@
 
     function render() {
       const calc = calculations();
+      renderAircraftProfile();
       el('blockFuel').textContent = `${calc.blockFuelGal.toFixed(1)} USG`;
       const reserveFuel = num(plan.contingencyFuelGal) + num(plan.alternateFuelGal) + num(plan.finalReserveFuelGal);
       el('fuelTaxiSummary').textContent = num(plan.taxiFuelGal).toFixed(1);
@@ -2098,12 +2447,6 @@
       el('overviewRules').textContent = rules;
       el('overviewAircraft').textContent = aircraft;
       el('briefReference').textContent = request?.id || 'FLIGHT FILE';
-      el('briefDeparture').textContent = departure;
-      el('briefDestination').textContent = destination;
-      el('briefSchedule').textContent = schedule || '--:--';
-      el('briefEet').textContent = eet ? `${eet} MIN` : '-- MIN';
-      el('briefRules').textContent = rules;
-      el('briefAircraft').textContent = aircraft;
       el('estimatedArrivalSummary').textContent = arrival;
       el('routeStatus').textContent = `${departure}-${destination}`;
       el('scheduleStatus').textContent = `${plan.dateUtc || request?.requestDate || 'DATE'} ${schedule}`;
@@ -2369,6 +2712,16 @@
       el(id).addEventListener('change', renderConversions);
     });
     document.querySelectorAll('[data-workspace]').forEach(button => button.addEventListener('click', () => setWorkspace(button.dataset.workspace)));
+    el('openNextGateBtn').addEventListener('click', event => setWorkspace(event.currentTarget.dataset.workspace || 'SETUP'));
+    el('aircraftProfileBtn').addEventListener('click', () => {
+      renderAircraftProfile();
+      const dialog = el('aircraftProfileDialog');
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+    });
+    el('aircraftProfileDialog').addEventListener('click', event => {
+      if (event.target === event.currentTarget && typeof event.currentTarget.close === 'function') event.currentTarget.close();
+    });
     el('previousWorkspaceBtn').addEventListener('click', () => moveWorkspace(-1));
     el('nextWorkspaceBtn').addEventListener('click', () => moveWorkspace(1));
     el('dockPreviousBtn').addEventListener('click', () => moveWorkspace(-1));
