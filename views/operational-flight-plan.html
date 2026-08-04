@@ -1349,12 +1349,235 @@
       .profile-locked-note { margin-left:16px; margin-right:16px; }
       .profile-sheet-actions { padding-left:16px; padding-right:16px; }
     }
+
+    /* Chronological flight-information workspace */
+    #flightSetupSection { order:1; }
+    #routeSection { order:2; }
+    #fuelSection { order:3; }
+    #loadSection { order:4; }
+    #dispatchSection { order:5; }
+    #movementSection { order:6; }
+    #releaseSection { order:7; }
+    .topbar-title {
+      display:flex;
+      min-width:0;
+      align-items:center;
+      gap:12px;
+    }
+    .ofp-brand-mark {
+      display:grid;
+      flex:0 0 auto;
+      place-items:center;
+      width:62px;
+      height:42px;
+      overflow:hidden;
+      border:1px solid rgba(185,211,227,.2);
+      border-radius:10px;
+      padding:5px 6px;
+      background:#f8fafb;
+      box-shadow:0 4px 14px rgba(0,0,0,.18);
+    }
+    .ofp-brand-mark img { display:block; width:100%; height:100%; object-fit:contain; }
+    .flight-info-composer {
+      margin-top:13px;
+      overflow:hidden;
+      border:1px solid var(--app-separator);
+      border-radius:14px;
+      background:#0b1118;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+    }
+    .flight-info-head {
+      display:flex;
+      align-items:stretch;
+      justify-content:space-between;
+      gap:18px;
+      min-height:80px;
+      padding:14px 15px;
+      border-bottom:1px solid var(--app-separator);
+      background:linear-gradient(115deg,#162332 0%,#101923 58%,#0d141d 100%);
+    }
+    .flight-info-head > div:first-child { align-self:center; min-width:0; }
+    .flight-info-head span,
+    .flight-route-point > span {
+      display:block;
+      color:#82a2b6;
+      font:650 9px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .flight-info-head > div:first-child strong {
+      display:block;
+      margin-top:5px;
+      overflow:hidden;
+      color:#f6f9fb;
+      font:680 17px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      letter-spacing:-.01em;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .flight-info-head small { display:block; margin-top:5px; color:#7e909c; font:600 9px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .eobt-summary {
+      display:flex;
+      min-width:260px;
+      flex-direction:column;
+      justify-content:center;
+      border-left:1px solid var(--app-separator);
+      padding-left:18px;
+    }
+    .eobt-summary strong { display:block; margin-top:5px; color:#b8e2ff; font:700 16px/1.15 "Courier New",monospace; white-space:nowrap; }
+    .flight-identity-grid {
+      display:grid;
+      grid-template-columns:repeat(12,minmax(0,1fr));
+      gap:10px;
+      align-items:end;
+      padding:14px 15px;
+      border-bottom:1px solid var(--app-separator);
+    }
+    .flight-identity-grid > label:nth-child(1),
+    .flight-identity-grid > label:nth-child(2),
+    .flight-identity-grid > label:nth-child(5) { grid-column:span 2; }
+    .flight-identity-grid > label:nth-child(3),
+    .flight-identity-grid > label:nth-child(4) { grid-column:span 3; }
+    .flight-identity-grid > .aircraft-profile-field { grid-column:1/-1; }
+    .flight-identity-grid input[data-field="operatorIcao"],
+    .flight-identity-grid input[data-field="flightNumber"],
+    .flight-route-point input[data-field="departure"],
+    .flight-route-point input[data-field="destination"],
+    .flight-route-point input[data-field="alternate"] {
+      text-transform:uppercase;
+      letter-spacing:.075em;
+      font-size:15px;
+      font-weight:700;
+    }
+    .flight-route-strip {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr) minmax(245px,.78fr);
+      gap:10px;
+      align-items:stretch;
+      padding:14px 15px 15px;
+    }
+    .flight-route-point {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(120px,.7fr);
+      gap:9px;
+      align-items:end;
+      min-width:0;
+      border-radius:12px;
+      padding:12px;
+      background:#080e15;
+      box-shadow:inset 0 0 0 1px rgba(159,190,211,.12);
+    }
+    .flight-route-point > span { grid-column:1/-1; color:#91d0fa; }
+    .flight-route-point label { min-width:0; }
+    .route-swap-large { align-self:center; grid-column:auto; min-height:58px; flex-direction:column; border-radius:50%; }
+    .route-swap-large span { font-size:7px; }
+    .alternate-point { grid-template-columns:1fr; }
+    .alternate-point small { color:#738895; font:600 8px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .alternate-input-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px; }
+    .alternate-input-row input { margin-top:5px; }
+    .alternate-input-row .btn { min-height:48px; align-self:end; margin-top:5px; padding:8px 10px; white-space:nowrap; }
+    .alternate-suggestions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      margin:0 15px 15px;
+      border-top:1px solid var(--app-separator);
+      padding-top:12px;
+    }
+    .alternate-suggestions[hidden] { display:none; }
+    .alternate-suggestions > span { width:100%; color:#7f929f; font:600 9px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .alternate-candidate {
+      min-height:40px;
+      border:1px solid rgba(75,179,253,.28);
+      border-radius:9px;
+      padding:7px 10px;
+      background:#101d28;
+      color:#d9effd;
+      cursor:pointer;
+      text-align:left;
+    }
+    .alternate-candidate strong,
+    .alternate-candidate small { display:block; }
+    .alternate-candidate strong { font:700 11px/1.1 "Courier New",monospace; }
+    .alternate-candidate small { margin-top:3px; color:#7f96a4; font:600 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .schedule-primary-grid-compact { grid-template-columns:minmax(180px,.65fr) minmax(0,1fr) minmax(0,1fr); }
+    .movement-sequence {
+      display:grid;
+      grid-template-columns:auto 1fr auto 1fr auto 1fr auto;
+      gap:8px;
+      align-items:center;
+      margin:12px 0 10px;
+      color:#78909e;
+      font:650 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+    .movement-sequence i { display:block; height:1px; background:linear-gradient(90deg,#355367,#4b80a1); }
+    .movement-card { position:relative; overflow:hidden; }
+    .movement-card::before { content:""; position:absolute; top:0; left:0; right:0; height:3px; background:#355367; }
+    .movement-card.done::before { background:var(--app-complete); }
+
+    @media (max-width:1100px) {
+      .flight-route-strip { grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr); }
+      .alternate-point { grid-column:1/-1; grid-template-columns:minmax(0,1fr); }
+    }
+    @media (max-width:820px) {
+      .flight-info-head { min-height:72px; }
+      .flight-identity-grid > label:nth-child(1),
+      .flight-identity-grid > label:nth-child(2),
+      .flight-identity-grid > label:nth-child(5) { grid-column:span 3; }
+      .flight-identity-grid > label:nth-child(3),
+      .flight-identity-grid > label:nth-child(4) { grid-column:span 4; }
+      .flight-route-point { grid-template-columns:minmax(0,1fr) minmax(110px,.65fr); }
+    }
+    @media (max-width:620px) {
+      .topbar-title { display:flex !important; gap:9px; }
+      .ofp-brand-mark { width:52px; height:36px; border-radius:8px; padding:4px 5px; }
+      .dispatch-overview .statusline { display:none; }
+      .dispatch-identity { padding:11px 12px 9px; }
+      .dispatch-route strong { font-size:19px; }
+      .overview-readiness { min-height:72px; padding:10px 12px; }
+      .overview-readiness small { margin-top:5px; }
+      .flight-info-head { display:block; padding:13px; }
+      .flight-info-head > div:first-child strong { font-size:15px; white-space:normal; }
+      .eobt-summary { min-width:0; margin-top:12px; border-top:1px solid var(--app-separator); border-left:0; padding:11px 0 0; }
+      .eobt-summary strong { font-size:15px; }
+      .flight-identity-grid { grid-template-columns:1fr 1fr; padding:12px; }
+      .flight-identity-grid > label:nth-child(1),
+      .flight-identity-grid > label:nth-child(2),
+      .flight-identity-grid > label:nth-child(3),
+      .flight-identity-grid > label:nth-child(4),
+      .flight-identity-grid > label:nth-child(5) { grid-column:span 1; }
+      .flight-identity-grid > label:nth-child(5),
+      .flight-identity-grid > .aircraft-profile-field { grid-column:1/-1; }
+      .flight-route-strip { grid-template-columns:1fr; padding:12px; }
+      .flight-route-point { grid-template-columns:minmax(0,1.25fr) minmax(105px,.75fr); padding:10px; }
+      .route-swap-large { width:100%; min-height:40px; border-radius:10px; flex-direction:row; }
+      .alternate-point { grid-column:auto; grid-template-columns:1fr; }
+      .alternate-input-row .btn { padding:7px 8px; font-size:8px; }
+      .alternate-suggestions { margin:0 12px 12px; }
+      .schedule-primary-grid-compact { grid-template-columns:1fr; }
+      .movement-sequence { display:none; }
+    }
+    @media (max-width:390px) {
+      .flight-identity-grid { grid-template-columns:1fr; }
+      .flight-identity-grid > label:nth-child(1),
+      .flight-identity-grid > label:nth-child(2),
+      .flight-identity-grid > label:nth-child(3),
+      .flight-identity-grid > label:nth-child(4) { grid-column:1; }
+      .flight-route-point { grid-template-columns:1fr; }
+      .alternate-input-row { grid-template-columns:1fr; }
+      .alternate-input-row .btn { margin-top:0; }
+    }
   </style>
 </head>
 <body>
   <main class="shell">
     <header class="topbar">
-      <div class="topbar-title"><div class="eyebrow">NGA Pilot EFB / Dispatch</div><h1>Operational Flight Plan</h1><div class="sub">Build the plan, verify the release gates, and generate the controlled flight document.</div></div>
+      <div class="topbar-title">
+        <span class="ofp-brand-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span>
+        <div><div class="eyebrow">NGA Pilot EFB / Dispatch</div><h1>Operational Flight Plan</h1><div class="sub">Build the plan, verify the release gates, and generate the controlled flight document.</div></div>
+      </div>
       <div class="top-actions"><button id="backBtn" class="btn" type="button">Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather</button><button id="saveBtn" class="btn" type="button">Save Draft</button><button id="previewBtn" class="btn primary" type="button">Generate OFP</button><button id="pdfBtn" class="btn" type="button">Open PDF</button></div>
     </header>
     <section class="dispatch-overview" aria-label="Current flight dispatch summary">
@@ -1380,48 +1603,75 @@
       <div id="saveState" class="save-state loading" role="status" aria-live="polite">Loading flight file...</div>
     </div>
     <nav class="ofp-workspaces" aria-label="Operational flight plan workspaces">
-      <button class="ofp-workspace-button" type="button" data-workspace="SETUP" data-step="1" aria-selected="true"><span>Flight</span><strong>Setup</strong><em class="workspace-state">Open</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="SETUP" data-step="1" aria-selected="true"><span>Identity &amp; EOBT</span><strong>Flight Info</strong><em class="workspace-state">Open</em></button>
       <button class="ofp-workspace-button" type="button" data-workspace="ROUTE" data-step="2" aria-selected="false"><span>Navigation</span><strong>Route</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="LOAD" data-step="3" aria-selected="false"><span>Planning</span><strong>Fuel &amp; Load</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="BRIEF" data-step="4" aria-selected="false"><span>Preflight</span><strong>Briefing</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="FLY" data-step="5" aria-selected="false"><span>Operate</span><strong>Times</strong><em class="workspace-state">0 / 4</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="RELEASE" data-step="6" aria-selected="false"><span>Command</span><strong>Release</strong><em class="workspace-state">Pending</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="LOAD" data-step="3" aria-selected="false"><span>Fuel &amp; payload</span><strong>Fuel &amp; Load</strong><em class="workspace-state">Open</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="BRIEF" data-step="4" aria-selected="false"><span>Weather &amp; perf</span><strong>Preflight</strong><em class="workspace-state">Open</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="FLY" data-step="5" aria-selected="false"><span>OUT / OFF / ON / IN</span><strong>Movement</strong><em class="workspace-state">0 / 4</em></button>
+      <button class="ofp-workspace-button" type="button" data-workspace="RELEASE" data-step="6" aria-selected="false"><span>Commander</span><strong>PIC Release</strong><em class="workspace-state">Pending</em></button>
     </nav>
     <div class="workspace">
       <section class="editor">
         <details id="flightSetupSection" open>
           <summary>Flight setup</summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Flight setup</span><strong>Define the flight</strong></div><p>Confirm the aircraft, operating rules, airports, and planned schedule before routing.</p></div>
-            <div class="flight-core-grid">
-              <label>Date<input data-field="dateUtc" type="date" /></label>
-              <div class="aircraft-profile-field">
-                <span class="aircraft-profile-caption">Aircraft profile</span>
-                <select class="aircraft-select aircraft-profile-select" data-field="aircraftRegistration" aria-label="Aircraft registration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select>
-                <button id="aircraftProfileBtn" class="aircraft-profile-button" type="button" aria-haspopup="dialog" aria-controls="aircraftProfileDialog">
-                  <span id="aircraftProfileButtonCode" class="aircraft-profile-code">PA28</span>
-                  <span class="aircraft-profile-copy"><strong id="aircraftProfileButtonModel">Piper PA-28R-200 Arrow II</strong><small><span id="aircraftProfileButtonRegistration">PRIMARY AIRCRAFT</span><b>Operational profile locked</b></small></span>
-                  <span class="aircraft-profile-chevron" aria-hidden="true">&#8250;</span>
-                </button>
+            <div class="section-heading"><div><span>Flight information</span><strong>Define the operation</strong></div><p>Start with the flight identity, route endpoints, aircraft, rules, and expected off-block time.</p></div>
+
+            <section class="flight-info-composer" aria-label="Flight information composer">
+              <header class="flight-info-head">
+                <div><span>Active flight file</span><strong id="flightInfoTitle">NEW OPERATIONAL FLIGHT PLAN</strong><small>All times local unless marked UTC</small></div>
+                <div class="eobt-summary"><span>Departure time / EOBT</span><strong id="eobtDisplay">DATE AND TIME REQUIRED</strong><small id="eobtTimezone">EUROPE / HELSINKI</small></div>
+              </header>
+
+              <div class="flight-identity-grid">
+                <label>Operator / airline ICAO<input data-field="operatorIcao" maxlength="3" placeholder="ZZZ" autocomplete="off" /></label>
+                <label>Flight number<input data-field="flightNumber" maxlength="8" placeholder="0000" autocomplete="off" /></label>
+                <label>Flight date<input data-field="dateUtc" type="date" /></label>
+                <label>Departure time / EOBT<input data-field="scheduledOut" placeholder="00:10" inputmode="numeric" /></label>
+                <label>Flight rules<select id="flightRulesSelect" data-field="flightRules"><option value="VFR">VFR</option><option value="IFR">IFR</option></select></label>
+                <div class="aircraft-profile-field">
+                  <span class="aircraft-profile-caption">Aircraft profile</span>
+                  <select class="aircraft-select aircraft-profile-select" data-field="aircraftRegistration" aria-label="Aircraft registration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select>
+                  <button id="aircraftProfileBtn" class="aircraft-profile-button" type="button" aria-haspopup="dialog" aria-controls="aircraftProfileDialog">
+                    <span id="aircraftProfileButtonCode" class="aircraft-profile-code">PA28</span>
+                    <span class="aircraft-profile-copy"><strong id="aircraftProfileButtonModel">Piper PA-28R-200 Arrow II</strong><small><span id="aircraftProfileButtonRegistration">PRIMARY AIRCRAFT</span><b>Operational profile locked</b></small></span>
+                    <span class="aircraft-profile-chevron" aria-hidden="true">&#8250;</span>
+                  </button>
+                </div>
               </div>
+
               <input data-field="aircraftModel" type="hidden" value="PA28-200R" />
               <input data-field="aircraftCode" type="hidden" value="PA28" />
-              <label>Flight rules<select id="flightRulesSelect" data-field="flightRules"><option value="VFR">VFR</option><option value="IFR">IFR</option></select></label>
               <input data-field="routeMode" type="hidden" value="VFR" />
               <input data-field="routeDataSource" type="hidden" value="PILOT / CURRENT AIP" />
-              <label class="airport-field"><span id="departureFieldLabel">Departure ICAO</span><input data-field="departure" maxlength="4" placeholder="EFHV" autocomplete="off" /></label>
-              <label class="runway-field">Departure runway<select id="depRunwaySelect" data-field="depRunway"><option value="">Enter departure ICAO</option></select></label>
-              <button id="swapAirportsBtn" class="route-swap" type="button" aria-label="Swap departure and destination">&#8644;<span>Swap</span></button>
-              <label class="airport-field"><span id="destinationFieldLabel">Destination ICAO</span><input data-field="destination" maxlength="4" placeholder="EFHN" autocomplete="off" /></label>
-              <label class="runway-field">Arrival runway<select id="arrRunwaySelect" data-field="arrRunway"><option value="">Enter destination ICAO</option></select></label>
-            </div>
+
+              <div class="flight-route-strip">
+                <div class="flight-route-point">
+                  <span>Depart</span>
+                  <label><span id="departureFieldLabel">Departure ICAO</span><input data-field="departure" maxlength="4" placeholder="ZZZZ" autocomplete="off" /></label>
+                  <label>Runway<select id="depRunwaySelect" data-field="depRunway"><option value="">Enter departure ICAO</option></select></label>
+                </div>
+                <button id="swapAirportsBtn" class="route-swap route-swap-large" type="button" aria-label="Swap departure and arrival">&#8644;<span>Swap</span></button>
+                <div class="flight-route-point">
+                  <span>Arrive</span>
+                  <label><span id="destinationFieldLabel">Arrival ICAO</span><input data-field="destination" maxlength="4" placeholder="ZZZZ" autocomplete="off" /></label>
+                  <label>Runway<select id="arrRunwaySelect" data-field="arrRunway"><option value="">Enter destination ICAO</option></select></label>
+                </div>
+                <div class="flight-route-point alternate-point">
+                  <span>Alternate</span>
+                  <label>Alternate ICAO<div class="alternate-input-row"><input data-field="alternate" maxlength="4" placeholder="AUTO" autocomplete="off" /><button id="alternateAutoBtn" class="btn" type="button">Auto suggest</button></div></label>
+                  <small>Distance-based candidates only. PIC verifies suitability.</small>
+                </div>
+              </div>
+              <div id="alternateSuggestions" class="alternate-suggestions" hidden></div>
+            </section>
 
             <section class="schedule-workbench" aria-label="Planned flight schedule">
-              <div class="schedule-workbench-head"><div><span>Planned schedule</span><strong>Departure and elapsed time</strong></div><small>LOCAL / PILOT VERIFIED</small></div>
-              <div class="schedule-primary-grid">
-                <label>Scheduled OUT<input data-field="scheduledOut" placeholder="1420Z / 1720L" /></label>
+              <div class="schedule-workbench-head"><div><span>Schedule calculation</span><strong>Elapsed time and planned arrival</strong></div><small>EOBT SET IN FLIGHT INFO</small></div>
+              <div class="schedule-primary-grid schedule-primary-grid-compact">
                 <label>Planned EET (MIN)<input data-field="estimatedEnrouteMinutes" type="number" min="0" step="1" /></label>
                 <div class="schedule-estimate"><span>Estimated arrival</span><strong id="estimatedArrivalSummary">CALCULATED AFTER STD / EET</strong></div>
+                <div class="schedule-estimate"><span>Schedule source</span><strong id="scheduleSourceSummary">DATE + EOBT / PILOT VERIFIED</strong></div>
               </div>
               <details class="schedule-drawer">
                 <summary>Detailed schedule fields</summary>
@@ -1490,27 +1740,12 @@
                   <label>Cruise level<input data-field="cruiseFlightLevel" placeholder="VFR / FL055 / 2500FT" /></label>
                   <label>Cruise TAS (KT)<input data-field="cruiseSpeedKt" type="number" min="0" step="1" /></label>
                   <label>Distance (NM)<input data-field="distanceNm" type="number" min="0" step="1" /></label>
-                  <label>Alternate ICAO<input data-field="alternate" maxlength="4" placeholder="EFHK" /></label>
                   <label>Alternate distance (NM)<input data-field="alternateDistanceNm" type="number" min="0" step="1" /></label>
                   <label>Alternate EET (MIN)<input data-field="alternateEetMinutes" type="number" min="0" step="1" /></label>
                   <label class="field wide">Alternate route<textarea data-field="alternateRoute"></textarea></label>
                 </div>
               </div>
             </details>
-          </div>
-        </details>
-
-        <details id="movementSection" open>
-          <summary>Movement and flight times</summary>
-          <div class="detail-body">
-            <div class="section-heading"><div><span>Live movement log</span><strong>OUT / OFF / ON / IN</strong></div><p>Stamp any phase at any time. Recorded values remain editable for operational corrections.</p></div>
-            <div class="movement-grid">
-              <article class="movement-card" data-movement-card="actualOut"><strong class="movement-code">OUT</strong><span>Start taxi / brakes released</span><div id="actualOutDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OUT local time" data-manual-time="actualOut" /><button class="btn" type="button" data-manual-field="actualOut">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOut">Stamp now</button></article>
-              <article class="movement-card" data-movement-card="actualOff"><strong class="movement-code">OFF</strong><span>Airborne / takeoff</span><div id="actualOffDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OFF local time" data-manual-time="actualOff" /><button class="btn" type="button" data-manual-field="actualOff">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOff">Stamp now</button></article>
-              <article class="movement-card" data-movement-card="actualOn"><strong class="movement-code">ON</strong><span>Landed / touchdown</span><div id="actualOnDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual ON local time" data-manual-time="actualOn" /><button class="btn" type="button" data-manual-field="actualOn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOn">Stamp now</button></article>
-              <article class="movement-card" data-movement-card="actualIn"><strong class="movement-code">IN</strong><span>On stand / brakes set</span><div id="actualInDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual IN local time" data-manual-time="actualIn" /><button class="btn" type="button" data-manual-field="actualIn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualIn">Stamp now</button></article>
-            </div>
-            <div hidden><label>Actual OUT<input data-field="actualOut" /></label><label>Actual OFF<input data-field="actualOff" /></label><label>Actual ON<input data-field="actualOn" /></label><label>Actual IN<input data-field="actualIn" /></label></div>
           </div>
         </details>
 
@@ -1611,6 +1846,21 @@
               <label class="checkline"><input data-field="airspaceReviewAccepted" type="checkbox" />Airspace, weather routing, fuel suitability, daylight, and alternate considerations have been reviewed for this operation.</label>
             </div>
             <label class="field wide">Briefing remarks<textarea data-field="briefingRemarks" placeholder="Relevant NOTAM, airspace, fuel, weather, or operational notes."></textarea></label>
+          </div>
+        </details>
+
+        <details id="movementSection" open>
+          <summary>Movement and flight times</summary>
+          <div class="detail-body">
+            <div class="section-heading"><div><span>Live movement log</span><strong>OUT / OFF / ON / IN</strong></div><p>Stamp each phase as it happens, or enter a correction manually. Every phase remains available throughout the flight.</p></div>
+            <div class="movement-sequence" aria-hidden="true"><span>Block out</span><i></i><span>Airborne</span><i></i><span>Touchdown</span><i></i><span>Block in</span></div>
+            <div class="movement-grid">
+              <article class="movement-card" data-movement-card="actualOut"><strong class="movement-code">OUT</strong><span>Start taxi / brakes released</span><div id="actualOutDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OUT local time" data-manual-time="actualOut" /><button class="btn" type="button" data-manual-field="actualOut">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOut">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualOff"><strong class="movement-code">OFF</strong><span>Airborne / takeoff</span><div id="actualOffDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OFF local time" data-manual-time="actualOff" /><button class="btn" type="button" data-manual-field="actualOff">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOff">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualOn"><strong class="movement-code">ON</strong><span>Landed / touchdown</span><div id="actualOnDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual ON local time" data-manual-time="actualOn" /><button class="btn" type="button" data-manual-field="actualOn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOn">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualIn"><strong class="movement-code">IN</strong><span>On stand / brakes set</span><div id="actualInDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual IN local time" data-manual-time="actualIn" /><button class="btn" type="button" data-manual-field="actualIn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualIn">Stamp now</button></article>
+            </div>
+            <div hidden><label>Actual OUT<input data-field="actualOut" /></label><label>Actual OFF<input data-field="actualOff" /></label><label>Actual ON<input data-field="actualOn" /></label><label>Actual IN<input data-field="actualIn" /></label></div>
           </div>
         </details>
 
@@ -1747,7 +1997,7 @@
       RELEASE:['releaseSection']
     };
     const workspaceOrder = ['SETUP', 'ROUTE', 'LOAD', 'BRIEF', 'FLY', 'RELEASE'];
-    const workspaceLabels = { SETUP:'Flight Setup', ROUTE:'Route', LOAD:'Fuel & Load', BRIEF:'Briefing', FLY:'Flight Times', RELEASE:'PIC Release' };
+    const workspaceLabels = { SETUP:'Flight Info', ROUTE:'Route', LOAD:'Fuel & Load', BRIEF:'Preflight', FLY:'Movement Times', RELEASE:'PIC Release' };
     let currentWorkspace = 'SETUP';
 
     function setSaveState(state, message) {
@@ -1992,8 +2242,8 @@
       el('flightSourceDetail').textContent = manual
         ? 'Enter the departure and destination ICAO codes, then build the operational route, runways, fuel, load, timings, and release record.'
         : 'The passenger booking preloads schedule and declared load. Operational route, runways, fuel, actual load, timings, and release fields remain editable here without changing the passenger booking.';
-      el('departureFieldLabel').textContent = manual ? 'Departure ICAO' : 'Operational departure ICAO';
-      el('destinationFieldLabel').textContent = manual ? 'Destination ICAO' : 'Operational destination ICAO';
+      el('departureFieldLabel').textContent = 'Depart ICAO';
+      el('destinationFieldLabel').textContent = 'Arrive ICAO';
       el('bookingPassengerLabel').textContent = manual ? 'Loaded passenger total (LB)' : 'Booking passenger total (LB)';
       el('bookingBaggageLabel').textContent = manual ? 'Loaded baggage / cargo (LB)' : 'Booking baggage / cargo (LB)';
       inputFor('passengerWeightOverrideLb').placeholder = 'Enter actual passenger load';
@@ -2301,10 +2551,77 @@
       return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`;
     }
 
+    function formatEobt(dateValue, timeValue) {
+      const match = String(dateValue || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const minutes = scheduleMinutes(timeValue);
+      if (!match || minutes === null) return 'DATE AND TIME REQUIRED';
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${match[3]} ${months[Number(match[2]) - 1]} ${match[1]} - ${formatClockMinutes(minutes)}`;
+    }
+
+    function airportDistanceNm(from, to) {
+      const radians = degrees => Number(degrees) * Math.PI / 180;
+      const lat1 = radians(from?.lat);
+      const lat2 = radians(to?.lat);
+      const dLat = lat2 - lat1;
+      const dLon = radians(to?.lon) - radians(from?.lon);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+      return 3440.065 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    async function suggestAlternates() {
+      const destination = String(inputFor('destination')?.value || '').toUpperCase();
+      const departure = String(inputFor('departure')?.value || '').toUpperCase();
+      const panel = el('alternateSuggestions');
+      if (!/^[A-Z0-9]{4}$/.test(destination)) {
+        panel.hidden = false;
+        panel.innerHTML = '<span>Enter a four-character arrival ICAO before requesting proximity candidates.</span>';
+        return;
+      }
+      el('alternateAutoBtn').disabled = true;
+      el('alternateAutoBtn').textContent = 'Finding...';
+      panel.hidden = false;
+      panel.innerHTML = '<span>Loading nearby published airport candidates...</span>';
+      try {
+        const response = await fetch('/api/booking-airports', { cache:'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error('Airport catalogue unavailable.');
+        const airports = Array.isArray(data.airports) ? data.airports : [];
+        const arrival = airports.find(airport => String(airport.icao || '').toUpperCase() === destination);
+        if (!arrival || !Number.isFinite(Number(arrival.lat)) || !Number.isFinite(Number(arrival.lon))) {
+          throw new Error('Arrival coordinates are unavailable. Select the alternate manually.');
+        }
+        const candidates = airports
+          .filter(airport => /^[A-Z0-9]{4}$/.test(String(airport.icao || '')))
+          .filter(airport => ![departure, destination].includes(String(airport.icao || '').toUpperCase()))
+          .filter(airport => Number.isFinite(Number(airport.lat)) && Number.isFinite(Number(airport.lon)))
+          .map(airport => ({ ...airport, distanceNm:airportDistanceNm(arrival, airport) }))
+          .filter(airport => airport.distanceNm > 1)
+          .sort((a, b) => a.distanceNm - b.distanceNm)
+          .slice(0, 4);
+        panel.innerHTML = candidates.length
+          ? `<span>Nearest catalogue candidates by distance only. Check runway, weather, fuel, hours, restrictions, and current AIP data before selection.</span>${candidates.map(airport => `<button class="alternate-candidate" type="button" data-alternate-candidate="${escapeHtml(airport.icao)}"><strong>${escapeHtml(airport.icao)} / ${Math.round(airport.distanceNm)} NM</strong><small>${escapeHtml(airport.name || airport.city || 'Published airport')}</small></button>`).join('')}`
+          : '<span>No nearby catalogue candidates were found. Select and verify the alternate manually.</span>';
+        panel.querySelectorAll('[data-alternate-candidate]').forEach(button => button.addEventListener('click', () => {
+          inputFor('alternate').value = button.dataset.alternateCandidate;
+          panel.hidden = true;
+          markUnsaved('Alternate candidate selected / pilot suitability verification remains required.');
+          render();
+        }));
+      } catch (error) {
+        panel.innerHTML = `<span>${escapeHtml(error.message || 'Unable to load alternate candidates. Select manually.')}</span>`;
+      } finally {
+        el('alternateAutoBtn').disabled = false;
+        el('alternateAutoBtn').textContent = 'Auto suggest';
+      }
+    }
+
     function renderWorkspaceProgress(calc) {
       const airportsReady = /^[A-Z0-9]{4}$/.test(String(plan.departure || ''))
         && /^[A-Z0-9]{4}$/.test(String(plan.destination || ''));
       const setupReady = airportsReady
+        && /^[A-Z0-9]{3}$/.test(String(plan.operatorIcao || ''))
+        && Boolean(String(plan.flightNumber || '').trim())
         && Boolean(String(plan.dateUtc || '').trim())
         && Boolean(String(plan.aircraftRegistration || '').trim())
         && Boolean(String(plan.scheduledOut || '').trim())
@@ -2327,14 +2644,14 @@
       const performanceReady = Boolean(plan.performanceSnapshot?.departure?.runway && plan.performanceSnapshot?.arrival?.runway);
       const briefReady = reviewReady && performanceReady;
       const released = Boolean(inputFor('releaseAccepted').checked);
-      setWorkspaceState('SETUP', setupReady ? 'Flight defined' : 'Setup open', setupReady);
+      setWorkspaceState('SETUP', setupReady ? 'Flight defined' : 'Info required', setupReady);
       setWorkspaceState('ROUTE', routeReady ? 'Route ready' : 'Route / runway open', routeReady);
       setWorkspaceState('LOAD', loadReady ? 'Within limits' : 'Check load', loadReady);
       setWorkspaceState('FLY', `${movementCount} / 4`, movementCount === 4);
       setWorkspaceState('BRIEF', briefReady ? 'Brief complete' : performanceReady ? 'Review open' : 'Perf / review open', briefReady);
       setWorkspaceState('RELEASE', released ? 'Released' : 'Pending', released);
       const gates = [
-        { ready:setupReady, workspace:'SETUP', title:'Complete flight setup', detail:'Confirm the aircraft, airports, schedule, and planned flight time.' },
+        { ready:setupReady, workspace:'SETUP', title:'Complete flight information', detail:'Confirm the operator code, flight number, aircraft, airports, EOBT, and planned flight time.' },
         { ready:routeReady, workspace:'ROUTE', title:'Verify the operational route', detail:'Confirm the route sequence, runways, procedures, and alternate.' },
         { ready:loadReady, workspace:'LOAD', title:'Resolve fuel and loading', detail:'Verify crew weights, fuel, payload, structural margins, and CG.' },
         { ready:reviewReady, workspace:'BRIEF', title:'Complete the flight briefing', detail:'Acknowledge current weather, NOTAM, and airspace review.' },
@@ -2438,6 +2755,8 @@
       const destination = String(plan.destination || '----').toUpperCase();
       const rules = String(plan.flightRules || plan.routeMode || 'VFR').toUpperCase();
       const aircraft = String(plan.aircraftCode || 'PA28').toUpperCase();
+      const operator = String(plan.operatorIcao || 'ZZZ').toUpperCase();
+      const flightNumber = String(plan.flightNumber || '0000').toUpperCase();
       const schedule = String(plan.scheduledOut || request?.requestTime || '--:--').toUpperCase();
       const eet = Math.max(0, Math.round(num(plan.estimatedEnrouteMinutes)));
       const startMinutes = scheduleMinutes(schedule);
@@ -2446,6 +2765,10 @@
       el('overviewDestination').textContent = destination;
       el('overviewRules').textContent = rules;
       el('overviewAircraft').textContent = aircraft;
+      el('flightInfoTitle').textContent = `${operator} ${flightNumber} / ${departure} TO ${destination}`;
+      el('eobtDisplay').textContent = formatEobt(plan.dateUtc, plan.scheduledOut);
+      el('eobtTimezone').textContent = /Z/.test(String(plan.scheduledOut || '').toUpperCase()) ? 'UTC / PILOT VERIFIED' : 'LOCAL / EUROPE HELSINKI';
+      el('scheduleSourceSummary').textContent = formatEobt(plan.dateUtc, plan.scheduledOut);
       el('briefReference').textContent = request?.id || 'FLIGHT FILE';
       el('estimatedArrivalSummary').textContent = arrival;
       el('routeStatus').textContent = `${departure}-${destination}`;
@@ -2541,6 +2864,8 @@
     document.querySelectorAll('.movement-button').forEach(button => { button.dataset.originalLabel = button.textContent; });
     function handleFieldInput(input) {
       if (['departure', 'destination', 'alternate'].includes(input.dataset.field)) input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (input.dataset.field === 'operatorIcao') input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
+      if (input.dataset.field === 'flightNumber') input.value = input.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 8);
       if (input.dataset.field === 'flightRules') {
         inputFor('routeMode').value = input.value === 'IFR' ? 'IFR' : 'VFR';
         plan.routeMode = inputFor('routeMode').value;
@@ -2568,6 +2893,7 @@
       input.addEventListener('input', () => handleFieldInput(input));
       if (input.tagName === 'SELECT') input.addEventListener('change', () => handleFieldInput(input));
     });
+    el('alternateAutoBtn').addEventListener('click', suggestAlternates);
     ['departure', 'destination'].forEach(field => inputFor(field).addEventListener('change', async () => {
       readPlan();
       if (!/^[A-Z0-9]{4}$/.test(plan[field] || '')) {

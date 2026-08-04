@@ -1605,6 +1605,8 @@ function normalizeOperationalFlightPlan(input, request) {
     version: 'NGA-OFP-2026-07',
     updatedAt: new Date().toISOString(),
     dateUtc: textField('dateUtc', 20),
+    operatorIcao: textField('operatorIcao', 3).toUpperCase() || defaults.operatorIcao,
+    flightNumber: textField('flightNumber', 8).toUpperCase() || defaults.flightNumber,
     aircraftRegistration: textField('aircraftRegistration', 16).toUpperCase() || defaults.aircraftRegistration,
     aircraftModel: textField('aircraftModel', 40).toUpperCase() || defaults.aircraftModel,
     aircraftCode: textField('aircraftCode', 24).toUpperCase() || defaults.aircraftCode,
@@ -1696,6 +1698,8 @@ function operationalPlanDependencyFingerprint(plan, includePerformance = true) {
   if (!plan) return '';
   const values = {
     dateUtc: plan.dateUtc,
+    operatorIcao: plan.operatorIcao,
+    flightNumber: plan.flightNumber,
     aircraftRegistration: plan.aircraftRegistration,
     aircraftModel: plan.aircraftModel,
     aircraftCode: plan.aircraftCode,
@@ -1717,6 +1721,10 @@ function operationalPlanDependencyFingerprint(plan, includePerformance = true) {
     cruiseSpeedKt: plan.cruiseSpeedKt,
     distanceNm: plan.distanceNm,
     estimatedEnrouteMinutes: plan.estimatedEnrouteMinutes,
+    scheduledOut: plan.scheduledOut,
+    scheduledOff: plan.scheduledOff,
+    scheduledOn: plan.scheduledOn,
+    scheduledIn: plan.scheduledIn,
     fuelFlowGph: plan.fuelFlowGph,
     taxiFuelGal: plan.taxiFuelGal,
     tripFuelGal: plan.tripFuelGal,
@@ -4948,8 +4956,11 @@ function operationalFlightPlanDefaults(request) {
   const commander = request?.crew?.commander && request.crew.commander !== 'UNASSIGNED'
     ? request.crew.commander
     : '';
+  const flightNumberDigits = String(request?.flightId || request?.id || '').match(/(\d+)$/)?.[1] || '';
   return {
     dateUtc: request?.requestDate || '',
+    operatorIcao: 'ZZZ',
+    flightNumber: flightNumberDigits ? flightNumberDigits.slice(-4).padStart(4, '0') : '0000',
     aircraftRegistration: 'OH-PMK',
     aircraftModel: 'PA28-200R',
     aircraftCode: 'PA28',
@@ -5161,11 +5172,27 @@ function operationalFlightPlanCalculations(plan, request) {
 
 function createOperationalReleaseSnapshot(plan, request, actor) {
   return {
-    version: 'NGA-OPERATIONAL-RELEASE-2026-07',
+    version: 'NGA-OPERATIONAL-RELEASE-2026-08',
     releaseId: `REL-${randomUUID().slice(0, 8).toUpperCase()}`,
     releasedAt: new Date().toISOString(),
     releasedBy: actor,
     bookingReference: request.id,
+    flightInfo: {
+      operatorIcao: plan.operatorIcao,
+      flightNumber: plan.flightNumber,
+      aircraftRegistration: plan.aircraftRegistration,
+      aircraftModel: plan.aircraftModel,
+      aircraftCode: plan.aircraftCode,
+      flightRules: plan.flightRules,
+      dateUtc: plan.dateUtc
+    },
+    schedule: {
+      eobt: plan.scheduledOut,
+      plannedOff: plan.scheduledOff,
+      plannedOn: plan.scheduledOn,
+      plannedIn: plan.scheduledIn,
+      estimatedEnrouteMinutes: plan.estimatedEnrouteMinutes
+    },
     route: {
       departure: plan.departure,
       destination: plan.destination,
