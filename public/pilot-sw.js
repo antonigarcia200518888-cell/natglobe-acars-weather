@@ -1,7 +1,9 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-07-v3';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-08-v8';
+const PILOT_EFB_CSS = '/pilot-efb.css?v=2026-08-14-6';
 const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
   '/pilot-manifest.webmanifest',
+  PILOT_EFB_CSS,
   '/icon-192.png',
   '/icon-512.png',
   '/fonts/computer-says-no.woff2'
@@ -41,9 +43,21 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  if (PILOT_SHELL_ASSETS.includes(url.pathname)) {
+  const shellAsset = PILOT_SHELL_ASSETS.find(asset => new URL(asset, self.location.origin).pathname === url.pathname);
+  if (shellAsset) {
+    if (url.pathname === new URL(PILOT_EFB_CSS, self.location.origin).pathname) {
+      event.respondWith(
+        fetch(request)
+          .then(response => {
+            if (response.ok) caches.open(PILOT_SHELL_CACHE).then(cache => cache.put(request, response.clone()));
+            return response;
+          })
+          .catch(async () => (await caches.match(request)) || (await caches.match(shellAsset)) || Response.error())
+      );
+      return;
+    }
     event.respondWith(
-      caches.match(request).then(cached => cached || fetch(request).then(response => {
+      caches.match(request).then(async cached => cached || (await caches.match(shellAsset)) || fetch(request).then(response => {
         if (response.ok) caches.open(PILOT_SHELL_CACHE).then(cache => cache.put(request, response.clone()));
         return response;
       }))

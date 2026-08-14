@@ -1241,11 +1241,13 @@ function normalizeHeading(input) {
 }
 
 function normalizeWeight(input) {
+  if (input === null || input === undefined || String(input).trim() === '') return null;
   const num = Number(input);
   return Number.isFinite(num) ? Math.round(num) : null;
 }
 
 function normalizeDecimal(input, digits = 2) {
+  if (input === null || input === undefined || String(input).trim() === '') return null;
   const num = Number(input);
   if (!Number.isFinite(num)) return null;
   const factor = 10 ** digits;
@@ -1575,11 +1577,23 @@ function normalizeOperationalPerformanceSnapshot(input) {
     qnhHpa: numberOrNull(leg?.qnhHpa, 800, 1200),
     densityAltitudeFt: numberOrNull(leg?.densityAltitudeFt, -5000, 30000),
     elevationFt: numberOrNull(leg?.elevationFt, -2000, 30000),
-    plannedWeightLb: numberOrNull(leg?.plannedWeightLb, 0, 10000)
+    plannedWeightLb: numberOrNull(leg?.plannedWeightLb, 0, 10000),
+    groundRollFt: numberOrNull(leg?.groundRollFt, 0, 30000),
+    requiredDistanceFt: numberOrNull(leg?.requiredDistanceFt, 0, 30000),
+    runwayMarginFt: numberOrNull(leg?.runwayMarginFt, -30000, 30000),
+    accelerateStopFt: numberOrNull(leg?.accelerateStopFt, 0, 30000),
+    accelerateStopMarginFt: numberOrNull(leg?.accelerateStopMarginFt, -30000, 30000),
+    status: normalizeBookingText(leg?.status, 30).toUpperCase(),
+    weatherMode: normalizeBookingText(leg?.weatherMode, 30).toUpperCase(),
+    weatherStation: normalizeBookingText(leg?.weatherStation, 8).toUpperCase(),
+    weatherAgeMinutes: numberOrNull(leg?.weatherAgeMinutes, 0, 10000),
+    manualOverride: leg?.manualOverride === true || leg?.manualOverride === 'true'
   });
   return {
     capturedAt: normalizeBookingText(input.capturedAt, 40),
     source: normalizeBookingText(input.source, 80).toUpperCase() || 'NGA WEATHER / AIRPORT DATABASE',
+    profileVersion: normalizeBookingText(input.profileVersion, 40).toUpperCase() || 'NGA-PA28R-1',
+    overallStatus: normalizeBookingText(input.overallStatus, 30).toUpperCase(),
     departure: normalizeLeg(input.departure),
     arrival: normalizeLeg(input.arrival)
   };
@@ -1851,6 +1865,23 @@ function operationalPerformanceDependencyFingerprint(plan) {
     finalReserveFuelGal: plan.finalReserveFuelGal,
     extraFuelGal: plan.extraFuelGal
   });
+}
+
+function operationalPerformanceSnapshotMatchesPlan(plan) {
+  const snapshot = plan?.performanceSnapshot;
+  if (!snapshot?.departure || !snapshot?.arrival) return false;
+  const same = (left, right) => String(left || '').trim().toUpperCase() === String(right || '').trim().toUpperCase();
+  const planWeightsReady = Number(plan.takeoffWeightLb) > Number(AIRCRAFT_PROFILE.basicEmptyWeightLbs)
+    && Number(plan.landingWeightLb) > Number(AIRCRAFT_PROFILE.basicEmptyWeightLbs);
+  const weightsMatch = !planWeightsReady || (
+    Number(snapshot.departure.plannedWeightLb) === Number(plan.takeoffWeightLb)
+    && Number(snapshot.arrival.plannedWeightLb) === Number(plan.landingWeightLb)
+  );
+  return same(snapshot.departure.airport, plan.departure)
+    && same(snapshot.departure.runway, plan.depRunway)
+    && same(snapshot.arrival.airport, plan.destination)
+    && same(snapshot.arrival.runway, plan.arrRunway)
+    && weightsMatch;
 }
 
 function normalizeBookingEmail(input) {
@@ -3101,6 +3132,16 @@ function parseTemperatureC(metar) {
   return isMinus ? -num : num;
 }
 
+function parseDewpointC(metar) {
+  const match = String(metar || '').match(/\b(M?\d{2})\/(M?\d{2})\b/);
+  if (!match) return null;
+
+  const raw = match[2];
+  const value = parseInt(raw.replace('M', ''), 10);
+  if (!Number.isFinite(value)) return null;
+  return raw.startsWith('M') ? -value : value;
+}
+
 function parseQnhHpa(metar) {
   const match = String(metar || '').match(/\bQ(\d{4})\b/);
   if (!match) return null;
@@ -3724,12 +3765,22 @@ async function getSuggestedAlternate(arrIcao, currentAltnIcao = '') {
   const metar = wx?.metar && wx.metar !== 'NOT AVAILABLE' ? String(wx.metar) : '';
   const wind = parseWindDetailed(metar);
   const oatC = parseTemperatureC(metar);
+  const dewpointC = parseDewpointC(metar);
   const qnhHpa = parseQnhHpa(metar);
   const qnhIn = hpaToInHg(qnhHpa);
   const elevationFt = Number.isFinite(runwayElevationFt)
     ? Math.round(runwayElevationFt)
     : (Number.isFinite(airport?.elevationFt) ? Math.round(airport.elevationFt) : null);
   const densityAltitudeFt = computeDensityAltitudeFt(elevationFt, oatC, qnhHpa);
+  const observation = getMetarObservationData(metar);
+  const weatherSource = {
+    mode: wx?.mode || 'NO DATA',
+    station: wx?.metarSource || '',
+    fallback: Boolean(wx?.metarFallback),
+    distanceNm: Number.isFinite(wx?.metarDistanceNm) ? wx.metarDistanceNm : null,
+    observedAt: observation.observedAt,
+    ageMinutes: observation.ageMinutes
+  };
 
   const components =
     wind && !wind.variable && Number.isFinite(wind.direction) && Number.isFinite(wind.speed) && Number.isFinite(runwayHeading)
@@ -3759,6 +3810,7 @@ async function getSuggestedAlternate(arrIcao, currentAltnIcao = '') {
         },
         toraFt: Number.isFinite(runwayLengthFt) ? runwayLengthFt : null,
         oatC,
+        dewpointC,
         hdgDeg: runwayHeading,
         qnhIn,
         qnhHpa,
@@ -3767,7 +3819,8 @@ async function getSuggestedAlternate(arrIcao, currentAltnIcao = '') {
         densityAltFt: densityAltitudeFt,
         rwySlopePct: Number.isFinite(runwaySlopePct) ? runwaySlopePct : null,
         widthFt: Number.isFinite(runwayWidthFt) ? runwayWidthFt : null,
-        surface: runwaySurface || ''
+        surface: runwaySurface || '',
+        weatherSource
       },
       inputs: {
         weightLbs: Number.isFinite(weightLbs) ? weightLbs : AIRCRAFT_PROFILE.maxTakeoffWeightLbs,
@@ -3813,6 +3866,7 @@ async function getSuggestedAlternate(arrIcao, currentAltnIcao = '') {
       },
       ldaFt: Number.isFinite(runwayLengthFt) ? runwayLengthFt : null,
       oatC,
+      dewpointC,
       hdgDeg: runwayHeading,
       qnhIn,
       qnhHpa,
@@ -3821,7 +3875,8 @@ async function getSuggestedAlternate(arrIcao, currentAltnIcao = '') {
       densityAltFt: densityAltitudeFt,
       rwySlopePct: Number.isFinite(runwaySlopePct) ? runwaySlopePct : null,
       widthFt: Number.isFinite(runwayWidthFt) ? runwayWidthFt : null,
-      surface: runwaySurface || ''
+      surface: runwaySurface || '',
+      weatherSource
     },
     inputs: {
       landingWeightLbs: Number.isFinite(weightLbs) ? weightLbs : AIRCRAFT_PROFILE.maxLandingWeightLbs,
@@ -3925,6 +3980,9 @@ async function buildPerformanceData(query) {
     null;
 
   return {
+    generatedAt: new Date().toISOString(),
+    profileVersion: 'NGA-PA28R-1',
+    advisory: true,
     aircraft: AIRCRAFT_PROFILE,
     takeoff: buildPerformanceOutputSection(
       'takeoff',
@@ -5481,6 +5539,23 @@ function operationalReleasePanelState(request) {
     && blockFuelGal <= Number(plan?.fuelCapacityGal || 0)
     && Number.isFinite(fuelOnBoardGal)
     && fuelOnBoardGal >= blockFuelGal;
+  const usablePerformanceStatus = status => ['ADVISORY PASS', 'CAUTION / REVIEW'].includes(String(status || '').toUpperCase());
+  const hasPerformanceNumber = value => value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value));
+  const departurePerformance = plan?.performanceSnapshot?.departure;
+  const arrivalPerformance = plan?.performanceSnapshot?.arrival;
+  const performanceSnapshotReady = Boolean(
+    operationalPerformanceSnapshotMatchesPlan(plan)
+    && departurePerformance?.runway
+    && arrivalPerformance?.runway
+    && usablePerformanceStatus(departurePerformance.status)
+    && usablePerformanceStatus(arrivalPerformance.status)
+    && hasPerformanceNumber(departurePerformance.requiredDistanceFt)
+    && hasPerformanceNumber(departurePerformance.runwayMarginFt)
+    && Number(departurePerformance.runwayMarginFt) >= 0
+    && hasPerformanceNumber(arrivalPerformance.requiredDistanceFt)
+    && hasPerformanceNumber(arrivalPerformance.runwayMarginFt)
+    && Number(arrivalPerformance.runwayMarginFt) >= 0
+  );
   const items = {
     weather: {
       ready: Boolean(checks.weather.completed && plan?.notamReviewAccepted && plan?.airspaceReviewAccepted),
@@ -5489,10 +5564,14 @@ function operationalReleasePanelState(request) {
       detail: plan?.notamReviewAccepted && plan?.airspaceReviewAccepted ? 'Weather, NOTAM and airspace review acknowledged' : 'Complete weather, NOTAM and airspace review'
     },
     performance: {
-      ready: Boolean(checks.performance.completed && plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway),
+      ready: Boolean(checks.performance.completed && performanceSnapshotReady),
       confirmedAt: checks.performance.completedAt,
       confirmedBy: checks.performance.completedBy,
-      detail: plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway ? 'Departure and arrival performance snapshot captured' : 'Capture both runway performance snapshots'
+      detail: performanceSnapshotReady
+        ? `Departure ${departurePerformance.status} / arrival ${arrivalPerformance.status}`
+        : plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway
+          ? 'Performance snapshot is incomplete or outside limits / recalculate and review'
+          : 'Capture both runway performance snapshots'
     },
     weightBalance: {
       ready: Boolean(checks.weightBalance.completed && weightBalanceWithinLimits),
@@ -5546,7 +5625,7 @@ function operationalReleasePanelState(request) {
   });
   return {
     ready: blockers.length === 0,
-    released: Boolean(plan?.releaseAccepted),
+    released: Boolean(plan?.releaseAccepted && plan?.releaseSnapshot?.releaseId),
     releaseId: plan?.releaseSnapshot?.releaseId || '',
     releasedAt: plan?.releaseSnapshot?.releasedAt || '',
     releasedBy: plan?.releaseSnapshot?.releasedBy || '',
@@ -5558,41 +5637,64 @@ function operationalReleasePanelState(request) {
   };
 }
 
-function movementTimestamp(now = new Date()) {
-  const utc = now.toISOString().slice(11, 16).replace(':', '');
-  const localParts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Helsinki',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23'
-  }).formatToParts(now);
-  const local = Object.fromEntries(localParts.map(part => [part.type, part.value]));
-  return `${utc}Z/${local.hour || '--'}${local.minute || '--'}L`;
+function movementTimeZone(plan, request, phase) {
+  const arrivalPhase = ['on', 'in'].includes(String(phase || '').toLowerCase());
+  const airport = arrivalPhase
+    ? (plan?.destination || request?.arr)
+    : (plan?.departure || request?.dep);
+  return arrivalPhase
+    ? bookingAirportTimeZone(airport)
+    : (plan?.departureTimeZone || bookingAirportTimeZone(airport));
 }
 
-function manualMovementTimestamp(localTime, flightDate) {
+function movementLocalDate(plan, phase, timeZone) {
+  const fallbackDate = String(plan?.dateUtc || '').match(/^\d{4}-\d{2}-\d{2}$/)?.[0]
+    || new Date().toISOString().slice(0, 10);
+  const schedule = ofpSmartSchedule(
+    fallbackDate,
+    plan?.scheduledOutLocal,
+    plan?.departureTimeZone || bookingAirportTimeZone(plan?.departure),
+    plan?.estimatedEnrouteMinutes,
+    plan?.departureTimeOccurrence
+  );
+  const scheduleKey = ['out', 'off', 'on', 'in'].includes(String(phase || '').toLowerCase())
+    ? String(phase).toLowerCase()
+    : 'out';
+  const targetInstant = schedule?.[scheduleKey]?.instant;
+  if (!targetInstant) return fallbackDate;
+  const parts = ofpTimeZoneParts(new Date(targetInstant), timeZone);
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function movementTimestamp(now = new Date(), timeZone = 'UTC') {
+  const clock = ofpDualClock(now, 0, timeZone);
+  return {
+    value: clock.value,
+    instant: clock.instant,
+    timeZone,
+    localDate: clock.localDate,
+    utcDate: clock.utcDate
+  };
+}
+
+function manualMovementTimestamp(localTime, flightDate, timeZone = 'UTC', occurrence = 'EARLIER') {
   const match = String(localTime || '').trim().match(/^(\d{1,2}):(\d{2})$/);
   if (!match) return null;
   const hour = Number(match[1]);
   const minute = Number(match[2]);
   if (!Number.isInteger(hour) || !Number.isInteger(minute) || hour > 23 || minute > 59) return null;
-
-  const dateMatch = String(flightDate || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  const referenceDate = dateMatch
-    ? new Date(`${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}T12:00:00.000Z`)
-    : new Date();
-  const offsetLabel = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Europe/Helsinki',
-    timeZoneName: 'longOffset'
-  }).formatToParts(referenceDate).find(part => part.type === 'timeZoneName')?.value || 'GMT+00:00';
-  const offsetMatch = offsetLabel.match(/^GMT([+-])(\d{2}):(\d{2})$/);
-  const offsetMinutes = offsetMatch
-    ? (Number(offsetMatch[2]) * 60 + Number(offsetMatch[3])) * (offsetMatch[1] === '-' ? -1 : 1)
-    : 0;
-  const utcMinutes = ((hour * 60) + minute - offsetMinutes + 1440) % 1440;
-  const utc = `${String(Math.floor(utcMinutes / 60)).padStart(2, '0')}${String(utcMinutes % 60).padStart(2, '0')}`;
-  const local = `${String(hour).padStart(2, '0')}${String(minute).padStart(2, '0')}`;
-  return `${utc}Z/${local}L`;
+  const local = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  const resolved = ofpLocalFlightInstant(flightDate, local, timeZone, occurrence);
+  if (!resolved?.instant) return null;
+  const clock = ofpDualClock(resolved.instant, 0, resolved.timeZone);
+  return {
+    value: clock.value,
+    instant: clock.instant,
+    timeZone: resolved.timeZone,
+    localDate: clock.localDate,
+    utcDate: clock.utcDate,
+    occurrence: resolved.occurrence
+  };
 }
 
 function reimbursementStatementDefaults(request) {
@@ -6102,8 +6204,14 @@ app.get('/api/booking-ops/requests/:id/operational-flight-plan', requirePilotAcc
     request.operationalFlightPlan || operationalFlightPlanDefaults(request),
     request
   );
+  const releasePanel = operationalReleasePanelState(request);
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.json({ request, operationalFlightPlan, saved: Boolean(request.operationalFlightPlan) });
+  res.json({
+    request: { ...request, releasePanel },
+    operationalFlightPlan,
+    releasePanel,
+    saved: Boolean(request.operationalFlightPlan)
+  });
 });
 
 app.get('/api/booking-ops/requests/:id/operational-flight-plan/pdf', requirePilotAccess, async (req, res) => {
@@ -6206,10 +6314,13 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   const previousTimestamp = previousPlan[step.field] || '';
 
   const manualTime = String(req.body?.localTime || '').trim();
-  const timestamp = manualTime
-    ? manualMovementTimestamp(manualTime, previousPlan.dateUtc || request.requestDate)
-    : movementTimestamp();
-  if (!timestamp) return res.status(400).json({ error: 'ENTER A VALID LOCAL TIME IN HH:MM FORMAT' });
+  const timeZone = movementTimeZone(previousPlan, request, phase);
+  const localDate = movementLocalDate(previousPlan, phase, timeZone);
+  const timestampRecord = manualTime
+    ? manualMovementTimestamp(manualTime, localDate, timeZone, String(req.body?.occurrence || 'EARLIER').toUpperCase())
+    : movementTimestamp(new Date(), timeZone);
+  if (!timestampRecord) return res.status(400).json({ error: 'ENTER A VALID LOCAL TIME IN HH:MM FORMAT' });
+  const timestamp = timestampRecord.value;
   const source = manualTime ? 'MANUAL LOCAL TIME' : 'SERVER CLOCK';
   const flightPlan = normalizeOperationalFlightPlan({ ...previousPlan, [step.field]: timestamp }, request);
   request.operationalFlightPlan = flightPlan;
@@ -6225,7 +6336,17 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
       ...request,
       bookingMessage: formatBookingMessage(request)
     },
-    movement: { phase: step.label, timestamp, source, replaced: Boolean(previousTimestamp), previousTimestamp }
+    movement: {
+      phase: step.label,
+      timestamp,
+      source,
+      replaced: Boolean(previousTimestamp),
+      previousTimestamp,
+      instant: timestampRecord.instant,
+      timeZone: timestampRecord.timeZone,
+      localDate: timestampRecord.localDate,
+      utcDate: timestampRecord.utcDate
+    }
   });
 });
 
@@ -6403,7 +6524,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
         flightPlan.releaseAccepted = false;
         flightPlan.releaseSnapshot = null;
         flightPlan.releaseChecks = normalizeOperationalReleaseChecks({});
-        if (performanceInputsChanged) flightPlan.performanceSnapshot = null;
+        if (performanceInputsChanged && !operationalPerformanceSnapshotMatchesPlan(flightPlan)) flightPlan.performanceSnapshot = null;
         flightPlan = normalizeOperationalFlightPlan(flightPlan, request);
       }
       const briefingComplete = flightPlan.notamReviewAccepted && flightPlan.airspaceReviewAccepted;
@@ -6411,13 +6532,13 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
       flightPlan.briefingReviewedAt = briefingComplete
         ? (briefingWasComplete ? previousPlan.briefingReviewedAt : new Date().toISOString())
         : '';
-      if (flightPlan.releaseAccepted && req.pilotSession?.role !== 'COMMANDER') {
-        return res.status(403).json({ error: 'COMMANDER ACCESS REQUIRED TO RELEASE AN OFP' });
-      }
       if (flightPlan.releaseAccepted) {
         const releaseState = operationalReleasePanelState({ ...request, operationalFlightPlan: flightPlan });
+        if (req.pilotSession?.role !== 'COMMANDER') {
+          return res.status(403).json({ error: 'COMMANDER ACCESS REQUIRED TO RELEASE AN OFP', releasePanel: releaseState });
+        }
         if (!releaseState.ready) {
-          return res.status(400).json({ error: `OFP RELEASE BLOCKED: ${releaseState.blockers.join(' / ')}` });
+          return res.status(400).json({ error: `OFP RELEASE BLOCKED: ${releaseState.blockers.join(' / ')}`, releasePanel: releaseState });
         }
       }
       const wasReleased = Boolean(previousPlan?.releaseAccepted);
@@ -6455,12 +6576,15 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
     }
   }
   await persistBookingRequest(request);
+  const releasePanel = operationalReleasePanelState(request);
 
   res.json({
     request: {
       ...request,
-      bookingMessage: formatBookingMessage(request)
-    }
+      bookingMessage: formatBookingMessage(request),
+      releasePanel
+    },
+    releasePanel
   });
   if (pilotDecision === 'APPROVED' && !wasApproved && !request.confirmationEmailSentAt) {
     void deliverApprovalNotification(request);

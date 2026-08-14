@@ -1264,7 +1264,7 @@
                 <span id="perfTakeoffVr" class="performance-value performance-value-live">..... KIAS</span>
               </div>
               <div class="performance-item">
-                <span class="performance-label">T/O DIST REQ</span>
+                <span class="performance-label">GROUND ROLL</span>
                 <span id="perfTakeoffDistReq" class="performance-value">..... FT</span>
               </div>
             </div>
@@ -1297,7 +1297,7 @@
                 <span id="perfTakeoffRotatePitch" class="performance-value">7–9° NOSE UP</span>
               </div>
               <div class="performance-item">
-                <span class="performance-label">50FT DISTANCE</span>
+                <span class="performance-label">50FT / REQUIRED</span>
                 <span id="perfTakeoffDist50" class="performance-value">..... FT</span>
               </div>
             </div>
@@ -1321,7 +1321,7 @@
             <div id="perfTakeoffVisual" class="runway-visual"></div>
             <div class="runway-legend">
               <div class="runway-legend-item legend-green"><span>TO ROLL</span><strong id="perfTakeoffVisualRoll">..... FT</strong></div>
-              <div class="runway-legend-item legend-red"><span>TO DIST REQ</span><strong id="perfTakeoffVisualReq">..... FT</strong></div>
+              <div class="runway-legend-item legend-red"><span>50FT / REQ</span><strong id="perfTakeoffVisualReq">..... FT</strong></div>
               <div class="runway-legend-item legend-green"><span>TORA</span><strong id="perfTakeoffVisualTora">..... FT</strong></div>
               <div class="runway-legend-item legend-amber"><span>RWY REM</span><strong id="perfTakeoffVisualRemain">..... FT</strong></div>
             </div>
@@ -1511,7 +1511,7 @@ OH-PMK  Piper PA-28R-200 Arrow II</pre>
 
             <div class="performance-row">
               <div class="performance-item">
-                <span class="performance-label">LDG DIST REQ</span>
+                <span class="performance-label">50FT / LDG REQ</span>
                 <span id="perfLandingDistReq" class="performance-value">..... FT</span>
               </div>
               <div class="performance-item">
@@ -1617,17 +1617,6 @@ END OF REPORT</pre>
     const bootParams = new URLSearchParams(window.location.search);
     if (bootParams.get('embedded') === '1') document.documentElement.classList.add('embedded');
 
-    async function clearOldCaches() {
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        for (const reg of regs) await reg.unregister();
-      }
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map(key => caches.delete(key)));
-      }
-    }
-
     const DEFAULT_PREVIEW = `ACARS WEATHER REPORT
 --------------------
 OPS NATGLOBE AVIATION   DATE 2026-04-05   UTC 12:34
@@ -1669,6 +1658,7 @@ END OF REPORT`;
     const AIRCRAFT = {
       ident: 'OH-PMK',
       type: 'Piper PA-28R-200 Arrow II',
+      basicEmptyWeightLbs: 1727,
       maxTakeoffWeightLbs: 2650,
       maxLandingWeightLbs: 2650,
       demonstratedCrosswindMph: 20,
@@ -2810,19 +2800,62 @@ END OF REPORT`;
       ids.forEach((id) => setNodeText(id, '..... FT'));
     }
 
+    function performanceWeightError(kind, rawValue) {
+      const takeoff = kind === 'takeoff';
+      const label = takeoff ? 'TAKEOFF WEIGHT' : 'LANDING WEIGHT';
+      const maximum = takeoff ? AIRCRAFT.maxTakeoffWeightLbs : AIRCRAFT.maxLandingWeightLbs;
+      const raw = String(rawValue ?? '').trim();
+      if (!raw) return `${label} REQUIRED / ENTER ${AIRCRAFT.basicEmptyWeightLbs}-${maximum} LBS`;
+      const value = Number(raw);
+      if (!Number.isFinite(value) || !Number.isInteger(value)) return `${label} MUST BE A WHOLE NUMBER`;
+      if (value < AIRCRAFT.basicEmptyWeightLbs || value > maximum) return `${label} MUST BE ${AIRCRAFT.basicEmptyWeightLbs}-${maximum} LBS`;
+      return '';
+    }
+
+    function markPerformanceWeightBlocked(kind, error) {
+      const takeoff = kind === 'takeoff';
+      const speedIds = takeoff
+        ? ['perfTakeoffVr', 'perfTakeoffVx', 'perfTakeoffVy']
+        : ['perfLandingVref', 'perfLandingFinalAppSpeed', 'perfLandingFlapsUpSpeed'];
+      const distanceIds = takeoff
+        ? ['perfTakeoffRwyRemain', 'perfTakeoffDistReq', 'perfTakeoffDist50', 'perfTakeoffAccelStop', 'perfTakeoffStopMargin']
+        : ['perfLandingRwyRemain', 'perfLandingDistReq'];
+      speedIds.forEach(id => setNodeText(id, '..... KIAS'));
+      distanceIds.forEach(id => setNodeText(id, '..... FT'));
+      setNodeText(takeoff ? 'perfTakeoffDerived' : 'perfLandingDerived', `CALCULATION BLOCKED / ${error}`);
+      setNodeText(takeoff ? 'perfTakeoffMessages' : 'perfLandingNotes', error);
+      setNodeText(
+        takeoff ? 'perfTakeoffAcars' : 'perfLandingAcars',
+        `${takeoff ? 'TAKEOFF' : 'LANDING'} PERFORMANCE\n\n${AIRCRAFT.ident}  ${AIRCRAFT.type}\n\nCALCULATION BLOCKED\n${error}`
+      );
+      setPerformanceStatusBadge(takeoff ? 'perfTakeoffStatus' : 'perfLandingStatus', 'danger', 'WEIGHT REQUIRED');
+      if (takeoff) takeoffVisualCalculated = false;
+      else landingVisualCalculated = false;
+      clearRunwayVisualOutput(kind);
+    }
+
+    function requiredPerformanceWeight(kind, rawValue) {
+      const error = performanceWeightError(kind, rawValue);
+      if (error) throw new Error(error);
+      return Number(rawValue);
+    }
+
     function validatePerformanceWeightInputs() {
       const checks = [
-        ['perfTakeoffWeight', 'TAKEOFF WEIGHT'],
-        ['perfLandingWeight', 'LANDING WEIGHT']
+        ['takeoff', 'perfTakeoffWeight'],
+        ['landing', 'perfLandingWeight']
       ];
-      for (const [id, label] of checks) {
+      const errors = [];
+      for (const [kind, id] of checks) {
         const raw = normalizeNumericInputValue(el(id)?.value || '', 4);
         if (el(id)) el(id).value = raw;
-        if (!raw) continue;
-        const value = Number(raw);
-        if (Number.isFinite(value) && value > 2650) return `${label} MAX 2650 LBS`;
+        const error = performanceWeightError(kind, raw);
+        if (error) {
+          errors.push(error);
+          markPerformanceWeightBlocked(kind, error);
+        }
       }
-      return '';
+      return errors.join(' / ');
     }
 
     function formatWindComp(hwXw) {
@@ -3117,7 +3150,6 @@ END OF REPORT`;
       try {
         const runways = await fetchAirportRunways(dep);
         populateRunwaySelect(select, runways, previousValue);
-        if (!select.value && runways.length) select.value = runways[0].ident || '';
         const selected = getSelectedRunwayObject(runways, select.value);
         if (selected) applyTakeoffRunwaySelection(selected);
       } catch (err) {
@@ -3139,7 +3171,6 @@ END OF REPORT`;
       try {
         const runways = await fetchAirportRunways(arr);
         populateRunwaySelect(select, runways, previousValue);
-        if (!select.value && runways.length) select.value = runways[0].ident || '';
         const selected = getSelectedRunwayObject(runways, select.value);
         if (selected) applyLandingRunwaySelection(selected);
       } catch (err) {
@@ -3168,7 +3199,7 @@ END OF REPORT`;
     function computeTakeoffOutputs(data) {
       const rw = data?.takeoff?.runwayAndWeather || {};
       const perf = performanceInputValues();
-      const weight = Number(perf.takeoffWeightLbs) || 2222;
+      const weight = requiredPerformanceWeight('takeoff', perf.takeoffWeightLbs);
       const densityAlt = Number(rw.densityAltFt) || 0;
       const headwind = Number(rw.hwXw?.headwindKt) || 0;
       const crosswind = Number(rw.hwXw?.crosswindKt) || 0;
@@ -3215,9 +3246,10 @@ END OF REPORT`;
 
       const vxKts = mphToKts(AIRCRAFT.vxMph + flapClimbOffsetMph);
       const vyKts = mphToKts(AIRCRAFT.vyMph + flapClimbOffsetMph);
-      const takeoffDistanceRequiredFt = Math.round(groundRoll * 1.1);
+      const groundRollFt = Math.round(groundRoll * 1.1);
       const distance50FtFt = Math.round(over50 * 1.1);
-      const accelerateStopFt = Math.round(Math.max(takeoffDistanceRequiredFt * 1.22, groundRoll + (vrKts * 18)));
+      const takeoffDistanceRequiredFt = distance50FtFt;
+      const accelerateStopFt = Math.round(Math.max(groundRollFt * 1.22, groundRollFt + (vrKts * 18)));
       const stopMarginFt = Number.isFinite(runwayAvailable) ? runwayAvailable - accelerateStopFt : null;
 
       return {
@@ -3229,6 +3261,7 @@ END OF REPORT`;
         stopMarginFt,
         rwyLimitFt: runwayAvailable,
         limitCode: weight > AIRCRAFT.maxTakeoffWeightLbs ? 'OVERWT' : 'MTOW',
+        groundRollFt,
         takeoffDistanceRequiredFt,
         distance50FtFt,
         rotatePitch: '7–9° NOSE UP',
@@ -3251,7 +3284,7 @@ END OF REPORT`;
     function computeLandingOutputs(data) {
       const aw = data?.landing?.airportAndWeather || {};
       const perf = performanceInputValues();
-      const weight = Number(perf.landingWeightLbs) || 2222;
+      const weight = requiredPerformanceWeight('landing', perf.landingWeightLbs);
       const densityAlt = Number(aw.densityAltFt) || 0;
       const headwind = Number(aw.hwXw?.headwindKt) || 0;
       const crosswind = Number(aw.hwXw?.crosswindKt) || 0;
@@ -3300,8 +3333,9 @@ END OF REPORT`;
       }
 
       const speedTargets = computeLandingReferenceSpeeds(headwind, crosswind, flaps);
-      const landingDistanceRequiredFt = Math.round(groundRoll * 1.1);
+      const groundRollFt = Math.round(groundRoll * 1.1);
       const distance50FtFt = Math.round(over50 * 1.1);
+      const landingDistanceRequiredFt = distance50FtFt;
       const marginFt = Number.isFinite(runwayAvailable) ? runwayAvailable - landingDistanceRequiredFt : null;
       const tailwindKt = headwind < 0 ? Math.abs(headwind) : 0;
       const crosswindAbsKt = Math.abs(crosswind);
@@ -3310,6 +3344,7 @@ END OF REPORT`;
         approachSpeedKias: mphToKts(AIRCRAFT.approachMph),
         vrefKias: speedTargets.vrefKias,
         finalApproachSpeedKias: speedTargets.finalApproachSpeedKias,
+        groundRollFt,
         landingDistanceRequiredFt,
         distance50FtFt,
         rwyLimitFt: runwayAvailable,
@@ -3632,7 +3667,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         headingText: el('perfTakeoffRunwayHeading').textContent || (Number.isFinite(rw.hdgDeg) ? `${rw.hdgDeg} °` : '---°'),
         headingValue: rw.hdgDeg,
         availableFt,
-        requiredFt: calc?.takeoffDistanceRequiredFt,
+        requiredFt: calc?.groundRollFt,
         widthFt: rw?.widthFt,
         thresholdLabel: 'BRAKE RELEASE',
         aircraftMode: 'DEP',
@@ -3652,10 +3687,10 @@ function renderTakeoffRunwayVisual(data, calc) {
       const reqNode = document.getElementById('perfTakeoffVisualReq');
       const remainNode = document.getElementById('perfTakeoffVisualRemain');
       if (toraNode) toraNode.textContent = formatFeet(availableFt);
-      if (rollNode) rollNode.textContent = formatFeet(calc?.takeoffDistanceRequiredFt);
-      if (reqNode) reqNode.textContent = formatFeet(calc?.distance50FtFt);
+      if (rollNode) rollNode.textContent = formatFeet(calc?.groundRollFt);
+      if (reqNode) reqNode.textContent = formatFeet(calc?.takeoffDistanceRequiredFt);
       if (remainNode) {
-        const takeoffRemainFt = Number.isFinite(availableFt) && Number.isFinite(calc?.distance50FtFt) ? availableFt - calc.distance50FtFt : (Number.isFinite(availableFt) && Number.isFinite(calc?.takeoffDistanceRequiredFt) ? availableFt - calc.takeoffDistanceRequiredFt : null);
+        const takeoffRemainFt = Number.isFinite(availableFt) && Number.isFinite(calc?.takeoffDistanceRequiredFt) ? availableFt - calc.takeoffDistanceRequiredFt : null;
         remainNode.textContent = formatFeet(takeoffRemainFt);
       }
     }
@@ -3722,10 +3757,10 @@ function renderTakeoffRunwayVisual(data, calc) {
         formatAcarsPair('POWER SETTING', toDisplayValue(el('perfTakeoffPower').value, 'FULL'), 'AC', toDisplayValue(el('perfTakeoffAc').value, 'OFF')),
         '',
         'OUTPUTS:',
-        formatAcarsPair('VR', formatSpeedAcars(calc.vrKias, unit), 'T/O DIST REQ', formatFeet(calc.takeoffDistanceRequiredFt)),
+        formatAcarsPair('VR', formatSpeedAcars(calc.vrKias, unit), 'GROUND ROLL', formatFeet(calc.groundRollFt)),
         formatAcarsPair('VX', formatSpeedAcars(calc.vxKias, unit), 'RWY AVAIL', formatFeet(avail)),
         formatAcarsPair('VY', formatSpeedAcars(calc.vyKias, unit), 'RWY REMAIN', formatFeet(remain)),
-        formatAcarsPair('ROTATE PITCH', '7–9° NOSE UP', '50FT DISTANCE', formatFeet(calc.distance50FtFt)),
+        formatAcarsPair('ROTATE PITCH', '7–9° NOSE UP', '50FT / REQ', formatFeet(calc.takeoffDistanceRequiredFt)),
         formatAcarsPair('XWIND LIMIT', `${calc.xwindLimitKt} KT`, 'WIND COMP', formatWindComp(rw.hwXw)),
         formatAcarsPair('ACCEL-STOP', formatFeet(calc.accelerateStopFt), 'STOP MARGIN', formatFeet(calc.stopMarginFt)),
         '',
@@ -3773,7 +3808,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         'OUTPUTS:',
         formatAcarsPair('VREF', formatSpeedAcars(calc.vrefKias, unit), 'RWY AVAIL', formatFeet(avail)),
         formatAcarsPair('VAPP', formatSpeedAcars(calc.finalApproachSpeedKias, unit), 'RWY REMAIN', formatFeet(remain)),
-        formatAcarsPair('LDG DIST REQ', formatFeet(calc.landingDistanceRequiredFt), 'RWY WIDTH', formatFeet(aw.widthFt)),
+        formatAcarsPair('50FT / REQ', formatFeet(calc.landingDistanceRequiredFt), 'RWY WIDTH', formatFeet(aw.widthFt)),
         formatAcarsPair('WIND COMP', formatWindComp(aw.hwXw)),
         '',
         'GO-AROUND:',
@@ -4105,8 +4140,8 @@ function renderTakeoffRunwayVisual(data, calc) {
       setNodeText('perfTakeoffVx', formatSpeedValue(calc.vxKias, calc.speedUnit));
       setNodeText('perfTakeoffRwyAvail', formatFeet(toraVal));
       setNodeText('perfTakeoffRwyRemain', formatFeet(Number.isFinite(toraVal) && Number.isFinite(calc.takeoffDistanceRequiredFt) ? toraVal - calc.takeoffDistanceRequiredFt : null));
-      setNodeText('perfTakeoffDistReq', formatFeet(calc.takeoffDistanceRequiredFt));
-      setNodeText('perfTakeoffDist50', formatFeet(calc.distance50FtFt));
+      setNodeText('perfTakeoffDistReq', formatFeet(calc.groundRollFt));
+      setNodeText('perfTakeoffDist50', formatFeet(calc.takeoffDistanceRequiredFt));
       setNodeText('perfTakeoffRotatePitch', calc.rotatePitch || '7–9° NOSE UP');
       setNodeText('perfTakeoffAccelStop', formatFeet(calc.accelerateStopFt));
       setNodeText('perfTakeoffStopMargin', formatFeet(calc.stopMarginFt));
@@ -4224,7 +4259,10 @@ function renderTakeoffRunwayVisual(data, calc) {
 
     function refreshPerformancePanelIfOpen() {
       if (performancePanel.style.display !== 'block') return;
-      loadPerformancePanelData().catch((err) => console.error(err));
+      loadPerformancePanelData().catch((err) => {
+        console.error(err);
+        setStatusWithAdvice(err.message || 'PERFORMANCE INPUTS REQUIRED', 'nodata');
+      });
     }
 
     async function generate() {
@@ -4484,7 +4522,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         setStatusWithAdvice('PERFORMANCE PANEL READY', 'live');
       } catch (err) {
         console.error(err);
-        setStatusWithAdvice('PERFORMANCE PANEL LOAD FAILED', 'nodata');
+        setStatusWithAdvice(err.message || 'PERFORMANCE PANEL LOAD FAILED', 'nodata');
       }
     });
 
@@ -4499,7 +4537,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         setStatusWithAdvice('TAKEOFF PERFORMANCE CALCULATED', 'live');
       } catch (err) {
         console.error(err);
-        setStatusWithAdvice('TAKEOFF PERFORMANCE LOAD FAILED', 'nodata');
+        setStatusWithAdvice(err.message || 'TAKEOFF PERFORMANCE LOAD FAILED', 'nodata');
       } finally {
         perfTakeoffCalcBtn.classList.remove('calc-active');
         perfTakeoffCalcBtn.textContent = originalText;
@@ -4517,7 +4555,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         setStatusWithAdvice('LANDING PERFORMANCE CALCULATED', 'live');
       } catch (err) {
         console.error(err);
-        setStatusWithAdvice('LANDING PERFORMANCE LOAD FAILED', 'nodata');
+        setStatusWithAdvice(err.message || 'LANDING PERFORMANCE LOAD FAILED', 'nodata');
       } finally {
         perfLandingCalcBtn.classList.remove('calc-active');
         perfLandingCalcBtn.textContent = originalText;
@@ -4536,7 +4574,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         .catch((err) => {
           console.error(err);
           if (!win.closed) win.close();
-          setStatusWithAdvice('TAKEOFF PERFORMANCE LOAD FAILED', 'nodata');
+          setStatusWithAdvice(err.message || 'TAKEOFF PERFORMANCE LOAD FAILED', 'nodata');
         });
     });
 
@@ -4552,7 +4590,7 @@ function renderTakeoffRunwayVisual(data, calc) {
         .catch((err) => {
           console.error(err);
           if (!win.closed) win.close();
-          setStatusWithAdvice('LANDING PERFORMANCE LOAD FAILED', 'nodata');
+          setStatusWithAdvice(err.message || 'LANDING PERFORMANCE LOAD FAILED', 'nodata');
         });
     });
 
@@ -4676,7 +4714,6 @@ function renderTakeoffRunwayVisual(data, calc) {
     if (navigator.connection) navigator.connection.addEventListener('change', () => { updateConnectionBadge(); updateWxModeFromConnectivity(); });
 
     (async () => {
-      await clearOldCaches();
       updateUtcClock();
       setInterval(updateUtcClock, 1000);
       renderPreview(DEFAULT_PREVIEW);

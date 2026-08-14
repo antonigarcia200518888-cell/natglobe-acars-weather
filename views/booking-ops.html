@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#05080d" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07111b" />
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <title>NGA Pilot Operations Centre</title>
   <style>
@@ -2642,6 +2642,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-14-6" />
 </head>
 <body>
   <main class="frame">
@@ -2662,7 +2663,7 @@
     </header>
     <section id="activeFlightStrip" class="active-flight-strip" aria-label="Active flight status" data-active="false">
       <div class="flight-strip-item flight-strip-route"><span><i class="flight-strip-lamp"></i>Active flight</span><strong id="activeFlightRoute">NO FLIGHT SELECTED</strong><small id="activeFlightReference">SELECT A REQUEST TO START THE EFB WORKFLOW</small></div>
-      <div class="flight-strip-item"><span>Schedule</span><strong id="activeFlightSchedule">--</strong><small>Local Helsinki time</small></div>
+      <div class="flight-strip-item"><span>Schedule</span><strong id="activeFlightSchedule">--</strong><small>Departure local / UTC</small></div>
       <div id="activeFlightPhaseCard" class="flight-strip-item"><span>Phase</span><strong id="activeFlightPhase">STANDBY</strong><small id="activeFlightPhaseDetail">No movement logged</small></div>
       <div class="flight-strip-item"><span>Fuel</span><strong id="activeFlightFuel">TBC</strong><small>Planned block fuel</small></div>
       <div class="flight-strip-item"><span>Load</span><strong id="activeFlightLoad">--</strong><small>Declared cabin load</small></div>
@@ -2751,11 +2752,33 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
             <div class="aircraft-identity"><span>Aircraft Performance</span><h2>Runway performance</h2><strong>OH-PMK&nbsp;&nbsp; Piper PA-28R-200 Arrow II</strong></div>
             <div class="aircraft-specs"><div><span>MTOW / MLW</span><strong>2650 LB</strong></div><div><span>Fuel</span><strong>100LL / 48 USG</strong></div><div><span>Crosswind</span><strong>17 KT</strong></div></div>
           </div>
-          <div class="performance-context">
-            <div><strong id="performanceRouteContext">NO FLIGHT SELECTED</strong><span>Reservation data preloads the route, passenger weights, baggage, and saved OFP runway ends. Every value remains pilot-reviewable.</span></div>
-            <button id="runPerformanceBtn" class="performance-run" type="button">Load / refresh both</button>
-          </div>
-          <div id="performanceStatus" class="performance-status">Select a flight and runway ends. Current weather, wind components, density altitude, and runway data will load automatically.</div>
+          <section class="performance-flight-setup" aria-label="Performance flight setup">
+            <header class="performance-context">
+              <div><span>Performance review</span><strong id="performanceRouteContext">NO FLIGHT SELECTED</strong><small>Route and planned weights are preloaded from the active flight. Confirm both runway ends before using the result.</small></div>
+              <div class="performance-context-actions"><span class="performance-source-chip">Live weather + runway data</span><button id="runPerformanceBtn" class="performance-run" type="button">Calculate flight</button></div>
+            </header>
+            <div class="performance-leg-setup-grid">
+              <div class="performance-leg-setup departure">
+                <div class="performance-leg-title"><span>Departure</span><strong>Takeoff runway</strong></div>
+                <div class="performance-setup-fields">
+                  <label>Airport<input id="perfDep" maxlength="4" placeholder="EFHV" autocomplete="off" /></label>
+                  <label>Runway<select id="perfDepRunway"><option value="">Select runway</option></select></label>
+                </div>
+                <div class="runway-guidance"><small id="perfDepRunwayHint" class="runway-smart-hint">Enter an airport to load runway guidance.</small><button id="confirmDepRunwayBtn" type="button">Confirm runway</button></div>
+              </div>
+              <div class="performance-route-arrow" aria-hidden="true">&#8594;</div>
+              <div class="performance-leg-setup arrival">
+                <div class="performance-leg-title"><span>Arrival</span><strong>Landing runway</strong></div>
+                <div class="performance-setup-fields">
+                  <label>Airport<input id="perfArr" maxlength="4" placeholder="EFHN" autocomplete="off" /></label>
+                  <label>Runway<select id="perfArrRunway"><option value="">Select runway</option></select></label>
+                </div>
+                <div class="runway-guidance"><small id="perfArrRunwayHint" class="runway-smart-hint">Enter an airport to load runway guidance.</small><button id="confirmArrRunwayBtn" type="button">Confirm runway</button></div>
+              </div>
+            </div>
+            <div class="performance-source-row" aria-label="Calculation sources"><span id="performanceWeightSource">Planned weight pending</span><span>METAR weather</span><span>Runway database</span><span>PA-28R advisory profile</span></div>
+          </section>
+          <div id="performanceStatus" class="performance-status" role="status" aria-live="polite">Select a flight and runway ends. Current weather, wind components, density altitude, and runway data will load automatically.</div>
           <div class="performance-stage-tabs" role="tablist" aria-label="Aircraft performance phase">
             <button class="active" type="button" role="tab" aria-selected="true" data-performance-stage="takeoff"><span>Departure</span><strong>Takeoff</strong><small id="takeoffStageSummary">Select runway</small></button>
             <button type="button" role="tab" aria-selected="false" data-performance-stage="landing"><span>Arrival</span><strong>Landing</strong><small id="landingStageSummary">Select runway</small></button>
@@ -2775,26 +2798,23 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
               <div class="performance-control-column">
               <div class="performance-section-title">Airport and weather</div>
               <div id="takeoffPerformanceMetrics" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">APT</span><span class="performance-value"><input id="perfDep" maxlength="4" placeholder="EFHV" /></span></div>
                 <div class="performance-item"><span class="performance-label">WIND</span><span class="performance-value performance-inline"><input id="perfTakeoffWind" value="AUTO" /><button id="perfTakeoffWindMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">RWY</span><span class="performance-value"><select id="perfDepRunway"><option value="">SELECT RUNWAY</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfTakeoffHwXw" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">TORA</span><strong id="perfTakeoffTora" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfTakeoffHwXw" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">TORA</span><strong id="perfTakeoffTora" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">OAT / DP</span><span class="performance-value performance-inline"><input id="perfTakeoffOat" value="AUTO" /><button id="perfTakeoffOatMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfTakeoffRunwayHeading" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfTakeoffRunwayHeading" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">QNH</span><span class="performance-value performance-inline"><input id="perfTakeoffQnh" value="AUTO" /><button id="perfTakeoffQnhMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfTakeoffElevation" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfTakeoffElevation" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">RWY COND</span><span class="performance-value"><select id="perfTakeoffCondition"><option>DRY</option><option>WET</option><option>SNOW</option><option>ICE</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfTakeoffDensityAltitude" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfTakeoffSlope" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfTakeoffDensityAltitude" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfTakeoffSlope" class="performance-value">N/A</strong></div>
               </div>
               <div class="performance-section-title">Inputs</div>
               <div class="performance-rows">
                 <div class="performance-item"><span class="performance-label">WEIGHT</span><span class="performance-value"><input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" /></span></div>
                 <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfTakeoffFlaps"><option value="0">0 DEG</option><option value="10" selected>10 DEG</option><option value="25">25 DEG</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">SPEED UNIT</span><span class="performance-value"><select id="perfTakeoffSpeedUnit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">POWER</span><span class="performance-value"><select id="perfTakeoffPower"><option value="FULL">FULL</option><option value="SHORT FIELD">SHORT FIELD</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">AC</span><span class="performance-value"><select id="perfTakeoffAc"><option>OFF</option><option>ON</option></select></span></div>
+                <div hidden><select id="perfTakeoffPower"><option value="FULL">FULL</option></select><select id="perfTakeoffAc"><option>OFF</option></select></div>
               </div>
               <div id="takeoffPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
               <div class="performance-actions"><button id="calculateTakeoffBtn" class="primary" type="button">Calculate takeoff</button><button id="openTakeoffPdfBtn" type="button">Open PDF</button></div>
@@ -2802,21 +2822,21 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
               <div class="performance-output-column">
               <div class="performance-section-title">Outputs</div>
               <div id="takeoffPerformanceOutputs" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">VR</span><strong id="perfTakeoffVr" class="performance-value live" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">T/O DIST REQ</span><strong id="perfTakeoffDistReq" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VX</span><strong id="perfTakeoffVx" class="performance-value live" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfTakeoffRwyAvail" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VY</span><strong id="perfTakeoffVy" class="performance-value live" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfTakeoffRwyRemain" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">ROTATE PITCH</span><strong id="perfTakeoffRotatePitch" class="performance-value" contenteditable="true">7–9° NOSE UP</strong></div>
-                <div class="performance-item"><span class="performance-label">50 FT DIST</span><strong id="perfTakeoffDist50" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">ACCEL-STOP</span><strong id="perfTakeoffAccelStop" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">STOP MARGIN</span><strong id="perfTakeoffStopMargin" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">XWIND LIMIT</span><strong id="perfTakeoffXwindLimit" class="performance-value" contenteditable="true">17 KT</strong></div>
-                <div class="performance-item"><span class="performance-label">WIND COMP</span><strong id="perfTakeoffWindComp" class="performance-value" contenteditable="true">HW 00 / XW 00</strong></div>
+                <div class="performance-item"><span class="performance-label">VR</span><strong id="perfTakeoffVr" class="performance-value live">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">GROUND ROLL</span><strong id="perfTakeoffDistReq" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VX</span><strong id="perfTakeoffVx" class="performance-value live">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfTakeoffRwyAvail" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VY</span><strong id="perfTakeoffVy" class="performance-value live">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfTakeoffRwyRemain" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">ROTATE PITCH</span><strong id="perfTakeoffRotatePitch" class="performance-value">7–9° NOSE UP</strong></div>
+                <div class="performance-item"><span class="performance-label">50 FT / REQUIRED</span><strong id="perfTakeoffDist50" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">ACCEL-STOP</span><strong id="perfTakeoffAccelStop" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">STOP MARGIN</span><strong id="perfTakeoffStopMargin" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">XWIND LIMIT</span><strong id="perfTakeoffXwindLimit" class="performance-value">17 KT</strong></div>
+                <div class="performance-item"><span class="performance-label">WIND COMP</span><strong id="perfTakeoffWindComp" class="performance-value">HW 00 / XW 00</strong></div>
               </div>
               <div class="performance-section-title">Visual runway</div><div class="performance-visual-wrap"><div class="performance-visual-title">Calculated takeoff roll, 50 ft requirement, accelerate-stop point, and remaining runway</div><div id="takeoffRunwayVisual" class="runway-visual"></div><div id="takeoffRunwayLegend" class="runway-legend"></div></div>
-              <div class="performance-section-title">Remarks</div><div id="takeoffPerformanceMessages" class="performance-messages" contenteditable="true">LOAD DATA TO CALCULATE</div>
+              <div class="performance-section-title">Advisories</div><div id="takeoffPerformanceMessages" class="performance-messages">LOAD DATA TO CALCULATE</div>
               <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
               <details class="performance-document-preview"><summary>Takeoff document preview</summary><pre id="perfTakeoffAcars" class="performance-acars-block">TAKEOFF PERFORMANCE
 ------------------------
@@ -2838,18 +2858,16 @@ LOAD DATA TO CALCULATE.</pre></details>
               <div class="performance-control-column">
               <div class="performance-section-title">Airport and weather</div>
               <div id="landingPerformanceMetrics" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">APT</span><span class="performance-value"><input id="perfArr" maxlength="4" placeholder="EFHN" /></span></div>
                 <div class="performance-item"><span class="performance-label">WIND</span><span class="performance-value performance-inline"><input id="perfLandingWind" value="AUTO" /><button id="perfLandingWindMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">RWY</span><span class="performance-value"><select id="perfArrRunway"><option value="">SELECT RUNWAY</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfLandingHwXw" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">LDA</span><strong id="perfLandingLda" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfLandingHwXw" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">LDA</span><strong id="perfLandingLda" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">OAT / DP</span><span class="performance-value performance-inline"><input id="perfLandingOat" value="AUTO" /><button id="perfLandingOatMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfLandingRunwayHeading" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfLandingRunwayHeading" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">QNH</span><span class="performance-value performance-inline"><input id="perfLandingQnh" value="AUTO" /><button id="perfLandingQnhMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfLandingElevation" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfLandingElevation" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">RWY COND</span><span class="performance-value"><select id="perfLandingCondition"><option>DRY</option><option>WET</option><option>SNOW</option><option>ICE</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfLandingDensityAltitude" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfLandingSlope" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfLandingDensityAltitude" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfLandingSlope" class="performance-value">N/A</strong></div>
               </div>
               <div class="performance-section-title">Inputs</div>
               <div class="performance-rows">
@@ -2857,7 +2875,7 @@ LOAD DATA TO CALCULATE.</pre></details>
                 <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfLandingFlaps"><option value="40">FULL / 40 DEG</option><option value="25">25 DEG</option><option value="10">10 DEG</option><option value="0">0 DEG</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">SPEED UNIT</span><span class="performance-value"><select id="perfLandingSpeedUnit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">BRAKING</span><span class="performance-value"><select id="perfLandingBraking"><option value="MAX">MAX</option><option value="MOD">MOD</option><option value="MIN">MIN</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">AC</span><span class="performance-value"><select id="perfLandingAc"><option>OFF</option><option>ON</option></select></span></div>
+                <div hidden><select id="perfLandingAc"><option>OFF</option></select></div>
               </div>
               <div id="landingPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
               <div class="performance-actions"><button id="calculateLandingBtn" class="primary" type="button">Calculate landing</button><button id="openLandingPdfBtn" type="button">Open PDF</button></div>
@@ -2865,17 +2883,17 @@ LOAD DATA TO CALCULATE.</pre></details>
               <div class="performance-output-column">
               <div class="performance-section-title">Outputs</div>
               <div id="landingPerformanceOutputs" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">VREF</span><strong id="perfLandingVref" class="performance-value live" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfLandingRwyAvail" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VAPP</span><strong id="perfLandingFinalAppSpeed" class="performance-value live" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfLandingRwyRemain" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">LDG DIST REQ</span><strong id="perfLandingDistReq" class="performance-value" contenteditable="true">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY WIDTH</span><strong id="perfLandingRwyWidth" class="performance-value" contenteditable="true">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VREF</span><strong id="perfLandingVref" class="performance-value live">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfLandingRwyAvail" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">VAPP</span><strong id="perfLandingFinalAppSpeed" class="performance-value live">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfLandingRwyRemain" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">LDG DIST REQ</span><strong id="perfLandingDistReq" class="performance-value">N/A</strong></div>
+                <div class="performance-item"><span class="performance-label">RWY WIDTH</span><strong id="perfLandingRwyWidth" class="performance-value">N/A</strong></div>
               </div>
               <div class="performance-section-title">Go-around</div>
-              <div class="performance-rows"><div class="performance-item"><span class="performance-label">POWER</span><strong id="perfLandingGoAroundPower" class="performance-value" contenteditable="true">FULL</strong></div><div class="performance-item"><span class="performance-label">FLAPS UP SPEED</span><strong id="perfLandingFlapsUpSpeed" class="performance-value" contenteditable="true">87 MIAS</strong></div></div>
+              <div class="performance-rows"><div class="performance-item"><span class="performance-label">POWER</span><strong id="perfLandingGoAroundPower" class="performance-value">FULL</strong></div><div class="performance-item"><span class="performance-label">FLAPS UP SPEED</span><strong id="perfLandingFlapsUpSpeed" class="performance-value">87 KIAS</strong></div></div>
               <div class="performance-section-title">Visual runway</div><div class="performance-visual-wrap"><div class="performance-visual-title">Calculated landing requirement, threshold crossing, stopping point, and remaining runway</div><div id="landingRunwayVisual" class="runway-visual"></div><div id="landingRunwayLegend" class="runway-legend"></div></div>
-              <div class="performance-section-title">Remarks</div><div id="landingPerformanceMessages" class="performance-messages" contenteditable="true">LOAD DATA TO CALCULATE</div>
+              <div class="performance-section-title">Advisories</div><div id="landingPerformanceMessages" class="performance-messages">LOAD DATA TO CALCULATE</div>
               <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
               <details class="performance-document-preview"><summary>Landing document preview</summary><pre id="perfLandingAcars" class="performance-acars-block">LANDING PERFORMANCE
 ------------------------
@@ -3453,6 +3471,7 @@ END OF MESSAGE</pre>
     let latestPerformanceEffectiveData = null;
     let latestPerformanceCalculations = null;
     let performanceDataRequest = '';
+    let performanceContextFingerprint = '';
     let latestWeatherData = null;
     let weatherDataKey = '';
     let weatherAirportCatalog = [];
@@ -3463,6 +3482,7 @@ END OF MESSAGE</pre>
     let aircraftStatus = null;
     let deferredInstallPrompt = null;
     let flightContextDismissed = false;
+    let performanceRunwayCatalog = { departure:[], arrival:[] };
 
     function tick() {
       const now = new Date();
@@ -3615,6 +3635,33 @@ END OF MESSAGE</pre>
     }
 
     function releaseClientState(req) {
+      const serverState = req?.releasePanel;
+      if (serverState && typeof serverState === 'object' && serverState.items && typeof serverState.items === 'object') {
+        const items = {};
+        ['weather', 'performance', 'weightBalance', 'fuel', 'documents', 'aircraft'].forEach(key => {
+          const source = serverState.items[key] || {};
+          items[key] = {
+            ready:source.ready === true,
+            confirmed:typeof source.confirmed === 'boolean'
+              ? source.confirmed
+              : Boolean(source.confirmedAt || (['documents', 'aircraft'].includes(key) && source.ready === true)),
+            detail:String(source.detail || 'Server release check pending')
+          };
+        });
+        const releaseId = String(serverState.releaseId || '');
+        return {
+          ready:serverState.ready === true,
+          released:Boolean(serverState.released === true && releaseId),
+          releaseId,
+          releasedAt:String(serverState.releasedAt || ''),
+          releasedBy:String(serverState.releasedBy || ''),
+          routeReady:serverState.routeReady === true,
+          scheduleReady:serverState.scheduleReady === true,
+          commanderReady:serverState.commanderReady === true,
+          items,
+          blockers:Array.isArray(serverState.blockers) ? serverState.blockers.filter(Boolean).map(String) : []
+        };
+      }
       const plan = req?.operationalFlightPlan || null;
       const checks = plan?.releaseChecks || {};
       const blockFuelGal = Number(plan?.blockFuelGal);
@@ -3628,6 +3675,15 @@ END OF MESSAGE</pre>
       const passengers = req ? passengerList(req) : [];
       const signed = req ? agreementCount(req) : 0;
       const documentsReady = Boolean(req?.manualFlight || (passengers.length && signed === passengers.length));
+      const performanceLegReady = leg => Boolean(
+        leg?.runway
+        && ['ADVISORY PASS', 'CAUTION / REVIEW'].includes(String(leg.status || '').toUpperCase())
+        && nullableNumber(leg.requiredDistanceFt) !== null
+        && nullableNumber(leg.runwayMarginFt) !== null
+        && Number(leg.runwayMarginFt) >= 0
+      );
+      const performanceSnapshotReady = performanceLegReady(plan?.performanceSnapshot?.departure)
+        && performanceLegReady(plan?.performanceSnapshot?.arrival);
       const wbReady = Boolean(plan
         && Number(plan.crewWeightLb) > 0
         && Number(plan.baggageWeightLb) <= Number(plan.baggageLimitLb)
@@ -3645,9 +3701,9 @@ END OF MESSAGE</pre>
           detail:plan?.notamReviewAccepted && plan?.airspaceReviewAccepted ? 'Weather, NOTAM and airspace review acknowledged' : 'Complete weather, NOTAM and airspace review'
         },
         performance: {
-          ready:Boolean(checks.performance?.completed && plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway),
+          ready:Boolean(checks.performance?.completed && performanceSnapshotReady),
           confirmed:Boolean(checks.performance?.completed),
-          detail:plan?.performanceSnapshot?.departure?.runway && plan?.performanceSnapshot?.arrival?.runway ? 'Departure and arrival performance captured' : 'Capture both runway performance snapshots'
+          detail:performanceSnapshotReady ? 'Departure and arrival advisory performance verified' : 'Recalculate both runways and resolve incomplete or exceeded limits'
         },
         weightBalance: {
           ready:Boolean(checks.weightBalance?.completed && wbReady),
@@ -3679,7 +3735,7 @@ END OF MESSAGE</pre>
       Object.entries(items).forEach(([key, item]) => { if (!item.ready) blockers.push(`${key.replace(/([A-Z])/g, ' $1').toUpperCase()} OPEN`); });
       return {
         ready:blockers.length === 0,
-        released:Boolean(plan?.releaseAccepted),
+        released:Boolean(plan?.releaseAccepted && plan?.releaseSnapshot?.releaseId),
         releaseId:plan?.releaseSnapshot?.releaseId || '',
         releasedAt:plan?.releaseSnapshot?.releasedAt || '',
         items,
@@ -3781,11 +3837,25 @@ END OF MESSAGE</pre>
         status:'OFFLINE SNAPSHOT',
         manualFlight:true,
         operationalFlightPlan:{
+          flightReference:plan.flightReference,
           departure:plan.departure,
           destination:plan.destination,
+          depRunway:plan.depRunway,
+          arrRunway:plan.arrRunway,
           route:plan.route,
           alternate:plan.alternate,
           dateUtc:plan.dateUtc,
+          departureTimeZone:plan.departureTimeZone,
+          scheduledOutLocal:plan.scheduledOutLocal,
+          scheduledOutUtc:plan.scheduledOutUtc,
+          scheduledOut:plan.scheduledOut,
+          scheduledOff:plan.scheduledOff,
+          scheduledOn:plan.scheduledOn,
+          scheduledIn:plan.scheduledIn,
+          estimatedOut:plan.estimatedOut,
+          estimatedOff:plan.estimatedOff,
+          estimatedOn:plan.estimatedOn,
+          estimatedIn:plan.estimatedIn,
           estimatedOffBlock:plan.estimatedOffBlock,
           estimatedTakeoff:plan.estimatedTakeoff,
           estimatedLanding:plan.estimatedLanding,
@@ -3802,7 +3872,10 @@ END OF MESSAGE</pre>
           takeoffWeightLb:plan.takeoffWeightLb,
           landingWeightLb:plan.landingWeightLb,
           calculationStatus:plan.calculationStatus,
-          releaseAccepted:Boolean(plan.releaseAccepted)
+          performanceSnapshot:plan.performanceSnapshot || null,
+          releaseChecks:plan.releaseChecks || null,
+          releaseSnapshot:plan.releaseSnapshot || null,
+          releaseAccepted:Boolean(plan.releaseAccepted && plan.releaseSnapshot?.releaseId)
         },
         cachedAt:new Date().toISOString()
       };
@@ -3851,7 +3924,7 @@ END OF MESSAGE</pre>
       if (ofp.actualOn) return { label:'TAXI IN', detail:`ON ${ofp.actualOn}`, tone:'good' };
       if (ofp.actualOff) return { label:'AIRBORNE', detail:`OFF ${ofp.actualOff}`, tone:'good' };
       if (ofp.actualOut) return { label:'TAXI OUT', detail:`OUT ${ofp.actualOut}`, tone:'good' };
-      if (ofp.releaseAccepted) return { label:'RELEASED', detail:'Pilot release accepted', tone:'good' };
+      if (releaseClientState(req).released) return { label:'RELEASED', detail:'Server-recorded PIC release', tone:'good' };
       if (req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED') return { label:'CONFIRMED', detail:'Awaiting flight release', tone:'warn' };
       if (req.pilotDecision === 'NEEDS INFO') return { label:'NEEDS INFO', detail:'Pilot review open', tone:'warn' };
       return { label:'PREFLIGHT', detail:'No movement logged', tone:'' };
@@ -3869,7 +3942,7 @@ END OF MESSAGE</pre>
       const weatherReady = Boolean(req && latestWeatherData && weatherDataKey.startsWith(`${req.id}|`));
       const weatherPartial = weatherReady && (latestWeatherData.departure?.mode === 'NO DATA' || latestWeatherData.arrival?.mode === 'NO DATA');
       const briefingReady = Boolean(ofp.notamReviewAccepted && ofp.airspaceReviewAccepted);
-      const docsLabel = !req ? 'OFP NOT STARTED' : ofp.releaseAccepted ? `OFP RELEASED / BRIEF ${briefingReady ? 'OK' : 'OPEN'}` : ofp ? `OFP DRAFT / BRIEF ${briefingReady ? 'OK' : 'OPEN'}` : 'OFP NOT STARTED';
+      const docsLabel = !req ? 'OFP NOT STARTED' : releaseClientState(req).released ? `OFP RELEASED / BRIEF ${briefingReady ? 'OK' : 'OPEN'}` : ofp ? `OFP DRAFT / BRIEF ${briefingReady ? 'OK' : 'OPEN'}` : 'OFP NOT STARTED';
 
       activeFlightStrip.dataset.active = String(Boolean(req));
       activeFlightRoute.textContent = req ? (req.route || `${req.dep || '----'} > ${req.arr || '----'}`) : 'NO FLIGHT SELECTED';
@@ -3878,7 +3951,11 @@ END OF MESSAGE</pre>
           ? `${req.id || 'REFERENCE PENDING'} / PILOT-ONLY MANUAL FLIGHT FILE`
           : `${req.id || 'REFERENCE PENDING'} / ${req.status || 'REQUESTED'} / ${req.pilotDecision || 'PILOT REVIEW'}`
         : 'SELECT A REQUEST TO START THE EFB WORKFLOW';
-      activeFlightSchedule.textContent = req ? `${req.requestDate || 'DATE TBC'} ${req.requestTime || 'TIME TBC'}` : '--';
+      const scheduleLocal = ofp.scheduledOutLocal || req?.requestTime || 'TIME TBC';
+      const scheduleUtc = ofp.scheduledOutUtc ? `${String(ofp.scheduledOutUtc).replace(/Z$/i, '')}Z` : '';
+      activeFlightSchedule.textContent = req
+        ? `${req.requestDate || ofp.dateUtc || 'DATE TBC'} ${scheduleLocal}L${scheduleUtc ? ` / ${scheduleUtc}` : ''}`
+        : '--';
       activeFlightPhase.textContent = phase.label;
       activeFlightPhaseDetail.textContent = phase.detail;
       activeFlightFuel.textContent = req ? (ofp.blockFuelGal ? `BLOCK ${ofp.blockFuelGal} USG` : 'FUEL TBC') : 'TBC';
@@ -3944,7 +4021,7 @@ END OF MESSAGE</pre>
       const fuelTone = release.items.fuel.ready ? 'good' : Number(plan.blockFuelGal) > 0 ? 'warn' : 'danger';
       const weightTone = release.items.weightBalance.ready ? 'good' : plan.takeoffWeightLb ? 'warn' : 'danger';
       const documentTone = release.items.documents.ready ? 'good' : 'warn';
-      const ofpTone = plan.releaseAccepted ? 'good' : req.operationalFlightPlan ? 'warn' : 'danger';
+      const ofpTone = release.released ? 'good' : req.operationalFlightPlan ? 'warn' : 'danger';
       const releaseTone = release.released ? 'good' : release.ready ? 'warn' : 'danger';
       const weatherValue = release.items.weather.ready ? 'REVIEWED' : liveWeather ? 'LOADED' : 'OPEN';
       const performanceValue = release.items.performance.ready ? 'CHECKED' : plan.performanceSnapshot ? 'SAVED' : 'OPEN';
@@ -3958,8 +4035,8 @@ END OF MESSAGE</pre>
         <div class="flight-context-facts">
           <div class="flight-context-fact"><span>Aircraft</span><strong>${escapeHtml(plan.aircraftRegistration || req.aircraft || 'NOT ASSIGNED')}</strong></div>
           <div class="flight-context-fact"><span>Commander</span><strong>${escapeHtml(plan.commanderName || req.crew?.commander || 'UNASSIGNED')}</strong></div>
-          <div class="flight-context-fact"><span>Departure</span><strong>${escapeHtml(`${req.requestDate || 'DATE TBC'} ${req.requestTime || 'TIME TBC'}L`)}</strong></div>
-          <div class="flight-context-fact"><span>UTC / ETE</span><strong>${escapeHtml(`${requestUtcTime(req)} / ${opsFlightTime(req)}`)}</strong></div>
+          <div class="flight-context-fact"><span>Departure</span><strong>${escapeHtml(`${req.requestDate || plan.dateUtc || 'DATE TBC'} ${plan.scheduledOutLocal || req.requestTime || 'TIME TBC'}L`)}</strong></div>
+          <div class="flight-context-fact"><span>UTC / ETE</span><strong>${escapeHtml(`${plan.scheduledOutUtc ? `${String(plan.scheduledOutUtc).replace(/Z$/i, '')}Z` : requestUtcTime(req)} / ${opsFlightTime(req)}`)}</strong></div>
           <div class="flight-context-fact"><span>Passengers</span><strong>${escapeHtml(`${passengers.length || req.seats || 0} PAX / ${load.passengerKg} KG`)}</strong></div>
           <div class="flight-context-fact"><span>Block / baggage</span><strong>${escapeHtml(`${plan.blockFuelGal || '--'} USG / ${load.baggageKg} KG`)}</strong></div>
         </div>
@@ -3970,17 +4047,36 @@ END OF MESSAGE</pre>
           ${contextStatus('Fuel plan', release.items.fuel.detail, release.items.fuel.ready ? 'CONFIRMED' : 'OPEN', fuelTone, 'flight-plan')}
           ${contextStatus('Weight and balance', release.items.weightBalance.detail, release.items.weightBalance.ready ? 'WITHIN LIMITS' : 'OPEN', weightTone, 'flight-plan')}
           ${contextStatus('Passenger documents', release.items.documents.detail, release.items.documents.ready ? 'COMPLETE' : 'OPEN', documentTone, 'documents')}
-          ${contextStatus('Operational flight plan', plan.releaseAccepted ? 'Released OFP available' : req.operationalFlightPlan ? 'Draft saved / pilot verification open' : 'Build the controlled flight plan', plan.releaseAccepted ? 'RELEASED' : req.operationalFlightPlan ? 'DRAFT' : 'OPEN', ofpTone, 'flight-plan')}
+          ${contextStatus('Operational flight plan', release.released ? 'Released OFP available' : req.operationalFlightPlan ? 'Draft saved / pilot verification open' : 'Build the controlled flight plan', release.released ? 'RELEASED' : req.operationalFlightPlan ? 'DRAFT' : 'OPEN', ofpTone, 'flight-plan')}
           ${contextStatus('PIC flight release', release.released ? release.releaseId || 'Release recorded' : release.blockers.slice(0, 2).join(' / ') || 'Ready for commander action', release.released ? 'RELEASED' : release.ready ? 'READY' : 'BLOCKED', releaseTone, 'flight-plan')}
         </div>
       `;
     }
 
+    function suitePerformanceFingerprint(req) {
+      if (!req) return '';
+      const plan = req.operationalFlightPlan || {};
+      return JSON.stringify({
+        id:req.id,
+        departure:plan.departure || req.dep || '',
+        destination:plan.destination || req.arr || '',
+        depRunway:plan.depRunway || '',
+        arrRunway:plan.arrRunway || '',
+        takeoffWeightLb:plan.takeoffWeightLb ?? null,
+        landingWeightLb:plan.landingWeightLb ?? null,
+        loadMode:plan.loadMode || '',
+        blockFuelGal:plan.blockFuelGal ?? null
+      });
+    }
+
     function updateSuiteContext(req = selected) {
       const passengers = req ? passengerList(req) : [];
       const signed = req ? agreementCount(req) : 0;
-      if (performanceDataRequest !== (req?.id || '')) {
+      const nextPerformanceFingerprint = suitePerformanceFingerprint(req);
+      const performanceContextChanged = performanceDataRequest !== (req?.id || '') || performanceContextFingerprint !== nextPerformanceFingerprint;
+      if (performanceContextChanged) {
         performanceDataRequest = req?.id || '';
+        performanceContextFingerprint = nextPerformanceFingerprint;
         latestPerformanceData = null;
         latestPerformanceEffectiveData = null;
         latestPerformanceCalculations = null;
@@ -4000,7 +4096,7 @@ END OF MESSAGE</pre>
       }
       updateWeatherRouteLabel();
       el('suiteDocFlight').textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`}` : 'NO FLIGHT SELECTED';
-      el('suiteDocOfp').textContent = req?.operationalFlightPlan?.releaseAccepted ? 'RELEASED' : req?.operationalFlightPlan ? 'DRAFT SAVED' : 'NOT STARTED';
+      el('suiteDocOfp').textContent = req && releaseClientState(req).released ? 'RELEASED' : req?.operationalFlightPlan ? 'DRAFT SAVED' : 'NOT STARTED';
       el('suiteDocStatement').textContent = req?.reimbursementStatement ? 'SAVED' : 'NOT SAVED';
       el('suiteDocAgreements').textContent = req ? `${signed} / ${passengers.length} SIGNED` : '0 / 0';
       el('suiteDocPayment').textContent = req?.paymentStatus || 'NOT SET';
@@ -4012,21 +4108,29 @@ END OF MESSAGE</pre>
       applyPerformanceToOfpBtn.disabled = !req;
       openPerformanceOfpBtn.disabled = !req;
       if (req) {
-        const estimatedWeights = bookingWeightEstimate(req);
-        el('performanceRouteContext').textContent = `${req.id} / ${req.dep || '----'} > ${req.arr || '----'} / ${passengers.length} PAX`;
-        perfDep.value = req.dep || '';
-        perfArr.value = req.arr || '';
-        perfTow.value = req.operationalFlightPlan?.takeoffWeightLb || estimatedWeights.takeoff;
-        perfLdw.value = req.operationalFlightPlan?.landingWeightLb || estimatedWeights.landing;
-        populatePerformanceRunways(req)
-          .then(() => {
-            if (activeWorkspace === 'performance' && perfDepRunway.value && perfArrRunway.value && !latestPerformanceData) {
-              runPerformanceReview().catch(() => {});
-            }
-          })
-          .catch(() => {
-            performanceStatus.textContent = 'Runway database unavailable. Retry from Aircraft Performance.';
-          });
+        const performanceDeparture = req.operationalFlightPlan?.departure || req.dep || '';
+        const performanceDestination = req.operationalFlightPlan?.destination || req.arr || '';
+        el('performanceRouteContext').textContent = `${req.id} / ${performanceDeparture || '----'} > ${performanceDestination || '----'} / ${passengers.length} PAX`;
+        if (performanceContextChanged) {
+          const estimatedWeights = bookingWeightEstimate(req);
+          const plannedTakeoffWeight = finite(req.operationalFlightPlan?.takeoffWeightLb);
+          const plannedLandingWeight = finite(req.operationalFlightPlan?.landingWeightLb);
+          const usePlannedWeights = plannedTakeoffWeight > 1800 && plannedLandingWeight > 1800;
+          perfDep.value = performanceDeparture;
+          perfArr.value = performanceDestination;
+          perfTow.value = usePlannedWeights ? plannedTakeoffWeight : estimatedWeights.takeoff;
+          perfLdw.value = usePlannedWeights ? plannedLandingWeight : estimatedWeights.landing;
+          perfTow.dataset.weightSource = usePlannedWeights ? 'ofp' : 'estimate';
+          perfLdw.dataset.weightSource = usePlannedWeights ? 'ofp' : 'estimate';
+          el('performanceWeightSource').textContent = usePlannedWeights ? 'OFP planned weights' : 'Estimated planning weights / verify';
+          populatePerformanceRunways(req)
+            .then(() => {
+              if (activeWorkspace === 'performance' && perfDepRunway.value && perfArrRunway.value && !latestPerformanceData) runPerformanceReview().catch(() => {});
+            })
+            .catch(() => {
+              performanceStatus.textContent = 'Runway database unavailable. Retry from Aircraft Performance.';
+            });
+        }
       } else {
         el('performanceRouteContext').textContent = 'NO FLIGHT SELECTED';
       }
@@ -4285,13 +4389,76 @@ END OF MESSAGE</pre>
       if (selectedValue && !runways.some(runway => runway.ident === selectedValue)) select.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(selectedValue)}">RWY ${escapeHtml(selectedValue)} / SAVED</option>`);
       select.value = selectedValue;
       if (!select.value && runways.length) select.value = runways[0].ident;
+      select.dataset.selectionSource = selectedValue ? 'saved' : 'auto';
+    }
+
+    function runwayComponents(runway, wind) {
+      if (!Number.isFinite(Number(runway?.heading)) || !Number.isFinite(Number(wind?.direction)) || !Number.isFinite(Number(wind?.speedKt)) || wind?.variable) return null;
+      const angle = (Number(wind.direction) - Number(runway.heading)) * Math.PI / 180;
+      return {
+        headwindKt:Number(wind.speedKt) * Math.cos(angle),
+        crosswindKt:Number(wind.speedKt) * Math.sin(angle)
+      };
+    }
+
+    function recommendedRunway(runways, wind) {
+      if (!Array.isArray(runways) || !runways.length) return null;
+      const scored = runways.map(runway => {
+        const components = runwayComponents(runway, wind);
+        const lengthBonus = Math.min(2, (Number(runway.lengthFt) || 0) / 6000);
+        const windScore = components ? components.headwindKt - Math.abs(components.crosswindKt) * .12 : 0;
+        return { runway, components, score:windScore + lengthBonus };
+      });
+      scored.sort((a, b) => b.score - a.score || (Number(b.runway.lengthFt) || 0) - (Number(a.runway.lengthFt) || 0));
+      return scored[0];
+    }
+
+    function updateRunwaySmartHint(kind, wx, runways, recommendation) {
+      const departure = kind === 'departure';
+      const select = departure ? perfDepRunway : perfArrRunway;
+      const hint = el(departure ? 'perfDepRunwayHint' : 'perfArrRunwayHint');
+      const confirmButton = el(departure ? 'confirmDepRunwayBtn' : 'confirmArrRunwayBtn');
+      const selectedRunway = runways.find(runway => runway.ident === select.value);
+      const selectedComponents = runwayComponents(selectedRunway, wx?.wind);
+      const source = select.dataset.selectionSource === 'pilot' ? 'Pilot selected' : select.dataset.selectionSource === 'saved' ? 'Saved OFP runway' : 'Smart runway';
+      const wind = wx?.wind?.raw || 'no local wind';
+      const componentText = selectedComponents ? formatComponentPair(selectedComponents.headwindKt, selectedComponents.crosswindKt) : 'wind components unavailable';
+      const recommendationText = recommendation?.runway?.ident && recommendation.runway.ident !== select.value ? ` / suggested RWY ${recommendation.runway.ident}` : '';
+      const fallbackText = wx?.weatherSource?.fallback ? ` / fallback weather from ${wx.weatherSource.station || 'nearby station'}` : '';
+      hint.textContent = `${source} / ${wind} / ${componentText}${recommendationText}${fallbackText}`;
+      hint.classList.toggle('warn', Boolean(wx?.weatherSource?.fallback) || (selectedComponents && Math.abs(selectedComponents.crosswindKt) > PERFORMANCE_AIRCRAFT.crosswindLimitKt));
+      const confirmed = ['pilot', 'saved'].includes(select.dataset.selectionSource);
+      confirmButton.disabled = confirmed || !select.value;
+      confirmButton.textContent = confirmed ? `RWY ${select.value} confirmed` : `Confirm RWY ${select.value || '--'}`;
+    }
+
+    function applySmartRunwayRecommendations(data) {
+      let changed = false;
+      const legs = [
+        { kind:'departure', select:perfDepRunway, runways:performanceRunwayCatalog.departure, wx:data?.takeoff?.runwayAndWeather },
+        { kind:'arrival', select:perfArrRunway, runways:performanceRunwayCatalog.arrival, wx:data?.landing?.airportAndWeather }
+      ];
+      legs.forEach(leg => {
+        const recommendation = recommendedRunway(leg.runways, leg.wx?.wind);
+        if (leg.select.dataset.selectionSource === 'auto' && recommendation?.runway?.ident && leg.select.value !== recommendation.runway.ident) {
+          leg.select.value = recommendation.runway.ident;
+          changed = true;
+        }
+        updateRunwaySmartHint(leg.kind, leg.wx, leg.runways, recommendation);
+      });
+      return changed;
     }
 
     async function populatePerformanceRunways(req = selected) {
       if (!req) return;
-      const [departureRunways, arrivalRunways] = await Promise.all([fetchRunways(req.dep), fetchRunways(req.arr)]);
+      const departure = req.operationalFlightPlan?.departure || req.dep || '';
+      const arrival = req.operationalFlightPlan?.destination || req.arr || '';
+      const [departureRunways, arrivalRunways] = await Promise.all([fetchRunways(departure), fetchRunways(arrival)]);
+      performanceRunwayCatalog = { departure:departureRunways, arrival:arrivalRunways };
       setPerformanceRunwayOptions(perfDepRunway, departureRunways, req.operationalFlightPlan?.depRunway);
       setPerformanceRunwayOptions(perfArrRunway, arrivalRunways, req.operationalFlightPlan?.arrRunway);
+      el('perfDepRunwayHint').textContent = departureRunways.length ? 'Runway data loaded / live wind guidance pending.' : 'No runway data available for this airport.';
+      el('perfArrRunwayHint').textContent = arrivalRunways.length ? 'Runway data loaded / live wind guidance pending.' : 'No runway data available for this airport.';
     }
 
     async function createManualFlightPlan() {
@@ -4381,6 +4548,15 @@ END OF MESSAGE</pre>
       } else if (view === 'performance') {
         toolWorkspaceKicker.textContent = '05 / Performance';
         toolWorkspaceTitle.textContent = 'Aircraft Performance';
+        if (selected) {
+          const runWhenReady = () => {
+            if (perfDepRunway.value && perfArrRunway.value && !latestPerformanceData && !runPerformanceBtn.disabled) runPerformanceReview().catch(() => {});
+          };
+          if (perfDepRunway.options.length <= 1 || perfArrRunway.options.length <= 1) populatePerformanceRunways(selected).then(runWhenReady).catch(() => {
+            performanceStatus.textContent = 'RUNWAY DATABASE UNAVAILABLE / RETRY PERFORMANCE.';
+          });
+          else runWhenReady();
+        }
       } else if (view === 'aircraft') {
         toolWorkspaceKicker.textContent = '06 / Aircraft control';
         toolWorkspaceTitle.textContent = 'Aircraft Status';
@@ -4427,6 +4603,7 @@ END OF MESSAGE</pre>
     }
 
     function finite(value) {
+      if (value === null || value === undefined || value === '') return null;
       const number = Number(value);
       return Number.isFinite(number) ? number : null;
     }
@@ -4446,15 +4623,25 @@ END OF MESSAGE</pre>
       return Number.isFinite(value) ? value : fallback;
     }
 
-    function performanceComponentPair(id, fallbackHeadwind = 0, fallbackCrosswind = 0) {
-      const values = performanceFieldValue(id).match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+    function performanceComponentPair(id, fallbackHeadwind = null, fallbackCrosswind = null) {
+      const raw = performanceFieldValue(id).toUpperCase();
+      const labelledHeadwind = raw.match(/\b(HW|TW)\s*([-+]?\d+(?:\.\d+)?)/);
+      const labelledCrosswind = raw.match(/\bXW\s*([-+]?\d+(?:\.\d+)?)/);
+      if (labelledHeadwind || labelledCrosswind) {
+        const magnitude = labelledHeadwind ? Math.abs(Number(labelledHeadwind[2])) : fallbackHeadwind;
+        return {
+          headwindKt:labelledHeadwind ? (labelledHeadwind[1] === 'TW' ? -magnitude : magnitude) : fallbackHeadwind,
+          crosswindKt:labelledCrosswind ? Math.abs(Number(labelledCrosswind[1])) : fallbackCrosswind
+        };
+      }
+      const values = raw.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
       return { headwindKt:Number.isFinite(values[0]) ? values[0] : fallbackHeadwind, crosswindKt:Number.isFinite(values[1]) ? values[1] : fallbackCrosswind };
     }
 
     function formatComponentPair(headwind, crosswind) {
       const hw = Number.isFinite(headwind) ? String(Math.abs(Math.round(headwind))).padStart(2, '0') : '..';
       const xw = Number.isFinite(crosswind) ? String(Math.abs(Math.round(crosswind))).padStart(2, '0') : '..';
-      return `${hw}/${xw}`;
+      return `${Number.isFinite(headwind) && headwind < 0 ? 'TW' : 'HW'} ${hw} / XW ${xw}`;
     }
 
     function formatAcarsPair(leftLabel, leftValue, rightLabel = '', rightValue = '') {
@@ -4471,7 +4658,8 @@ END OF MESSAGE</pre>
 
     function performanceSpeedReport(value) {
       const number = parseFloat(String(value || ''));
-      return Number.isFinite(number) ? `${Math.round(number)} MIAS` : '..... MIAS';
+      const unit = String(value || '').toUpperCase().includes('MPH') ? 'MIAS' : 'KIAS';
+      return Number.isFinite(number) ? `${Math.round(number)} ${unit}` : `..... ${unit}`;
     }
 
     function setPerformanceText(id, value, tone = '') {
@@ -4500,7 +4688,7 @@ END OF MESSAGE</pre>
       setPerformanceAutoInput(`${prefix}Oat`, `${prefix}OatMode`, `${Number.isFinite(wx.oatC) ? `${wx.oatC}C` : 'N/A'} / ${Number.isFinite(wx.dewpointC) ? `${wx.dewpointC}C` : 'N/A'}`);
       setPerformanceAutoInput(`${prefix}Qnh`, `${prefix}QnhMode`, Number.isFinite(wx.qnhHpa) ? `${Math.round(wx.qnhHpa)} HPA` : 'N/A');
       setPerformanceText(`${prefix}HwXw`, formatComponentPair(headwind, crosswind), Math.abs(crosswind || 0) > PERFORMANCE_AIRCRAFT.crosswindLimitKt ? 'warn' : '');
-      if (takeoff) setPerformanceText('perfTakeoffWindComp', `HW ${String(Math.abs(Math.round(headwind || 0))).padStart(2, '0')} / XW ${String(Math.abs(Math.round(crosswind || 0))).padStart(2, '0')}`);
+      if (takeoff) setPerformanceText('perfTakeoffWindComp', formatComponentPair(headwind, crosswind));
       setPerformanceText(takeoff ? 'perfTakeoffTora' : 'perfLandingLda', feet(finite(takeoff ? wx.toraFt : wx.ldaFt)));
       setPerformanceText(`${prefix}RunwayHeading`, Number.isFinite(wx.hdgDeg) ? `${Math.round(wx.hdgDeg)} °` : 'N/A');
       setPerformanceText(`${prefix}Elevation`, feet(finite(wx.elevFt)));
@@ -4510,9 +4698,18 @@ END OF MESSAGE</pre>
     }
 
     function parseManualWind(value) {
-      const match = String(value || '').toUpperCase().match(/(\d{3}|VRB)[^0-9]*(\d{1,2})(?:G(\d{1,2}))?/);
-      if (!match) return null;
-      return { directionDeg:match[1] === 'VRB' ? null : Number(match[1]), speedKt:Number(match[2]), gustKt:Number(match[3] || match[2]), raw:String(value).toUpperCase() };
+      const raw = String(value || '').trim().toUpperCase();
+      const compact = raw.replace(/\s+/g, '');
+      const match = compact.match(/^(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?(?:KT)?$/);
+      if (!match) return { valid:false, raw, reason:'MANUAL WIND INVALID / USE DDDSSKT OR DDDSSGSSKT' };
+      if (match[1] === 'VRB') return { valid:false, raw, variable:true, reason:'VARIABLE WIND / RUNWAY COMPONENTS UNAVAILABLE' };
+      const directionDeg = Number(match[1]);
+      const speedKt = Number(match[2]);
+      const gustKt = Number(match[3] || match[2]);
+      if (directionDeg > 360 || speedKt > 199 || gustKt > 199 || gustKt < speedKt) {
+        return { valid:false, raw, reason:'MANUAL WIND OUT OF RANGE / VERIFY DIRECTION, SPEED, AND GUST' };
+      }
+      return { valid:true, directionDeg:directionDeg === 360 ? 0 : directionDeg, speedKt, gustKt, raw:compact.endsWith('KT') ? compact : `${compact}KT` };
     }
 
     function applyPerformanceOverrides(kind, wx) {
@@ -4521,10 +4718,20 @@ END OF MESSAGE</pre>
       const manualQnh = performanceModeIsManual(`${prefix}QnhMode`);
       if (performanceModeIsManual(`${prefix}WindMode`)) {
         const wind = parseManualWind(el(`${prefix}Wind`).value);
-        if (wind) {
+        if (wind.valid) {
           wx.wind = wind;
-          const angle = Number.isFinite(wind.directionDeg) && Number.isFinite(wx.hdgDeg) ? (wind.directionDeg - wx.hdgDeg) * Math.PI / 180 : null;
-          wx.hwXw = { headwindKt:angle === null ? 0 : wind.speedKt * Math.cos(angle), crosswindKt:angle === null ? 0 : wind.speedKt * Math.sin(angle) };
+          if (Number.isFinite(wx.hdgDeg)) {
+            const angle = (wind.directionDeg - wx.hdgDeg) * Math.PI / 180;
+            wx.hwXw = { headwindKt:wind.speedKt * Math.cos(angle), crosswindKt:wind.speedKt * Math.sin(angle) };
+            delete wx.manualWindError;
+          } else {
+            wx.hwXw = { headwindKt:null, crosswindKt:null };
+            wx.manualWindError = 'RUNWAY HEADING REQUIRED FOR MANUAL WIND';
+          }
+        } else {
+          wx.wind = { raw:wind.raw || 'INVALID MANUAL WIND', direction:null, speedKt:null, gustKt:null, variable:Boolean(wind.variable), invalid:true };
+          wx.hwXw = { headwindKt:null, crosswindKt:null };
+          wx.manualWindError = wind.reason;
         }
       }
       if (manualOat) {
@@ -4579,58 +4786,86 @@ END OF MESSAGE</pre>
 
     function calculateTakeoff(data) {
       const wx = data?.takeoff?.runwayAndWeather || {};
-      const weight = finite(perfTow.value) || 2650;
+      const suppliedWeight = finite(perfTow.value);
+      const weight = suppliedWeight ?? 2650;
       const flaps = Number(el('perfTakeoffFlaps').value || 0);
       const condition = el('perfTakeoffCondition').value || 'DRY';
-      const available = performanceFieldNumber('perfTakeoffTora', finite(wx.toraFt));
-      const densityAltitude = performanceFieldNumber('perfTakeoffDensityAltitude', finite(wx.densityAltFt) || 0);
-      const components = performanceComponentPair('perfTakeoffHwXw', finite(wx.hwXw?.headwindKt) || 0, finite(wx.hwXw?.crosswindKt) || 0);
-      const headwind = components.headwindKt;
-      const crosswind = Math.abs(components.crosswindKt);
-      const slope = performanceFieldNumber('perfTakeoffSlope', finite(wx.rwySlopePct) || 0);
+      const available = finite(wx.toraFt);
+      const densityAltitude = finite(wx.densityAltFt);
+      const headwind = finite(wx.hwXw?.headwindKt);
+      const crosswind = finite(wx.hwXw?.crosswindKt);
+      const slope = finite(wx.rwySlopePct);
+      const incompleteReasons = [];
+      if (!Number.isFinite(suppliedWeight)) incompleteReasons.push('PLANNED WEIGHT MISSING');
+      if (perfTow.dataset.weightSource === 'estimate') incompleteReasons.push('OFP W&B TAKEOFF WEIGHT REQUIRED');
+      if (!['pilot', 'saved'].includes(perfDepRunway.dataset.selectionSource)) incompleteReasons.push('DEPARTURE RUNWAY CONFIRMATION REQUIRED');
+      if (!Number.isFinite(available)) incompleteReasons.push('RUNWAY LENGTH MISSING');
+      if (!Number.isFinite(densityAltitude)) incompleteReasons.push('DENSITY ALTITUDE MISSING');
+      if (wx.manualWindError) incompleteReasons.push(wx.manualWindError);
+      else if (!Number.isFinite(headwind) || !Number.isFinite(crosswind)) incompleteReasons.push('WIND COMPONENTS MISSING');
+      if (wx.weatherSource?.fallback && !performanceModeIsManual('perfTakeoffWindMode')) incompleteReasons.push(`LOCAL WIND UNAVAILABLE / FALLBACK ${wx.weatherSource.station || 'STATION'}`);
+      if (Number(wx.weatherSource?.ageMinutes) > 120 && !performanceModeIsManual('perfTakeoffWindMode')) incompleteReasons.push(`WEATHER ${Math.round(wx.weatherSource.ageMinutes)} MIN OLD`);
+      const densityForCalculation = densityAltitude ?? 0;
+      const headwindForCalculation = headwind ?? 0;
+      const crosswindForCalculation = Math.abs(crosswind ?? 0);
+      const slopeForCalculation = slope ?? 0;
       const baseRoll = flaps === 25 ? PERFORMANCE_AIRCRAFT.takeoffGroundRoll25Ft : flaps === 10 ? PERFORMANCE_AIRCRAFT.takeoffGroundRoll10Ft : PERFORMANCE_AIRCRAFT.takeoffGroundRoll0Ft;
       const base50 = flaps === 25 ? PERFORMANCE_AIRCRAFT.takeoff50ft25Ft : flaps === 10 ? PERFORMANCE_AIRCRAFT.takeoff50ft10Ft : PERFORMANCE_AIRCRAFT.takeoff50ft0Ft;
       const weightFactor = Math.max(.82, Math.min(1.14, weight / 2650));
-      const densityFactor = Math.max(.85, 1 + (densityAltitude / 1000) * .08);
-      const windFactor = headwind >= 0 ? Math.max(.78, 1 - headwind * .01) : 1 + Math.abs(headwind) * .03;
+      const densityFactor = Math.max(.85, 1 + (densityForCalculation / 1000) * .08);
+      const windFactor = headwindForCalculation >= 0 ? Math.max(.78, 1 - headwindForCalculation * .01) : 1 + Math.abs(headwindForCalculation) * .03;
       const surfaceFactor = conditionMultiplier(condition, 'takeoff');
-      const slopeFactor = Math.max(.85, 1 + slope * .08);
+      const slopeFactor = Math.max(.85, 1 + slopeForCalculation * .08);
       const groundRoll = Math.round(baseRoll * weightFactor * densityFactor * windFactor * surfaceFactor * slopeFactor * 1.253);
       const distance50 = Math.round(base50 * weightFactor * densityFactor * windFactor * surfaceFactor * slopeFactor * 1.1646);
-      const vr = Math.round(71 + Math.max(0, (weight - 2350) / 250) + Math.max(0, densityAltitude / 4500));
-      const vx = Math.round(75 + Math.max(0, densityAltitude / 6000));
-      const vy = Math.round(83 + Math.max(0, densityAltitude / 7000));
+      const vr = Math.round(71 + Math.max(0, (weight - 2350) / 250) + Math.max(0, densityForCalculation / 4500));
+      const vx = Math.round(75 + Math.max(0, densityForCalculation / 6000));
+      const vy = Math.round(83 + Math.max(0, densityForCalculation / 7000));
       const accelerateStop = Math.round(Math.max(groundRoll * 1.75, groundRoll * 1.20 + vr * 13.16));
-      const remaining = Number.isFinite(available) ? available - groundRoll : null;
+      const remaining = Number.isFinite(available) ? available - distance50 : null;
       const stopMargin = Number.isFinite(available) ? available - accelerateStop : null;
       const cautions = [];
       if (weight > 2650) cautions.push('OVER MAXIMUM TAKEOFF WEIGHT');
-      if (headwind < -4) cautions.push(`TAILWIND ${Math.round(Math.abs(headwind))} KT`);
-      if (crosswind > 17) cautions.push(`CROSSWIND ${Math.round(crosswind)} KT ABOVE 17 KT LIMIT`);
+      if (Number.isFinite(headwind) && headwind < -4) cautions.push(`TAILWIND ${Math.round(Math.abs(headwind))} KT`);
+      if (Number.isFinite(crosswind) && Math.abs(crosswind) > 17) cautions.push(`CROSSWIND ${Math.round(Math.abs(crosswind))} KT ABOVE 17 KT LIMIT`);
       if (Number.isFinite(remaining) && remaining < 500) cautions.push(`RUNWAY MARGIN ${Math.round(remaining)} FT`);
       if (condition !== 'DRY') cautions.push(`${condition} RUNWAY CORRECTION APPLIED`);
-      return { kind:'takeoff', weight, flaps, condition, available, groundRoll, distance50, required:groundRoll, remaining, accelerateStop, stopMargin, vr, vx, vy, cautions };
+      return { kind:'takeoff', weight, flaps, condition, available, groundRoll, distance50, required:distance50, remaining, accelerateStop, stopMargin, vr, vx, vy, cautions, incompleteReasons };
     }
 
     function calculateLanding(data) {
       const wx = data?.landing?.airportAndWeather || {};
-      const weight = finite(perfLdw.value) || 2600;
+      const suppliedWeight = finite(perfLdw.value);
+      const weight = suppliedWeight ?? 2600;
       const flaps = Number(el('perfLandingFlaps').value || 40);
       const condition = el('perfLandingCondition').value || 'DRY';
       const braking = el('perfLandingBraking').value || 'MAX';
-      const available = performanceFieldNumber('perfLandingLda', finite(wx.ldaFt));
-      const densityAltitude = performanceFieldNumber('perfLandingDensityAltitude', finite(wx.densityAltFt) || 0);
-      const components = performanceComponentPair('perfLandingHwXw', finite(wx.hwXw?.headwindKt) || 0, finite(wx.hwXw?.crosswindKt) || 0);
-      const headwind = components.headwindKt;
-      const crosswind = Math.abs(components.crosswindKt);
-      const slope = performanceFieldNumber('perfLandingSlope', finite(wx.rwySlopePct) || 0);
+      const available = finite(wx.ldaFt);
+      const densityAltitude = finite(wx.densityAltFt);
+      const headwind = finite(wx.hwXw?.headwindKt);
+      const crosswind = finite(wx.hwXw?.crosswindKt);
+      const slope = finite(wx.rwySlopePct);
+      const incompleteReasons = [];
+      if (!Number.isFinite(suppliedWeight)) incompleteReasons.push('PLANNED WEIGHT MISSING');
+      if (perfLdw.dataset.weightSource === 'estimate') incompleteReasons.push('OFP W&B LANDING WEIGHT REQUIRED');
+      if (!['pilot', 'saved'].includes(perfArrRunway.dataset.selectionSource)) incompleteReasons.push('ARRIVAL RUNWAY CONFIRMATION REQUIRED');
+      if (!Number.isFinite(available)) incompleteReasons.push('RUNWAY LENGTH MISSING');
+      if (!Number.isFinite(densityAltitude)) incompleteReasons.push('DENSITY ALTITUDE MISSING');
+      if (wx.manualWindError) incompleteReasons.push(wx.manualWindError);
+      else if (!Number.isFinite(headwind) || !Number.isFinite(crosswind)) incompleteReasons.push('WIND COMPONENTS MISSING');
+      if (wx.weatherSource?.fallback && !performanceModeIsManual('perfLandingWindMode')) incompleteReasons.push(`LOCAL WIND UNAVAILABLE / FALLBACK ${wx.weatherSource.station || 'STATION'}`);
+      if (Number(wx.weatherSource?.ageMinutes) > 120 && !performanceModeIsManual('perfLandingWindMode')) incompleteReasons.push(`WEATHER ${Math.round(wx.weatherSource.ageMinutes)} MIN OLD`);
+      const densityForCalculation = densityAltitude ?? 0;
+      const headwindForCalculation = headwind ?? 0;
+      const crosswindForCalculation = Math.abs(crosswind ?? 0);
+      const slopeForCalculation = slope ?? 0;
       const weightFactor = Math.max(.82, Math.min(1.14, weight / 2650));
-      const densityFactor = Math.max(.88, 1 + (densityAltitude / 1000) * .06);
-      const windFactor = headwind >= 0 ? Math.max(.80, 1 - headwind * .008) : 1 + Math.abs(headwind) * .04;
+      const densityFactor = Math.max(.88, 1 + (densityForCalculation / 1000) * .06);
+      const windFactor = headwindForCalculation >= 0 ? Math.max(.80, 1 - headwindForCalculation * .008) : 1 + Math.abs(headwindForCalculation) * .04;
       const flapFactor = flaps === 40 ? 1 : flaps === 25 ? 1.08 : flaps === 10 ? 1.15 : 1.25;
       const brakingFactor = braking === 'MIN' ? 1.15 : braking === 'MOD' ? 1.07 : 1;
       const surfaceFactor = conditionMultiplier(condition, 'landing');
-      const slopeFactor = Math.max(.85, 1 - slope * .06);
+      const slopeFactor = Math.max(.85, 1 - slopeForCalculation * .06);
       const groundRoll = Math.round(PERFORMANCE_AIRCRAFT.landingRollFt * weightFactor * densityFactor * windFactor * flapFactor * brakingFactor * surfaceFactor * slopeFactor * 1.10);
       const distance50 = Math.round(PERFORMANCE_AIRCRAFT.landing50ftFt * weightFactor * densityFactor * windFactor * flapFactor * brakingFactor * surfaceFactor * slopeFactor * 1.10);
       const vref = Math.round(76 + Math.max(0, (weight - 2350) / 250));
@@ -4639,11 +4874,11 @@ END OF MESSAGE</pre>
       const remaining = Number.isFinite(available) ? available - distance50 : null;
       const cautions = [];
       if (weight > 2650) cautions.push('OVER MAXIMUM LANDING WEIGHT');
-      if (headwind < -4) cautions.push(`TAILWIND ${Math.round(Math.abs(headwind))} KT`);
-      if (crosswind > 17) cautions.push(`CROSSWIND ${Math.round(crosswind)} KT ABOVE 17 KT LIMIT`);
+      if (Number.isFinite(headwind) && headwind < -4) cautions.push(`TAILWIND ${Math.round(Math.abs(headwind))} KT`);
+      if (Number.isFinite(crosswind) && Math.abs(crosswind) > 17) cautions.push(`CROSSWIND ${Math.round(Math.abs(crosswind))} KT ABOVE 17 KT LIMIT`);
       if (Number.isFinite(remaining) && remaining < 500) cautions.push(`RUNWAY MARGIN ${Math.round(remaining)} FT`);
       if (condition !== 'DRY') cautions.push(`${condition} RUNWAY CORRECTION APPLIED`);
-      return { kind:'landing', weight, flaps, condition, braking, available, groundRoll, distance50, required:distance50, remaining, vref, vapp, cautions };
+      return { kind:'landing', weight, flaps, condition, braking, available, groundRoll, distance50, required:distance50, remaining, vref, vapp, cautions, incompleteReasons };
     }
 
     function runwayNumberReciprocal(runway) {
@@ -4662,6 +4897,7 @@ END OF MESSAGE</pre>
       const runway = wx.rwy || (kind === 'takeoff' ? perfDepRunway.value : perfArrRunway.value) || '--';
       const reciprocal = runwayNumberReciprocal(runway);
       const available = Math.max(1, finite(calc.available) || 1);
+      const groundRoll = Math.max(0, finite(calc.groundRoll) || 0);
       const required = Math.max(0, finite(calc.required) || 0);
       const distance50 = Math.max(required, finite(calc.distance50) || required);
       const accelerateStop = Math.max(required, finite(calc.accelerateStop) || required);
@@ -4674,14 +4910,15 @@ END OF MESSAGE</pre>
       const bottomY = runwayY + runwayH;
       const centerX = runwayX + runwayW / 2;
       const positionFor = value => bottomY - Math.max(0, Math.min(runwayH, (value / available) * runwayH));
+      const groundRollY = positionFor(groundRoll);
       const requiredY = positionFor(required);
       const distance50Y = positionFor(distance50);
       const accelerateStopY = positionFor(accelerateStop);
       const remain = available - required;
       const marginColor = remain < 300 ? '#ff5d66' : remain < 800 ? '#ffd166' : '#66ff99';
       const componentFallback = wx.hwXw || {};
-      const components = performanceComponentPair(kind === 'takeoff' ? 'perfTakeoffHwXw' : 'perfLandingHwXw', finite(componentFallback.headwindKt) || 0, finite(componentFallback.crosswindKt) || 0);
-      const densityAltitude = performanceFieldNumber(kind === 'takeoff' ? 'perfTakeoffDensityAltitude' : 'perfLandingDensityAltitude', finite(wx.densityAltFt) || 0);
+      const components = performanceComponentPair(kind === 'takeoff' ? 'perfTakeoffHwXw' : 'perfLandingHwXw', finite(componentFallback.headwindKt), finite(componentFallback.crosswindKt));
+      const densityAltitude = performanceFieldNumber(kind === 'takeoff' ? 'perfTakeoffDensityAltitude' : 'perfLandingDensityAltitude', finite(wx.densityAltFt));
       const slope = performanceFieldValue(kind === 'takeoff' ? 'perfTakeoffSlope' : 'perfLandingSlope', '0 %');
       const centerline = Array.from({length:18},(_,index)=>`<rect x="${centerX - 4}" y="${220 + index * 57}" width="8" height="32" rx="2" fill="#f7f7f7"/>`).join('');
       const sideLights = Array.from({length:38},(_,index)=>{const y=runwayY+18+index*((runwayH-36)/37);return `<circle cx="${runwayX+8}" cy="${y}" r="3" fill="#ffd84d"/><circle cx="${runwayX+runwayW-8}" cy="${y}" r="3" fill="#ffd84d"/>`;}).join('');
@@ -4690,11 +4927,12 @@ END OF MESSAGE</pre>
       const progressX = 220;
       const progressY = 150;
       const progressH = 1160;
+      const groundRollH = Math.min(progressH, groundRoll / available * progressH);
       const requiredH = Math.min(progressH, required / available * progressH);
       const distance50H = Math.min(progressH, distance50 / available * progressH);
       const stopH = Math.min(progressH, accelerateStop / available * progressH);
       const progressMarkup = kind === 'takeoff'
-        ? `<rect x="${progressX}" y="${progressY}" width="42" height="${progressH}" rx="12" fill="#303941"/><rect x="${progressX}" y="${progressY+progressH-requiredH}" width="42" height="${requiredH}" rx="10" fill="#66ff99"/><rect x="${progressX}" y="${progressY+progressH-distance50H}" width="42" height="${Math.max(0,distance50H-requiredH)}" fill="#ffd84d"/><rect x="${progressX}" y="${progressY+progressH-stopH}" width="42" height="${Math.max(0,stopH-Math.max(requiredH,distance50H))}" fill="#ff9f43"/>`
+        ? `<rect x="${progressX}" y="${progressY}" width="42" height="${progressH}" rx="12" fill="#303941"/><rect x="${progressX}" y="${progressY+progressH-groundRollH}" width="42" height="${groundRollH}" rx="10" fill="#66ff99"/><rect x="${progressX}" y="${progressY+progressH-distance50H}" width="42" height="${Math.max(0,distance50H-groundRollH)}" fill="#ffd84d"/><rect x="${progressX}" y="${progressY+progressH-stopH}" width="42" height="${Math.max(0,stopH-Math.max(requiredH,distance50H))}" fill="#ff9f43"/>`
         : `<rect x="${progressX}" y="${progressY}" width="42" height="${progressH}" rx="12" fill="#66ff99"/><rect x="${progressX}" y="${progressY+progressH-requiredH}" width="42" height="${requiredH}" rx="10" fill="#ff5d66"/>`;
       const planeY = kind === 'takeoff' ? bottomY - 185 : Math.max(runwayY + 180, requiredY - 120);
       const aircraftWidth = 360;
@@ -4711,10 +4949,9 @@ END OF MESSAGE</pre>
         <rect x="${runwayX}" y="${runwayY}" width="${runwayW}" height="${runwayH}" rx="18" fill="url(#${kind}Surface)" stroke="#89939a" stroke-width="3"/>${sideLights}${centerline}
         <line x1="${runwayX+15}" y1="${runwayY+24}" x2="${runwayX+runwayW-15}" y2="${runwayY+24}" stroke="#ff5d66" stroke-width="9" stroke-dasharray="7 6"/><line x1="${runwayX+15}" y1="${bottomY-24}" x2="${runwayX+runwayW-15}" y2="${bottomY-24}" stroke="#66ff99" stroke-width="9" stroke-dasharray="7 6"/>
         <text x="${centerX}" y="${runwayY+78}" text-anchor="middle" transform="rotate(180 ${centerX} ${runwayY+78})" fill="#fff" font-size="48" font-family="Courier New" font-weight="700">${escapeHtml(reciprocal)}</text><text x="${centerX}" y="${bottomY-42}" text-anchor="middle" fill="#fff" font-size="50" font-family="Courier New" font-weight="700">${escapeHtml(runway)}</text>
-        ${marker(requiredY,kind === 'takeoff' ? `T/O ROLL ${Math.round(required)} FT` : `LDG REQ ${Math.round(required)} FT`,kind === 'takeoff' ? '#66ff99' : '#ff5d66')}
-        ${kind === 'takeoff' ? marker(distance50Y,`50FT ${Math.round(distance50)} FT`,'#ffd84d','4 5') + marker(accelerateStopY,`ACCEL-STOP ${Math.round(accelerateStop)} FT`,'#ff9f43','10 6') : ''}${operationalMarker}${aircraft}
-        <g transform="translate(40 76)"><rect width="320" height="142" rx="14" fill="#071018" stroke="#8ec5ff" stroke-width="2"/><text x="20" y="38" fill="#8ec5ff" font-size="21" font-family="Courier New">HEADWIND</text><text x="292" y="38" text-anchor="end" fill="#fff" font-size="23" font-family="Courier New">${Math.round(Math.abs(components.headwindKt))} KT</text><line x1="14" y1="70" x2="306" y2="70" stroke="#263744"/><text x="20" y="108" fill="#ffb15c" font-size="21" font-family="Courier New">CROSSWIND</text><text x="292" y="108" text-anchor="end" fill="#ffb15c" font-size="23" font-family="Courier New">${Math.round(Math.abs(components.crosswindKt))} KT</text></g>
-        <g transform="translate(744 76)"><rect width="292" height="142" rx="14" fill="#071018" stroke="${marginColor}" stroke-width="2"/><text x="18" y="36" fill="#91a5b2" font-size="18" font-family="Courier New">RWY COND</text><text x="274" y="36" text-anchor="end" fill="#fff" font-size="20" font-family="Courier New">${escapeHtml(calc.condition)}</text><text x="18" y="76" fill="#91a5b2" font-size="18" font-family="Courier New">SLOPE</text><text x="274" y="76" text-anchor="end" fill="#fff" font-size="20" font-family="Courier New">${escapeHtml(slope)}</text><text x="18" y="116" fill="#91a5b2" font-size="18" font-family="Courier New">DENSITY ALT</text><text x="274" y="116" text-anchor="end" fill="${marginColor}" font-size="20" font-family="Courier New">${Math.round(densityAltitude)} FT</text></g>
+        ${kind === 'takeoff' ? marker(groundRollY,`GROUND ROLL ${Math.round(groundRoll)} FT`,'#66ff99') + marker(distance50Y,`50FT / REQ ${Math.round(distance50)} FT`,'#ffd84d','4 5') + marker(accelerateStopY,`ACCEL-STOP ${Math.round(accelerateStop)} FT`,'#ff9f43','10 6') : marker(requiredY,`LDG REQ ${Math.round(required)} FT`,'#ff5d66')}${operationalMarker}${aircraft}
+        <g transform="translate(40 76)"><rect width="320" height="142" rx="14" fill="#071018" stroke="#8ec5ff" stroke-width="2"/><text x="20" y="38" fill="#8ec5ff" font-size="21" font-family="Courier New">${components.headwindKt < 0 ? 'TAILWIND' : 'HEADWIND'}</text><text x="292" y="38" text-anchor="end" fill="#fff" font-size="23" font-family="Courier New">${Number.isFinite(components.headwindKt) ? `${Math.round(Math.abs(components.headwindKt))} KT` : 'N/A'}</text><line x1="14" y1="70" x2="306" y2="70" stroke="#263744"/><text x="20" y="108" fill="#ffb15c" font-size="21" font-family="Courier New">CROSSWIND</text><text x="292" y="108" text-anchor="end" fill="#ffb15c" font-size="23" font-family="Courier New">${Number.isFinite(components.crosswindKt) ? `${Math.round(Math.abs(components.crosswindKt))} KT` : 'N/A'}</text></g>
+        <g transform="translate(744 76)"><rect width="292" height="142" rx="14" fill="#071018" stroke="${marginColor}" stroke-width="2"/><text x="18" y="36" fill="#91a5b2" font-size="18" font-family="Courier New">RWY COND</text><text x="274" y="36" text-anchor="end" fill="#fff" font-size="20" font-family="Courier New">${escapeHtml(calc.condition)}</text><text x="18" y="76" fill="#91a5b2" font-size="18" font-family="Courier New">SLOPE</text><text x="274" y="76" text-anchor="end" fill="#fff" font-size="20" font-family="Courier New">${escapeHtml(slope)}</text><text x="18" y="116" fill="#91a5b2" font-size="18" font-family="Courier New">DENSITY ALT</text><text x="274" y="116" text-anchor="end" fill="${marginColor}" font-size="20" font-family="Courier New">${Number.isFinite(densityAltitude) ? `${Math.round(densityAltitude)} FT` : 'N/A'}</text></g>
       </svg>`;
       const legendValues = kind === 'takeoff'
         ? [['GROUND ROLL',calc.groundRoll],['50 FT DIST',calc.distance50],['TORA',calc.available],['REMAIN',calc.remaining]]
@@ -4730,32 +4967,33 @@ END OF MESSAGE</pre>
       const required = finite(calc?.required);
       const remaining = finite(calc?.remaining);
       const densityAltitude = performanceFieldNumber(takeoff ? 'perfTakeoffDensityAltitude' : 'perfLandingDensityAltitude', finite(wx?.densityAltFt));
-      const components = performanceComponentPair(takeoff ? 'perfTakeoffHwXw' : 'perfLandingHwXw', finite(wx?.hwXw?.headwindKt) || 0, finite(wx?.hwXw?.crosswindKt) || 0);
+      const components = performanceComponentPair(takeoff ? 'perfTakeoffHwXw' : 'perfLandingHwXw', finite(wx?.hwXw?.headwindKt), finite(wx?.hwXw?.crosswindKt));
+      const incompleteReasons = Array.isArray(calc?.incompleteReasons) ? calc.incompleteReasons : [];
       const outsideReasons = [];
-      if (!Number.isFinite(available) || !Number.isFinite(required)) outsideReasons.push('RUNWAY DATA INCOMPLETE');
       if (Number.isFinite(available) && Number.isFinite(required) && required > available) outsideReasons.push('REQUIRED DISTANCE EXCEEDS RUNWAY');
+      if (takeoff && Number.isFinite(calc?.stopMargin) && calc.stopMargin < 0) outsideReasons.push('ACCELERATE-STOP EXCEEDS RUNWAY');
       if (Number(calc?.weight) > 2650) outsideReasons.push('WEIGHT ABOVE CONFIGURED LIMIT');
-      if (Math.abs(components.crosswindKt) > PERFORMANCE_AIRCRAFT.crosswindLimitKt) outsideReasons.push('CROSSWIND ABOVE LIMIT');
-      const tone = outsideReasons.length ? 'danger' : calc?.cautions?.length ? 'warn' : 'good';
-      const status = tone === 'danger' ? 'OUTSIDE LIMITS' : tone === 'warn' ? 'CAUTION / REVIEW' : 'WITHIN LIMITS';
+      if (Number.isFinite(components.crosswindKt) && Math.abs(components.crosswindKt) > PERFORMANCE_AIRCRAFT.crosswindLimitKt) outsideReasons.push('CROSSWIND ABOVE LIMIT');
+      const tone = incompleteReasons.length ? 'incomplete' : outsideReasons.length ? 'danger' : calc?.cautions?.length ? 'warn' : 'advisory';
+      const status = tone === 'incomplete' ? 'DATA INCOMPLETE' : tone === 'danger' ? 'ADVISORY LIMIT EXCEEDED' : tone === 'warn' ? 'CAUTION / REVIEW' : 'ADVISORY PASS';
       const header = el(`${prefix}ResultHeader`);
       header.className = `performance-result-header ${tone}`;
       el(`${prefix}ResultStatus`).textContent = status;
-      el(`${prefix}ResultMeta`).textContent = `${wx?.apt?.icao || '----'} RWY ${wx?.rwy || '--'} / ${Math.round(Number(calc?.weight) || 0)} LB / NGA-PA28R-1 / ${new Date().toISOString().slice(11,16)}Z${outsideReasons.length ? ` / ${outsideReasons.join(' / ')}` : ''}`;
+      el(`${prefix}ResultMeta`).textContent = `${wx?.apt?.icao || '----'} RWY ${wx?.rwy || '--'} / ${Math.round(Number(calc?.weight) || 0)} LB / NGA-PA28R-1 / ${new Date().toISOString().slice(11,16)}Z${incompleteReasons.length ? ` / ${incompleteReasons.join(' / ')}` : outsideReasons.length ? ` / ${outsideReasons.join(' / ')}` : ''}`;
       el(`${prefix}ResultRequired`).textContent = feet(required);
       el(`${prefix}ResultAvailable`).textContent = feet(available);
       el(`${prefix}ResultMargin`).textContent = feet(remaining);
       el(`${prefix}ResultDa`).textContent = feet(densityAltitude);
-      el(`${prefix}ResultWind`).textContent = `${components.headwindKt < 0 ? 'TW' : 'HW'} ${Math.round(Math.abs(components.headwindKt))} / XW ${Math.round(Math.abs(components.crosswindKt))}`;
+      el(`${prefix}ResultWind`).textContent = formatComponentPair(components.headwindKt, components.crosswindKt);
     }
 
     function renderPerformanceCalculation(kind, data, calc) {
       const takeoff = kind === 'takeoff';
       const unit = el(takeoff ? 'perfTakeoffSpeedUnit' : 'perfLandingSpeedUnit').value;
-      const speed = value => unit === 'MPH' ? `${Math.round(value * 1.15078)} MPH` : `${Math.round(value)} MIAS`;
+      const speed = value => unit === 'MPH' ? `${Math.round(value * 1.15078)} MIAS` : `${Math.round(value)} KIAS`;
       if (kind === 'takeoff') {
         setPerformanceText('perfTakeoffVr', speed(calc.vr), 'live');
-        setPerformanceText('perfTakeoffDistReq', feet(calc.required));
+        setPerformanceText('perfTakeoffDistReq', feet(calc.groundRoll));
         setPerformanceText('perfTakeoffVx', speed(calc.vx), 'live');
         setPerformanceText('perfTakeoffRwyAvail', feet(calc.available));
         setPerformanceText('perfTakeoffVy', speed(calc.vy), 'live');
@@ -4774,11 +5012,12 @@ END OF MESSAGE</pre>
       const wx = kind === 'takeoff' ? data.takeoff.runwayAndWeather : data.landing.airportAndWeather;
       syncPerformanceWeather(kind, data);
       el(kind === 'takeoff' ? 'takeoffPerformanceDerived' : 'landingPerformanceDerived').innerHTML = `<strong>CALCULATED FROM</strong> RWY ${escapeHtml(wx.rwy || '--')} / ${escapeHtml(wx.wind?.raw || 'NO WIND')} / WT ${Math.round(calc.weight)} LB / ${escapeHtml(calc.condition)}`;
-      el(kind === 'takeoff' ? 'takeoffPerformanceMessages' : 'landingPerformanceMessages').textContent = calc.cautions.length ? calc.cautions.join(' / ') : 'NONE';
+      const messages = [...(calc.incompleteReasons || []), ...(calc.cautions || [])];
+      el(kind === 'takeoff' ? 'takeoffPerformanceMessages' : 'landingPerformanceMessages').textContent = messages.length ? messages.join(' / ') : 'NONE';
       const badge = el(kind === 'takeoff' ? 'takeoffPerfBadge' : 'landingPerfBadge');
-      badge.textContent = calc.cautions.length ? 'Review' : 'Calculated';
-      badge.style.borderColor = calc.cautions.length ? 'var(--warn)' : 'var(--live)';
-      badge.style.color = calc.cautions.length ? 'var(--warn)' : 'var(--live)';
+      badge.textContent = calc.incompleteReasons?.length ? 'Incomplete' : calc.cautions.length ? 'Review' : 'Calculated';
+      badge.style.borderColor = calc.incompleteReasons?.length ? 'var(--danger)' : calc.cautions.length ? 'var(--warn)' : 'var(--accent)';
+      badge.style.color = calc.incompleteReasons?.length ? 'var(--danger)' : calc.cautions.length ? 'var(--warn)' : 'var(--accent)';
       const stageSummary = el(kind === 'takeoff' ? 'takeoffStageSummary' : 'landingStageSummary');
       stageSummary.textContent = `${wx.apt?.icao || '----'} RWY ${wx.rwy || '--'} / ${Math.round(calc.required || 0)} FT REQ / ${Math.round(calc.remaining || 0)} FT REM`;
       renderPerformanceResultHeader(kind, data, calc);
@@ -4791,8 +5030,8 @@ END OF MESSAGE</pre>
       if (kind === 'takeoff') {
         base.available = performanceFieldNumber('perfTakeoffRwyAvail', performanceFieldNumber('perfTakeoffTora', base.available));
         base.groundRoll = performanceFieldNumber('perfTakeoffDistReq', base.groundRoll);
-        base.required = base.groundRoll;
         base.distance50 = performanceFieldNumber('perfTakeoffDist50', base.distance50);
+        base.required = base.distance50;
         base.remaining = performanceFieldNumber('perfTakeoffRwyRemain', Number.isFinite(base.available) && Number.isFinite(base.required) ? base.available - base.required : null);
         base.accelerateStop = performanceFieldNumber('perfTakeoffAccelStop', base.accelerateStop);
         base.stopMargin = performanceFieldNumber('perfTakeoffStopMargin', Number.isFinite(base.available) && Number.isFinite(base.accelerateStop) ? base.available - base.accelerateStop : null);
@@ -4844,10 +5083,19 @@ END OF MESSAGE</pre>
       runPerformanceBtn.disabled = true;
       performanceStatus.textContent = 'LOADING AIRPORT, RUNWAY, LIVE WEATHER, AND WIND COMPONENT DATA...';
       try {
-        const params = new URLSearchParams({ dep, arr, takeoffRunway:perfDepRunway.value, landingRunway:perfArrRunway.value, takeoffWeightLbs:perfTow.value, landingWeightLbs:perfLdw.value, takeoffRunwayCondition:el('perfTakeoffCondition').value, landingRunwayCondition:el('perfLandingCondition').value });
-        const response = await fetch(`/api/performance?${params}`, { cache: 'no-store' });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error || 'PERFORMANCE DATA UNAVAILABLE');
+        const fetchPerformance = async () => {
+          const params = new URLSearchParams({ dep, arr, takeoffRunway:perfDepRunway.value, landingRunway:perfArrRunway.value, takeoffWeightLbs:perfTow.value, landingWeightLbs:perfLdw.value, takeoffRunwayCondition:el('perfTakeoffCondition').value, landingRunwayCondition:el('perfLandingCondition').value });
+          const response = await fetch(`/api/performance?${params}`, { cache: 'no-store' });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.error || 'PERFORMANCE DATA UNAVAILABLE');
+          return payload;
+        };
+        let data = await fetchPerformance();
+        if (applySmartRunwayRecommendations(data)) {
+          performanceStatus.textContent = 'SMART RUNWAY GUIDANCE APPLIED / REFRESHING WIND COMPONENTS...';
+          data = await fetchPerformance();
+        }
+        applySmartRunwayRecommendations(data);
         latestPerformanceData = data;
         syncPerformanceWeather('takeoff', data);
         syncPerformanceWeather('landing', data);
@@ -4858,7 +5106,10 @@ END OF MESSAGE</pre>
         latestPerformanceCalculations = { takeoff:calculateTakeoff(effectiveData), landing:calculateLanding(effectiveData) };
         renderPerformanceCalculation('takeoff', effectiveData, latestPerformanceCalculations.takeoff);
         renderPerformanceCalculation('landing', effectiveData, latestPerformanceCalculations.landing);
-        performanceStatus.textContent = `${dep}-${arr} PERFORMANCE LOADED / VERIFY AGAINST CURRENT APPROVED AFM/POH BEFORE OPERATION.`;
+        const incomplete = [...(latestPerformanceCalculations.takeoff.incompleteReasons || []), ...(latestPerformanceCalculations.landing.incompleteReasons || [])];
+        performanceStatus.textContent = incomplete.length
+          ? `${dep}-${arr} DATA INCOMPLETE / ${[...new Set(incomplete)].join(' / ')}`
+          : `${dep}-${arr} PERFORMANCE READY / VERIFY AGAINST CURRENT APPROVED AFM/POH BEFORE OPERATION.`;
       } catch (error) {
         performanceStatus.textContent = error.message || 'Performance data unavailable.';
       } finally {
@@ -4896,13 +5147,13 @@ END OF MESSAGE</pre>
           '',
           'INPUTS:',
           formatAcarsPair('TO WEIGHT', `${Math.round(Number(perfTow.value) || 0)} LBS`, 'FLAPS', `${el('perfTakeoffFlaps').value}°`),
-          formatAcarsPair('POWER SETTING', el('perfTakeoffPower').value, 'AC', el('perfTakeoffAc').value),
+          formatAcarsPair('POWER SETTING', 'FULL / VERIFY POH', 'PROFILE', 'NGA-PA28R-1'),
           '',
           'OUTPUTS:',
-          formatAcarsPair('VR', performanceSpeedReport(performanceFieldValue('perfTakeoffVr')), 'T/O DIST REQ', performanceFieldValue('perfTakeoffDistReq', '..... FT')),
+          formatAcarsPair('VR', performanceSpeedReport(performanceFieldValue('perfTakeoffVr')), 'GROUND ROLL', performanceFieldValue('perfTakeoffDistReq', '..... FT')),
           formatAcarsPair('VX', performanceSpeedReport(performanceFieldValue('perfTakeoffVx')), 'RWY AVAIL', performanceFieldValue('perfTakeoffRwyAvail', '..... FT')),
           formatAcarsPair('VY', performanceSpeedReport(performanceFieldValue('perfTakeoffVy')), 'RWY REMAIN', performanceFieldValue('perfTakeoffRwyRemain', '..... FT')),
-          formatAcarsPair('ROTATE PITCH', performanceFieldValue('perfTakeoffRotatePitch').replace(/DEG/gi, '°'), '50FT DISTANCE', performanceFieldValue('perfTakeoffDist50', '..... FT')),
+          formatAcarsPair('ROTATE PITCH', performanceFieldValue('perfTakeoffRotatePitch').replace(/DEG/gi, '°'), 'T/O DIST REQ', performanceFieldValue('perfTakeoffDist50', '..... FT')),
           formatAcarsPair('XWIND LIMIT', performanceFieldValue('perfTakeoffXwindLimit', '17 KT'), 'WIND COMP', performanceFieldValue('perfTakeoffWindComp', 'HW .. / XW ..')),
           formatAcarsPair('ACCEL-STOP', performanceFieldValue('perfTakeoffAccelStop', '..... FT'), 'STOP MARGIN', performanceFieldValue('perfTakeoffStopMargin', '..... FT')),
           '',
@@ -4925,7 +5176,7 @@ END OF MESSAGE</pre>
         '',
         'INPUTS:',
         formatAcarsPair('LANDING WT', `${Math.round(Number(perfLdw.value) || 0)} LBS`, 'FLAPS', `${el('perfLandingFlaps').value}°`),
-        formatAcarsPair('BRAKING', el('perfLandingBraking').value, 'AC', el('perfLandingAc').value),
+        formatAcarsPair('BRAKING', el('perfLandingBraking').value, 'PROFILE', 'NGA-PA28R-1'),
         '',
         'OUTPUTS:',
         formatAcarsPair('VREF', performanceSpeedReport(performanceFieldValue('perfLandingVref')), 'RWY AVAIL', performanceFieldValue('perfLandingRwyAvail', '..... FT')),
@@ -4953,9 +5204,23 @@ END OF MESSAGE</pre>
       popup.document.close();
     }
 
+    function performanceSnapshotStatus(kind, calc, wx) {
+      if (!calc || calc.incompleteReasons?.length) return 'DATA INCOMPLETE';
+      const crosswind = finite(wx?.hwXw?.crosswindKt);
+      if (Number(calc.required) > Number(calc.available)) return 'OUTSIDE LIMITS';
+      if (Number(calc.weight) > PERFORMANCE_AIRCRAFT.maxTakeoffWeightLbs) return 'OUTSIDE LIMITS';
+      if (Number.isFinite(crosswind) && Math.abs(crosswind) > PERFORMANCE_AIRCRAFT.crosswindLimitKt) return 'OUTSIDE LIMITS';
+      if (kind === 'departure' && Number.isFinite(calc.stopMargin) && calc.stopMargin < 0) return 'OUTSIDE LIMITS';
+      return calc.cautions?.length ? 'CAUTION / REVIEW' : 'ADVISORY PASS';
+    }
+
     function performanceSnapshotFromData(data) {
+      const calculations = latestPerformanceCalculations || {};
       const leg = (section, kind) => {
         const wx = kind === 'departure' ? section?.runwayAndWeather : section?.airportAndWeather;
+        const calc = kind === 'departure' ? calculations.takeoff : calculations.landing;
+        const prefix = kind === 'departure' ? 'perfTakeoff' : 'perfLanding';
+        const manualOverride = ['WindMode','OatMode','QnhMode'].some(suffix => performanceModeIsManual(`${prefix}${suffix}`));
         return {
           airport: wx?.apt?.icao || (kind === 'departure' ? perfDep.value : perfArr.value),
           runway: wx?.rwy || (kind === 'departure' ? perfDepRunway.value : perfArrRunway.value),
@@ -4970,16 +5235,34 @@ END OF MESSAGE</pre>
           qnhHpa: wx?.qnhHpa ?? null,
           densityAltitudeFt: wx?.densityAltFt ?? null,
           elevationFt: wx?.elevFt ?? null,
-          plannedWeightLb: kind === 'departure' ? (Number(perfTow.value) || null) : (Number(perfLdw.value) || null)
+          plannedWeightLb: kind === 'departure' ? (Number(perfTow.value) || null) : (Number(perfLdw.value) || null),
+          groundRollFt:calc?.groundRoll ?? null,
+          requiredDistanceFt:calc?.required ?? null,
+          runwayMarginFt:calc?.remaining ?? null,
+          accelerateStopFt:kind === 'departure' ? (calc?.accelerateStop ?? null) : null,
+          accelerateStopMarginFt:kind === 'departure' ? (calc?.stopMargin ?? null) : null,
+          status:performanceSnapshotStatus(kind, calc, wx),
+          weatherMode:manualOverride ? 'PILOT OVERRIDE' : (wx?.weatherSource?.mode || 'NO DATA'),
+          weatherStation:wx?.weatherSource?.station || '',
+          weatherAgeMinutes:wx?.weatherSource?.ageMinutes ?? null,
+          manualOverride
         };
       };
-      return { capturedAt:new Date().toISOString(), source:'NGA WEATHER / AIRPORT DATABASE', departure:leg(data.takeoff, 'departure'), arrival:leg(data.landing, 'arrival') };
+      const departure = leg(data.takeoff, 'departure');
+      const arrival = leg(data.landing, 'arrival');
+      const statuses = [departure.status, arrival.status];
+      const overallStatus = statuses.includes('DATA INCOMPLETE') ? 'DATA INCOMPLETE' : statuses.includes('OUTSIDE LIMITS') ? 'OUTSIDE LIMITS' : statuses.includes('CAUTION / REVIEW') ? 'CAUTION / REVIEW' : 'ADVISORY PASS';
+      return { capturedAt:new Date().toISOString(), source:'NGA WEATHER / AIRPORT DATABASE', profileVersion:data.profileVersion || 'NGA-PA28R-1', overallStatus, departure, arrival };
     }
 
     async function applyPerformanceToOfp() {
       if (!selected?.id) throw new Error('SELECT A FLIGHT FIRST');
       if (!latestPerformanceData) throw new Error('LOAD AIRCRAFT PERFORMANCE INPUTS FIRST');
       if (!perfDepRunway.value || !perfArrRunway.value) throw new Error('SELECT BOTH RUNWAY ENDS FIRST');
+      if (!['pilot', 'saved'].includes(perfDepRunway.dataset.selectionSource) || !['pilot', 'saved'].includes(perfArrRunway.dataset.selectionSource)) throw new Error('CONFIRM BOTH RUNWAY ENDS BEFORE APPLYING THE SNAPSHOT');
+      if (!latestPerformanceCalculations?.takeoff || !latestPerformanceCalculations?.landing) throw new Error('CALCULATE BOTH PERFORMANCE LEGS FIRST');
+      const incomplete = [...(latestPerformanceCalculations.takeoff.incompleteReasons || []), ...(latestPerformanceCalculations.landing.incompleteReasons || [])];
+      if (incomplete.length) throw new Error(`PERFORMANCE SNAPSHOT INCOMPLETE: ${[...new Set(incomplete)].join(' / ')}`);
       applyPerformanceToOfpBtn.disabled = true;
       performanceStatus.textContent = 'Saving selected runway and current performance inputs into the OFP...';
       try {
@@ -4996,6 +5279,7 @@ END OF MESSAGE</pre>
         const response = await fetch(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ operationalFlightPlan }) });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || 'OFP UPDATE FAILED');
+        performanceContextFingerprint = suitePerformanceFingerprint(data.request);
         replaceRequest(data.request);
         ofpOpsFrame.dataset.context = '';
         performanceStatus.textContent = 'Runways and weather snapshot saved to the OFP. Pilot release was cleared for re-verification.';
@@ -5132,7 +5416,7 @@ END OF MESSAGE</pre>
       if (!passengerManifestComplete(req)) return 'Complete and verify all passenger manifest fields.';
       if (!req.crew?.commander || req.crew.commander === 'UNASSIGNED') return 'Assign the commander and confirm crew availability.';
       if (!req.operationalFlightPlan) return 'Build the operational flight plan and verify route, fuel, and loading.';
-      if (!req.operationalFlightPlan.releaseAccepted) return 'Complete pilot verification and acknowledge the OFP release.';
+      if (!releaseClientState(req).released) return 'Complete every release check and record the commander PIC release.';
       if (!req.reimbursementStatement) return 'Prepare and save the reimbursement statement.';
       if (req.timeProposal && !['ACCEPTED', 'DENIED'].includes(String(req.timeProposal.responseStatus || '').toUpperCase())) return 'Monitor the passenger response to the proposed departure time.';
       if (req.pilotDecision !== 'APPROVED') return 'Complete pilot review and record the operational decision.';
@@ -5406,8 +5690,8 @@ END OF MESSAGE</pre>
         },
         {
           label: 'OFP',
-          tone: req.operationalFlightPlan?.releaseAccepted ? 'good' : req.operationalFlightPlan ? 'warn' : 'danger',
-          detail: req.operationalFlightPlan?.releaseAccepted ? 'Pilot release acknowledged' : req.operationalFlightPlan ? 'Draft saved / pilot verification open' : 'Operational flight plan not started'
+          tone: releaseClientState(req).released ? 'good' : req.operationalFlightPlan ? 'warn' : 'danger',
+          detail: releaseClientState(req).released ? 'Server-recorded PIC release' : req.operationalFlightPlan ? 'Draft saved / pilot verification open' : 'Operational flight plan not started'
         },
         {
           label: 'Time proposal',
@@ -5464,7 +5748,7 @@ END OF MESSAGE</pre>
       if (req.manualFlight) {
         const ofp = req.operationalFlightPlan || null;
         const routeReady = Boolean(ofp?.departure && ofp?.destination && ofp?.route);
-        const released = Boolean(ofp?.releaseAccepted);
+        const released = releaseClientState(req).released;
         setControlTone(controlFlight, routeReady ? 'good' : 'warn');
         controlFlight.innerHTML = `<strong>01 / Flight</strong>${escapeHtml(routeReady ? `${ofp.departure}-${ofp.destination} / manual route loaded` : 'Enter route and schedule in the OFP')}`;
         setControlTone(controlCrew, ofp?.commanderName ? 'good' : 'warn');
@@ -5496,7 +5780,7 @@ END OF MESSAGE</pre>
       const routeReady = Boolean(req.dep && req.arr && req.requestDate && req.requestTime);
       const crewReady = Boolean(req.crew?.commander && req.crew.commander !== 'UNASSIGNED');
       const ofp = req.operationalFlightPlan || null;
-      const ofpReleased = Boolean(ofp?.releaseAccepted);
+      const ofpReleased = releaseClientState(req).released;
       const statementReady = Boolean(req.reimbursementStatement);
       const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
       const agreementsReady = passengers.length > 0 && signed === passengers.length;
@@ -5897,7 +6181,7 @@ END OF MESSAGE</pre>
             <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">MANUAL OFP</span></div>
             ${escapeHtml(req.route || 'MANUAL OFP')} / ${escapeHtml(req.requestDate || 'DATE OPEN')} ${escapeHtml(req.requestTime || 'TIME OPEN')}<br>
             PILOT-ONLY FLIGHT FILE / NO PASSENGER NOTIFICATIONS<br>
-            <div class="request-state-row"><span class="request-state state-info">MANUAL</span><span class="request-state state-good">READY TO PLAN</span><span class="request-state ${req.operationalFlightPlan?.releaseAccepted ? 'state-good' : 'state-warn'}">${req.operationalFlightPlan?.releaseAccepted ? 'RELEASED' : 'DRAFT'}</span></div>
+            <div class="request-state-row"><span class="request-state state-info">MANUAL</span><span class="request-state state-good">READY TO PLAN</span><span class="request-state ${releaseClientState(req).released ? 'state-good' : 'state-warn'}">${releaseClientState(req).released ? 'RELEASED' : 'DRAFT'}</span></div>
           </div>
         `;
         const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
@@ -6240,7 +6524,28 @@ END OF MESSAGE</pre>
     }));
     performanceStageTabs.forEach(button => button.addEventListener('click', () => setPerformanceStage(button.dataset.performanceStage)));
     runPerformanceBtn.addEventListener('click', runPerformanceReview);
+    [
+      [el('confirmDepRunwayBtn'), perfDepRunway, 'takeoff'],
+      [el('confirmArrRunwayBtn'), perfArrRunway, 'landing']
+    ].forEach(([button, select, kind]) => button.addEventListener('click', () => {
+      if (!select.value) return;
+      select.dataset.selectionSource = 'pilot';
+      button.disabled = true;
+      button.textContent = `RWY ${select.value} confirmed`;
+      if (latestPerformanceData) {
+        const data = latestPerformanceEffectiveData || performanceDataWithOverrides();
+        const wx = kind === 'takeoff' ? data.takeoff?.runwayAndWeather : data.landing?.airportAndWeather;
+        updateRunwaySmartHint(kind === 'takeoff' ? 'departure' : 'arrival', wx, performanceRunwayCatalog[kind === 'takeoff' ? 'departure' : 'arrival'], recommendedRunway(performanceRunwayCatalog[kind === 'takeoff' ? 'departure' : 'arrival'], wx?.wind));
+        calculatePerformanceSection(kind);
+      }
+      performanceStatus.textContent = `RWY ${select.value} CONFIRMED BY PILOT / REVIEW UPDATED PERFORMANCE.`;
+    }));
+    [perfTow, perfLdw].forEach(input => input.addEventListener('input', () => {
+      input.dataset.weightSource = 'pilot';
+      el('performanceWeightSource').textContent = 'Pilot-entered planning weights / verify W&B';
+    }));
     [perfDepRunway, perfArrRunway].forEach(input => input.addEventListener('change', () => {
+      input.dataset.selectionSource = 'pilot';
       latestPerformanceData = null;
       latestPerformanceCalculations = null;
       runPerformanceReview().catch(() => {});
@@ -6290,13 +6595,38 @@ END OF MESSAGE</pre>
         }
       });
     });
+    const performanceAirportTimers = [null, null];
+    async function refreshPerformanceAirport(input, index) {
+      const icao = input.value.trim().toUpperCase();
+      const runwaySelect = index === 0 ? perfDepRunway : perfArrRunway;
+      const catalogKey = index === 0 ? 'departure' : 'arrival';
+      const hint = el(index === 0 ? 'perfDepRunwayHint' : 'perfArrRunwayHint');
+      if (!/^[A-Z0-9]{4}$/.test(icao)) {
+        setPerformanceRunwayOptions(runwaySelect, [], '');
+        performanceRunwayCatalog[catalogKey] = [];
+        hint.textContent = 'Enter a four-character ICAO airport code.';
+        return;
+      }
+      hint.textContent = `Loading ${icao} runway data...`;
+      const runways = await fetchRunways(icao).catch(() => []);
+      if (input.value.trim().toUpperCase() !== icao) return;
+      setPerformanceRunwayOptions(runwaySelect, runways, '');
+      performanceRunwayCatalog[catalogKey] = runways;
+      hint.textContent = runways.length ? `${runways.length} runway ends loaded / live wind guidance pending.` : 'No runway data available for this airport.';
+      latestPerformanceData = null;
+      latestPerformanceCalculations = null;
+      performanceStatus.textContent = `${icao} RUNWAY DATA ${runways.length ? 'READY' : 'UNAVAILABLE'} / SELECT BOTH RUNWAY ENDS.`;
+      if (perfDepRunway.value && perfArrRunway.value) runPerformanceReview().catch(() => {});
+    }
     [perfDep, perfArr].forEach((input, index) => {
-      input.addEventListener('input', () => { input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4); });
-      input.addEventListener('change', async () => {
-        const runways = await fetchRunways(input.value).catch(() => []);
-        setPerformanceRunwayOptions(index === 0 ? perfDepRunway : perfArrRunway, runways, '');
-        latestPerformanceData = null;
-        performanceStatus.textContent = 'AIRPORT CHANGED / SELECT A RUNWAY AND LOAD PERFORMANCE.';
+      input.addEventListener('input', () => {
+        input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+        clearTimeout(performanceAirportTimers[index]);
+        performanceAirportTimers[index] = setTimeout(() => refreshPerformanceAirport(input, index), input.value.length === 4 ? 180 : 0);
+      });
+      input.addEventListener('change', () => {
+        clearTimeout(performanceAirportTimers[index]);
+        refreshPerformanceAirport(input, index);
       });
     });
     calculateTakeoffBtn.addEventListener('click', () => calculatePerformanceSection('takeoff'));

@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07111b" />
+  <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <title>Operational Flight Plan</title>
   <style>
     :root { --bg:#030506; --panel:#071019; --panel2:#0b151d; --line:#40505c; --ink:#f4f7f9; --muted:#91a0aa; --blue:#8ec5ff; --green:#66ff99; --amber:#ffcc66; --red:#ff7777; }
@@ -1862,6 +1864,7 @@
       .movement-grid { grid-template-columns:1fr; }
     }
   </style>
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-14-6" />
 </head>
 <body>
   <main class="shell">
@@ -2291,6 +2294,7 @@
     let request = null;
     let plan = null;
     let saved = false;
+    let releasePanel = null;
     let airportCatalog = [];
     let smartSchedule = null;
     let departureTimeNeedsOccurrence = false;
@@ -2319,6 +2323,61 @@
     function markUnsaved(message = 'Unsaved changes / save the draft before opening the controlled PDF.') {
       saved = false;
       setSaveState('unsaved', message);
+    }
+
+    function isAuthoritativelyReleased() {
+      const snapshotId = String(plan?.releaseSnapshot?.releaseId || '');
+      return Boolean(
+        saved
+        && releasePanel?.released === true
+        && plan?.releaseAccepted === true
+        && snapshotId
+        && String(releasePanel.releaseId || '') === snapshotId
+      );
+    }
+
+    function setReleasePanel(value) {
+      releasePanel = value && typeof value === 'object' ? value : null;
+      if (request && releasePanel) request.releasePanel = releasePanel;
+    }
+
+    function renderServerReleasePanel() {
+      const node = el('releaseSnapshotState');
+      const blockers = Array.isArray(releasePanel?.blockers) ? releasePanel.blockers.filter(Boolean) : [];
+      if (isAuthoritativelyReleased()) {
+        const snapshot = plan.releaseSnapshot;
+        node.innerHTML = `<strong>Release snapshot ${escapeHtml(snapshot.releaseId)}</strong>${escapeHtml(snapshot.releasedAt ? `Released ${new Date(snapshot.releasedAt).toLocaleString('en-GB', { hour12:false })}` : 'Release time recorded')}${snapshot.releasedBy ? ` / ${escapeHtml(snapshot.releasedBy)}` : ''}`;
+        return;
+      }
+      if (!saved) {
+        const previousChecks = blockers.length ? ` Last server check: ${blockers.join(' / ')}.` : '';
+        node.innerHTML = `<strong>Unsaved flight-plan changes</strong>${escapeHtml(`Save the draft to refresh the authoritative release checks.${previousChecks}`)}`;
+        return;
+      }
+      if (!releasePanel) {
+        node.innerHTML = '<strong>Release status unavailable</strong>Reload the flight plan before attempting PIC release.';
+        return;
+      }
+      if (releasePanel.ready === true) {
+        node.innerHTML = '<strong>Server release checks complete</strong>The commander may review the acknowledgement and record the final release.';
+        return;
+      }
+      node.innerHTML = blockers.length
+        ? `<strong>Release blocked / ${blockers.length} open</strong>${escapeHtml(blockers.join(' / '))}`
+        : '<strong>Release pending</strong>The server has not marked this flight ready for PIC release.';
+    }
+
+    function isPerformanceSnapshotUsable(snapshot = plan?.performanceSnapshot) {
+      const usableStatus = value => ['ADVISORY PASS', 'CAUTION / REVIEW'].includes(String(value || '').toUpperCase());
+      const hasNumber = value => value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value));
+      const usableLeg = leg => Boolean(
+        leg?.runway
+        && usableStatus(leg.status)
+        && hasNumber(leg.requiredDistanceFt)
+        && hasNumber(leg.runwayMarginFt)
+        && Number(leg.runwayMarginFt) >= 0
+      );
+      return usableLeg(snapshot?.departure) && usableLeg(snapshot?.arrival);
     }
 
     function setInspector(mode) {
@@ -2790,6 +2849,37 @@
         .filter(Boolean);
     }
 
+    const AUTO_DIRECT_ROUTE_SOURCE = 'AUTO DCT / PILOT REVIEW REQUIRED';
+
+    function setRouteDataSource(value) {
+      inputFor('routeDataSource').value = value;
+      if (plan) plan.routeDataSource = value;
+    }
+
+    function isAutoManagedDirectRoute() {
+      const elements = routeTextElements();
+      if (elements.length !== 3 || elements[1] !== 'DCT') return false;
+      const source = String(inputFor('routeDataSource')?.value || '').toUpperCase();
+      const bookingPreload = routeLegs.length === 3
+        && routeLegs.every(leg => String(leg?.source || '').toUpperCase() === 'BOOKING PRELOAD');
+      return source === AUTO_DIRECT_ROUTE_SOURCE || bookingPreload;
+    }
+
+    function buildAutoDirectRoute() {
+      const departure = String(inputFor('departure')?.value || '').toUpperCase();
+      const destination = String(inputFor('destination')?.value || '').toUpperCase();
+      if (!/^[A-Z0-9]{4}$/.test(departure) || !/^[A-Z0-9]{4}$/.test(destination)) return false;
+      routeLegs = [
+        { ...inferRouteLeg(departure, 'AIRPORT'), source:'AUTO DCT' },
+        { ...inferRouteLeg('DCT', 'DCT'), source:'AUTO DCT' },
+        { ...inferRouteLeg(destination, 'AIRPORT'), source:'AUTO DCT' }
+      ];
+      syncRouteFields();
+      setRouteDataSource(AUTO_DIRECT_ROUTE_SOURCE);
+      renderRouteComposer();
+      return true;
+    }
+
     function inferRouteLeg(value, preferredType = '') {
       const ident = String(value || '').trim().toUpperCase().replace(/[^A-Z0-9./+-]/g, '');
       const departure = String(inputFor('departure')?.value || '').toUpperCase();
@@ -2868,6 +2958,7 @@
         approach ? `APCH ${approach}` : 'APCH PILOT SELECT'
       ].join('  /  ');
       el('routeTokens').querySelectorAll('[data-remove-route-token]').forEach(button => button.addEventListener('click', () => {
+        setRouteDataSource('PILOT ENTRY / VERIFY CURRENT AIP');
         routeLegs.splice(Number(button.dataset.removeRouteToken), 1);
         syncRouteFields();
         markUnsaved('Route sequence changed / save the draft before generating the OFP.');
@@ -2885,6 +2976,7 @@
         setSaveState('unsaved', 'Enter a route identifier or choose DIRECT / DCT.');
         return;
       }
+      setRouteDataSource('PILOT ENTRY / VERIFY CURRENT AIP');
       routeLegs.push({
         ...inferRouteLeg(value, type),
         name:String(metadata.name || ''),
@@ -3186,9 +3278,10 @@
       const movementCount = ['actualOut','actualOff','actualOn','actualIn']
         .filter(field => Boolean(String(inputFor(field).value || '').trim())).length;
       const reviewReady = Boolean(plan.notamReviewAccepted && plan.airspaceReviewAccepted);
-      const performanceReady = Boolean(plan.performanceSnapshot?.departure?.runway && plan.performanceSnapshot?.arrival?.runway);
+      const performanceReady = isPerformanceSnapshotUsable();
       const briefReady = reviewReady && performanceReady;
-      const released = Boolean(inputFor('releaseAccepted').checked);
+      const released = isAuthoritativelyReleased();
+      const serverReleaseReady = Boolean(saved && releasePanel?.ready === true);
       setWorkspaceState('SETUP', setupReady ? 'Flight defined' : 'Info required', setupReady);
       setWorkspaceState('ROUTE', routeReady ? 'Route ready' : 'Route / runway open', routeReady);
       setWorkspaceState('LOAD', loadReady ? 'Within limits' : 'Check load', loadReady);
@@ -3213,20 +3306,23 @@
       el('briefProgressLabel').textContent = `${completed} / ${gates.length} READY`;
       el('briefProgressBar').style.width = `${percent}%`;
       el('briefProgressBar').classList.toggle('complete', percent === 100);
-      el('briefState').textContent = released ? 'RELEASED' : percent === 100 ? 'READY TO RELEASE' : 'PLANNING';
-      el('briefState').classList.toggle('ready', percent === 100 || released);
+      const readyForRelease = percent === 100 && serverReleaseReady;
+      el('briefState').textContent = released ? 'RELEASED' : readyForRelease ? 'READY TO RELEASE' : percent === 100 ? 'RELEASE CHECKS OPEN' : 'PLANNING';
+      el('briefState').classList.toggle('ready', readyForRelease || released);
       const action = released
         ? { workspace:'RELEASE', title:'Flight released', detail:'Review the frozen release snapshot and controlled document before operation.' }
-        : percent === 100
+        : readyForRelease
           ? { workspace:'RELEASE', title:'Complete PIC release', detail:'All planning gates are ready. Review the final checks and acknowledge command release.' }
+          : percent === 100
+            ? { workspace:'RELEASE', title:'Resolve release checks', detail:(releasePanel?.blockers || []).join(' / ') || 'Refresh the authoritative release checks before command release.' }
           : firstOpen;
       const openIndex = firstOpen ? gates.indexOf(firstOpen) + 1 : gates.length;
-      el('briefGatePosition').textContent = released ? 'RELEASE COMPLETE' : percent === 100 ? 'FINAL COMMAND ACTION' : `NEXT / GATE ${openIndex} OF ${gates.length}`;
+      el('briefGatePosition').textContent = released ? 'RELEASE COMPLETE' : readyForRelease ? 'FINAL COMMAND ACTION' : percent === 100 ? 'SERVER RELEASE CHECKS' : `NEXT / GATE ${openIndex} OF ${gates.length}`;
       el('briefNextAction').textContent = action.title;
       el('briefNextDetail').textContent = action.detail;
       el('openNextGateBtn').dataset.workspace = action.workspace;
-      el('openNextGateBtn').textContent = released ? 'Review release' : percent === 100 ? 'Open PIC release' : 'Open next task';
-      return { setupReady, routeReady, loadReady, reviewReady, performanceReady, briefReady, movementCount, released, completed, percent, firstOpen };
+      el('openNextGateBtn').textContent = released ? 'Review release' : readyForRelease ? 'Open PIC release' : percent === 100 ? 'Review release checks' : 'Open next task';
+      return { setupReady, routeReady, loadReady, reviewReady, performanceReady, briefReady, movementCount, released, serverReleaseReady, completed, percent, firstOpen };
     }
 
     function warningWorkspace(message) {
@@ -3290,7 +3386,7 @@
         ? `${primaryWarnings.map(item => `<button type="button" class="warning" data-warning-workspace="${warningWorkspace(item)}">${escapeHtml(item)}</button>`).join('')}${additionalWarnings.length ? `<details class="warning-overflow"><summary>${additionalWarnings.length} more checks</summary>${additionalWarnings.map(item => `<button type="button" class="warning" data-warning-workspace="${warningWorkspace(item)}">${escapeHtml(item)}</button>`).join('')}</details>` : ''}`
         : '<div class="warning good">Administrative calculations complete. Pilot verification remains required.</div>';
       el('warningList').querySelectorAll('[data-warning-workspace]').forEach(button => button.addEventListener('click', () => setWorkspace(button.dataset.warningWorkspace)));
-      const released = inputFor('releaseAccepted').checked;
+      const released = isAuthoritativelyReleased();
       const progress = renderWorkspaceProgress(calc);
       el('weatherModuleState').textContent = progress.reviewReady ? 'REVIEWED' : 'REVIEW OPEN';
       el('weatherModuleState').classList.toggle('complete', progress.reviewReady);
@@ -3328,10 +3424,7 @@
       el('documentStatus').textContent = released ? 'RELEASE ACKNOWLEDGED' : saved ? 'DRAFT SAVED' : 'UNSAVED DRAFT';
       el('documentStatus').style.color = released ? 'var(--green)' : 'var(--amber)';
       el('crewStatus').textContent = inputFor('releaseName').value || inputFor('commanderName')?.value || plan.commanderName || 'UNASSIGNED';
-      const snapshot = plan.releaseSnapshot;
-      el('releaseSnapshotState').innerHTML = snapshot
-        ? `<strong>Release snapshot ${escapeHtml(snapshot.releaseId || 'RECORDED')}</strong>${escapeHtml(snapshot.releasedAt ? `Released ${new Date(snapshot.releasedAt).toLocaleString('en-GB', { hour12:false })}` : 'Release time recorded')}${snapshot.releasedBy ? ` / ${escapeHtml(snapshot.releasedBy)}` : ''}`
-        : '<strong>No frozen release snapshot</strong>Save the completed plan with pilot release acknowledged to record the released flight configuration.';
+      renderServerReleasePanel();
       ['actualOut','actualOff','actualOn','actualIn'].forEach(field => {
         const value = String(inputFor(field).value || '').trim();
         const card = document.querySelector(`[data-movement-card="${field}"]`);
@@ -3384,6 +3477,7 @@
       request = data.request;
       plan = data.operationalFlightPlan;
       saved = data.saved;
+      setReleasePanel(data.releasePanel || request?.releasePanel);
       await populate();
       setSaveState(
         saved ? 'saved' : 'unsaved',
@@ -3403,10 +3497,17 @@
       try {
         const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ operationalFlightPlan:plan }) });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'Unable to save OFP');
+        if (!res.ok) {
+          if (data.releasePanel) {
+            setReleasePanel(data.releasePanel);
+            render();
+          }
+          throw new Error(data.error || 'Unable to save OFP');
+        }
         request = data.request;
         plan = request.operationalFlightPlan;
         saved = true;
+        setReleasePanel(data.releasePanel || request?.releasePanel);
         await populate(false);
         setSaveState('saved', `OFP saved at ${new Date().toLocaleTimeString('en-GB', { hour12:false })}.`);
         if (embedded && window.parent !== window) window.parent.postMessage({ type:'nga-ofp-saved', requestId }, location.origin);
@@ -3433,6 +3534,7 @@
         plan.routeMode = inputFor('routeMode').value;
       }
       if (input.dataset.field === 'route') {
+        setRouteDataSource('PILOT ENTRY / VERIFY CURRENT AIP');
         routeLegs = routeTextElements().map(value => inferRouteLeg(value));
         plan.routeLegs = routeLegs.map(leg => ({ ...leg }));
       }
@@ -3456,7 +3558,8 @@
       if (input.tagName === 'SELECT') input.addEventListener('change', () => handleFieldInput(input));
     });
     el('alternateAutoBtn').addEventListener('click', suggestAlternates);
-    ['departure', 'destination'].forEach(field => inputFor(field).addEventListener('change', async () => {
+    const runwayLookupTimers = { departure:null, destination:null };
+    async function refreshAirportRunways(field) {
       readPlan();
       if (!/^[A-Z0-9]{4}$/.test(plan[field] || '')) {
         setSaveState('unsaved', `Enter a valid four-character ${field === 'departure' ? 'departure' : 'destination'} ICAO code to load runway choices.`);
@@ -3464,10 +3567,24 @@
       }
       if (field === 'departure') plan.depRunway = '';
       if (field === 'destination') plan.arrRunway = '';
+      const validEndpoints = /^[A-Z0-9]{4}$/.test(plan.departure || '') && /^[A-Z0-9]{4}$/.test(plan.destination || '');
+      const routeIsEmpty = !String(inputFor('route').value || '').trim();
+      if (validEndpoints && (routeIsEmpty || isAutoManagedDirectRoute())) buildAutoDirectRoute();
       await populateRunwaySelectors();
       markUnsaved('Airport changed / select and verify the corresponding runway.');
       render();
-    }));
+    }
+    ['departure', 'destination'].forEach(field => {
+      const input = inputFor(field);
+      input.addEventListener('input', () => {
+        clearTimeout(runwayLookupTimers[field]);
+        if (input.value.length === 4) runwayLookupTimers[field] = setTimeout(() => refreshAirportRunways(field), 180);
+      });
+      input.addEventListener('change', () => {
+        clearTimeout(runwayLookupTimers[field]);
+        refreshAirportRunways(field);
+      });
+    });
     el('fuelCalcBtn').addEventListener('click', () => {
       readPlan();
       const flow = Math.max(0, num(plan.fuelFlowGph));
@@ -3521,12 +3638,7 @@
         setSaveState('unsaved', 'Enter valid four-character departure and destination ICAO codes before building a direct route.');
         return;
       }
-      routeLegs = [
-        inferRouteLeg(departure, 'AIRPORT'),
-        inferRouteLeg('DCT', 'DCT'),
-        inferRouteLeg(destination, 'AIRPORT')
-      ].filter(leg => leg.ident);
-      syncRouteFields();
+      buildAutoDirectRoute();
       if (inputFor('releaseAccepted').checked) inputFor('releaseAccepted').checked = false;
       markUnsaved('Direct route built / select runways and verify the route before saving.');
       renderRouteComposer();
@@ -3535,6 +3647,7 @@
     el('routeDctBtn').addEventListener('click', () => addRouteElement('DCT', { type:'DCT' }));
     el('clearRouteBtn').addEventListener('click', () => {
       if (routeLegs.length && !window.confirm('Clear the current operational route sequence?')) return;
+      setRouteDataSource('PILOT ENTRY / VERIFY CURRENT AIP');
       routeLegs = [];
       syncRouteFields();
       markUnsaved('Route cleared / build the operational route before saving.');
