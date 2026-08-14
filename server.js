@@ -950,6 +950,21 @@ const bookingAirports = [
   { icao: 'ESSB', short: 'BMA', name: 'Stockholm Bromma', city: 'Stockholm', country: 'Sweden', type: 'controlled / GA', lat: 59.3544, lon: 17.9417 }
 ];
 
+function bookingAirportTimeZone(airportOrIcao) {
+  const airport = typeof airportOrIcao === 'string'
+    ? bookingAirports.find(item => item.icao === String(airportOrIcao || '').trim().toUpperCase())
+    : airportOrIcao;
+  if (airport?.timeZone) return airport.timeZone;
+  if (airport?.country === 'Finland') return 'Europe/Helsinki';
+  if (airport?.country === 'Estonia') return 'Europe/Tallinn';
+  if (airport?.country === 'Sweden') return 'Europe/Stockholm';
+  const icao = String(airport?.icao || airportOrIcao || '').trim().toUpperCase();
+  if (icao.startsWith('EF')) return 'Europe/Helsinki';
+  if (icao.startsWith('EE')) return 'Europe/Tallinn';
+  if (icao.startsWith('ES')) return 'Europe/Stockholm';
+  return 'UTC';
+}
+
 function nextBookingReference(depIcao, arrIcao) {
   const dep = bookingAirports.find(airport => airport.icao === depIcao);
   const arr = bookingAirports.find(airport => airport.icao === arrIcao);
@@ -1601,12 +1616,27 @@ function normalizeOperationalFlightPlan(input, request) {
     ? [input.passengerWeightOverrideLb, input.baggageWeightOverrideLb]
       .some(value => value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value)))
     : false;
+  const legacyScheduledLocalMatch = String(input.scheduledOut || '').toUpperCase().match(/(\d{2})(\d{2})L/);
+  const legacyScheduledLocal = legacyScheduledLocalMatch
+    ? `${legacyScheduledLocalMatch[1]}:${legacyScheduledLocalMatch[2]}`
+    : '';
+  const scheduledLocalSource = Object.prototype.hasOwnProperty.call(input, 'scheduledOutLocal')
+    ? input.scheduledOutLocal
+    : (legacyScheduledLocal || defaults.scheduledOutLocal);
+  const scheduledUtcSource = Object.prototype.hasOwnProperty.call(input, 'scheduledOutUtc')
+    ? input.scheduledOutUtc
+    : defaults.scheduledOutUtc;
   const plan = {
-    version: 'NGA-OFP-2026-07',
+    version: 'NGA-OFP-2026-08-SMART-SCHEDULE',
     updatedAt: new Date().toISOString(),
     dateUtc: textField('dateUtc', 20),
     operatorIcao: textField('operatorIcao', 3).toUpperCase() || defaults.operatorIcao,
-    flightNumber: textField('flightNumber', 8).toUpperCase() || defaults.flightNumber,
+    // The OFP reference belongs to the internal flight file and is never supplied
+    // by the browser, even though older drafts may still contain this property.
+    flightReference: normalizeBookingText(request?.id || defaults.flightReference, 40).toUpperCase(),
+    // Retained as an empty compatibility property for older saved OFP records.
+    // Private operations are identified by flightReference, not a flight number.
+    flightNumber: '',
     aircraftRegistration: textField('aircraftRegistration', 16).toUpperCase() || defaults.aircraftRegistration,
     aircraftModel: textField('aircraftModel', 40).toUpperCase() || defaults.aircraftModel,
     aircraftCode: textField('aircraftCode', 24).toUpperCase() || defaults.aircraftCode,
@@ -1637,6 +1667,12 @@ function normalizeOperationalFlightPlan(input, request) {
     cruiseSpeedKt: numberField('cruiseSpeedKt', 0, 300),
     distanceNm: numberField('distanceNm', 0, 3000),
     estimatedEnrouteMinutes: numberField('estimatedEnrouteMinutes', 0, 1440),
+    departureTimeZone: textField('departureTimeZone', 80) || defaults.departureTimeZone,
+    departureTimeOccurrence: ['EARLIER', 'LATER'].includes(textField('departureTimeOccurrence', 12).toUpperCase())
+      ? textField('departureTimeOccurrence', 12).toUpperCase()
+      : '',
+    scheduledOutLocal: normalizeBookingText(scheduledLocalSource, 8),
+    scheduledOutUtc: normalizeBookingText(scheduledUtcSource, 8).toUpperCase(),
     estimatedOut: textField('estimatedOut', 24).toUpperCase(),
     estimatedOff: textField('estimatedOff', 24).toUpperCase(),
     estimatedOn: textField('estimatedOn', 24).toUpperCase(),
@@ -1690,6 +1726,47 @@ function normalizeOperationalFlightPlan(input, request) {
     releaseAccepted: input.releaseAccepted === true || input.releaseAccepted === 'true',
     releaseSnapshot: input.releaseSnapshot && typeof input.releaseSnapshot === 'object' ? input.releaseSnapshot : null
   };
+  const catalogDeparture = bookingAirports.find(airport => airport.icao === plan.departure);
+  plan.departureTimeZone = catalogDeparture
+    ? bookingAirportTimeZone(catalogDeparture)
+    : (plan.departureTimeZone || 'UTC');
+  const localTimeCandidates = ofpLocalFlightCandidates(
+    plan.dateUtc,
+    plan.scheduledOutLocal,
+    plan.departureTimeZone
+  );
+  if (localTimeCandidates?.timeZone) plan.departureTimeZone = localTimeCandidates.timeZone;
+  plan.departureTimeAmbiguous = Boolean(localTimeCandidates?.candidates.length > 1);
+  if (!plan.departureTimeAmbiguous) plan.departureTimeOccurrence = '';
+  const smartSchedule = ofpSmartSchedule(
+    plan.dateUtc,
+    plan.scheduledOutLocal,
+    plan.departureTimeZone,
+    plan.estimatedEnrouteMinutes,
+    plan.departureTimeOccurrence
+  );
+  if (smartSchedule) {
+    plan.departureTimeZone = smartSchedule.timeZone;
+    plan.scheduledOutUtc = smartSchedule.out.utc;
+    plan.scheduledOut = smartSchedule.out.value;
+    plan.scheduledOff = smartSchedule.off.value;
+    plan.scheduledOn = smartSchedule.on.value;
+    plan.scheduledIn = smartSchedule.in.value;
+    plan.estimatedOut = smartSchedule.out.value;
+    plan.estimatedOff = smartSchedule.off.value;
+    plan.estimatedOn = smartSchedule.on.value;
+    plan.estimatedIn = smartSchedule.in.value;
+  } else {
+    plan.scheduledOutUtc = '';
+    plan.scheduledOut = '';
+    plan.scheduledOff = '';
+    plan.scheduledOn = '';
+    plan.scheduledIn = '';
+    plan.estimatedOut = '';
+    plan.estimatedOff = '';
+    plan.estimatedOn = '';
+    plan.estimatedIn = '';
+  }
   const calculations = operationalFlightPlanCalculations(plan, request);
   return { ...plan, ...calculations };
 }
@@ -1699,6 +1776,7 @@ function operationalPlanDependencyFingerprint(plan, includePerformance = true) {
   const values = {
     dateUtc: plan.dateUtc,
     operatorIcao: plan.operatorIcao,
+    flightReference: plan.flightReference,
     flightNumber: plan.flightNumber,
     aircraftRegistration: plan.aircraftRegistration,
     aircraftModel: plan.aircraftModel,
@@ -1721,6 +1799,10 @@ function operationalPlanDependencyFingerprint(plan, includePerformance = true) {
     cruiseSpeedKt: plan.cruiseSpeedKt,
     distanceNm: plan.distanceNm,
     estimatedEnrouteMinutes: plan.estimatedEnrouteMinutes,
+    departureTimeZone: plan.departureTimeZone,
+    departureTimeOccurrence: plan.departureTimeOccurrence,
+    scheduledOutLocal: plan.scheduledOutLocal,
+    scheduledOutUtc: plan.scheduledOutUtc,
     scheduledOut: plan.scheduledOut,
     scheduledOff: plan.scheduledOff,
     scheduledOn: plan.scheduledOn,
@@ -2094,7 +2176,7 @@ function publicFlightView(flight) {
 }
 
 async function getBookingAirportCatalog() {
-  return bookingAirports;
+  return bookingAirports.map(airport => ({ ...airport, timeZone:bookingAirportTimeZone(airport) }));
 }
 
 async function getBookingAirport(icao) {
@@ -4933,6 +5015,117 @@ function ofpClock(value, minutes = 0) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}${String(total % 60).padStart(2, '0')}`;
 }
 
+function ofpTimeZoneParts(instant, timeZone, includeName = false) {
+  const options = {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23'
+  };
+  if (includeName) options.timeZoneName = 'short';
+  const parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(instant);
+  return Object.fromEntries(parts.map(part => [part.type, part.value]));
+}
+
+function ofpLocalFlightCandidates(dateValue, timeValue, requestedTimeZone) {
+  const dateMatch = String(dateValue || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const timeMatch = String(timeValue || '').match(/^(\d{1,2}):(\d{2})$/);
+  if (!dateMatch || !timeMatch) return null;
+  const hour = Number(timeMatch[1]);
+  const minute = Number(timeMatch[2]);
+  if (hour > 23 || minute > 59) return null;
+  let timeZone = String(requestedTimeZone || 'UTC');
+  try {
+    new Intl.DateTimeFormat('en-GB', { timeZone }).format(new Date());
+  } catch {
+    timeZone = 'UTC';
+  }
+  const localEpoch = Date.UTC(
+    Number(dateMatch[1]),
+    Number(dateMatch[2]) - 1,
+    Number(dateMatch[3]),
+    hour,
+    minute
+  );
+  const offsets = new Set([-36, 0, 36].map(hoursFromTarget => {
+    const instant = new Date(localEpoch + (hoursFromTarget * 60 * 60 * 1000));
+    const parts = ofpTimeZoneParts(instant, timeZone);
+    const representedEpoch = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second)
+    );
+    return representedEpoch - instant.getTime();
+  }));
+  const candidates = [...offsets]
+    .map(offset => new Date(localEpoch - offset))
+    .filter(instant => {
+      const verified = ofpTimeZoneParts(instant, timeZone);
+      return `${verified.year}-${verified.month}-${verified.day}` === `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`
+        && verified.hour === String(hour).padStart(2, '0')
+        && verified.minute === String(minute).padStart(2, '0');
+    })
+    .filter((instant, index, values) => values.findIndex(value => value.getTime() === instant.getTime()) === index)
+    .sort((left, right) => left.getTime() - right.getTime());
+  return { candidates, timeZone };
+}
+
+function ofpLocalFlightInstant(dateValue, timeValue, requestedTimeZone, occurrence = '') {
+  const resolved = ofpLocalFlightCandidates(dateValue, timeValue, requestedTimeZone);
+  if (!resolved?.candidates.length) return null;
+  const ambiguous = resolved.candidates.length > 1;
+  const normalizedOccurrence = ['EARLIER', 'LATER'].includes(String(occurrence || '').toUpperCase())
+    ? String(occurrence).toUpperCase()
+    : '';
+  if (ambiguous && !normalizedOccurrence) {
+    return { ...resolved, instant:null, ambiguous:true, occurrence:'' };
+  }
+  return {
+    ...resolved,
+    instant:normalizedOccurrence === 'LATER' ? resolved.candidates.at(-1) : resolved.candidates[0],
+    ambiguous,
+    occurrence:ambiguous ? normalizedOccurrence : ''
+  };
+}
+
+function ofpDualClock(baseInstant, offsetMinutes, timeZone) {
+  const instant = new Date(baseInstant.getTime() + (Number(offsetMinutes || 0) * 60 * 1000));
+  const local = ofpTimeZoneParts(instant, timeZone, true);
+  const utcDate = instant.toISOString();
+  const utc = utcDate.slice(11, 16);
+  const localClock = `${local.hour}:${local.minute}`;
+  return {
+    instant:instant.toISOString(),
+    local:localClock,
+    utc,
+    localDate:`${local.year}-${local.month}-${local.day}`,
+    utcDate:utcDate.slice(0, 10),
+    zoneName:local.timeZoneName || timeZone,
+    value:`${utc.replace(':', '')}Z/${localClock.replace(':', '')}L`
+  };
+}
+
+function ofpSmartSchedule(dateValue, timeValue, timeZone, enrouteMinutes = 0, occurrence = '') {
+  const resolved = ofpLocalFlightInstant(dateValue, timeValue, timeZone, occurrence);
+  if (!resolved?.instant) return null;
+  const eet = Math.max(0, Math.round(Number(enrouteMinutes) || 0));
+  return {
+    out:ofpDualClock(resolved.instant, 0, resolved.timeZone),
+    off:ofpDualClock(resolved.instant, 10, resolved.timeZone),
+    on:ofpDualClock(resolved.instant, 10 + eet, resolved.timeZone),
+    in:ofpDualClock(resolved.instant, 15 + eet, resolved.timeZone),
+    timeZone:resolved.timeZone,
+    occurrence:resolved.occurrence
+  };
+}
+
 function operationalFlightPlanDefaults(request) {
   const manualFlight = request?.manualFlight === true;
   const depAirport = bookingAirports.find(item => item.icao === request?.dep);
@@ -4949,18 +5142,20 @@ function operationalFlightPlanDefaults(request) {
   const taxiFuelGal = manualFlight ? 0 : ofpRound(AIRCRAFT_PROFILE.startTaxiTakeoffFuelGal, 1);
   const contingencyFuelGal = manualFlight ? 0 : ofpRound(Math.max(0.5, tripFuelGal * 0.05), 1);
   const finalReserveFuelGal = manualFlight ? 0 : ofpRound(fuelFlowGph * 0.5, 1);
-  const localOut = ofpClock(request?.requestTime, 0);
-  const localOff = ofpClock(request?.requestTime, 10);
-  const localOn = ofpClock(request?.requestTime, 10 + minutes);
-  const localIn = ofpClock(request?.requestTime, 15 + minutes);
+  const departureTimeZone = bookingAirportTimeZone(depAirport || request?.dep);
+  const scheduledOutLocal = /^\d{1,2}:\d{2}$/.test(String(request?.requestTime || ''))
+    ? String(request.requestTime).padStart(5, '0')
+    : '';
+  const defaultTimeCandidates = ofpLocalFlightCandidates(request?.requestDate, scheduledOutLocal, departureTimeZone);
+  const smartSchedule = ofpSmartSchedule(request?.requestDate, scheduledOutLocal, departureTimeZone, minutes, '');
   const commander = request?.crew?.commander && request.crew.commander !== 'UNASSIGNED'
     ? request.crew.commander
     : '';
-  const flightNumberDigits = String(request?.flightId || request?.id || '').match(/(\d+)$/)?.[1] || '';
   return {
     dateUtc: request?.requestDate || '',
     operatorIcao: 'ZZZ',
-    flightNumber: flightNumberDigits ? flightNumberDigits.slice(-4).padStart(4, '0') : '0000',
+    flightReference: String(request?.id || 'INTERNAL-FLIGHT').toUpperCase(),
+    flightNumber: '',
     aircraftRegistration: 'OH-PMK',
     aircraftModel: 'PA28-200R',
     aircraftCode: 'PA28',
@@ -4993,14 +5188,19 @@ function operationalFlightPlanDefaults(request) {
     cruiseSpeedKt: AIRCRAFT_PROFILE.cruiseTasKt,
     distanceNm: distance,
     estimatedEnrouteMinutes: minutes,
-    estimatedOut: `----Z/${localOut}L`,
-    estimatedOff: `----Z/${localOff}L`,
-    estimatedOn: `----Z/${localOn}L`,
-    estimatedIn: `----Z/${localIn}L`,
-    scheduledOut: '',
-    scheduledOff: '',
-    scheduledOn: '',
-    scheduledIn: '',
+    departureTimeZone,
+    departureTimeOccurrence: '',
+    departureTimeAmbiguous: Boolean(defaultTimeCandidates?.candidates.length > 1),
+    scheduledOutLocal,
+    scheduledOutUtc: smartSchedule?.out.utc || '',
+    scheduledOut: smartSchedule?.out.value || '',
+    scheduledOff: smartSchedule?.off.value || '',
+    scheduledOn: smartSchedule?.on.value || '',
+    scheduledIn: smartSchedule?.in.value || '',
+    estimatedOut: smartSchedule?.out.value || '',
+    estimatedOff: smartSchedule?.off.value || '',
+    estimatedOn: smartSchedule?.on.value || '',
+    estimatedIn: smartSchedule?.in.value || '',
     actualOut: '',
     actualOff: '',
     actualOn: '',
@@ -5123,6 +5323,14 @@ function operationalFlightPlanCalculations(plan, request) {
   const landingEnvelope = operationalCgEnvelopeStatus(landingWeightLb, landingCgIn);
   const zeroFuelEnvelope = operationalCgEnvelopeStatus(zeroFuelWeightLb, zeroFuelCgIn);
   const warnings = [];
+  if (!String(plan.flightReference || '').trim()) warnings.push('INTERNAL FLIGHT REFERENCE REQUIRED');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(plan.dateUtc || ''))) warnings.push('DEPARTURE DATE REQUIRED');
+  if (plan.departureTimeAmbiguous && !['EARLIER', 'LATER'].includes(plan.departureTimeOccurrence)) {
+    warnings.push('SELECT FIRST OR SECOND UTC OCCURRENCE FOR THE REPEATED LOCAL HOUR');
+  } else if (!/^\d{2}:\d{2}$/.test(String(plan.scheduledOutLocal || '')) || !/^\d{2}:\d{2}$/.test(String(plan.scheduledOutUtc || ''))) {
+    warnings.push('VALID LOCAL AND UTC DEPARTURE TIME REQUIRED');
+  }
+  if (!(Number(plan.estimatedEnrouteMinutes) > 0)) warnings.push('PLANNED EET REQUIRED');
   if (!crewWeightLb) warnings.push('ENTER CREW WEIGHTS');
   if (baggageWeightLb > profile.stations.baggage.weightLimitLbs) warnings.push('BAGGAGE EXCEEDS 200 LB STATION LIMIT');
   if (fuelWeightLb > profile.stations.fuel.weightLimitLbs) warnings.push('FUEL EXCEEDS 288 LB / 48 USG LIMIT');
@@ -5135,6 +5343,7 @@ function operationalFlightPlanCalculations(plan, request) {
   if (!gearUpEnvelope.withinEnvelope) warnings.push('GEAR-UP POINT OUTSIDE APPROVED CG ENVELOPE');
   if (!landingEnvelope.withinEnvelope) warnings.push('LANDING POINT OUTSIDE APPROVED CG ENVELOPE');
   if (!String(plan.route || '').trim()) warnings.push('ENTER PILOT ROUTE');
+  if (!/^[A-Z0-9]{4}$/.test(String(plan.departure || '')) || !/^[A-Z0-9]{4}$/.test(String(plan.destination || ''))) warnings.push('VALID DEPARTURE AND DESTINATION ICAO REQUIRED');
   if (!String(plan.alternate || '').trim()) warnings.push('ALTERNATE REVIEW OPEN');
   if (!plan.notamReviewAccepted) warnings.push('NOTAM REVIEW ACKNOWLEDGEMENT REQUIRED');
   if (!plan.airspaceReviewAccepted) warnings.push('AIRSPACE REVIEW ACKNOWLEDGEMENT REQUIRED');
@@ -5179,6 +5388,7 @@ function createOperationalReleaseSnapshot(plan, request, actor) {
     bookingReference: request.id,
     flightInfo: {
       operatorIcao: plan.operatorIcao,
+      flightReference: plan.flightReference,
       flightNumber: plan.flightNumber,
       aircraftRegistration: plan.aircraftRegistration,
       aircraftModel: plan.aircraftModel,
@@ -5187,6 +5397,10 @@ function createOperationalReleaseSnapshot(plan, request, actor) {
       dateUtc: plan.dateUtc
     },
     schedule: {
+      timeZone: plan.departureTimeZone,
+      localTimeOccurrence: plan.departureTimeOccurrence,
+      localDeparture: plan.scheduledOutLocal,
+      utcDeparture: plan.scheduledOutUtc,
       eobt: plan.scheduledOut,
       plannedOff: plan.scheduledOff,
       plannedOn: plan.scheduledOn,
@@ -5307,10 +5521,24 @@ function operationalReleasePanelState(request) {
       detail: `${aircraftOperationalStatus.serviceability}${aircraftOperationalStatus.statusNote ? ` / ${aircraftOperationalStatus.statusNote}` : ''}`
     }
   };
-  const routeReady = Boolean(plan?.departure && plan?.destination && plan?.route && plan?.depRunway && plan?.arrRunway);
+  const routeReady = Boolean(
+    /^[A-Z0-9]{4}$/.test(String(plan?.departure || ''))
+    && /^[A-Z0-9]{4}$/.test(String(plan?.destination || ''))
+    && plan?.route
+    && plan?.depRunway
+    && plan?.arrRunway
+  );
+  const scheduleReady = Boolean(
+    plan?.flightReference
+    && /^\d{4}-\d{2}-\d{2}$/.test(String(plan?.dateUtc || ''))
+    && /^\d{2}:\d{2}$/.test(String(plan?.scheduledOutLocal || ''))
+    && /^\d{2}:\d{2}$/.test(String(plan?.scheduledOutUtc || ''))
+    && Number(plan?.estimatedEnrouteMinutes) > 0
+  );
   const commanderReady = Boolean(plan?.commanderName || (request?.crew?.commander && request.crew.commander !== 'UNASSIGNED'));
   const blockers = [];
   if (!plan) blockers.push('SAVE THE OFP DRAFT');
+  if (plan && !scheduleReady) blockers.push('COMPLETE FLIGHT REFERENCE AND SCHEDULE');
   if (plan && !routeReady) blockers.push('COMPLETE ROUTE AND RUNWAYS');
   if (!commanderReady) blockers.push('ASSIGN THE COMMANDER');
   Object.entries(items).forEach(([key, item]) => {
@@ -5323,6 +5551,7 @@ function operationalReleasePanelState(request) {
     releasedAt: plan?.releaseSnapshot?.releasedAt || '',
     releasedBy: plan?.releaseSnapshot?.releasedBy || '',
     routeReady,
+    scheduleReady,
     commanderReady,
     items,
     blockers
@@ -5573,7 +5802,7 @@ async function createOperationalFlightPlanPdf(request) {
   };
   const registration = plan.aircraftRegistration || 'REG TBD';
   const model = plan.aircraftModel || 'PA28-200R';
-  const routePair = `${plan.departure || 'DEP'}-${plan.destination || 'ARR'}`;
+  const flightReference = plan.flightReference || request.id || 'INTERNAL-FLIGHT';
   const headerDate = `${formatDate(plan.dateUtc)}/${utcPart(plan.estimatedOff || plan.scheduledOff)}`;
   const pageFooter = (page, pageNumber, top = 785.7) => {
     drawTop(page, `${registration}  - ${model}`, pageNumber === 3 ? 242.2 : 253.3, top, 11, { maxWidth: 160 });
@@ -5582,7 +5811,7 @@ async function createOperationalFlightPlanPdf(request) {
 
   drawTop(page1, registration, 48.6, 28.7, 11.2, { font: courierBold, maxWidth: 68 });
   drawTop(page1, model, 126.3, 28.7, 11.2, { font: courierBold, maxWidth: 88 });
-  drawTop(page1, routePair, 226.7, 28.7, 11.2, { font: courierBold, maxWidth: 86 });
+  drawTop(page1, flightReference, 226.7, 28.7, 11.2, { font: courierBold, maxWidth: 86 });
   drawTop(page1, headerDate, 321.2, 28.7, 11.2, { font: courierBold, maxWidth: 120 });
   drawTop(page1, `${registration} ${formatDate(plan.dateUtc)}`, 51, 92, 10.5, { maxWidth: 120 });
   drawTop(page1, `${model} ${plan.aircraftCode || 'PA28'}`, 51, 104, 10.5, { maxWidth: 122 });
@@ -6214,6 +6443,7 @@ app.patch('/api/booking-ops/requests/:id', requirePilotAccess, async (req, res) 
           : 'MANUAL OFP';
         request.flightTitle = request.route === 'MANUAL OFP' ? 'PILOT MANUAL FLIGHT FILE' : `PILOT OFP ${request.route}`;
         request.requestDate = flightPlan.dateUtc || request.requestDate;
+        request.requestTime = flightPlan.scheduledOutLocal || request.requestTime;
         request.estimatedFlightMinutes = flightPlan.estimatedEnrouteMinutes || 0;
       }
       await addBookingTimelineEvent(

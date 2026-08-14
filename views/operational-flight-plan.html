@@ -1569,6 +1569,298 @@
       .alternate-input-row { grid-template-columns:1fr; }
       .alternate-input-row .btn { margin-top:0; }
     }
+
+    /* Pilot UI 3.0: one authoritative responsive layer. The earlier rules are
+       retained for legacy embedded views; these rules define the live builder. */
+    :root {
+      --pilot-canvas:#071018;
+      --pilot-panel:#0d1822;
+      --pilot-raised:#132330;
+      --pilot-input:#050b11;
+      --pilot-line:#2d4658;
+      --pilot-text:#f4f8fa;
+      --pilot-muted:#a5b4bd;
+      --pilot-blue:#63bdf2;
+      --pilot-green:#69d99a;
+      --pilot-amber:#f2c36f;
+    }
+    html, body { background:var(--pilot-canvas); }
+    body { min-width:320px; padding:0; color:var(--pilot-text); }
+    .shell { width:100%; max-width:none; min-height:100vh; border:0; border-radius:0; background:var(--pilot-canvas); box-shadow:none; }
+    .topbar {
+      min-height:72px;
+      padding:12px 18px;
+      border-bottom:1px solid var(--pilot-line);
+      background:rgba(7,16,24,.96);
+    }
+    .topbar h1 { font-size:22px; }
+    .topbar .sub { color:var(--pilot-muted); font-size:11px; }
+    .top-actions { gap:8px; }
+    .top-actions .btn { min-height:44px; padding:9px 14px; font-size:11px; }
+    .top-actions #saveBtn { border-color:rgba(99,189,242,.7); }
+    .top-actions #previewBtn { min-width:132px; }
+    .dispatch-overview {
+      grid-template-columns:minmax(230px,.75fr) minmax(520px,1.75fr) minmax(230px,.7fr);
+      margin:12px 14px 8px;
+      border-color:var(--pilot-line);
+      border-radius:12px;
+      background:var(--pilot-line);
+    }
+    .dispatch-identity,
+    .overview-readiness,
+    .dispatch-overview .statusbox { background:var(--pilot-panel); }
+    .dispatch-identity > span,
+    .overview-readiness span,
+    .dispatch-overview .statusbox span { color:#8fa3af; font-size:10px; }
+    .dispatch-route strong { font-size:26px; }
+    .dispatch-identity small b,
+    .dispatch-identity small em { font-size:10px; }
+    .dispatch-overview .statusbox { min-height:78px; padding:13px 14px; }
+    .dispatch-overview .statusbox strong { margin-top:7px; font-size:12px; }
+    .overview-readiness small { color:var(--pilot-muted); font-size:10px; }
+    .dispatch-meta-row { margin:0 14px 10px; }
+    .dispatch-meta-row .flight-source,
+    .dispatch-meta-row .save-state { min-height:48px; border-color:var(--pilot-line); border-radius:9px; }
+    .flight-source strong { font-size:12px; }
+    .flight-source span,
+    .save-state { font-size:10px; }
+    .ofp-workspaces {
+      top:72px;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:6px;
+      margin:0 14px 12px;
+      padding:6px;
+      border-color:var(--pilot-line);
+      border-radius:12px;
+      background:rgba(8,18,27,.97);
+    }
+    .ofp-workspace-button { min-height:68px; border-radius:8px; padding:9px 10px 9px 42px; }
+    .ofp-workspace-button::before { left:12px; width:22px; height:22px; font-size:10px; }
+    .ofp-workspace-button span { color:#91a6b2; font-size:10px; }
+    .ofp-workspace-button strong { margin-top:4px; font-size:13px; }
+    .ofp-workspace-button .workspace-state { color:#8296a2; font-size:10px; }
+    .workspace { grid-template-columns:minmax(0,1fr) 360px; gap:12px; padding:0 14px 18px; }
+    .editor > details { border-color:var(--pilot-line); border-radius:12px; background:var(--pilot-panel); }
+    .editor > details > .detail-body { padding:0 18px 18px; }
+    .section-heading { padding:18px 0 14px; }
+    .section-heading span { color:#91cdec; font-size:10px; }
+    .section-heading strong { font-size:20px; }
+    .section-heading p { max-width:560px; color:var(--pilot-muted); font-size:12px; }
+    label { color:#b7c4cc; font-size:11px; }
+    input, select, textarea { min-height:48px; border-color:#3b5668; background:var(--pilot-input); font-size:14px; }
+    input[type="date"], input[type="time"] { color-scheme:dark; }
+    .field-help { display:block; min-height:28px; margin-top:6px; color:#8196a2; font-size:10px; font-weight:550; line-height:1.4; }
+    .optional-label { color:#778d99; font-size:10px; font-weight:550; }
+    .flight-info-composer { border-color:var(--pilot-line); background:#09131c; }
+    .flight-info-head { min-height:92px; padding:16px 18px; background:linear-gradient(110deg,#173044,#101f2c 58%,#0c151e); }
+    .flight-info-head > div:first-child strong { font-size:19px; }
+    .flight-info-head small { color:#9aabb5; font-size:10px; }
+    .eobt-summary { min-width:360px; }
+    .eobt-summary span { color:#9cb3c1; font-size:10px; }
+    .eobt-summary strong { color:#d5f0ff; font-size:20px; }
+    .eobt-summary small { color:#91a7b3; }
+    .flight-identity-grid { grid-template-columns:repeat(12,minmax(0,1fr)); align-items:start; gap:12px; padding:18px; }
+    .flight-identity-grid > label { grid-column:auto; min-width:0; }
+    .flight-identity-grid > label.reference-field { grid-column:span 4; }
+    .flight-identity-grid > label.date-field { grid-column:span 2; }
+    .flight-identity-grid > label.local-time-field { grid-column:span 2; }
+    .flight-identity-grid > label.rules-field { grid-column:span 2; }
+    .flight-identity-grid > label.operator-field { grid-column:span 2; }
+    .flight-identity-grid > .time-conversion-panel,
+    .flight-identity-grid > .aircraft-profile-field { grid-column:1/-1; }
+    .flight-identity-grid input[data-field="flightReference"] { color:#b8e5ff; letter-spacing:.04em; font-size:15px; font-weight:750; }
+    .flight-identity-grid input[data-field="scheduledOutLocal"] { color:#fff; font-size:17px; font-weight:750; }
+    .time-conversion-panel {
+      display:grid;
+      grid-template-columns:minmax(170px,1fr) 36px minmax(170px,1fr) minmax(230px,1.2fr);
+      gap:10px;
+      align-items:stretch;
+      overflow:hidden;
+      border:1px solid #31536a;
+      border-radius:11px;
+      padding:10px;
+      background:linear-gradient(115deg,#0b1c28,#08131c);
+    }
+    .time-conversion-panel > div { min-width:0; border-radius:8px; padding:11px 13px; background:#071019; }
+    .time-conversion-panel > i { display:grid; place-items:center; color:var(--pilot-blue); font-size:22px; font-style:normal; }
+    .time-conversion-panel span { display:block; color:#8da3af; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .time-conversion-panel strong { display:block; margin-top:6px; color:#eff8fc; font:750 22px/1 "Courier New",monospace; }
+    .time-conversion-panel small { display:block; margin-top:6px; color:#8398a4; font-size:10px; }
+    .time-conversion-panel > div:nth-child(3) strong { color:#8fd2fa; }
+    .time-conversion-panel .time-zone-chip { display:flex; flex-direction:column; justify-content:center; border-left:3px solid var(--pilot-green); background:#0b1d17; }
+    .time-conversion-panel .time-zone-chip > label { display:block; }
+    .time-conversion-panel .time-zone-chip select { min-height:38px; margin-top:6px; border-color:rgba(105,217,154,.32); background:#081710; color:#c9f0d8; font-family:inherit; font-size:11px; }
+    .time-conversion-panel .time-zone-chip select:disabled { opacity:1; color:#c9f0d8; cursor:default; }
+    .time-conversion-panel .time-zone-chip small { color:#86a994; }
+    .time-ambiguity-panel { margin:10px 0 4px; border-top:1px solid rgba(242,195,111,.32); padding-top:10px; }
+    .time-ambiguity-panel span { color:var(--pilot-amber); }
+    .time-conversion-panel .time-ambiguity-panel select { border-color:rgba(242,195,111,.6); background:#211a0c; color:#ffe1a6; }
+    .time-ambiguity-panel small { color:#c2a66f !important; }
+    .aircraft-profile-caption { font-size:11px; }
+    .aircraft-profile-button { min-height:72px; }
+    .flight-route-strip { grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr) minmax(240px,.8fr); gap:12px; padding:16px 18px 18px; }
+    .flight-route-point { border-radius:10px; padding:13px; }
+    .schedule-workbench { border-color:var(--pilot-line); border-radius:11px; }
+    .schedule-workbench-head { padding:13px 14px; }
+    .schedule-workbench-head span { font-size:10px; }
+    .schedule-workbench-head strong { font-size:15px; }
+    .schedule-workbench-head small { color:#9fb2bd; font-size:10px; }
+    .schedule-primary-grid { padding:14px; }
+    .schedule-estimate { min-height:54px; padding:9px 12px; }
+    .schedule-estimate span { font-size:10px; }
+    .schedule-estimate strong { font-size:12px; }
+    .console { top:154px; }
+    .console-mode-switch { top:154px; }
+    .console-card,
+    .utility-card,
+    .dispatch-brief-card { border-color:var(--pilot-line); background:var(--pilot-panel); }
+    .dispatch-brief-head span,
+    .console-title { font-size:10px; }
+    .brief-next-action > strong { font-size:20px; }
+    .brief-next-action p { color:var(--pilot-muted); font-size:11px; }
+    .metric span { font-size:10px; }
+    .primary-metrics .metric strong { font-size:16px; }
+    .warning { font-size:11px; }
+    .flight-source-badge,
+    .lock-badge,
+    .data-source-badge,
+    .envelope-point span,
+    .source-item span,
+    .load-help,
+    .movement-card span,
+    .performance-leg dl,
+    .nav-result span,
+    .console-details > summary,
+    .raw-route-drawer > summary,
+    .locked-profile small,
+    .release-check-title strong,
+    .pdf-preview-head .btn,
+    .schedule-drawer > summary,
+    .route-swap-large span,
+    .movement-actions .btn,
+    .alternate-input-row .btn { font-size:10px; }
+    .ofp-action-dock { display:none; }
+
+    @media (min-width:1366px) {
+      .console { position:sticky; display:grid; grid-template-columns:1fr; order:0; }
+      .console-summary { grid-template-columns:1fr; }
+      .console-summary .utility-card { grid-column:auto; }
+      .dispatch-overview .statusline { grid-template-columns:repeat(4,minmax(0,1fr)); }
+      .dispatch-overview .statusbox:last-child { display:flex; }
+      body.pdf-preview-active .workspace { grid-template-columns:minmax(0,1fr) minmax(420px,.55fr); }
+    }
+
+    @media (min-width:800px) and (max-width:1365px) {
+      body { padding-bottom:0; }
+      .dispatch-overview { grid-template-columns:minmax(220px,.8fr) minmax(0,1.5fr); }
+      .dispatch-overview .statusline { grid-template-columns:repeat(4,minmax(0,1fr)); }
+      .dispatch-overview .statusbox:last-child { display:flex; }
+      .overview-readiness { grid-column:1/-1; min-height:82px; }
+      .dispatch-meta-row { grid-template-columns:1fr; }
+      .workspace,
+      body.pdf-preview-active .workspace,
+      html.embedded body.pdf-preview-active .workspace { grid-template-columns:1fr; }
+      .console { position:static; order:0; grid-template-columns:1fr 1fr; }
+      .console-mode-switch { position:static; grid-column:1/-1; }
+      .console-summary { grid-column:1/-1; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+      .dispatch-brief-card,
+      .console-summary .utility-card,
+      .pdf-preview-panel { grid-column:1/-1; }
+      .flight-route-strip { grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr); }
+      .alternate-point { grid-column:1/-1; }
+      .ofp-action-dock { display:none; }
+    }
+
+    @media (max-width:980px) {
+      .dispatch-overview .statusline { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .ofp-workspaces { display:flex; overflow-x:auto; scroll-snap-type:x proximity; }
+      .ofp-workspace-button { flex:0 0 168px; scroll-snap-align:start; }
+      .flight-identity-grid > label.reference-field { grid-column:span 6; }
+      .flight-identity-grid > label.date-field,
+      .flight-identity-grid > label.local-time-field { grid-column:span 3; }
+      .flight-identity-grid > label.rules-field,
+      .flight-identity-grid > label.operator-field { grid-column:span 3; }
+      .time-conversion-panel { grid-template-columns:1fr 32px 1fr; }
+      .time-conversion-panel .time-zone-chip { grid-column:1/-1; }
+    }
+
+    @media (min-width:800px) and (max-width:900px) {
+      .topbar { position:static; display:grid; gap:10px; }
+      .top-actions { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); width:100%; }
+      .top-actions .btn { min-width:0; }
+      .ofp-workspaces { position:static; top:auto; }
+    }
+
+    @media (max-width:799px) {
+      body { padding-bottom:72px; }
+      .topbar { position:sticky; top:0; display:grid; gap:10px; min-height:0; padding:10px; }
+      .topbar-title { display:flex !important; }
+      .ofp-brand-mark { width:50px; height:36px; }
+      .topbar h1 { font-size:17px; }
+      .topbar .eyebrow,
+      .topbar .sub { display:none; }
+      .top-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%; }
+      .top-actions #backBtn,
+      .top-actions #weatherBtn { display:none; }
+      .top-actions .btn { min-width:0; min-height:42px; padding:7px; font-size:10px; }
+      .dispatch-overview { display:block; margin:8px; }
+      .dispatch-overview .statusline { display:none; }
+      .dispatch-identity { padding:12px 14px; }
+      .overview-readiness { min-height:76px; border-top:1px solid var(--pilot-line); padding:11px 14px; }
+      .dispatch-meta-row { display:block; margin:0 8px 8px; }
+      .dispatch-meta-row .flight-source { display:none; }
+      .ofp-workspaces { top:116px; margin:0 8px 8px; }
+      .ofp-workspace-button { flex-basis:152px; min-height:64px; }
+      .workspace { display:flex; flex-direction:column; padding:0 8px 10px; }
+      .editor > details > .detail-body { padding:0 13px 13px; }
+      .section-heading { display:block; }
+      .section-heading strong { font-size:18px; }
+      .section-heading p { margin-top:7px; text-align:left; }
+      .flight-info-head { display:block; padding:14px; }
+      .flight-info-head > div:first-child strong { white-space:normal; }
+      .eobt-summary { min-width:0; margin-top:13px; border-top:1px solid var(--pilot-line); border-left:0; padding:12px 0 0; }
+      .flight-identity-grid { grid-template-columns:1fr 1fr; padding:13px; }
+      .flight-identity-grid > label.reference-field,
+      .flight-identity-grid > .time-conversion-panel,
+      .flight-identity-grid > .aircraft-profile-field { grid-column:1/-1; }
+      .flight-identity-grid > label.date-field,
+      .flight-identity-grid > label.local-time-field,
+      .flight-identity-grid > label.rules-field,
+      .flight-identity-grid > label.operator-field { grid-column:span 1; }
+      .time-conversion-panel { grid-template-columns:1fr 28px 1fr; padding:8px; }
+      .time-conversion-panel strong { font-size:18px; }
+      .time-conversion-panel .time-zone-chip { grid-column:1/-1; }
+      .flight-route-strip { grid-template-columns:1fr; padding:13px; }
+      .route-swap-large { width:100%; min-height:42px; border-radius:9px; flex-direction:row; }
+      .alternate-point { grid-column:auto; }
+      .schedule-primary-grid-compact { grid-template-columns:1fr; }
+      .console { position:static; order:1; grid-template-columns:1fr; }
+      .console-summary { grid-template-columns:1fr; }
+      .movement-grid { grid-template-columns:1fr 1fr; }
+      .ofp-action-dock {
+        display:grid;
+        grid-template-columns:repeat(5,minmax(0,1fr));
+        min-height:64px;
+        gap:5px;
+        border-top-color:var(--pilot-line);
+      }
+      .ofp-action-dock .btn { min-width:0; min-height:46px; padding:6px 4px; font-size:10px; }
+    }
+
+    @media (max-width:520px) {
+      .top-actions { grid-template-columns:1fr 1.2fr 1fr; }
+      .dispatch-route strong { font-size:22px; }
+      .flight-identity-grid { grid-template-columns:1fr; }
+      .flight-identity-grid > label.date-field,
+      .flight-identity-grid > label.local-time-field,
+      .flight-identity-grid > label.rules-field,
+      .flight-identity-grid > label.operator-field { grid-column:1; }
+      .time-conversion-panel { grid-template-columns:1fr; }
+      .time-conversion-panel > i { min-height:18px; transform:rotate(90deg); }
+      .time-conversion-panel .time-zone-chip { grid-column:auto; }
+      .flight-route-point { grid-template-columns:1fr; }
+      .movement-grid { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
@@ -1619,16 +1911,29 @@
 
             <section class="flight-info-composer" aria-label="Flight information composer">
               <header class="flight-info-head">
-                <div><span>Active flight file</span><strong id="flightInfoTitle">NEW OPERATIONAL FLIGHT PLAN</strong><small>All times local unless marked UTC</small></div>
-                <div class="eobt-summary"><span>Departure time / EOBT</span><strong id="eobtDisplay">DATE AND TIME REQUIRED</strong><small id="eobtTimezone">EUROPE / HELSINKI</small></div>
+                <div><span>Active flight file</span><strong id="flightInfoTitle">NEW OPERATIONAL FLIGHT PLAN</strong><small>Internal private-flight record / reference generated by Flight Operations</small></div>
+                <div class="eobt-summary"><span>Smart departure / EOBT</span><strong id="eobtDisplay">SELECT LOCAL DATE AND TIME</strong><small id="eobtTimezone">LOCAL TIME CONVERTS TO UTC AUTOMATICALLY</small></div>
               </header>
 
               <div class="flight-identity-grid">
-                <label>Operator / airline ICAO<input data-field="operatorIcao" maxlength="3" placeholder="ZZZ" autocomplete="off" /></label>
-                <label>Flight number<input data-field="flightNumber" maxlength="8" placeholder="0000" autocomplete="off" /></label>
-                <label>Flight date<input data-field="dateUtc" type="date" /></label>
-                <label>Departure time / EOBT<input data-field="scheduledOut" placeholder="00:10" inputmode="numeric" /></label>
-                <label>Flight rules<select id="flightRulesSelect" data-field="flightRules"><option value="VFR">VFR</option><option value="IFR">IFR</option></select></label>
+                <label class="reference-field">Internal flight reference<input data-field="flightReference" maxlength="40" readonly aria-describedby="flightReferenceHelp" /><small id="flightReferenceHelp" class="field-help">Generated by Flight Operations and carried into the OFP automatically.</small></label>
+                <label class="date-field">Departure date (local)<input data-field="dateUtc" type="date" /></label>
+                <label class="local-time-field">Departure time (local)<input data-field="scheduledOutLocal" type="time" step="60" aria-describedby="departureTimeHelp" /><small id="departureTimeHelp" class="field-help">Choose once. UTC and all planned movement times are calculated automatically.</small></label>
+                <label class="rules-field">Flight rules<select id="flightRulesSelect" data-field="flightRules"><option value="VFR">VFR</option><option value="IFR">IFR</option></select></label>
+                <label class="operator-field">ICAO operator code <span class="optional-label">optional</span><input data-field="operatorIcao" maxlength="3" placeholder="ZZZ" autocomplete="off" /></label>
+                <div class="time-conversion-panel" aria-live="polite">
+                  <div><span>Local departure</span><strong id="localDepartureDisplay">----L</strong><small id="localDepartureDate">Select date and time</small></div>
+                  <i aria-hidden="true">&#8644;</i>
+                  <div><span>UTC departure</span><strong id="utcDepartureDisplay">----Z</strong><small id="utcDepartureDate">Calculated automatically</small></div>
+                  <div class="time-zone-chip">
+                    <label><span>Airport time zone</span><select id="departureTimeZoneSelect" data-field="departureTimeZone"><option value="Europe/Helsinki">Finland / Europe-Helsinki</option><option value="Europe/Tallinn">Estonia / Europe-Tallinn</option><option value="Europe/Stockholm">Sweden / Europe-Stockholm</option><option value="UTC">UTC / manual verification</option></select></label>
+                    <div id="timeAmbiguityPanel" class="time-ambiguity-panel" hidden>
+                      <label><span>Repeated local hour — choose UTC occurrence</span><select id="departureTimeOccurrenceSelect" data-field="departureTimeOccurrence"><option value="">Select first or second occurrence</option><option value="EARLIER">First occurrence</option><option value="LATER">Second occurrence</option></select></label>
+                      <small id="timeAmbiguityHelp">A daylight-saving clock change makes this local time occur twice.</small>
+                    </div>
+                    <small id="departureTimeZoneDisplay">AUTO FROM DEPARTURE AIRPORT</small>
+                  </div>
+                </div>
                 <div class="aircraft-profile-field">
                   <span class="aircraft-profile-caption">Aircraft profile</span>
                   <select class="aircraft-select aircraft-profile-select" data-field="aircraftRegistration" aria-label="Aircraft registration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select>
@@ -1642,6 +1947,8 @@
 
               <input data-field="aircraftModel" type="hidden" value="PA28-200R" />
               <input data-field="aircraftCode" type="hidden" value="PA28" />
+              <input data-field="scheduledOutUtc" type="hidden" value="" />
+              <input data-field="scheduledOut" type="hidden" value="" />
               <input data-field="routeMode" type="hidden" value="VFR" />
               <input data-field="routeDataSource" type="hidden" value="PILOT / CURRENT AIP" />
 
@@ -1667,17 +1974,17 @@
             </section>
 
             <section class="schedule-workbench" aria-label="Planned flight schedule">
-              <div class="schedule-workbench-head"><div><span>Schedule calculation</span><strong>Elapsed time and planned arrival</strong></div><small>EOBT SET IN FLIGHT INFO</small></div>
+              <div class="schedule-workbench-head"><div><span>Smart schedule</span><strong>Planned movement timeline</strong></div><small>LOCAL + UTC / AUTO</small></div>
               <div class="schedule-primary-grid schedule-primary-grid-compact">
                 <label>Planned EET (MIN)<input data-field="estimatedEnrouteMinutes" type="number" min="0" step="1" /></label>
-                <div class="schedule-estimate"><span>Estimated arrival</span><strong id="estimatedArrivalSummary">CALCULATED AFTER STD / EET</strong></div>
-                <div class="schedule-estimate"><span>Schedule source</span><strong id="scheduleSourceSummary">DATE + EOBT / PILOT VERIFIED</strong></div>
+                <div class="schedule-estimate"><span>Planned touchdown</span><strong id="estimatedArrivalSummary">CALCULATED AFTER EOBT / EET</strong></div>
+                <div class="schedule-estimate"><span>Schedule source</span><strong id="scheduleSourceSummary">LOCAL DATE + TIME / AUTO UTC</strong></div>
               </div>
               <details class="schedule-drawer">
-                <summary>Detailed schedule fields</summary>
+                <summary>View calculated OUT / OFF / ON / IN schedule</summary>
                 <div class="detail-body time-support">
-                  <label>Scheduled OFF<input data-field="scheduledOff" /></label><label>Scheduled ON<input data-field="scheduledOn" /></label><label>Scheduled IN<input data-field="scheduledIn" /></label>
-                  <label>Estimated OUT<input data-field="estimatedOut" placeholder="1420Z / 1720L" /></label><label>Estimated OFF<input data-field="estimatedOff" /></label><label>Estimated ON<input data-field="estimatedOn" /></label><label>Estimated IN<input data-field="estimatedIn" /></label>
+                  <label>Scheduled OFF<input data-field="scheduledOff" readonly /></label><label>Scheduled ON<input data-field="scheduledOn" readonly /></label><label>Scheduled IN<input data-field="scheduledIn" readonly /></label>
+                  <label>Estimated OUT<input data-field="estimatedOut" readonly /></label><label>Estimated OFF<input data-field="estimatedOff" readonly /></label><label>Estimated ON<input data-field="estimatedOn" readonly /></label><label>Estimated IN<input data-field="estimatedIn" readonly /></label>
                 </div>
               </details>
             </section>
@@ -1984,6 +2291,9 @@
     let request = null;
     let plan = null;
     let saved = false;
+    let airportCatalog = [];
+    let smartSchedule = null;
+    let departureTimeNeedsOccurrence = false;
     let routeLegs = [];
     let inspectorMode = 'SUMMARY';
     let previewLoadToken = 0;
@@ -2092,6 +2402,226 @@
     }
 
     function inputFor(name) { return document.querySelector(`[data-field="${name}"]`); }
+
+    function automaticTimeZoneForDeparture(icaoValue) {
+      const icao = String(icaoValue || '').trim().toUpperCase();
+      const airport = airportCatalog.find(item => String(item.icao || '').toUpperCase() === icao);
+      if (airport?.timeZone) return airport.timeZone;
+      if (icao.startsWith('EF')) return 'Europe/Helsinki';
+      if (icao.startsWith('EE')) return 'Europe/Tallinn';
+      if (icao.startsWith('ES')) return 'Europe/Stockholm';
+      return '';
+    }
+
+    function timeZoneForDeparture(icaoValue) {
+      const automatic = automaticTimeZoneForDeparture(icaoValue);
+      return automatic || String(inputFor('departureTimeZone')?.value || plan?.departureTimeZone || 'UTC');
+    }
+
+    function timeZoneParts(instant, timeZone, includeName = false) {
+      const options = {
+        timeZone,
+        year:'numeric',
+        month:'2-digit',
+        day:'2-digit',
+        hour:'2-digit',
+        minute:'2-digit',
+        second:'2-digit',
+        hourCycle:'h23'
+      };
+      if (includeName) options.timeZoneName = 'short';
+      const parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(instant);
+      return Object.fromEntries(parts.map(part => [part.type, part.value]));
+    }
+
+    function localFlightCandidates(dateValue, timeValue, requestedTimeZone) {
+      const dateMatch = String(dateValue || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const timeMatch = String(timeValue || '').match(/^(\d{1,2}):(\d{2})$/);
+      if (!dateMatch || !timeMatch) return null;
+      const hour = Number(timeMatch[1]);
+      const minute = Number(timeMatch[2]);
+      if (hour > 23 || minute > 59) return null;
+      let timeZone = String(requestedTimeZone || 'UTC');
+      try {
+        new Intl.DateTimeFormat('en-GB', { timeZone }).format(new Date());
+      } catch {
+        timeZone = 'UTC';
+      }
+      const localEpoch = Date.UTC(
+        Number(dateMatch[1]),
+        Number(dateMatch[2]) - 1,
+        Number(dateMatch[3]),
+        hour,
+        minute
+      );
+      const offsets = new Set([-36, 0, 36].map(hoursFromTarget => {
+        const instant = new Date(localEpoch + (hoursFromTarget * 60 * 60 * 1000));
+        const parts = timeZoneParts(instant, timeZone);
+        const representedEpoch = Date.UTC(
+          Number(parts.year),
+          Number(parts.month) - 1,
+          Number(parts.day),
+          Number(parts.hour),
+          Number(parts.minute),
+          Number(parts.second)
+        );
+        return representedEpoch - instant.getTime();
+      }));
+      const candidates = [...offsets]
+        .map(offset => new Date(localEpoch - offset))
+        .filter(instant => {
+          const verified = timeZoneParts(instant, timeZone);
+          return `${verified.year}-${verified.month}-${verified.day}` === `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`
+            && verified.hour === String(hour).padStart(2, '0')
+            && verified.minute === String(minute).padStart(2, '0');
+        })
+        .filter((instant, index, values) => values.findIndex(value => value.getTime() === instant.getTime()) === index)
+        .sort((left, right) => left.getTime() - right.getTime());
+      return { candidates, timeZone };
+    }
+
+    function localFlightInstant(dateValue, timeValue, requestedTimeZone, occurrence = '') {
+      const resolved = localFlightCandidates(dateValue, timeValue, requestedTimeZone);
+      if (!resolved?.candidates.length) return null;
+      const ambiguous = resolved.candidates.length > 1;
+      const normalizedOccurrence = ['EARLIER', 'LATER'].includes(String(occurrence || '').toUpperCase())
+        ? String(occurrence).toUpperCase()
+        : '';
+      if (ambiguous && !normalizedOccurrence) return { ...resolved, instant:null, ambiguous:true, occurrence:'' };
+      return {
+        ...resolved,
+        instant:normalizedOccurrence === 'LATER' ? resolved.candidates.at(-1) : resolved.candidates[0],
+        ambiguous,
+        occurrence:ambiguous ? normalizedOccurrence : ''
+      };
+    }
+
+    function dualClock(baseInstant, offsetMinutes, timeZone) {
+      const instant = new Date(baseInstant.getTime() + (Number(offsetMinutes || 0) * 60000));
+      const local = timeZoneParts(instant, timeZone, true);
+      const utcIso = instant.toISOString();
+      const utc = utcIso.slice(11, 16);
+      const localClock = `${local.hour}:${local.minute}`;
+      return {
+        instant,
+        local:localClock,
+        utc,
+        localCompact:localClock.replace(':', ''),
+        utcCompact:utc.replace(':', ''),
+        localDate:`${local.year}-${local.month}-${local.day}`,
+        utcDate:utcIso.slice(0, 10),
+        zoneName:local.timeZoneName || timeZone,
+        value:`${utc.replace(':', '')}Z/${localClock.replace(':', '')}L`
+      };
+    }
+
+    function calculateSmartSchedule(dateValue, timeValue, timeZone, enrouteMinutes, occurrence = '') {
+      const resolved = localFlightInstant(dateValue, timeValue, timeZone, occurrence);
+      if (!resolved?.instant) return null;
+      const eet = Math.max(0, Math.round(num(enrouteMinutes)));
+      return {
+        timeZone:resolved.timeZone,
+        out:dualClock(resolved.instant, 0, resolved.timeZone),
+        off:dualClock(resolved.instant, 10, resolved.timeZone),
+        on:dualClock(resolved.instant, 10 + eet, resolved.timeZone),
+        in:dualClock(resolved.instant, 15 + eet, resolved.timeZone),
+        occurrence:resolved.occurrence
+      };
+    }
+
+    function operationalDateLabel(value) {
+      const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return 'DATE REQUIRED';
+      return `${match[3]}/${match[2]}/${match[1]}`;
+    }
+
+    function synchronizeSmartSchedule() {
+      if (!plan) return null;
+      const reference = String(request?.id || plan.flightReference || 'INTERNAL-FLIGHT').toUpperCase();
+      const referenceInput = inputFor('flightReference');
+      if (referenceInput) referenceInput.value = reference;
+      plan.flightReference = reference;
+      const dateValue = inputFor('dateUtc')?.value || '';
+      const localTime = inputFor('scheduledOutLocal')?.value || '';
+      const departure = inputFor('departure')?.value || plan.departure || '';
+      const automaticTimeZone = automaticTimeZoneForDeparture(departure);
+      const timeZone = timeZoneForDeparture(departure);
+      const timeZoneInput = inputFor('departureTimeZone');
+      timeZoneInput.value = timeZone;
+      timeZoneInput.disabled = Boolean(automaticTimeZone);
+      plan.departureTimeZone = timeZone;
+      const occurrenceInput = inputFor('departureTimeOccurrence');
+      const candidateState = localFlightCandidates(dateValue, localTime, timeZone);
+      const candidateClocks = candidateState?.candidates.map(instant => dualClock(instant, 0, candidateState.timeZone)) || [];
+      const ambiguous = candidateClocks.length > 1;
+      if (!ambiguous) occurrenceInput.value = '';
+      el('timeAmbiguityPanel').hidden = !ambiguous;
+      if (ambiguous) {
+        const first = candidateClocks[0];
+        const second = candidateClocks.at(-1);
+        occurrenceInput.querySelector('[value="EARLIER"]').textContent = `First / ${first.utcCompact}Z / ${first.zoneName}`;
+        occurrenceInput.querySelector('[value="LATER"]').textContent = `Second / ${second.utcCompact}Z / ${second.zoneName}`;
+        el('timeAmbiguityHelp').textContent = occurrenceInput.value
+          ? `${occurrenceInput.value === 'LATER' ? 'Second' : 'First'} occurrence selected. Verify the UTC value before release.`
+          : `This local hour occurs twice: ${first.utcCompact}Z (${first.zoneName}) or ${second.utcCompact}Z (${second.zoneName}).`;
+      }
+      plan.departureTimeOccurrence = occurrenceInput.value;
+      plan.departureTimeAmbiguous = ambiguous;
+      departureTimeNeedsOccurrence = ambiguous && !['EARLIER', 'LATER'].includes(occurrenceInput.value);
+      smartSchedule = calculateSmartSchedule(
+        dateValue,
+        localTime,
+        timeZone,
+        inputFor('estimatedEnrouteMinutes')?.value,
+        occurrenceInput.value
+      );
+      const derivedFields = ['scheduledOut','scheduledOutUtc','scheduledOff','scheduledOn','scheduledIn','estimatedOut','estimatedOff','estimatedOn','estimatedIn'];
+      if (!smartSchedule) {
+        derivedFields.forEach(field => {
+          const input = inputFor(field);
+          if (input) input.value = '';
+          plan[field] = '';
+        });
+        el('localDepartureDisplay').textContent = ambiguous ? `${localTime.replace(':', '')}L` : '----L';
+        el('utcDepartureDisplay').textContent = ambiguous ? 'CHOOSE' : '----Z';
+        el('localDepartureDate').textContent = dateValue ? operationalDateLabel(dateValue) : 'Select date and time';
+        el('utcDepartureDate').textContent = ambiguous
+          ? `${candidateClocks[0].utcCompact}Z OR ${candidateClocks.at(-1).utcCompact}Z / SELECT BELOW`
+          : 'Calculated automatically';
+        el('departureTimeZoneDisplay').textContent = ambiguous
+          ? 'DAYLIGHT-SAVING CHANGE / UTC OCCURRENCE REQUIRED'
+          : automaticTimeZone
+            ? `AUTO FROM ${String(departure).toUpperCase()}`
+            : 'PILOT SELECTED / VERIFY AGAINST AIRPORT DATA';
+        return null;
+      }
+      const scheduleValues = {
+        scheduledOut:smartSchedule.out.value,
+        scheduledOutUtc:smartSchedule.out.utc,
+        scheduledOff:smartSchedule.off.value,
+        scheduledOn:smartSchedule.on.value,
+        scheduledIn:smartSchedule.in.value,
+        estimatedOut:smartSchedule.out.value,
+        estimatedOff:smartSchedule.off.value,
+        estimatedOn:smartSchedule.on.value,
+        estimatedIn:smartSchedule.in.value
+      };
+      Object.entries(scheduleValues).forEach(([field, value]) => {
+        const input = inputFor(field);
+        if (input) input.value = value;
+        plan[field] = value;
+      });
+      plan.scheduledOutLocal = localTime;
+      el('localDepartureDisplay').textContent = `${smartSchedule.out.localCompact}L`;
+      el('utcDepartureDisplay').textContent = `${smartSchedule.out.utcCompact}Z`;
+      el('localDepartureDate').textContent = `${operationalDateLabel(smartSchedule.out.localDate)} / LOCAL`;
+      el('utcDepartureDate').textContent = `${operationalDateLabel(smartSchedule.out.utcDate)} / UTC`;
+      el('departureTimeZoneDisplay').textContent = automaticTimeZone
+        ? `${smartSchedule.out.zoneName}${smartSchedule.occurrence ? ` / ${smartSchedule.occurrence}` : ''} / AUTO FROM ${String(departure).toUpperCase()}`
+        : `${smartSchedule.out.zoneName} / PILOT SELECTED / VERIFY`;
+      return smartSchedule;
+    }
+
     let pendingFlightPlanImport = null;
 
     function importLineValue(source, labels) {
@@ -2400,10 +2930,20 @@
         if (input.type === 'checkbox') input.checked = value === true;
         else input.value = value ?? '';
       });
+      inputFor('flightReference').value = String(request?.id || plan.flightReference || '').toUpperCase();
+      if (!inputFor('scheduledOutLocal').value) {
+        const localMatch = String(plan.scheduledOut || '').match(/(\d{2})(\d{2})L/);
+        inputFor('scheduledOutLocal').value = localMatch
+          ? `${localMatch[1]}:${localMatch[2]}`
+          : String(request?.requestTime || '').slice(0, 5);
+      }
+      synchronizeSmartSchedule();
       loadStructuredRoute();
       el('refStatus').textContent = request.id;
       el('routeStatus').textContent = `${plan.departure || '----'}-${plan.destination || '----'}`;
-      el('scheduleStatus').textContent = `${plan.dateUtc || request.requestDate || 'DATE'} ${request.requestTime || 'TIME'}L`;
+      el('scheduleStatus').textContent = smartSchedule
+        ? `${operationalDateLabel(smartSchedule.out.localDate)} ${smartSchedule.out.localCompact}L / ${smartSchedule.out.utcCompact}Z`
+        : departureTimeNeedsOccurrence ? 'DST CHOICE REQUIRED' : 'DATE / TIME REQUIRED';
       el('crewStatus').textContent = plan.commanderName || 'UNASSIGNED';
       el('profileVersion').textContent = `${plan.weightBalanceProfile?.profileVersion || 'LOCKED AIRCRAFT PROFILE'} / SERVER PROTECTED`;
       renderFlightSource();
@@ -2436,6 +2976,7 @@
 
     function readPlan() {
       fields().forEach(input => { plan[input.dataset.field] = input.type === 'checkbox' ? input.checked : input.value; });
+      synchronizeSmartSchedule();
       plan.routeLegs = routeLegs.map(leg => ({ ...leg }));
       return plan;
     }
@@ -2500,6 +3041,11 @@
       const gearUpEnvelope = cgEnvelopeStatus(profile, tow, gearUpCg);
       const landingEnvelope = cgEnvelopeStatus(profile, landing, landingCg);
       const warnings = [];
+      if (!String(plan.flightReference || '').trim()) warnings.push('Internal flight reference is required.');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(plan.dateUtc || ''))) warnings.push('Select the local departure date.');
+      if (departureTimeNeedsOccurrence) warnings.push('This local departure hour occurs twice. Select the first or second UTC occurrence.');
+      else if (!smartSchedule || !/^\d{2}:\d{2}$/.test(String(plan.scheduledOutLocal || ''))) warnings.push('Select a valid local departure time so UTC can be calculated.');
+      if (!(num(plan.estimatedEnrouteMinutes) > 0)) warnings.push('Enter the planned elapsed flight time.');
       if (!crewWeightLb) warnings.push('Enter actual crew weights.');
       if (baggageWeightLb > profile.stations.baggage.weightLimitLbs) warnings.push('Baggage exceeds the locked 200 LB station limit.');
       if (fuelWeightLb > profile.stations.fuel.weightLimitLbs) warnings.push('Fuel exceeds the locked 288 LB / 48 USG limit.');
@@ -2620,11 +3166,10 @@
       const airportsReady = /^[A-Z0-9]{4}$/.test(String(plan.departure || ''))
         && /^[A-Z0-9]{4}$/.test(String(plan.destination || ''));
       const setupReady = airportsReady
-        && /^[A-Z0-9]{3}$/.test(String(plan.operatorIcao || ''))
-        && Boolean(String(plan.flightNumber || '').trim())
+        && Boolean(String(plan.flightReference || '').trim())
         && Boolean(String(plan.dateUtc || '').trim())
         && Boolean(String(plan.aircraftRegistration || '').trim())
-        && Boolean(String(plan.scheduledOut || '').trim())
+        && Boolean(smartSchedule)
         && num(plan.estimatedEnrouteMinutes) > 0;
       const routeReady = airportsReady
         && Boolean(String(plan.route || '').trim())
@@ -2651,7 +3196,7 @@
       setWorkspaceState('BRIEF', briefReady ? 'Brief complete' : performanceReady ? 'Review open' : 'Perf / review open', briefReady);
       setWorkspaceState('RELEASE', released ? 'Released' : 'Pending', released);
       const gates = [
-        { ready:setupReady, workspace:'SETUP', title:'Complete flight information', detail:'Confirm the operator code, flight number, aircraft, airports, EOBT, and planned flight time.' },
+        { ready:setupReady, workspace:'SETUP', title:'Complete flight information', detail:'Confirm the internal reference, aircraft, airports, local departure time, automatic UTC conversion, and planned flight time.' },
         { ready:routeReady, workspace:'ROUTE', title:'Verify the operational route', detail:'Confirm the route sequence, runways, procedures, and alternate.' },
         { ready:loadReady, workspace:'LOAD', title:'Resolve fuel and loading', detail:'Verify crew weights, fuel, payload, structural margins, and CG.' },
         { ready:reviewReady, workspace:'BRIEF', title:'Complete the flight briefing', detail:'Acknowledge current weather, NOTAM, and airspace review.' },
@@ -2755,24 +3300,31 @@
       const destination = String(plan.destination || '----').toUpperCase();
       const rules = String(plan.flightRules || plan.routeMode || 'VFR').toUpperCase();
       const aircraft = String(plan.aircraftCode || 'PA28').toUpperCase();
-      const operator = String(plan.operatorIcao || 'ZZZ').toUpperCase();
-      const flightNumber = String(plan.flightNumber || '0000').toUpperCase();
-      const schedule = String(plan.scheduledOut || request?.requestTime || '--:--').toUpperCase();
-      const eet = Math.max(0, Math.round(num(plan.estimatedEnrouteMinutes)));
-      const startMinutes = scheduleMinutes(schedule);
-      const arrival = startMinutes === null || !eet ? 'CALCULATED AFTER STD / EET' : `${formatClockMinutes(startMinutes + eet)} / PLANNED IN-FLIGHT ARRIVAL`;
+      const flightReference = String(plan.flightReference || request?.id || 'FLIGHT FILE').toUpperCase();
+      const departureDisplay = smartSchedule
+        ? `${smartSchedule.out.localCompact}L / ${smartSchedule.out.utcCompact}Z`
+        : departureTimeNeedsOccurrence ? 'CHOOSE FIRST OR SECOND UTC' : 'SELECT LOCAL DATE AND TIME';
+      const arrival = smartSchedule && num(plan.estimatedEnrouteMinutes) > 0
+        ? `${smartSchedule.on.localCompact}L / ${smartSchedule.on.utcCompact}Z${smartSchedule.on.localDate !== smartSchedule.out.localDate ? ' / NEXT DAY' : ''}`
+        : 'CALCULATED AFTER EOBT / EET';
       el('overviewDeparture').textContent = departure;
       el('overviewDestination').textContent = destination;
       el('overviewRules').textContent = rules;
       el('overviewAircraft').textContent = aircraft;
-      el('flightInfoTitle').textContent = `${operator} ${flightNumber} / ${departure} TO ${destination}`;
-      el('eobtDisplay').textContent = formatEobt(plan.dateUtc, plan.scheduledOut);
-      el('eobtTimezone').textContent = /Z/.test(String(plan.scheduledOut || '').toUpperCase()) ? 'UTC / PILOT VERIFIED' : 'LOCAL / EUROPE HELSINKI';
-      el('scheduleSourceSummary').textContent = formatEobt(plan.dateUtc, plan.scheduledOut);
-      el('briefReference').textContent = request?.id || 'FLIGHT FILE';
+      el('flightInfoTitle').textContent = `${flightReference} / ${departure} TO ${destination}`;
+      el('eobtDisplay').textContent = departureDisplay;
+      el('eobtTimezone').textContent = smartSchedule
+        ? `${smartSchedule.out.zoneName} / ${smartSchedule.timeZone} / AUTO UTC`
+        : departureTimeNeedsOccurrence ? 'REPEATED LOCAL HOUR / PILOT CHOICE REQUIRED' : 'LOCAL TIME CONVERTS TO UTC AUTOMATICALLY';
+      el('scheduleSourceSummary').textContent = smartSchedule
+        ? `${operationalDateLabel(smartSchedule.out.localDate)} / ${smartSchedule.out.localCompact}L / ${smartSchedule.out.utcCompact}Z`
+        : departureTimeNeedsOccurrence ? 'DST CHANGE / SELECT UTC OCCURRENCE' : 'LOCAL DATE + TIME / AUTO UTC';
+      el('briefReference').textContent = flightReference;
       el('estimatedArrivalSummary').textContent = arrival;
       el('routeStatus').textContent = `${departure}-${destination}`;
-      el('scheduleStatus').textContent = `${plan.dateUtc || request?.requestDate || 'DATE'} ${schedule}`;
+      el('scheduleStatus').textContent = smartSchedule
+        ? `${operationalDateLabel(smartSchedule.out.localDate)} ${smartSchedule.out.localCompact}L / ${smartSchedule.out.utcCompact}Z`
+        : departureTimeNeedsOccurrence ? 'DST CHOICE REQUIRED' : 'DATE / TIME REQUIRED';
       el('documentStatus').textContent = released ? 'RELEASE ACKNOWLEDGED' : saved ? 'DRAFT SAVED' : 'UNSAVED DRAFT';
       el('documentStatus').style.color = released ? 'var(--green)' : 'var(--amber)';
       el('crewStatus').textContent = inputFor('releaseName').value || inputFor('commanderName')?.value || plan.commanderName || 'UNASSIGNED';
@@ -2819,9 +3371,16 @@
 
     async function load() {
       setSaveState('loading', 'Loading flight file...');
-      const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/operational-flight-plan`, { cache:'no-store' });
+      const airportPromise = fetch('/api/booking-airports', { cache:'no-store' })
+        .then(response => response.ok ? response.json() : { airports:[] })
+        .catch(() => ({ airports:[] }));
+      const [res, airportData] = await Promise.all([
+        fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/operational-flight-plan`, { cache:'no-store' }),
+        airportPromise
+      ]);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Unable to load OFP');
+      airportCatalog = Array.isArray(airportData?.airports) ? airportData.airports : [];
       request = data.request;
       plan = data.operationalFlightPlan;
       saved = data.saved;
@@ -2865,7 +3424,10 @@
     function handleFieldInput(input) {
       if (['departure', 'destination', 'alternate'].includes(input.dataset.field)) input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (input.dataset.field === 'operatorIcao') input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
-      if (input.dataset.field === 'flightNumber') input.value = input.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 8);
+      if (['departure', 'dateUtc', 'scheduledOutLocal', 'departureTimeZone'].includes(input.dataset.field)) {
+        inputFor('departureTimeOccurrence').value = '';
+        plan.departureTimeOccurrence = '';
+      }
       if (input.dataset.field === 'flightRules') {
         inputFor('routeMode').value = input.value === 'IFR' ? 'IFR' : 'VFR';
         plan.routeMode = inputFor('routeMode').value;
@@ -2878,7 +3440,7 @@
         'departure', 'destination', 'route', 'routeMode', 'flightRules',
         'departureProcedure', 'arrivalProcedure', 'approachProcedure',
         'cruiseFlightLevel', 'cruiseSpeedKt', 'fuelFlowGph',
-        'aircraftRegistration', 'dateUtc', 'scheduledOut'
+        'aircraftRegistration', 'dateUtc', 'scheduledOutLocal', 'estimatedEnrouteMinutes'
       ].includes(input.dataset.field)) renderRouteComposer();
       const releaseCleared = input.dataset.field !== 'releaseAccepted' && inputFor('releaseAccepted').checked;
       if (releaseCleared) {
