@@ -1,0 +1,1674 @@
+/*
+ * NGA Pilot EFB — reference-faithful Performance and Aircraft workspaces.
+ *
+ * This layer intentionally loads after pilot-efb.css. It is scoped to the two
+ * pilot tool panes so the shared shell, dashboard, navigation and OFP retain
+ * their own layout and behaviour. All operational states and controls continue
+ * to use the existing markup IDs and JavaScript wiring.
+ */
+
+#performanceOpsPane,
+#aircraftOpsPane {
+  --tool-glass: color-mix(in srgb, var(--efb-glass-solid) 82%, transparent);
+  --tool-glass-soft: color-mix(in srgb, var(--efb-glass-solid) 66%, transparent);
+  --tool-line: color-mix(in srgb, var(--efb-text) 7%, transparent);
+  --tool-line-strong: color-mix(in srgb, var(--efb-text) 13%, transparent);
+  --tool-shadow: 0 18px 42px color-mix(in srgb, var(--efb-text) 9%, transparent);
+  --tool-shadow-small: 0 8px 24px color-mix(in srgb, var(--efb-text) 7%, transparent);
+  --tool-scene:
+    linear-gradient(128deg,
+      color-mix(in srgb, var(--efb-glass-solid) 92%, var(--efb-canvas)) 0%,
+      color-mix(in srgb, var(--efb-canvas) 92%, var(--efb-cyan-soft)) 62%,
+      color-mix(in srgb, var(--efb-canvas-deep) 82%, var(--efb-glass-solid)) 100%);
+  --tool-radius-xl: 24px;
+  --tool-radius-lg: 18px;
+  --tool-radius: 13px;
+  --tool-control-height: 44px;
+  min-width: 0;
+}
+
+#performanceOpsPane *,
+#aircraftOpsPane * { min-width: 0; }
+
+#performanceOpsPane button,
+#performanceOpsPane input,
+#performanceOpsPane select,
+#performanceOpsPane textarea,
+#performanceOpsPane summary,
+#aircraftOpsPane button,
+#aircraftOpsPane input,
+#aircraftOpsPane select,
+#aircraftOpsPane textarea,
+#aircraftOpsPane summary { font-family: inherit; }
+
+/* -------------------------------------------------------------------------
+   Performance: one aircraft canvas, one active calculation surface.
+   ------------------------------------------------------------------------- */
+
+#performanceOpsPane { padding: 0; }
+
+#performanceOpsPane .performance-console {
+  display: grid;
+  gap: 12px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-reference-scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--tool-line);
+  border-radius: var(--tool-radius-xl);
+  background: var(--tool-scene);
+  box-shadow: var(--tool-shadow);
+}
+
+#performanceOpsPane .performance-reference-scene::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 72% 16%, color-mix(in srgb, var(--efb-glass-solid) 58%, transparent), transparent 24rem),
+    linear-gradient(180deg, transparent 54%, color-mix(in srgb, var(--efb-glass-solid) 18%, transparent));
+  pointer-events: none;
+}
+
+#performanceOpsPane .performance-aircraft-hero {
+  display: grid;
+  grid-template-columns: minmax(235px, .68fr) minmax(390px, 1.35fr) minmax(300px, .92fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 236px;
+  padding: 22px 24px 12px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-aircraft-identity {
+  z-index: 3;
+  align-self: center;
+}
+
+#performanceOpsPane .performance-aircraft-identity > span {
+  color: var(--efb-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-aircraft-title {
+  gap: 9px;
+  margin: 6px 0 7px;
+}
+
+#performanceOpsPane .performance-aircraft-title h2 {
+  color: var(--efb-text);
+  font-size: clamp(33px, 3vw, 44px);
+  font-weight: 650;
+  line-height: .98;
+  letter-spacing: -.035em;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-aircraft-title em {
+  border-color: var(--tool-line);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: var(--tool-glass);
+  color: var(--efb-secondary);
+  box-shadow: var(--tool-shadow-small);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#performanceOpsPane .performance-aircraft-identity > strong {
+  display: block;
+  max-width: 280px;
+  color: var(--efb-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+#performanceOpsPane .performance-profile-state {
+  width: fit-content;
+  min-height: 30px;
+  margin-top: 13px;
+  border: 1px solid color-mix(in srgb, var(--efb-safe) 22%, var(--tool-line));
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--efb-safe-soft) 72%, var(--tool-glass));
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-profile-state i,
+#performanceOpsPane .performance-context .performance-source-chip i {
+  width: 7px;
+  height: 7px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--efb-safe) 16%, transparent);
+}
+
+#performanceOpsPane .performance-profile-state span {
+  color: var(--efb-safe);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#performanceOpsPane .performance-aircraft-visual {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  margin: -8px -8% -4px -12%;
+  pointer-events: none;
+}
+
+#performanceOpsPane .performance-aircraft-visual::after {
+  right: 5%;
+  bottom: 19%;
+  left: 5%;
+  height: 14px;
+  background: color-mix(in srgb, var(--efb-text) 13%, transparent);
+  filter: blur(12px);
+}
+
+#performanceOpsPane .performance-aircraft-visual > img {
+  width: min(124%, 700px);
+  max-width: none;
+  height: 228px;
+  max-height: none;
+  object-fit: contain;
+  opacity: .68;
+  filter: saturate(.72) contrast(.92) brightness(1.03);
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-aircraft-visual > img {
+  opacity: .54;
+  filter: saturate(.62) contrast(.9) brightness(.76);
+}
+
+#performanceOpsPane .performance-limit-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(82px, 1fr));
+  align-self: end;
+  gap: 8px;
+  margin: 0;
+  padding-bottom: 10px;
+}
+
+#performanceOpsPane .performance-limit-cards > div {
+  min-height: 74px;
+  border: 1px solid var(--tool-line);
+  border-radius: var(--tool-radius);
+  padding: 11px 12px;
+  background: var(--tool-glass);
+  box-shadow: var(--tool-shadow-small);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+#performanceOpsPane .performance-limit-cards span {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  line-height: 1.25;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-limit-cards strong {
+  margin-top: 8px;
+  color: var(--efb-text);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .performance-limit-cards strong small {
+  color: var(--efb-tertiary);
+  font-size: .65em;
+  font-weight: 600;
+}
+
+#performanceOpsPane .performance-flight-setup {
+  position: relative;
+  z-index: 3;
+  margin: 0 12px 10px;
+  overflow: hidden;
+  border: 1px solid var(--tool-line);
+  border-radius: var(--tool-radius-lg);
+  background: var(--tool-glass-soft);
+  box-shadow: var(--tool-shadow-small);
+  backdrop-filter: blur(22px) saturate(1.08);
+  -webkit-backdrop-filter: blur(22px) saturate(1.08);
+}
+
+#performanceOpsPane .performance-context {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  min-height: 76px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--tool-line);
+  background: transparent;
+}
+
+#performanceOpsPane .performance-context > div:first-child > span {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+#performanceOpsPane .performance-context > div:first-child > strong {
+  margin-top: 3px;
+  color: var(--efb-text);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .performance-context > div:first-child > small {
+  max-width: 720px;
+  margin-top: 4px;
+  color: var(--efb-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+#performanceOpsPane .performance-context-actions {
+  align-items: center;
+  gap: 8px;
+}
+
+#performanceOpsPane .performance-context .performance-source-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--efb-secondary);
+  font-size: 11px;
+}
+
+#performanceOpsPane .performance-run {
+  min-width: 156px;
+  min-height: var(--tool-control-height);
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+#performanceOpsPane .performance-readiness-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin: 10px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-readiness-step {
+  grid-template-columns: 25px minmax(0, 1fr);
+  gap: 8px;
+  min-height: 50px;
+  border: 1px solid var(--tool-line);
+  border-radius: 12px;
+  padding: 8px 9px;
+  background: var(--tool-glass);
+}
+
+#performanceOpsPane .performance-readiness-step > i {
+  width: 25px;
+  height: 25px;
+  border-color: var(--tool-line-strong);
+  font-size: 10px;
+}
+
+#performanceOpsPane .performance-readiness-step strong {
+  color: var(--efb-text);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .performance-readiness-step small {
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--efb-tertiary);
+  font-size: 9px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#performanceOpsPane .performance-readiness-step[data-state="complete"] {
+  border-color: color-mix(in srgb, var(--efb-safe) 22%, var(--tool-line));
+  background: color-mix(in srgb, var(--efb-safe-soft) 68%, var(--tool-glass));
+}
+
+#performanceOpsPane .performance-readiness-step[data-state="active"] {
+  border-color: color-mix(in srgb, var(--efb-blue) 22%, var(--tool-line));
+  background: color-mix(in srgb, var(--efb-blue-soft) 64%, var(--tool-glass));
+}
+
+#performanceOpsPane .performance-readiness-step[data-state="caution"] {
+  border-color: color-mix(in srgb, var(--efb-caution) 24%, var(--tool-line));
+  background: color-mix(in srgb, var(--efb-caution-soft) 68%, var(--tool-glass));
+}
+
+#performanceOpsPane .performance-leg-setup-grid {
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 0 10px 10px;
+}
+
+#performanceOpsPane .performance-leg-setup {
+  border-color: var(--tool-line);
+  border-radius: 15px;
+  padding: 11px;
+  background: var(--tool-glass);
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-leg-title {
+  min-height: 37px;
+  padding-right: 104px;
+}
+
+#performanceOpsPane .performance-leg-title span {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+}
+
+#performanceOpsPane .performance-leg-title strong {
+  margin-top: 2px;
+  color: var(--efb-text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .performance-leg-title em {
+  border-color: var(--tool-line);
+  padding: 5px 8px;
+  background: var(--tool-glass-soft);
+  color: var(--efb-tertiary);
+  font-size: 9px;
+}
+
+#performanceOpsPane .performance-setup-fields {
+  grid-template-columns: minmax(104px, .55fr) minmax(138px, 1fr);
+  gap: 7px;
+  margin-top: 7px;
+}
+
+#performanceOpsPane .performance-setup-fields label {
+  gap: 4px;
+  color: var(--efb-secondary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+#performanceOpsPane .performance-setup-fields :is(input, select),
+#performanceOpsPane .performance-value :is(input, select) {
+  min-height: var(--tool-control-height);
+  border: 1px solid var(--tool-line-strong);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--efb-field) 84%, var(--efb-glass-solid));
+  color: var(--efb-text);
+  padding: 8px 10px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--efb-glass-solid) 72%, transparent);
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  text-transform: none;
+}
+
+#performanceOpsPane .runway-guidance {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+#performanceOpsPane .runway-smart-hint {
+  min-height: 40px;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--efb-blue) 17%, var(--tool-line));
+  border-radius: 10px;
+  padding: 7px 9px;
+  background: color-mix(in srgb, var(--efb-blue-soft) 56%, var(--tool-glass-soft));
+  color: var(--efb-secondary);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+#performanceOpsPane .runway-guidance button {
+  min-height: 40px;
+  border-color: var(--tool-line-strong);
+  border-radius: 10px;
+  background: var(--tool-glass);
+  color: var(--efb-text);
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .performance-route-arrow {
+  color: var(--efb-secondary);
+  font-size: 0;
+}
+
+#performanceOpsPane .performance-route-arrow::before {
+  content: "\2192";
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--tool-line);
+  border-radius: 50%;
+  background: var(--tool-glass);
+  color: var(--efb-secondary);
+  font-size: 15px;
+}
+
+#performanceOpsPane .performance-source-drawer {
+  margin: 0 10px 10px;
+  overflow: hidden;
+  border: 1px solid var(--tool-line);
+  border-radius: 11px;
+  background: var(--tool-glass-soft);
+}
+
+#performanceOpsPane .performance-source-drawer > summary {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px;
+  color: var(--efb-secondary);
+  cursor: pointer;
+  list-style: none;
+}
+
+#performanceOpsPane .performance-source-drawer > summary::-webkit-details-marker { display: none; }
+
+#performanceOpsPane .performance-source-drawer > summary span {
+  color: var(--efb-text);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .performance-source-drawer > summary strong {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+#performanceOpsPane .performance-source-drawer > summary::after {
+  content: "+";
+  color: var(--efb-tertiary);
+  font-size: 17px;
+  line-height: 1;
+}
+
+#performanceOpsPane .performance-source-drawer[open] > summary::after { content: "\2212"; }
+
+#performanceOpsPane .performance-source-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0 10px 10px;
+}
+
+#performanceOpsPane .performance-source-row span {
+  min-height: 27px;
+  border-color: var(--tool-line);
+  padding: 4px 8px;
+  background: var(--tool-glass);
+  color: var(--efb-secondary);
+  font-size: 10px;
+}
+
+#performanceOpsPane .performance-smart-status {
+  min-height: 42px;
+  margin: 0 12px 12px;
+  border: 1px solid color-mix(in srgb, var(--efb-blue) 18%, var(--tool-line));
+  border-left-width: 1px;
+  border-radius: 12px;
+  padding: 9px 12px 9px 35px !important;
+  background: color-mix(in srgb, var(--efb-blue-soft) 52%, var(--tool-glass));
+  color: var(--efb-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+#performanceOpsPane .performance-smart-status::before {
+  left: 13px;
+  width: 8px;
+  height: 8px;
+}
+
+/* Phase selection and the single active result. */
+#performanceOpsPane .performance-stage-tabs {
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  width: min(100%, 470px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0 auto;
+  padding: 5px;
+  border: 1px solid var(--tool-line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--efb-glass-solid) 78%, transparent);
+  box-shadow: var(--tool-shadow-small);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+#performanceOpsPane .performance-stage-tabs button {
+  min-height: 55px;
+  border: 0;
+  border-radius: 12px;
+  padding: 7px 11px;
+  background: transparent;
+  color: var(--efb-secondary);
+  text-align: left;
+}
+
+#performanceOpsPane .performance-stage-tabs button::after { display: none; }
+
+#performanceOpsPane .performance-stage-tabs button.active {
+  border: 0;
+  background: var(--efb-active);
+  color: var(--efb-active-text);
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--efb-active) 16%, transparent);
+}
+
+#performanceOpsPane .performance-stage-tabs span,
+#performanceOpsPane .performance-stage-tabs small {
+  color: currentColor;
+  font-size: 9px;
+  letter-spacing: 0;
+  opacity: .72;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-stage-tabs strong {
+  margin: 2px 0;
+  color: currentColor;
+  font-size: 13px;
+  font-weight: 650;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-results { padding: 0; }
+
+#performanceOpsPane .performance-block {
+  border: 1px solid var(--tool-line);
+  border-radius: var(--tool-radius-xl);
+  background: var(--tool-glass-soft);
+  box-shadow: var(--tool-shadow);
+}
+
+#performanceOpsPane .performance-block:not(.active) { display: none !important; }
+#performanceOpsPane .performance-block.active { display: block; }
+
+#performanceOpsPane .performance-block-header {
+  min-height: 58px;
+  padding: 10px 14px;
+  border-bottom-color: var(--tool-line);
+  background: var(--tool-glass);
+}
+
+#performanceOpsPane .performance-block-header small {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+}
+
+#performanceOpsPane .performance-block-header h3 {
+  margin-top: 2px;
+  color: var(--efb-text);
+  font-size: 17px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .perf-status-badge {
+  border-color: color-mix(in srgb, var(--efb-blue) 20%, var(--tool-line));
+  background: color-mix(in srgb, var(--efb-blue-soft) 64%, var(--tool-glass));
+  color: var(--efb-blue-strong);
+  font-size: 10px;
+}
+
+#performanceOpsPane .performance-result-header {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.35fr) repeat(5, minmax(105px, .72fr));
+  gap: 7px;
+  padding: 9px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--tool-line);
+  background: color-mix(in srgb, var(--efb-canvas) 66%, transparent);
+  scrollbar-width: thin;
+}
+
+#performanceOpsPane .performance-result-status,
+#performanceOpsPane .performance-result-metric {
+  min-height: 74px;
+  border: 1px solid var(--tool-line);
+  border-radius: 12px;
+  padding: 10px 11px;
+  background: var(--tool-glass);
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-result-status {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+}
+
+#performanceOpsPane .performance-result-status span,
+#performanceOpsPane .performance-result-metric span {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+}
+
+#performanceOpsPane .performance-result-status strong,
+#performanceOpsPane .performance-result-metric strong {
+  margin-top: 5px;
+  color: var(--efb-text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .performance-result-status small {
+  margin-top: 3px;
+  color: var(--efb-secondary);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+#performanceOpsPane .performance-workspace-grid {
+  grid-template-columns: minmax(330px, .68fr) minmax(0, 1.32fr);
+  align-items: start;
+  gap: 10px;
+  padding: 10px;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-control-column,
+#performanceOpsPane .performance-output-column {
+  overflow: hidden;
+  border: 1px solid var(--tool-line);
+  border-radius: var(--tool-radius-lg);
+  background: var(--tool-glass);
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-control-column {
+  position: static;
+  border-right: 1px solid var(--tool-line);
+}
+
+#performanceOpsPane .performance-output-column {
+  position: static;
+}
+
+#performanceOpsPane .performance-section-title {
+  min-height: 36px;
+  border-color: var(--tool-line);
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--efb-canvas) 54%, var(--tool-glass));
+  color: var(--efb-secondary);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+#performanceOpsPane .performance-advanced {
+  border-bottom-color: var(--tool-line);
+  background: transparent;
+}
+
+#performanceOpsPane .performance-advanced > summary {
+  min-height: 50px;
+  padding: 8px 10px;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-advanced > summary strong { font-size: 12px; }
+#performanceOpsPane .performance-advanced > summary small { font-size: 10px; }
+#performanceOpsPane .performance-advanced > summary em { font-size: 10px; }
+
+#performanceOpsPane .performance-rows,
+#performanceOpsPane .performance-control-column .performance-rows {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding: 8px;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-input-grid {
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+}
+
+#performanceOpsPane .performance-output-column > .performance-rows {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#performanceOpsPane .performance-item,
+#performanceOpsPane .performance-item:nth-child(2n),
+#performanceOpsPane .performance-control-column .performance-item:nth-child(odd) {
+  min-height: 64px;
+  border: 1px solid var(--tool-line);
+  border-radius: 11px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--efb-field) 62%, var(--tool-glass));
+}
+
+#performanceOpsPane .performance-label {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+}
+
+#performanceOpsPane .performance-value {
+  margin-top: 4px;
+  color: var(--efb-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+#performanceOpsPane .performance-value.live { color: var(--efb-blue-strong); }
+
+#performanceOpsPane .performance-inline {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px;
+}
+
+#performanceOpsPane .performance-inline button {
+  min-width: 42px;
+  min-height: 38px;
+  border-color: var(--tool-line-strong);
+  border-radius: 9px;
+  background: var(--tool-glass);
+  color: var(--efb-secondary);
+  font-size: 9px;
+}
+
+#performanceOpsPane .performance-derived {
+  border-top-color: var(--tool-line);
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--efb-blue-soft) 46%, transparent);
+  color: var(--efb-secondary);
+  font-size: 9px;
+  line-height: 1.4;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-derived strong { color: var(--efb-blue-strong); }
+
+#performanceOpsPane .performance-actions {
+  gap: 7px;
+  padding: 8px;
+  border-top: 1px solid var(--tool-line);
+  background: var(--tool-glass);
+}
+
+#performanceOpsPane .performance-actions button {
+  min-height: var(--tool-control-height);
+  border-color: var(--tool-line-strong);
+  border-radius: 11px;
+  background: var(--tool-glass-soft);
+  color: var(--efb-text);
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-actions button.primary {
+  border-color: var(--efb-active);
+  background: var(--efb-active);
+  color: var(--efb-active-text);
+}
+
+#performanceOpsPane .performance-visual-wrap {
+  padding: 9px;
+  background: color-mix(in srgb, var(--efb-canvas) 58%, transparent);
+}
+
+#performanceOpsPane .performance-visual-title {
+  margin-bottom: 7px;
+  color: var(--efb-tertiary);
+  font-size: 9px;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+#performanceOpsPane .runway-visual {
+  height: clamp(360px, 41vw, 545px);
+  min-height: 360px;
+  border-color: var(--tool-line-strong);
+  border-radius: 13px;
+}
+
+#performanceOpsPane .runway-legend {
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  gap: 6px;
+  overflow-x: auto;
+}
+
+#performanceOpsPane .runway-legend div {
+  border: 1px solid var(--tool-line);
+  border-top-width: 2px;
+  border-radius: 9px;
+  padding: 7px 8px;
+  background: var(--tool-glass);
+}
+
+#performanceOpsPane .runway-legend span { color: var(--efb-tertiary); font-size: 9px; }
+#performanceOpsPane .runway-legend strong { color: var(--efb-text); font-size: 10px; }
+
+#performanceOpsPane .performance-messages {
+  min-height: 40px;
+  margin: 8px;
+  border: 1px solid color-mix(in srgb, var(--efb-caution) 24%, var(--tool-line));
+  border-left: 3px solid var(--efb-caution);
+  border-radius: 10px;
+  padding: 8px 9px;
+  background: color-mix(in srgb, var(--efb-caution-soft) 72%, var(--tool-glass));
+  color: var(--efb-caution);
+  font-size: 9px;
+  line-height: 1.4;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-note {
+  padding: 0 10px 10px;
+  color: var(--efb-tertiary);
+  font-size: 9px;
+  line-height: 1.45;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-document-preview {
+  margin: 0 8px 8px;
+  border-color: var(--tool-line);
+  border-radius: 10px;
+  background: var(--tool-glass-soft);
+}
+
+#performanceOpsPane .performance-document-preview summary {
+  color: var(--efb-secondary);
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-acars-block {
+  border-top-color: var(--tool-line);
+  background: var(--efb-field);
+  color: var(--efb-text);
+}
+
+#performanceOpsPane .performance-footer-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 210px));
+  justify-content: end;
+  gap: 8px;
+  padding: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Aircraft: one health scene, visible checkpoint, expandable record sheet.
+   ------------------------------------------------------------------------- */
+
+#aircraftOpsPane { padding: 0; }
+
+#aircraftOpsPane .aircraft-console {
+  display: grid;
+  gap: 12px;
+  background: transparent;
+}
+
+#aircraftOpsPane .aircraft-reference-scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--tool-line);
+  border-radius: var(--tool-radius-xl);
+  background: var(--tool-scene);
+  box-shadow: var(--tool-shadow);
+}
+
+#aircraftOpsPane .aircraft-reference-scene::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 66% 18%, color-mix(in srgb, var(--efb-glass-solid) 62%, transparent), transparent 25rem),
+    linear-gradient(180deg, transparent 56%, color-mix(in srgb, var(--efb-glass-solid) 20%, transparent));
+  pointer-events: none;
+}
+
+#aircraftOpsPane .aircraft-fleet-hero {
+  position: relative;
+  display: block;
+  grid-template-columns: none;
+  min-height: 350px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#aircraftOpsPane .aircraft-hero-copy {
+  position: relative;
+  z-index: 4;
+  align-self: start;
+  width: 31%;
+  max-width: 320px;
+  padding: 26px 0 0 26px;
+}
+
+#aircraftOpsPane .aircraft-hero-copy > span {
+  color: var(--efb-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#aircraftOpsPane .aircraft-hero-copy h2 {
+  margin: 7px 0 5px;
+  color: var(--efb-text);
+  font-size: clamp(36px, 3.8vw, 52px);
+  font-weight: 650;
+  line-height: .96;
+  letter-spacing: -.045em;
+  white-space: nowrap;
+}
+
+#aircraftOpsPane .aircraft-hero-copy p {
+  margin: 0;
+  color: var(--efb-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+#aircraftOpsPane .aircraft-serviceability-pill {
+  min-height: 31px;
+  margin-top: 14px;
+  border-color: var(--tool-line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--tool-glass);
+  box-shadow: var(--tool-shadow-small);
+}
+
+#aircraftOpsPane .aircraft-serviceability-pill strong {
+  color: var(--efb-text);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+#aircraftOpsPane .aircraft-hero-action {
+  min-height: 40px;
+  margin-top: 10px;
+  border-color: var(--tool-line-strong);
+  border-radius: 11px;
+  background: var(--tool-glass);
+  color: var(--efb-text);
+  padding: 7px 11px;
+  box-shadow: var(--tool-shadow-small);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+#aircraftOpsPane .aircraft-hero-visual {
+  position: absolute;
+  z-index: 1;
+  inset: -8px -2% 82px 22%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  pointer-events: none;
+}
+
+#aircraftOpsPane .aircraft-hero-visual::after {
+  right: 8%;
+  bottom: 24%;
+  left: 8%;
+  height: 15px;
+  background: color-mix(in srgb, var(--efb-text) 13%, transparent);
+  filter: blur(13px);
+}
+
+#aircraftOpsPane .aircraft-hero-visual > img {
+  width: min(100%, 860px);
+  height: 280px;
+  max-height: none;
+  object-fit: contain;
+  opacity: .7;
+  filter: saturate(.72) contrast(.92) brightness(1.03);
+}
+
+[data-efb-theme="night"] #aircraftOpsPane .aircraft-hero-visual > img {
+  opacity: .56;
+  filter: saturate(.62) contrast(.9) brightness(.76);
+}
+
+#aircraftOpsPane .aircraft-hero-metrics {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  bottom: 12px;
+  left: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#aircraftOpsPane .aircraft-hero-metrics .aircraft-status-metric {
+  min-height: 79px;
+  border: 1px solid var(--tool-line);
+  border-radius: var(--tool-radius);
+  padding: 10px 11px;
+  background: var(--tool-glass);
+  box-shadow: var(--tool-shadow-small);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+#aircraftOpsPane .aircraft-status-metric span,
+#aircraftOpsPane .aircraft-status-metric small {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+#aircraftOpsPane .aircraft-status-metric strong {
+  margin-top: 5px;
+  color: var(--efb-text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+#aircraftOpsPane #aircraftFuelGauge {
+  height: 4px;
+  margin-top: 7px;
+  background: var(--tool-line);
+}
+
+#aircraftOpsPane .aircraft-health-strip {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 12px 12px;
+}
+
+#aircraftOpsPane .aircraft-health-strip > div {
+  grid-template-columns: 8px minmax(0, 1fr);
+  gap: 8px;
+  min-height: 52px;
+  border: 1px solid var(--tool-line);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: var(--tool-glass-soft);
+  box-shadow: none;
+}
+
+#aircraftOpsPane .aircraft-health-strip i {
+  width: 7px;
+  height: 7px;
+}
+
+#aircraftOpsPane .aircraft-health-strip strong {
+  color: var(--efb-text);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+#aircraftOpsPane .aircraft-health-strip small {
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--efb-tertiary);
+  font-size: 9px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#aircraftOpsPane .aircraft-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+#aircraftOpsPane .aircraft-panel {
+  border: 1px solid var(--tool-line);
+  border-radius: var(--tool-radius-lg);
+  background: var(--tool-glass);
+  box-shadow: var(--tool-shadow-small);
+}
+
+#aircraftOpsPane .aircraft-fluid-panel {
+  order: 1;
+  padding: 14px;
+}
+
+#aircraftOpsPane .aircraft-record-drawer {
+  order: 2;
+  overflow: clip;
+  padding: 0;
+}
+
+#aircraftOpsPane .aircraft-record-drawer-summary {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 14px;
+  cursor: pointer;
+  list-style: none;
+  background: var(--tool-glass);
+}
+
+#aircraftOpsPane .aircraft-record-drawer-summary::-webkit-details-marker { display: none; }
+
+#aircraftOpsPane .aircraft-record-drawer-summary span,
+#aircraftOpsPane .aircraft-record-drawer-summary strong,
+#aircraftOpsPane .aircraft-record-drawer-summary small { display: block; }
+
+#aircraftOpsPane .aircraft-record-drawer-summary strong {
+  color: var(--efb-text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+#aircraftOpsPane .aircraft-record-drawer-summary small {
+  margin-top: 3px;
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+#aircraftOpsPane .aircraft-record-drawer-summary em {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--efb-secondary);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#aircraftOpsPane .aircraft-record-drawer-summary em::after {
+  content: "+";
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--tool-line);
+  border-radius: 50%;
+  background: var(--tool-glass-soft);
+  color: var(--efb-text);
+  font-size: 16px;
+  font-style: normal;
+}
+
+#aircraftOpsPane .aircraft-record-drawer[open] > .aircraft-record-drawer-summary {
+  border-bottom: 1px solid var(--tool-line);
+}
+
+#aircraftOpsPane .aircraft-record-drawer[open] > .aircraft-record-drawer-summary em::after { content: "\2212"; }
+
+#aircraftOpsPane .aircraft-record-drawer-body { padding: 14px; }
+
+#aircraftOpsPane .aircraft-panel-head {
+  align-items: flex-start;
+  margin-bottom: 10px;
+  text-transform: none;
+}
+
+#aircraftOpsPane .aircraft-panel-head span {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  letter-spacing: .01em;
+}
+
+#aircraftOpsPane .aircraft-panel-head strong {
+  margin-top: 3px;
+  color: var(--efb-text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+#aircraftOpsPane .aircraft-panel-head p {
+  margin-top: 4px;
+  color: var(--efb-secondary);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+#aircraftOpsPane .aircraft-panel-head em {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  font-style: normal;
+}
+
+#aircraftOpsPane .fluid-log-form {
+  display: grid;
+  grid-template-columns: minmax(150px, .72fr) repeat(2, minmax(130px, .6fr)) minmax(220px, 1.1fr);
+  gap: 8px;
+}
+
+#aircraftOpsPane .fluid-log-form .wide { grid-column: auto; }
+
+#aircraftOpsPane .aircraft-quick-fields {
+  grid-template-columns: minmax(180px, 1.1fr) repeat(2, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+#aircraftOpsPane .aircraft-form-grid {
+  gap: 8px;
+}
+
+#aircraftOpsPane .aircraft-form-grid label {
+  color: var(--efb-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-transform: none;
+}
+
+/* Correct the legacy high-specificity black fields in day mode. */
+#aircraftOpsPane .aircraft-form-grid :is(input, select, textarea),
+#aircraftOpsPane .fluid-log-form :is(input, select, textarea) {
+  width: 100%;
+  min-height: var(--tool-control-height);
+  margin-top: 4px;
+  border: 1px solid var(--tool-line-strong);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--efb-field) 84%, var(--efb-glass-solid));
+  color: var(--efb-text);
+  padding: 8px 10px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--efb-glass-solid) 72%, transparent);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.25;
+  text-transform: none;
+}
+
+[data-efb-theme="night"] #aircraftOpsPane .aircraft-form-grid :is(input, select, textarea),
+[data-efb-theme="night"] #aircraftOpsPane .fluid-log-form :is(input, select, textarea) {
+  background: var(--efb-field);
+}
+
+#aircraftOpsPane .aircraft-form-grid textarea {
+  min-height: 74px;
+  resize: vertical;
+}
+
+#aircraftOpsPane .aircraft-record-guidance {
+  min-height: 40px;
+  margin-top: 8px;
+  border-color: var(--tool-line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--efb-blue-soft) 42%, var(--tool-glass-soft));
+  color: var(--efb-secondary);
+  font-size: 10px;
+}
+
+#aircraftOpsPane .aircraft-advanced-record {
+  margin-top: 8px;
+  border-color: var(--tool-line);
+  border-radius: 11px;
+  background: var(--tool-glass-soft);
+}
+
+#aircraftOpsPane .aircraft-advanced-record > summary {
+  min-height: 50px;
+  padding: 8px 10px;
+  background: transparent;
+}
+
+#aircraftOpsPane .aircraft-advanced-record > summary strong { font-size: 12px; }
+#aircraftOpsPane .aircraft-advanced-record > summary small { font-size: 10px; }
+#aircraftOpsPane .aircraft-advanced-record > summary em { font-size: 10px; }
+#aircraftOpsPane .aircraft-advanced-record .aircraft-form-grid { padding: 10px; }
+
+#aircraftOpsPane .aircraft-save,
+#aircraftOpsPane .aircraft-fluid-actions > button {
+  min-height: var(--tool-control-height);
+  border: 1px solid var(--tool-line-strong);
+  border-radius: 11px;
+  background: var(--tool-glass-soft);
+  color: var(--efb-text);
+  padding: 8px 11px;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: none;
+}
+
+#aircraftOpsPane #saveAircraftStatusBtn,
+#aircraftOpsPane #recordFluidLogBtn {
+  border-color: var(--efb-active);
+  background: var(--efb-active);
+  color: var(--efb-active-text);
+}
+
+#aircraftOpsPane #saveAircraftStatusBtn { margin-top: 9px; }
+
+#aircraftOpsPane .aircraft-fluid-actions {
+  display: grid;
+  grid-template-columns: minmax(150px, .6fr) minmax(180px, .8fr);
+  justify-content: end;
+  gap: 7px;
+}
+
+#aircraftOpsPane .aircraft-log {
+  display: grid;
+  gap: 6px;
+  max-height: 210px;
+  margin-top: 10px;
+  overflow: auto;
+}
+
+#aircraftOpsPane .aircraft-log-entry {
+  border-color: var(--tool-line);
+  border-radius: 10px;
+  background: var(--tool-glass-soft);
+  text-transform: none;
+}
+
+#aircraftOpsPane .aircraft-empty {
+  border-color: var(--tool-line-strong);
+  border-radius: 10px;
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  text-transform: none;
+}
+
+#aircraftOpsPane .aircraft-device-panel {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px 14px;
+  padding: 12px 14px;
+}
+
+#aircraftOpsPane .aircraft-device-panel .aircraft-panel-head { margin: 0; }
+#aircraftOpsPane .aircraft-device-panel .performance-note { padding: 0; }
+
+/* -------------------------------------------------------------------------
+   Responsive tool composition.
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 1199px) {
+  #performanceOpsPane .performance-aircraft-hero {
+    grid-template-columns: minmax(215px, .66fr) minmax(330px, 1.34fr);
+    min-height: 286px;
+    padding: 18px 18px 10px;
+  }
+
+  #performanceOpsPane .performance-limit-cards {
+    grid-column: 1 / -1;
+    width: min(100%, 500px);
+    justify-self: end;
+    margin-top: -38px;
+  }
+
+  #performanceOpsPane .performance-aircraft-visual { margin-inline: -8% -2%; }
+  #performanceOpsPane .performance-aircraft-visual > img { height: 205px; }
+
+  #performanceOpsPane .performance-context .performance-source-chip { display: none; }
+
+  #performanceOpsPane .performance-result-header {
+    grid-template-columns: minmax(220px, 1.35fr) repeat(5, minmax(118px, .72fr));
+  }
+
+  #performanceOpsPane .performance-workspace-grid { grid-template-columns: minmax(310px, .7fr) minmax(0, 1.3fr); }
+
+  #aircraftOpsPane .aircraft-hero-copy { width: 38%; }
+  #aircraftOpsPane .aircraft-hero-visual { left: 27%; }
+}
+
+@media (max-width: 1023px) {
+  #performanceOpsPane .performance-reference-scene,
+  #performanceOpsPane .performance-block,
+  #aircraftOpsPane .aircraft-reference-scene { border-radius: 20px; }
+
+  #performanceOpsPane .performance-stage-tabs { top: 10px; }
+
+  #performanceOpsPane .performance-context > div:first-child > small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  #performanceOpsPane .performance-readiness-step small { display: none; }
+
+  #performanceOpsPane .performance-workspace-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  #performanceOpsPane .performance-output-column > .performance-rows {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #performanceOpsPane .performance-block.active .performance-actions {
+    position: sticky;
+    z-index: 24;
+    bottom: 10px;
+    border: 1px solid var(--tool-line);
+    border-radius: 14px;
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--efb-text) 13%, transparent);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+  }
+
+  #performanceOpsPane .performance-footer-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  #aircraftOpsPane .aircraft-fleet-hero { min-height: 396px; }
+  #aircraftOpsPane .aircraft-hero-copy { width: 46%; max-width: 300px; }
+  #aircraftOpsPane .aircraft-hero-visual { inset: 4px -6% 146px 24%; }
+  #aircraftOpsPane .aircraft-hero-visual > img { height: 238px; }
+  #aircraftOpsPane .aircraft-hero-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #aircraftOpsPane .aircraft-health-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #aircraftOpsPane .fluid-log-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #aircraftOpsPane .fluid-log-form .wide { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+  #performanceOpsPane .performance-aircraft-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 370px;
+    padding: 16px 14px 10px;
+  }
+
+  #performanceOpsPane .performance-aircraft-identity {
+    align-self: start;
+    max-width: 58%;
+  }
+
+  #performanceOpsPane .performance-aircraft-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #performanceOpsPane .performance-aircraft-title h2 { font-size: 34px; }
+
+  #performanceOpsPane .performance-aircraft-visual {
+    position: absolute;
+    top: 18px;
+    right: -12%;
+    left: 38%;
+    width: auto;
+    margin: 0;
+    opacity: 1;
+  }
+
+  #performanceOpsPane .performance-aircraft-visual > img {
+    width: 100%;
+    height: 150px;
+    opacity: .58;
+  }
+
+  #performanceOpsPane .performance-limit-cards {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  #performanceOpsPane .performance-limit-cards > div {
+    min-height: 66px;
+    padding: 9px;
+  }
+
+  #performanceOpsPane .performance-context {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  #performanceOpsPane .performance-context-actions { justify-content: stretch; }
+  #performanceOpsPane .performance-run { width: 100%; }
+
+  #performanceOpsPane .performance-readiness-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #performanceOpsPane .performance-leg-setup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #performanceOpsPane .performance-route-arrow::before {
+    content: "\2193";
+    margin: -2px auto;
+  }
+
+  #performanceOpsPane .performance-stage-tabs { top: 10px; width: 100%; }
+
+  #performanceOpsPane .performance-result-header {
+    grid-template-columns: minmax(218px, 1.3fr) repeat(5, minmax(112px, .7fr));
+  }
+
+  #performanceOpsPane .performance-output-column > .performance-rows,
+  #performanceOpsPane .performance-rows,
+  #performanceOpsPane .performance-control-column .performance-rows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #performanceOpsPane .runway-visual {
+    height: 410px;
+    min-height: 410px;
+  }
+
+  #aircraftOpsPane .aircraft-fleet-hero { min-height: 492px; }
+
+  #aircraftOpsPane .aircraft-hero-copy {
+    width: 62%;
+    max-width: none;
+    padding: 20px 0 0 18px;
+  }
+
+  #aircraftOpsPane .aircraft-hero-copy h2 { font-size: 38px; }
+
+  #aircraftOpsPane .aircraft-hero-visual {
+    inset: 36px -16% 222px 27%;
+    width: auto;
+    padding: 0;
+    opacity: 1;
+  }
+
+  #aircraftOpsPane .aircraft-hero-visual > img {
+    height: 195px;
+    opacity: .58;
+  }
+
+  #aircraftOpsPane .aircraft-hero-metrics {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  #aircraftOpsPane .aircraft-health-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 10px 10px;
+  }
+
+  #aircraftOpsPane .aircraft-fluid-panel,
+  #aircraftOpsPane .aircraft-record-drawer-body { padding: 11px; }
+
+  #aircraftOpsPane .fluid-log-form,
+  #aircraftOpsPane .aircraft-quick-fields,
+  #aircraftOpsPane .aircraft-form-grid { grid-template-columns: 1fr; }
+
+  #aircraftOpsPane .fluid-log-form .wide,
+  #aircraftOpsPane .aircraft-field-wide { grid-column: auto; }
+
+  #aircraftOpsPane .aircraft-fluid-actions { grid-template-columns: 1fr; }
+
+  #aircraftOpsPane .aircraft-device-panel { grid-template-columns: 1fr; }
+  #aircraftOpsPane .aircraft-device-panel .aircraft-panel-head { grid-column: auto; }
+  #aircraftOpsPane .aircraft-device-panel .aircraft-save { width: 100%; }
+}
+
+@media (max-width: 640px) {
+  #performanceOpsPane .performance-stage-tabs { top: 66px; }
+
+  #performanceOpsPane .performance-block.active .performance-actions {
+    bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 480px) {
+  #performanceOpsPane .performance-aircraft-identity { max-width: 66%; }
+  #performanceOpsPane .performance-aircraft-visual { top: 168px; right: -12%; left: -12%; }
+  #performanceOpsPane .performance-limit-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #performanceOpsPane .performance-limit-cards span { font-size: 8px; }
+  #performanceOpsPane .performance-limit-cards strong { font-size: 13px; }
+  #performanceOpsPane .performance-setup-fields { grid-template-columns: 1fr; }
+  #performanceOpsPane .runway-guidance { grid-template-columns: 1fr; }
+  #performanceOpsPane .performance-output-column > .performance-rows,
+  #performanceOpsPane .performance-rows,
+  #performanceOpsPane .performance-control-column .performance-rows { grid-template-columns: 1fr; }
+
+  #aircraftOpsPane .aircraft-fleet-hero { min-height: 540px; }
+  #aircraftOpsPane .aircraft-hero-copy { width: 72%; }
+  #aircraftOpsPane .aircraft-hero-visual { inset: 104px -14% 190px -4%; }
+  #aircraftOpsPane .aircraft-hero-metrics { grid-template-columns: 1fr 1fr; }
+  #aircraftOpsPane .aircraft-health-strip { grid-template-columns: 1fr; }
+  #aircraftOpsPane .aircraft-record-drawer-summary em { font-size: 0; }
+  #aircraftOpsPane .aircraft-record-drawer-summary em::after { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #performanceOpsPane *,
+  #aircraftOpsPane * { scroll-behavior: auto !important; }
+}

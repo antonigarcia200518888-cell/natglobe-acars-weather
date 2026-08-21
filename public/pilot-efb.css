@@ -33,7 +33,7 @@
   --efb-radius: 12px;
   --efb-radius-sm: 9px;
   --efb-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
-  --efb-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  --efb-mono: "Courier New", Courier, monospace;
 
   /* Compatibility aliases used by the two legacy pages. */
   --bg: var(--efb-canvas);
@@ -1971,7 +1971,7 @@ textarea:disabled {
   background: #ffffff;
   box-shadow: 0 8px 22px rgba(42, 62, 74, .12);
 }
-.title { color: var(--efb-text); font-weight: 760; letter-spacing: -.025em; }
+.title { color: var(--efb-text); font-weight: 700; letter-spacing: -.025em; }
 .intro { color: var(--efb-secondary); }
 .masthead-status { min-width: 0; }
 .masthead-status .shell-icon-button {
@@ -2017,16 +2017,41 @@ textarea:disabled {
   box-shadow: var(--efb-shadow-small);
 }
 .efb-theme-toggle {
-  min-width: 62px;
+  display: inline-grid;
+  width: 46px;
+  min-width: 46px;
+  padding: 0;
+  place-items: center;
   border-color: color-mix(in srgb, var(--efb-blue) 22%, var(--efb-border));
   background: linear-gradient(135deg, var(--efb-glass-solid), var(--efb-cyan-soft));
   color: var(--efb-blue-strong);
 }
+.efb-theme-toggle .efb-theme-icon {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  pointer-events: none;
+}
+.efb-theme-toggle .efb-theme-icon svg {
+  display: block;
+  width: 21px;
+  height: 21px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+.efb-theme-toggle .efb-theme-icon svg.efb-theme-icon-sun { display: none; }
 [data-efb-theme="night"] .efb-theme-toggle {
   border-color: color-mix(in srgb, var(--efb-cyan) 32%, var(--efb-border));
   background: var(--efb-cyan-soft);
   color: var(--efb-cyan);
 }
+[data-efb-theme="night"] .efb-theme-toggle .efb-theme-icon svg.efb-theme-icon-sun { display: block; }
+[data-efb-theme="night"] .efb-theme-toggle .efb-theme-icon svg.efb-theme-icon-moon { display: none; }
 
 .active-flight-strip {
   gap: 10px;
@@ -2116,7 +2141,7 @@ textarea:disabled {
   background: var(--efb-glass-solid);
   color: var(--efb-secondary);
   box-shadow: 0 7px 17px rgba(38, 58, 72, .08);
-  font: 760 10px/1 var(--efb-ui);
+  font: 700 10px/1 var(--efb-ui);
   letter-spacing: .025em;
 }
 .suite-tab[data-suite-view="dashboard"]::before { content: "HM"; }
@@ -2183,7 +2208,7 @@ textarea:disabled {
   max-width: 540px;
   color: var(--efb-text);
   font-size: clamp(24px, 2.1vw, 31px);
-  font-weight: 760;
+  font-weight: 700;
   letter-spacing: -.035em;
 }
 .dashboard-head p { max-width: 560px; color: var(--efb-secondary); font-size: 14px; }
@@ -2234,7 +2259,7 @@ textarea:disabled {
   display: block;
   color: var(--efb-blue-strong);
   font-size: 12px;
-  font-weight: 720;
+  font-weight: 700;
   letter-spacing: .01em;
 }
 .efb-flight-hero-title {
@@ -2248,7 +2273,7 @@ textarea:disabled {
   margin: 0;
   color: var(--efb-text);
   font-size: clamp(36px, 4vw, 54px);
-  font-weight: 790;
+  font-weight: 700;
   line-height: .98;
   letter-spacing: -.05em;
 }
@@ -2263,7 +2288,7 @@ textarea:disabled {
   color: var(--efb-secondary);
   box-shadow: 0 6px 16px rgba(38, 58, 72, .06);
   font-size: 12px;
-  font-weight: 720;
+  font-weight: 650;
 }
 .efb-flight-hero[data-active="true"] .efb-state-pill {
   border-color: color-mix(in srgb, var(--efb-safe) 26%, var(--efb-border));
@@ -2279,7 +2304,7 @@ textarea:disabled {
   display: block;
   margin-top: 22px;
   color: var(--efb-text);
-  font: 740 clamp(20px, 2vw, 28px)/1.15 var(--efb-mono);
+  font: 700 clamp(20px, 2vw, 28px)/1.15 var(--efb-mono);
   letter-spacing: -.02em;
 }
 .efb-flight-hero-copy > small {
@@ -2383,10 +2408,10 @@ textarea:disabled {
   background: var(--efb-glass-solid);
   color: var(--efb-tertiary);
   box-shadow: 0 5px 14px rgba(38, 58, 72, .07);
-  font: 720 11px/1 var(--efb-ui);
+  font: 700 11px/1 var(--efb-ui);
   font-style: normal;
 }
-.efb-flight-phase > span > strong { font-size: 11px; font-weight: 670; }
+.efb-flight-phase > span > strong { font-size: 11px; font-weight: 650; }
 .efb-flight-phase > span.complete > i {
   border-color: var(--efb-safe);
   background: var(--efb-safe);
@@ -2446,7 +2471,7 @@ textarea:disabled {
   border-radius: 14px;
   background: var(--efb-cyan-soft);
   color: var(--efb-blue-strong);
-  font: 760 13px/1 var(--efb-ui);
+  font: 700 13px/1 var(--efb-ui);
 }
 .dashboard-action[data-dashboard-view="flights"]::before { content: "FL"; }
 .dashboard-action[data-dashboard-view="weather"]::before { content: "WX"; }
@@ -2584,7 +2609,7 @@ textarea:disabled {
 .performance-aircraft-title strong {
   color: var(--efb-text);
   font-size: clamp(27px, 2.4vw, 38px);
-  font-weight: 770;
+  font-weight: 700;
   letter-spacing: -.035em;
 }
 .aircraft-identity strong,
@@ -2887,7 +2912,7 @@ html.embedded .shell { background: transparent; }
 .dispatch-identity > span,
 .overview-readiness span,
 .dispatch-overview .statusbox span { color: var(--efb-tertiary); }
-.dispatch-route strong { color: var(--efb-text); font-size: 26px; font-weight: 740; }
+.dispatch-route strong { color: var(--efb-text); font-size: 26px; font-weight: 700; }
 .dispatch-route i { color: var(--efb-blue); }
 .dispatch-identity small b,
 .dispatch-identity small em { color: var(--efb-secondary); }
@@ -3279,6 +3304,10 @@ html.embedded .ofp-task-rail { top: 0; }
   gap: 12px;
   margin-bottom: 24px;
 }
+.pilot-access-brand .efb-theme-toggle {
+  flex: 0 0 46px;
+  margin-left: auto;
+}
 .pilot-access-mark {
   display: grid;
   width: 52px;
@@ -3516,7 +3545,7 @@ html.embedded .ofp-task-rail { top: 0; }
   .efb-masthead { grid-template-columns: auto minmax(0, 1fr); }
   .masthead-status { min-width: 0; }
   .masthead-status .shell-icon-button { padding-inline: 9px; }
-  .efb-theme-toggle { min-width: 54px; }
+  .efb-theme-toggle { width: 44px; min-width: 44px; }
 }
 
 @media (max-width: 760px) {
