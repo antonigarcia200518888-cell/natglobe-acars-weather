@@ -11,17 +11,22 @@
       const themeKey = 'nga-efb-theme';
       const applyTheme = (value, persist = false) => {
         const theme = value === 'night' ? 'night' : 'day';
+        const nextTheme = theme === 'night' ? 'day' : 'night';
         document.documentElement.dataset.efbTheme = theme;
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#07111b' : '#eef3f7');
+        document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#07111b' : '#edf3f6');
         const button = document.getElementById('efbThemeToggleOFP');
         if (button) {
-          const nextTheme = theme === 'night' ? 'day' : 'night';
-          button.textContent = nextTheme === 'night' ? 'Night' : 'Day';
-          button.setAttribute('aria-label', `Use ${nextTheme} display mode`);
+          button.dataset.currentTheme = theme;
+          button.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
           button.setAttribute('aria-pressed', String(theme === 'night'));
+          button.title = `Switch to ${nextTheme} mode`;
         }
         if (persist) {
           try { localStorage.setItem(themeKey, theme); } catch (_) {}
+          if (window.parent !== window) {
+            window.parent.postMessage({ type:'nga-efb-theme', theme }, location.origin);
+          }
         }
         return theme;
       };
@@ -33,6 +38,9 @@
         if (event.origin && event.origin !== location.origin) return;
         if (event.data?.type !== 'nga-efb-theme') return;
         applyTheme(event.data.theme);
+      });
+      window.addEventListener('storage', event => {
+        if (event.key === themeKey) applyTheme(event.newValue);
       });
       window.addEventListener('DOMContentLoaded', () => applyTheme(document.documentElement.dataset.efbTheme));
     })();
@@ -1895,7 +1903,8 @@
       .movement-grid { grid-template-columns:1fr; }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-3" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-12" />
+  <link rel="stylesheet" href="/pilot-ofp-reference.css?v=2026-08-21-12" />
 </head>
 <body>
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -1905,7 +1914,7 @@
         <div><div class="eyebrow">NGA Pilot EFB</div><h1>Flight plan</h1><div class="sub">Plan, brief, release, and record the flight in one controlled workspace.</div></div>
       </div>
       <div class="top-actions ofp-header-actions">
-        <div class="ofp-header-nav-actions"><button id="backBtn" class="btn" type="button" aria-label="Return to Pilot Operations">Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather</button><button id="efbThemeToggleOFP" class="btn efb-theme-toggle" type="button" aria-label="Use night display mode" aria-pressed="false">Night</button></div>
+        <div class="ofp-header-nav-actions"><button id="backBtn" class="btn" type="button" aria-label="Return to Pilot Operations">Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather</button><button id="efbThemeToggleOFP" class="btn efb-theme-toggle" type="button" aria-label="Switch to night mode" aria-pressed="false" title="Switch to night mode"><span class="efb-theme-icon" aria-hidden="true"><svg class="efb-theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg><svg class="efb-theme-icon-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></span></button></div>
         <div class="ofp-header-document-actions"><button id="saveBtn" class="btn" type="button">Save draft</button><button id="pdfBtn" class="btn" type="button">PDF</button><button id="previewBtn" class="btn primary" type="button">Generate OFP</button></div>
       </div>
     </header>
@@ -1918,6 +1927,10 @@
           <div class="ofp-flight-endpoint"><span>To</span><strong id="overviewDestination">----</strong></div>
         </div>
         <small class="ofp-flight-badges"><b id="refStatus">...</b><em id="overviewRules">VFR</em><em id="overviewAircraft">PA28</em></small>
+      </div>
+      <div class="ofp-flight-aircraft" aria-hidden="true">
+        <img src="/piper-render-transparent.png" alt="" />
+        <span><i></i> Aircraft profile connected</span>
       </div>
       <div class="statusline ofp-flight-facts" aria-label="Flight plan status">
         <div class="statusbox" data-flight-fact="route"><span>Route</span><strong id="routeStatus">...</strong></div>
@@ -2232,7 +2245,11 @@
         </details>
       </section>
 
-      <aside class="console ofp-inspector" aria-label="Flight readiness inspector" data-component="readiness-inspector">
+      <aside id="ofpInspector" class="console ofp-inspector" aria-label="Flight readiness inspector" data-component="readiness-inspector" data-collapsed="false">
+        <button id="inspectorCollapseBtn" class="ofp-inspector-toggle" type="button" aria-controls="ofpInspectorBody" aria-expanded="true">
+          <span><small>Flight status</small><strong>Readiness</strong></span><i aria-hidden="true">&#8250;</i>
+        </button>
+        <div id="ofpInspectorBody" class="ofp-inspector-body">
         <div class="console-mode-switch ofp-inspector-tabs" role="tablist" aria-label="Flight plan inspector">
           <button id="summaryInspectorBtn" type="button" role="tab" data-inspector-mode="SUMMARY" aria-selected="true" aria-controls="consoleSummary">Readiness</button>
           <button id="pdfInspectorBtn" type="button" role="tab" data-inspector-mode="PDF" aria-selected="false" aria-controls="pdfPreviewPanel">OFP preview</button>
@@ -2295,6 +2312,7 @@
             <button id="returnSummaryBtn" class="btn" type="button">Flight status</button>
           </div>
         </section>
+        </div>
       </aside>
     </div>
     <nav class="ofp-action-dock ofp-command-bar" aria-label="Flight plan actions" data-component="command-bar">
@@ -2359,6 +2377,10 @@
     const workspaceOrder = ['SETUP', 'ROUTE', 'LOAD', 'BRIEF', 'FLY', 'RELEASE'];
     const workspaceLabels = { SETUP:'Flight Info', ROUTE:'Route', LOAD:'Fuel & Load', BRIEF:'Preflight', FLY:'Movement Times', RELEASE:'PIC Release' };
     const ofpWorkspaceStorageKey = `nga-ofp-workspace-v3:${requestId}`;
+    const ofpInspectorStorageKey = 'nga-ofp-inspector-collapsed-v1';
+    const verticalTaskRailMedia = window.matchMedia('(min-width: 900px)');
+    const compactInspectorMedia = window.matchMedia('(max-width: 1199px)');
+    const floatingInspectorMedia = window.matchMedia('(max-width: 899px)');
     let currentWorkspace = 'SETUP';
 
     function storedWorkspace() {
@@ -2442,9 +2464,47 @@
       return usableLeg(snapshot?.departure) && usableLeg(snapshot?.arrival);
     }
 
+    function setInspectorCollapsed(collapsed, persist = true) {
+      const inspector = el('ofpInspector');
+      const toggle = el('inspectorCollapseBtn');
+      const body = el('ofpInspectorBody');
+      const isCollapsed = Boolean(collapsed);
+      inspector.dataset.collapsed = String(isCollapsed);
+      toggle.setAttribute('aria-expanded', String(!isCollapsed));
+      toggle.setAttribute('aria-label', isCollapsed ? 'Open flight readiness' : 'Collapse flight readiness');
+      toggle.title = isCollapsed ? 'Open flight readiness' : 'Collapse flight readiness';
+      body.setAttribute('aria-hidden', String(isCollapsed));
+      document.body.classList.toggle('ofp-inspector-collapsed', isCollapsed);
+      if (isCollapsed && body.contains(document.activeElement)) toggle.focus({ preventScroll:true });
+      if (persist) {
+        try { localStorage.setItem(`${ofpInspectorStorageKey}:${inspectorStorageMode()}`, String(isCollapsed)); }
+        catch (_) { /* The inspector remains usable if storage is unavailable. */ }
+      }
+    }
+
+    function inspectorStorageMode() {
+      if (floatingInspectorMedia.matches) return 'portrait';
+      if (compactInspectorMedia.matches) return 'compact';
+      return 'wide';
+    }
+
+    function initialInspectorCollapsed() {
+      if (floatingInspectorMedia.matches) return true;
+      try {
+        const stored = localStorage.getItem(`${ofpInspectorStorageKey}:${inspectorStorageMode()}`);
+        if (stored === 'true' || stored === 'false') return stored === 'true';
+      } catch (_) { /* Fall through to the viewport default. */ }
+      return compactInspectorMedia.matches;
+    }
+
+    function syncTaskRailOrientation() {
+      document.querySelector('.ofp-task-rail')?.setAttribute('aria-orientation', verticalTaskRailMedia.matches ? 'vertical' : 'horizontal');
+    }
+
     function setInspector(mode) {
       inspectorMode = mode === 'PDF' ? 'PDF' : 'SUMMARY';
       const pdfActive = inspectorMode === 'PDF';
+      if (pdfActive) setInspectorCollapsed(false);
       document.body.classList.toggle('pdf-preview-active', pdfActive);
       el('summaryInspectorBtn').setAttribute('aria-selected', String(!pdfActive));
       el('pdfInspectorBtn').setAttribute('aria-selected', String(pdfActive));
@@ -3811,14 +3871,14 @@
     const taskTabs = [...document.querySelectorAll('.ofp-workspace-button[data-workspace]')];
     taskTabs.forEach(button => button.addEventListener('click', () => setWorkspace(button.dataset.workspace)));
     document.querySelector('.ofp-task-rail').addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
       event.preventDefault();
       const currentIndex = Math.max(0, taskTabs.findIndex(button => button.dataset.workspace === currentWorkspace));
       const nextIndex = event.key === 'Home'
         ? 0
         : event.key === 'End'
           ? taskTabs.length - 1
-          : Math.max(0, Math.min(taskTabs.length - 1, currentIndex + (event.key === 'ArrowRight' ? 1 : -1)));
+          : Math.max(0, Math.min(taskTabs.length - 1, currentIndex + (['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : -1)));
       const nextTab = taskTabs[nextIndex];
       setWorkspace(nextTab.dataset.workspace);
       nextTab.focus({ preventScroll:true });
@@ -3868,6 +3928,9 @@
     el('previewBtn').addEventListener('click', refreshPdfPreview);
     el('generateOfpBtn').addEventListener('click', refreshPdfPreview);
     el('pdfBtn').addEventListener('click', openCurrentPdf);
+    el('inspectorCollapseBtn').addEventListener('click', () => {
+      setInspectorCollapsed(el('ofpInspector').dataset.collapsed !== 'true');
+    });
     el('summaryInspectorBtn').addEventListener('click', () => setInspector('SUMMARY'));
     el('pdfInspectorBtn').addEventListener('click', () => setInspector('PDF'));
     el('returnSummaryBtn').addEventListener('click', () => setInspector('SUMMARY'));
@@ -3885,6 +3948,9 @@
     el('openWeatherWorkspaceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
     el('openPerformanceWorkspaceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#performance'; });
     document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && compactInspectorMedia.matches && el('ofpInspector').dataset.collapsed !== 'true') {
+        setInspectorCollapsed(true);
+      }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
         saveDraft();
@@ -3899,6 +3965,9 @@
       event.preventDefault();
       event.returnValue = '';
     });
+    syncTaskRailOrientation();
+    verticalTaskRailMedia.addEventListener?.('change', syncTaskRailOrientation);
+    setInspectorCollapsed(initialInspectorCollapsed(), false);
     setInspector('SUMMARY');
     load().catch(error => setSaveState('failed', error.message || 'Unable to load OFP.'));
   </script>
