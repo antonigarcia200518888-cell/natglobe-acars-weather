@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#07111b" />
+  <meta name="theme-color" content="#edf3f6" />
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <title>NGA Pilot Operations Centre</title>
+  <script>
+    try { document.documentElement.dataset.efbTheme = localStorage.getItem('nga-efb-theme') || 'day'; }
+    catch { document.documentElement.dataset.efbTheme = 'day'; }
+  </script>
   <style>
     :root {
       --bg: #05080d;
@@ -392,8 +396,6 @@
     .performance-value.live { color:var(--live); }
     .performance-value.warn { color:var(--warn); }
     .performance-value input, .performance-value select { width:100%; min-height:34px; border:1px solid #425d70; border-radius:3px; background:#020507; color:#fff; padding:6px 8px; font:10px "Courier New", monospace; text-align:right; text-transform:uppercase; }
-    .performance-value[contenteditable="true"] { min-height:28px; border:1px solid transparent; border-radius:3px; padding:7px; cursor:text; }
-    .performance-value[contenteditable="true"]:hover, .performance-value[contenteditable="true"]:focus { border-color:#4d6c82; background:#020507; outline:0; }
     .performance-inline { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:5px; align-items:center; }
     .performance-inline button { min-height:34px; min-width:43px; border:1px solid #5d849e; border-radius:3px; background:#0b1c29; color:#a8cce2; padding:4px; font:700 7px "Courier New", monospace; cursor:pointer; }
     .performance-inline button.manual { border-color:var(--warn); color:var(--warn); }
@@ -2633,6 +2635,294 @@
       .masthead-brand { gap:7px; }
     }
 
+    /* App-native performance and aircraft workspace structure. The shared EFB
+       theme owns color; these rules preserve the information hierarchy when the
+       shell is used from an older cached stylesheet. */
+    .performance-aircraft-hero {
+      position:relative;
+      isolation:isolate;
+      display:grid;
+      grid-template-columns:minmax(240px,.78fr) minmax(300px,1fr) minmax(330px,1.08fr);
+      min-height:166px;
+      overflow:hidden;
+    }
+    .performance-aircraft-identity { position:relative; z-index:2; align-self:center; }
+    .performance-aircraft-title { display:flex; align-items:center; gap:9px; margin:4px 0; }
+    .performance-aircraft-title h2 { margin:0; }
+    .performance-aircraft-title em {
+      border:1px solid var(--efb-border,rgba(255,255,255,.16));
+      border-radius:999px;
+      padding:5px 8px;
+      background:var(--efb-surface-raised,rgba(255,255,255,.07));
+      color:var(--efb-secondary,#b8c5cf);
+      font:700 11px/1 var(--efb-ui,system-ui,sans-serif);
+      font-style:normal;
+      white-space:nowrap;
+    }
+    .performance-profile-state { display:flex; align-items:center; gap:7px; margin-top:12px; }
+    .performance-profile-state i,
+    .performance-context .performance-source-chip i {
+      display:block;
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:var(--efb-safe,#5bd097);
+      box-shadow:0 0 0 4px rgba(91,208,151,.13);
+    }
+    .performance-profile-state span { color:var(--efb-safe,#5bd097); font-size:12px; }
+    .performance-aircraft-visual {
+      position:relative;
+      z-index:1;
+      display:grid;
+      min-width:0;
+      place-items:center;
+      align-self:stretch;
+    }
+    .performance-aircraft-visual::after {
+      content:"";
+      position:absolute;
+      left:8%;
+      right:8%;
+      bottom:18%;
+      height:12px;
+      border-radius:50%;
+      background:rgba(0,0,0,.16);
+      filter:blur(9px);
+      z-index:-1;
+    }
+    .performance-aircraft-visual img { display:block; width:min(100%,390px); height:150px; object-fit:contain; }
+    .performance-limit-cards { position:relative; z-index:2; align-self:center; }
+    .performance-limit-cards strong small { color:var(--efb-tertiary,#8195a4); font-size:.72em; }
+    .performance-readiness-flow {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:1px;
+      margin:0 14px;
+      overflow:hidden;
+      border:1px solid var(--efb-border,rgba(255,255,255,.13));
+      border-radius:12px;
+      background:var(--efb-divider,rgba(255,255,255,.08));
+    }
+    .performance-readiness-step {
+      display:grid;
+      grid-template-columns:28px minmax(0,1fr);
+      gap:10px;
+      align-items:center;
+      min-height:60px;
+      padding:10px 12px;
+      background:var(--efb-surface-raised,#0c1822);
+    }
+    .performance-readiness-step > i {
+      display:grid;
+      place-items:center;
+      width:28px;
+      height:28px;
+      border:1px solid var(--efb-border-strong,#4f687a);
+      border-radius:50%;
+      color:var(--efb-tertiary,#8195a4);
+      font:700 12px/1 var(--efb-ui,system-ui,sans-serif);
+      font-style:normal;
+    }
+    .performance-readiness-step strong,
+    .performance-readiness-step small { display:block; }
+    .performance-readiness-step strong { color:var(--efb-text,#fff); font-size:13px; }
+    .performance-readiness-step small { margin-top:3px; color:var(--efb-tertiary,#8195a4); font-size:11px; line-height:1.25; }
+    .performance-readiness-step[data-state="complete"] { background:var(--efb-safe-soft,rgba(91,208,151,.1)); }
+    .performance-readiness-step[data-state="complete"] > i { border-color:var(--efb-safe,#5bd097); background:var(--efb-safe,#5bd097); color:#07130d; }
+    .performance-readiness-step[data-state="active"] { background:var(--efb-blue-soft,rgba(78,182,255,.12)); }
+    .performance-readiness-step[data-state="active"] > i { border-color:var(--efb-blue,#4eb6ff); color:var(--efb-blue-strong,#8ec5ff); }
+    .performance-readiness-step[data-state="caution"] { background:var(--efb-caution-soft,rgba(240,189,103,.11)); }
+    .performance-readiness-step[data-state="caution"] > i { border-color:var(--efb-caution,#f0bd67); color:var(--efb-caution,#f0bd67); }
+    .performance-leg-title { position:relative; padding-right:106px; }
+    .performance-leg-title em {
+      position:absolute;
+      top:0;
+      right:0;
+      border:1px solid var(--efb-border,rgba(255,255,255,.14));
+      border-radius:999px;
+      padding:5px 8px;
+      color:var(--efb-tertiary,#8195a4);
+      font-size:11px;
+      font-style:normal;
+      white-space:nowrap;
+    }
+    .performance-leg-setup[data-state="ready"] .performance-leg-title em {
+      border-color:rgba(91,208,151,.38);
+      background:var(--efb-safe-soft,rgba(91,208,151,.1));
+      color:var(--efb-safe,#5bd097);
+    }
+    .performance-leg-setup[data-state="active"] .performance-leg-title em {
+      border-color:rgba(78,182,255,.38);
+      background:var(--efb-blue-soft,rgba(78,182,255,.1));
+      color:var(--efb-blue-strong,#8ec5ff);
+    }
+    .performance-source-row span::before {
+      content:"";
+      width:7px;
+      height:7px;
+      margin-right:7px;
+      border-radius:50%;
+      background:var(--efb-tertiary,#8195a4);
+    }
+    .performance-source-row span[data-state="ready"]::before { background:var(--efb-safe,#5bd097); }
+    .performance-source-row span[data-state="loading"]::before { background:var(--efb-blue,#4eb6ff); box-shadow:0 0 0 4px rgba(78,182,255,.12); }
+    .performance-source-row span[data-state="caution"]::before { background:var(--efb-caution,#f0bd67); }
+    .performance-smart-status { position:relative; padding-left:38px !important; }
+    .performance-smart-status::before {
+      content:"";
+      position:absolute;
+      left:16px;
+      top:50%;
+      width:9px;
+      height:9px;
+      border-radius:50%;
+      background:var(--efb-blue,#4eb6ff);
+      transform:translateY(-50%);
+    }
+    .performance-smart-status[data-state="loading"]::before { animation:efbStatePulse 1.1s ease-in-out infinite; }
+    .performance-smart-status[data-state="ready"]::before { background:var(--efb-safe,#5bd097); }
+    .performance-smart-status[data-state="caution"]::before { background:var(--efb-caution,#f0bd67); }
+    .performance-smart-status[data-state="danger"]::before { background:var(--efb-danger,#f2777f); }
+    .performance-advanced { border-bottom:1px solid var(--efb-divider,rgba(255,255,255,.08)); }
+    .performance-advanced > summary,
+    .aircraft-advanced-record > summary {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      min-height:58px;
+      padding:10px 12px;
+      cursor:pointer;
+      list-style:none;
+      background:var(--efb-surface-raised,#0c1822);
+    }
+    .performance-advanced > summary::-webkit-details-marker,
+    .aircraft-advanced-record > summary::-webkit-details-marker { display:none; }
+    .performance-advanced > summary strong,
+    .performance-advanced > summary small,
+    .aircraft-advanced-record > summary strong,
+    .aircraft-advanced-record > summary small { display:block; }
+    .performance-advanced > summary strong,
+    .aircraft-advanced-record > summary strong { color:var(--efb-text,#fff); font-size:13px; }
+    .performance-advanced > summary small,
+    .aircraft-advanced-record > summary small { margin-top:3px; color:var(--efb-tertiary,#8195a4); font-size:11px; }
+    .performance-advanced > summary em,
+    .aircraft-advanced-record > summary em { color:var(--efb-blue-strong,#8ec5ff); font-size:11px; font-style:normal; white-space:nowrap; }
+    .performance-advanced > summary::after,
+    .aircraft-advanced-record > summary::after { content:"+"; color:var(--efb-blue-strong,#8ec5ff); font-size:20px; }
+    .performance-advanced[open] > summary::after,
+    .aircraft-advanced-record[open] > summary::after { content:"−"; }
+    .performance-input-heading { display:flex; justify-content:space-between; gap:10px; }
+    .performance-input-heading small { color:var(--efb-tertiary,#8195a4); font-size:11px; font-weight:500; }
+
+    .aircraft-app { gap:12px; }
+    .aircraft-fleet-hero {
+      position:relative;
+      isolation:isolate;
+      display:grid;
+      grid-template-columns:minmax(250px,.72fr) minmax(390px,1.28fr);
+      gap:0;
+      min-height:326px;
+      overflow:hidden;
+      border-radius:16px;
+    }
+    .aircraft-hero-copy { position:relative; z-index:3; align-self:center; padding:24px; }
+    .aircraft-hero-copy > span { display:block; color:var(--efb-blue-strong,#8ec5ff); font-size:12px; }
+    .aircraft-hero-copy h2 { margin:8px 0 2px; color:var(--efb-text,#fff); font-size:29px; letter-spacing:-.025em; }
+    .aircraft-hero-copy p { margin:0; color:var(--efb-secondary,#aab8c3); font-size:13px; }
+    .aircraft-serviceability-pill { display:inline-flex; align-items:center; gap:8px; margin-top:18px; border:1px solid var(--efb-border,rgba(255,255,255,.14)); border-radius:999px; padding:8px 11px; background:var(--efb-surface-raised,rgba(0,0,0,.16)); }
+    .aircraft-serviceability-pill i { width:9px; height:9px; border-radius:50%; background:var(--efb-caution,#f0bd67); }
+    .aircraft-serviceability-pill strong { font-size:12px; }
+    .aircraft-fleet-hero[data-state="serviceable"] .aircraft-serviceability-pill i { background:var(--efb-safe,#5bd097); box-shadow:0 0 0 4px rgba(91,208,151,.13); }
+    .aircraft-fleet-hero[data-state="grounded"] .aircraft-serviceability-pill i { background:var(--efb-danger,#f2777f); box-shadow:0 0 0 4px rgba(242,119,127,.13); }
+    .aircraft-hero-action { min-height:44px; margin-top:16px; border:1px solid var(--efb-border-strong,#506a7d); border-radius:10px; background:var(--efb-surface,#0a151f); color:var(--efb-text,#fff); padding:8px 13px; font-weight:700; cursor:pointer; }
+    .aircraft-hero-visual { position:relative; z-index:1; display:grid; place-items:center; min-width:0; padding:8px 18px 62px 0; }
+    .aircraft-hero-visual::after { content:""; position:absolute; left:8%; right:9%; bottom:28%; height:14px; border-radius:50%; background:rgba(0,0,0,.18); filter:blur(11px); z-index:-1; }
+    .aircraft-hero-visual img { display:block; width:min(100%,700px); height:236px; object-fit:contain; }
+    .aircraft-hero-metrics {
+      position:absolute;
+      z-index:4;
+      right:16px;
+      bottom:14px;
+      left:16px;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+    }
+    .aircraft-hero-metrics .aircraft-status-metric {
+      min-width:0;
+      min-height:84px;
+      border:1px solid var(--efb-border,rgba(255,255,255,.13));
+      border-radius:12px;
+      padding:11px 12px;
+      background:var(--efb-surface-raised,rgba(8,18,27,.88));
+      backdrop-filter:blur(16px);
+    }
+    .aircraft-hero-metrics .aircraft-status-metric strong { margin-top:5px; font-size:17px; }
+    .aircraft-hero-metrics .aircraft-status-metric small { display:block; margin-top:4px; color:var(--efb-tertiary,#8195a4); font-size:11px; line-height:1.2; }
+    #aircraftFuelGauge { display:block; width:100%; height:4px; margin-top:8px; overflow:hidden; border-radius:4px; background:var(--efb-divider,rgba(255,255,255,.1)); }
+    #aircraftFuelGauge::after { content:""; display:block; width:var(--aircraft-fuel-level,0%); height:100%; border-radius:inherit; background:var(--efb-blue,#4eb6ff); transition:width .24s ease; }
+    .aircraft-health-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+    .aircraft-health-strip > div { display:grid; grid-template-columns:10px minmax(0,1fr); gap:9px; align-items:center; min-height:64px; border:1px solid var(--efb-border,rgba(255,255,255,.13)); border-radius:12px; padding:10px 12px; background:var(--efb-surface,#0a151f); }
+    .aircraft-health-strip i { width:9px; height:9px; border-radius:50%; background:var(--efb-tertiary,#8195a4); }
+    .aircraft-health-strip strong,.aircraft-health-strip small { display:block; }
+    .aircraft-health-strip strong { color:var(--efb-text,#fff); font-size:12px; }
+    .aircraft-health-strip small { margin-top:3px; color:var(--efb-tertiary,#8195a4); font-size:11px; line-height:1.25; }
+    .aircraft-health-strip [data-state="ready"] i { background:var(--efb-safe,#5bd097); }
+    .aircraft-health-strip [data-state="caution"] i { background:var(--efb-caution,#f0bd67); }
+    .aircraft-health-strip [data-state="danger"] i { background:var(--efb-danger,#f2777f); }
+    .aircraft-panel-head p { max-width:520px; margin:5px 0 0; color:var(--efb-tertiary,#8195a4); font-size:12px; line-height:1.35; text-transform:none; }
+    .aircraft-quick-fields { grid-template-columns:1.2fr repeat(2,minmax(0,1fr)); }
+    .aircraft-record-guidance { display:flex; align-items:center; gap:9px; min-height:44px; margin-top:10px; border:1px solid var(--efb-border,rgba(255,255,255,.13)); border-radius:10px; padding:9px 11px; background:var(--efb-surface-raised,#0c1822); color:var(--efb-secondary,#aab8c3); font-size:12px; }
+    .aircraft-record-guidance i { flex:0 0 auto; width:9px; height:9px; border-radius:50%; background:var(--efb-tertiary,#8195a4); }
+    .aircraft-record-guidance[data-state="ready"] i { background:var(--efb-safe,#5bd097); }
+    .aircraft-record-guidance[data-state="caution"] i { background:var(--efb-caution,#f0bd67); }
+    .aircraft-record-guidance[data-state="danger"] i { background:var(--efb-danger,#f2777f); }
+    .aircraft-advanced-record { margin-top:10px; overflow:hidden; border:1px solid var(--efb-border,rgba(255,255,255,.13)); border-radius:12px; }
+    .aircraft-advanced-record .aircraft-form-grid { padding:12px; }
+    .aircraft-fluid-actions { display:grid; grid-template-columns:minmax(140px,.65fr) minmax(190px,1fr); gap:8px; }
+    .aircraft-fluid-actions > button { min-height:46px; margin-top:10px; border:1px solid var(--efb-border-strong,#506a7d); border-radius:10px; background:var(--efb-surface-raised,#0c1822); color:var(--efb-text,#fff); padding:8px 12px; font-weight:700; cursor:pointer; }
+    .aircraft-fluid-actions .aircraft-save { margin-top:10px; }
+    .aircraft-device-panel { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 16px; align-items:center; }
+    .aircraft-device-panel .aircraft-panel-head { grid-column:1/-1; margin-bottom:0; }
+    .aircraft-device-panel .performance-note { padding:0; }
+    .aircraft-device-panel .aircraft-save { width:auto; min-width:190px; margin:0; }
+    @keyframes efbStatePulse { 0%,100% { opacity:.45; transform:translateY(-50%) scale(.82); } 50% { opacity:1; transform:translateY(-50%) scale(1); } }
+
+    @media (max-width:1100px) {
+      .performance-aircraft-hero { grid-template-columns:minmax(220px,.7fr) minmax(300px,1fr); }
+      .performance-limit-cards { grid-column:1/-1; margin:0 16px 14px; }
+      .performance-aircraft-visual img { height:135px; }
+      .aircraft-fleet-hero { grid-template-columns:minmax(230px,.75fr) minmax(330px,1.25fr); }
+      .aircraft-hero-visual img { height:215px; }
+      .aircraft-health-strip { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width:760px) {
+      .performance-aircraft-hero { display:block; padding-bottom:12px; }
+      .performance-aircraft-identity { padding:16px 16px 0; }
+      .performance-aircraft-visual { position:absolute; top:4px; right:0; width:48%; opacity:.44; }
+      .performance-aircraft-visual img { height:124px; }
+      .performance-limit-cards { grid-template-columns:repeat(3,minmax(0,1fr)); margin:14px 10px 0; }
+      .performance-readiness-flow { grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 8px; }
+      .performance-leg-title { padding-right:0; }
+      .performance-leg-title em { position:static; display:inline-flex; margin-top:7px; }
+      .performance-advanced > summary em,
+      .aircraft-advanced-record > summary em { display:none; }
+      .performance-input-heading { align-items:flex-start; flex-direction:column; }
+      .aircraft-fleet-hero { display:block; min-height:430px; }
+      .aircraft-hero-copy { padding:18px; }
+      .aircraft-hero-visual { position:absolute; top:0; right:-8%; width:67%; padding:10px 0 0; opacity:.5; }
+      .aircraft-hero-visual img { height:180px; }
+      .aircraft-hero-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .aircraft-hero-metrics .aircraft-status-metric { min-height:78px; }
+      .aircraft-health-strip { grid-template-columns:1fr; }
+      .aircraft-quick-fields { grid-template-columns:1fr; }
+      .aircraft-fluid-actions { grid-template-columns:1fr; }
+      .aircraft-device-panel { grid-template-columns:1fr; }
+      .aircraft-device-panel .aircraft-panel-head { grid-column:auto; }
+      .aircraft-device-panel .aircraft-save { width:100%; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         scroll-behavior: auto !important;
@@ -2642,7 +2932,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-14-6" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-3" />
 </head>
 <body>
   <main class="frame">
@@ -2650,9 +2940,10 @@
       <button id="sidebarToggle" class="shell-icon-button" type="button" aria-label="Collapse navigation">NAV</button>
       <div class="masthead-brand"><span class="efb-logo-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA PILOT EFB</div><div class="intro">Flights, planning, weather, performance, aircraft, and documents.</div></div></div>
       <div class="masthead-status">
-        <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button"><span class="shell-search-label">Search flights and tools</span><kbd>CTRL K</kbd></button>
+        <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button"><span class="shell-search-label">Ask Pilot EFB or search</span><kbd>CTRL K</kbd></button>
         <button id="notificationsBtn" class="shell-icon-button" type="button">Alerts <span id="notificationCount" class="count">0</span></button>
         <button id="userMenuBtn" class="shell-icon-button" type="button">Crew</button>
+        <button id="efbThemeToggle" class="shell-icon-button efb-theme-toggle" type="button" aria-pressed="false">Night</button>
         <button id="flightContextBtn" class="shell-icon-button flight-context-trigger" type="button" aria-controls="flightContextPanel" aria-expanded="false">Flight</button>
         <button id="appUpdateBtn" class="shell-icon-button" type="button" hidden>Update ready</button>
         <div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div>
@@ -2684,6 +2975,36 @@
     <div class="efb-content">
     <section id="dashboardWorkspace" class="ops-dashboard">
       <header class="dashboard-head"><div><span>Pilot EFB / Operations Control</span><h2>Operations Dashboard</h2><p>Start with the current flight picture, then open the workspace you need without carrying the full booking queue into every task.</p></div><strong>Live operations view</strong></header>
+      <section id="efbFlightHero" class="efb-flight-hero" aria-label="Active aircraft and flight overview" data-active="false">
+        <div class="efb-flight-hero-copy">
+          <span class="efb-eyebrow">Primary aircraft / active operation</span>
+          <div class="efb-flight-hero-title"><h2>OH-PMK</h2><span id="efbHeroState" class="efb-state-pill">Standby</span></div>
+          <p>Piper PA-28R-200 Arrow II</p>
+          <strong id="efbHeroRoute">Select a flight to begin</strong>
+          <small id="efbHeroReference">The aircraft, schedule, weather, load, and release state will stay visible across the EFB.</small>
+          <div class="efb-hero-actions">
+            <button class="efb-action primary" type="button" data-dashboard-view="flight-plan">Open flight plan</button>
+            <button class="efb-action" type="button" data-dashboard-view="weather">Weather briefing</button>
+          </div>
+        </div>
+        <div id="efbHeroPhase" class="efb-flight-phase" aria-label="Flight phase progress" style="--phase-progress:0%">
+          <div class="efb-flight-phase-line" aria-hidden="true"><i></i></div>
+          <span data-hero-phase="planning"><i>1</i><strong>Planning</strong></span>
+          <span data-hero-phase="released"><i>2</i><strong>Released</strong></span>
+          <span data-hero-phase="airborne"><i>3</i><strong>Airborne</strong></span>
+          <span data-hero-phase="arrived"><i>4</i><strong>Arrived</strong></span>
+        </div>
+        <figure class="efb-aircraft-stage">
+          <img src="/piper-render-transparent.png" alt="OH-PMK Piper Arrow side profile" />
+          <figcaption><span>Aircraft status</span><strong id="efbHeroAircraftStatus">Awaiting live status</strong></figcaption>
+        </figure>
+        <div class="efb-hero-metrics" aria-label="Active flight metrics">
+          <div><span>Departure</span><strong id="efbHeroSchedule">Local / UTC pending</strong></div>
+          <div><span>Block fuel</span><strong id="efbHeroFuel">TBC</strong></div>
+          <div><span>Cabin load</span><strong id="efbHeroLoad">TBC</strong></div>
+          <div><span>Preflight</span><strong id="efbHeroWeather">Not briefed</strong></div>
+        </div>
+      </section>
       <div class="dashboard-actions" aria-label="Operations tools">
         <button class="dashboard-action" type="button" data-dashboard-view="flights"><span>Flight control</span><strong>Open flights</strong><small>Review the queue, assign crew, update decisions, and manage passenger files.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="weather"><span>Preflight dispatch</span><strong>Weather</strong><small>Enter any ICAO route or load the selected flight for raw METAR, TAF, category, and PDF.</small></button>
@@ -2747,19 +3068,31 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
         <iframe id="ofpOpsFrame" class="ofp-frame" title="Selected flight operational flight plan"></iframe>
       </div>
       <div id="performanceOpsPane" class="ops-tool-pane" hidden>
-        <div class="performance-console">
-          <div class="aircraft-performance-head">
-            <div class="aircraft-identity"><span>Aircraft Performance</span><h2>Runway performance</h2><strong>OH-PMK&nbsp;&nbsp; Piper PA-28R-200 Arrow II</strong></div>
-            <div class="aircraft-specs"><div><span>MTOW / MLW</span><strong>2650 LB</strong></div><div><span>Fuel</span><strong>100LL / 48 USG</strong></div><div><span>Crosswind</span><strong>17 KT</strong></div></div>
-          </div>
-          <section class="performance-flight-setup" aria-label="Performance flight setup">
+        <div id="performanceConsole" class="performance-console performance-app" data-state="empty">
+          <header class="aircraft-performance-head performance-aircraft-hero">
+            <div class="aircraft-identity performance-aircraft-identity">
+              <span>Performance computer</span>
+              <div class="performance-aircraft-title"><h2>OH-PMK</h2><em>PA-28R-200</em></div>
+              <strong>Piper Arrow II · Aircraft advisory profile NGA-PA28R-1</strong>
+              <div class="performance-profile-state"><i aria-hidden="true"></i><span>Aircraft profile loaded</span></div>
+            </div>
+            <div class="performance-aircraft-visual" aria-hidden="true"><img src="/piper-render-transparent.png" alt="" /></div>
+            <div class="aircraft-specs performance-limit-cards" aria-label="Aircraft operating limits"><div><span>Maximum weight</span><strong>2,650 <small>LB</small></strong></div><div><span>Usable fuel</span><strong>48 <small>USG</small></strong></div><div><span>Crosswind</span><strong>17 <small>KT</small></strong></div></div>
+          </header>
+          <section class="performance-flight-setup" aria-label="Performance flight setup" data-state="empty">
             <header class="performance-context">
-              <div><span>Performance review</span><strong id="performanceRouteContext">NO FLIGHT SELECTED</strong><small>Route and planned weights are preloaded from the active flight. Confirm both runway ends before using the result.</small></div>
-              <div class="performance-context-actions"><span class="performance-source-chip">Live weather + runway data</span><button id="runPerformanceBtn" class="performance-run" type="button">Calculate flight</button></div>
+              <div><span>Flight performance review</span><strong id="performanceRouteContext">NO FLIGHT SELECTED</strong><small>We preload route and planned weights, then combine confirmed runway ends with current weather. You remain responsible for the final AFM/POH check.</small></div>
+              <div class="performance-context-actions"><span class="performance-source-chip"><i aria-hidden="true"></i> Smart data connected</span><button id="runPerformanceBtn" class="performance-run" type="button">Review both legs</button></div>
             </header>
+            <div class="performance-readiness-flow" aria-label="Performance setup progress">
+              <div id="perfStepRoute" class="performance-readiness-step" data-state="pending"><i>1</i><span><strong>Route</strong><small>Select a flight or enter airports</small></span></div>
+              <div id="perfStepRunways" class="performance-readiness-step" data-state="pending"><i>2</i><span><strong>Runways</strong><small>Confirm both runway ends</small></span></div>
+              <div id="perfStepWeight" class="performance-readiness-step" data-state="pending"><i>3</i><span><strong>Weights</strong><small>Load verified planning weights</small></span></div>
+              <div id="perfStepWeather" class="performance-readiness-step" data-state="pending"><i>4</i><span><strong>Review</strong><small>Calculate live conditions</small></span></div>
+            </div>
             <div class="performance-leg-setup-grid">
-              <div class="performance-leg-setup departure">
-                <div class="performance-leg-title"><span>Departure</span><strong>Takeoff runway</strong></div>
+              <div id="performanceDepartureSetup" class="performance-leg-setup departure" data-state="empty">
+                <div class="performance-leg-title"><span>Departure</span><strong>Takeoff runway</strong><em id="perfDepLegState">Airport required</em></div>
                 <div class="performance-setup-fields">
                   <label>Airport<input id="perfDep" maxlength="4" placeholder="EFHV" autocomplete="off" /></label>
                   <label>Runway<select id="perfDepRunway"><option value="">Select runway</option></select></label>
@@ -2767,8 +3100,8 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
                 <div class="runway-guidance"><small id="perfDepRunwayHint" class="runway-smart-hint">Enter an airport to load runway guidance.</small><button id="confirmDepRunwayBtn" type="button">Confirm runway</button></div>
               </div>
               <div class="performance-route-arrow" aria-hidden="true">&#8594;</div>
-              <div class="performance-leg-setup arrival">
-                <div class="performance-leg-title"><span>Arrival</span><strong>Landing runway</strong></div>
+              <div id="performanceArrivalSetup" class="performance-leg-setup arrival" data-state="empty">
+                <div class="performance-leg-title"><span>Arrival</span><strong>Landing runway</strong><em id="perfArrLegState">Airport required</em></div>
                 <div class="performance-setup-fields">
                   <label>Airport<input id="perfArr" maxlength="4" placeholder="EFHN" autocomplete="off" /></label>
                   <label>Runway<select id="perfArrRunway"><option value="">Select runway</option></select></label>
@@ -2776,16 +3109,16 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
                 <div class="runway-guidance"><small id="perfArrRunwayHint" class="runway-smart-hint">Enter an airport to load runway guidance.</small><button id="confirmArrRunwayBtn" type="button">Confirm runway</button></div>
               </div>
             </div>
-            <div class="performance-source-row" aria-label="Calculation sources"><span id="performanceWeightSource">Planned weight pending</span><span>METAR weather</span><span>Runway database</span><span>PA-28R advisory profile</span></div>
+            <div class="performance-source-row" aria-label="Calculation sources"><span id="performanceWeightSource" data-source="weight" data-state="pending">Planned weight pending</span><span id="performanceWeatherSource" data-source="weather" data-state="pending">METAR pending</span><span id="performanceRunwaySource" data-source="runway" data-state="pending">Runway database pending</span><span data-source="aircraft" data-state="ready">PA-28R profile ready</span></div>
           </section>
-          <div id="performanceStatus" class="performance-status" role="status" aria-live="polite">Select a flight and runway ends. Current weather, wind components, density altitude, and runway data will load automatically.</div>
+          <div id="performanceStatus" class="performance-status performance-smart-status" data-state="empty" role="status" aria-live="polite">Select a flight and runway ends. Current weather, wind components, density altitude, and runway data will load automatically.</div>
           <div class="performance-stage-tabs" role="tablist" aria-label="Aircraft performance phase">
             <button class="active" type="button" role="tab" aria-selected="true" data-performance-stage="takeoff"><span>Departure</span><strong>Takeoff</strong><small id="takeoffStageSummary">Select runway</small></button>
             <button type="button" role="tab" aria-selected="false" data-performance-stage="landing"><span>Arrival</span><strong>Landing</strong><small id="landingStageSummary">Select runway</small></button>
           </div>
           <div class="performance-results">
             <section class="performance-block active" data-performance-panel="takeoff">
-              <header class="performance-block-header"><div><small>Departure analysis</small><h3>Takeoff performance</h3></div><em id="takeoffPerfBadge" class="perf-status-badge">Ready</em></header>
+              <header class="performance-block-header"><div><small>Departure analysis</small><h3>Takeoff performance</h3></div><em id="takeoffPerfBadge" class="perf-status-badge">Not calculated</em></header>
               <div id="takeoffResultHeader" class="performance-result-header">
                 <div class="performance-result-status"><i class="status-lamp"></i><div><span>Overall result</span><strong id="takeoffResultStatus">DATA INCOMPLETE</strong><small id="takeoffResultMeta">Calculate to create a runway assessment</small></div></div>
                 <div class="performance-result-metric"><span>T/O dist req</span><strong id="takeoffResultRequired">-- FT</strong></div>
@@ -2796,8 +3129,9 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
               </div>
               <div class="performance-workspace-grid">
               <div class="performance-control-column">
-              <div class="performance-section-title">Airport and weather</div>
-              <div id="takeoffPerformanceMetrics" class="performance-rows">
+              <details class="performance-advanced" data-performance-details="takeoff">
+              <summary><span><strong>Runway &amp; weather</strong><small>Automatic values · tap to inspect or override</small></span><em>Live data</em></summary>
+              <div id="takeoffPerformanceMetrics" class="performance-rows performance-data-grid">
                 <div class="performance-item"><span class="performance-label">WIND</span><span class="performance-value performance-inline"><input id="perfTakeoffWind" value="AUTO" /><button id="perfTakeoffWindMode" type="button">AUTO</button></span></div>
                 <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfTakeoffHwXw" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">TORA</span><strong id="perfTakeoffTora" class="performance-value">N/A</strong></div>
@@ -2809,8 +3143,9 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
                 <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfTakeoffDensityAltitude" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfTakeoffSlope" class="performance-value">N/A</strong></div>
               </div>
-              <div class="performance-section-title">Inputs</div>
-              <div class="performance-rows">
+              </details>
+              <div class="performance-section-title performance-input-heading"><span>Aircraft setup</span><small>Confirm planned takeoff configuration</small></div>
+              <div class="performance-rows performance-input-grid">
                 <div class="performance-item"><span class="performance-label">WEIGHT</span><span class="performance-value"><input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" /></span></div>
                 <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfTakeoffFlaps"><option value="0">0 DEG</option><option value="10" selected>10 DEG</option><option value="25">25 DEG</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">SPEED UNIT</span><span class="performance-value"><select id="perfTakeoffSpeedUnit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
@@ -2845,7 +3180,7 @@ LOAD DATA TO CALCULATE.</pre></details>
               </div>
             </section>
             <section class="performance-block" data-performance-panel="landing">
-              <header class="performance-block-header"><div><small>Arrival analysis</small><h3>Landing performance</h3></div><em id="landingPerfBadge" class="perf-status-badge">Ready</em></header>
+              <header class="performance-block-header"><div><small>Arrival analysis</small><h3>Landing performance</h3></div><em id="landingPerfBadge" class="perf-status-badge">Not calculated</em></header>
               <div id="landingResultHeader" class="performance-result-header">
                 <div class="performance-result-status"><i class="status-lamp"></i><div><span>Overall result</span><strong id="landingResultStatus">DATA INCOMPLETE</strong><small id="landingResultMeta">Calculate to create a runway assessment</small></div></div>
                 <div class="performance-result-metric"><span>LDG dist req</span><strong id="landingResultRequired">-- FT</strong></div>
@@ -2856,8 +3191,9 @@ LOAD DATA TO CALCULATE.</pre></details>
               </div>
               <div class="performance-workspace-grid">
               <div class="performance-control-column">
-              <div class="performance-section-title">Airport and weather</div>
-              <div id="landingPerformanceMetrics" class="performance-rows">
+              <details class="performance-advanced" data-performance-details="landing">
+              <summary><span><strong>Runway &amp; weather</strong><small>Automatic values · tap to inspect or override</small></span><em>Live data</em></summary>
+              <div id="landingPerformanceMetrics" class="performance-rows performance-data-grid">
                 <div class="performance-item"><span class="performance-label">WIND</span><span class="performance-value performance-inline"><input id="perfLandingWind" value="AUTO" /><button id="perfLandingWindMode" type="button">AUTO</button></span></div>
                 <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfLandingHwXw" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">LDA</span><strong id="perfLandingLda" class="performance-value">N/A</strong></div>
@@ -2869,8 +3205,9 @@ LOAD DATA TO CALCULATE.</pre></details>
                 <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfLandingDensityAltitude" class="performance-value">N/A</strong></div>
                 <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfLandingSlope" class="performance-value">N/A</strong></div>
               </div>
-              <div class="performance-section-title">Inputs</div>
-              <div class="performance-rows">
+              </details>
+              <div class="performance-section-title performance-input-heading"><span>Aircraft setup</span><small>Confirm planned landing configuration</small></div>
+              <div class="performance-rows performance-input-grid">
                 <div class="performance-item"><span class="performance-label">WEIGHT</span><span class="performance-value"><input id="perfLdw" type="number" min="1400" max="2650" step="1" placeholder="2600" /></span></div>
                 <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfLandingFlaps"><option value="40">FULL / 40 DEG</option><option value="25">25 DEG</option><option value="10">10 DEG</option><option value="0">0 DEG</option></select></span></div>
                 <div class="performance-item"><span class="performance-label">SPEED UNIT</span><span class="performance-value"><select id="perfLandingSpeedUnit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
@@ -2906,45 +3243,67 @@ LOAD DATA TO CALCULATE.</pre></details>
         </div>
       </div>
       <div id="aircraftOpsPane" class="ops-tool-pane" hidden>
-        <div class="aircraft-console">
-          <section class="aircraft-status-hero" aria-label="Current aircraft status">
-            <div class="aircraft-status-identity"><span>Primary aircraft</span><h2>Piper PA-28R-200 Arrow II</h2><strong id="aircraftServiceabilityHero">STATUS LOADING</strong></div>
-            <div class="aircraft-status-metric"><span>Fuel on board</span><strong id="aircraftFuelHero">-- USG</strong></div>
-            <div class="aircraft-status-metric"><span>Oil quantity</span><strong id="aircraftOilHero">-- QT</strong></div>
-            <div class="aircraft-status-metric"><span>Next maintenance</span><strong id="aircraftMaintenanceHero">NOT ENTERED</strong></div>
+        <div id="aircraftConsole" class="aircraft-console aircraft-app" data-state="loading">
+          <section id="aircraftStatusHero" class="aircraft-status-hero aircraft-fleet-hero" data-state="loading" aria-label="Current aircraft status">
+            <div class="aircraft-hero-copy">
+              <span>Primary aircraft · OH-PMK</span>
+              <h2>Piper Arrow II</h2>
+              <p>PA-28R-200 · Four seat complex single</p>
+              <div class="aircraft-serviceability-pill"><i aria-hidden="true"></i><strong id="aircraftServiceabilityHero">STATUS LOADING</strong></div>
+              <button id="editAircraftStatusBtn" class="aircraft-hero-action" type="button">Update aircraft</button>
+            </div>
+            <div class="aircraft-hero-visual" aria-hidden="true"><img src="/piper-render-transparent.png" alt="" /></div>
+            <div class="aircraft-hero-metrics" aria-label="Latest aircraft readings">
+              <div class="aircraft-status-metric" data-metric="fuel"><span>Fuel on board</span><strong id="aircraftFuelHero">-- USG</strong><small id="aircraftFuelMeta">Capacity record pending</small><i id="aircraftFuelGauge" aria-hidden="true"></i></div>
+              <div class="aircraft-status-metric" data-metric="oil"><span>Oil quantity</span><strong id="aircraftOilHero">-- QT</strong><small id="aircraftOilMeta">Latest check pending</small></div>
+              <div class="aircraft-status-metric" data-metric="tach"><span>Tach time</span><strong id="aircraftTachHero">-- H</strong><small id="aircraftTachMeta">Aircraft time record</small></div>
+              <div class="aircraft-status-metric" data-metric="maintenance"><span>Next maintenance</span><strong id="aircraftMaintenanceHero">NOT ENTERED</strong><small id="aircraftMaintenanceMeta">Due record pending</small></div>
+            </div>
+          </section>
+          <section id="aircraftHealthStrip" class="aircraft-health-strip" data-state="loading" aria-label="Aircraft record health">
+            <div id="aircraftHealthService" data-state="pending"><i aria-hidden="true"></i><span><strong>Serviceability</strong><small>Loading aircraft record</small></span></div>
+            <div id="aircraftHealthFluids" data-state="pending"><i aria-hidden="true"></i><span><strong>Fuel &amp; oil</strong><small>Latest readings pending</small></span></div>
+            <div id="aircraftHealthMaintenance" data-state="pending"><i aria-hidden="true"></i><span><strong>Maintenance</strong><small>Due status pending</small></span></div>
+            <div id="aircraftHealthSync" data-state="pending"><i aria-hidden="true"></i><span><strong>Record sync</strong><small>Connecting to aircraft file</small></span></div>
           </section>
           <div class="aircraft-panel-grid">
-            <section class="aircraft-panel">
-              <header class="aircraft-panel-head"><div><span>Aircraft control record</span><strong>Serviceability and maintenance</strong></div><em id="aircraftUpdatedState">NOT SYNCED</em></header>
-              <div class="aircraft-form-grid">
+            <section id="aircraftRecordPanel" class="aircraft-panel aircraft-record-panel" data-state="loading">
+              <header class="aircraft-panel-head"><div><span>Aircraft control</span><strong>Current status</strong><p>Keep the three flight-critical records current. Technical time and maintenance details remain available below.</p></div><em id="aircraftUpdatedState">NOT SYNCED</em></header>
+              <div class="aircraft-form-grid aircraft-quick-fields">
                 <label>Serviceability<select id="aircraftServiceability"><option value="SERVICEABLE">Serviceable</option><option value="RESTRICTED">Restricted / review</option><option value="GROUNDED">Grounded</option></select></label>
                 <label>Fuel on board (USG)<input id="aircraftFuelOnBoard" type="number" min="0" max="48" step="0.1" inputmode="decimal" /></label>
                 <label>Oil quantity (QT)<input id="aircraftOilQuantity" type="number" min="0" max="20" step="0.1" inputmode="decimal" /></label>
-                <label>Tach time (H)<input id="aircraftTachHours" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
-                <label>Airframe time (H)<input id="aircraftAirframeHours" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
-                <label>Next maintenance date<input id="aircraftMaintenanceDate" type="date" /></label>
-                <label>Maintenance due tach (H)<input id="aircraftMaintenanceTach" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
-                <label class="aircraft-field-wide">Aircraft status note<textarea id="aircraftStatusNote" placeholder="Open defects, restrictions, or serviceability note"></textarea></label>
-                <label class="aircraft-field-wide">Maintenance note<textarea id="aircraftMaintenanceNote" placeholder="Next inspection, due item, or maintenance planning note"></textarea></label>
               </div>
-              <button id="saveAircraftStatusBtn" class="aircraft-save" type="button">Save aircraft status</button>
+              <div id="aircraftRecordGuidance" class="aircraft-record-guidance" data-state="pending"><i aria-hidden="true"></i><span>Enter the latest aircraft readings before saving.</span></div>
+              <details class="aircraft-advanced-record">
+                <summary><span><strong>Technical record</strong><small>Hours, maintenance due and operational notes</small></span><em>Show details</em></summary>
+                <div class="aircraft-form-grid">
+                  <label>Tach time (H)<input id="aircraftTachHours" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
+                  <label>Airframe time (H)<input id="aircraftAirframeHours" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
+                  <label>Next maintenance date<input id="aircraftMaintenanceDate" type="date" /></label>
+                  <label>Maintenance due tach (H)<input id="aircraftMaintenanceTach" type="number" min="0" max="100000" step="0.1" inputmode="decimal" /></label>
+                  <label class="aircraft-field-wide">Aircraft status note<textarea id="aircraftStatusNote" placeholder="Open defects, restrictions, or serviceability note"></textarea></label>
+                  <label class="aircraft-field-wide">Maintenance note<textarea id="aircraftMaintenanceNote" placeholder="Next inspection, due item, or maintenance planning note"></textarea></label>
+                </div>
+              </details>
+              <button id="saveAircraftStatusBtn" class="aircraft-save" type="button">Save aircraft record</button>
             </section>
-            <section class="aircraft-panel">
-              <header class="aircraft-panel-head"><div><span>Live fluid record</span><strong>Fuel and oil checkpoint</strong></div><em id="fluidLogState">READY</em></header>
+            <section class="aircraft-panel aircraft-fluid-panel" data-state="ready">
+              <header class="aircraft-panel-head"><div><span>Quick checkpoint</span><strong>Fuel &amp; oil log</strong><p>Capture the current reading without changing the technical record.</p></div><em id="fluidLogState">READY</em></header>
               <div class="aircraft-form-grid fluid-log-form">
                 <label>Checkpoint<select id="fluidLogPhase"><option value="PRE-FLIGHT">Pre-flight</option><option value="TAXI">Taxi</option><option value="IN-FLIGHT">In-flight</option><option value="POST-FLIGHT">Post-flight</option><option value="REFUEL">Refuel</option><option value="OIL CHECK">Oil check</option></select></label>
                 <label>Fuel reading (USG)<input id="fluidLogFuel" type="number" min="0" max="48" step="0.1" inputmode="decimal" /></label>
                 <label>Oil reading (QT)<input id="fluidLogOil" type="number" min="0" max="20" step="0.1" inputmode="decimal" /></label>
                 <label class="wide">Operational note<input id="fluidLogNote" maxlength="240" placeholder="Optional note" /></label>
               </div>
-              <button id="recordFluidLogBtn" class="aircraft-save" type="button">Record checkpoint now</button>
+              <div class="aircraft-fluid-actions"><button id="prefillFluidLogBtn" type="button">Use latest readings</button><button id="recordFluidLogBtn" class="aircraft-save" type="button">Record checkpoint</button></div>
               <div id="aircraftLog" class="aircraft-log"><div class="aircraft-empty">No fuel or oil checkpoints recorded.</div></div>
             </section>
           </div>
-          <section class="aircraft-panel">
-            <header class="aircraft-panel-head"><div><span>Tablet operations</span><strong>Offline-ready EFB shell</strong></div><em id="offlineSnapshotState">ONLINE DATA REQUIRED FOR FIRST LOAD</em></header>
+          <section class="aircraft-panel aircraft-device-panel">
+            <header class="aircraft-panel-head"><div><span>Device readiness</span><strong>Offline EFB</strong></div><em id="offlineSnapshotState">ONLINE DATA REQUIRED FOR FIRST LOAD</em></header>
             <p class="performance-note">The installed EFB shell and the latest non-sensitive operational flight snapshot remain available when connectivity drops. Live weather, database writes, passenger records, and new timestamps still require a connection.</p>
-            <button id="installPilotAppBtn" class="aircraft-save" type="button">Install Pilot EFB / iPad instructions</button>
+            <button id="installPilotAppBtn" class="aircraft-save" type="button">Install on this device</button>
           </section>
         </div>
       </div>
@@ -3205,9 +3564,9 @@ END OF MESSAGE</pre>
   </main>
 
   <dialog id="commandDialog" class="shell-dialog" aria-labelledby="commandDialogTitle">
-    <div class="shell-dialog-head"><strong id="commandDialogTitle">Search EFB</strong><button class="shell-icon-button" type="button" data-close-dialog="commandDialog">Close</button></div>
+    <div class="shell-dialog-head"><strong id="commandDialogTitle">Pilot EFB assistant</strong><button class="shell-icon-button" type="button" data-close-dialog="commandDialog">Close</button></div>
     <div class="shell-dialog-body">
-      <input id="commandInput" class="command-input" type="search" autocomplete="off" placeholder="Search flight reference, route, passenger, or workspace" />
+      <input id="commandInput" class="command-input" type="search" autocomplete="off" placeholder="Try ‘takeoff performance’, ‘METAR’, or a flight reference" />
       <div id="commandResults" class="command-results" role="listbox" aria-label="Search results"></div>
     </div>
   </dialog>
@@ -3400,6 +3759,10 @@ END OF MESSAGE</pre>
     const applyPerformanceToOfpBtn = el('applyPerformanceToOfpBtn');
     const openPerformanceOfpBtn = el('openPerformanceOfpBtn');
     const performanceStatus = el('performanceStatus');
+    const performanceConsole = el('performanceConsole');
+    const performanceFlightSetup = document.querySelector('.performance-flight-setup');
+    const performanceWeatherSource = el('performanceWeatherSource');
+    const performanceRunwaySource = el('performanceRunwaySource');
     const takeoffPerformanceMetrics = el('takeoffPerformanceMetrics');
     const landingPerformanceMetrics = el('landingPerformanceMetrics');
     const takeoffPerformanceOutputs = el('takeoffPerformanceOutputs');
@@ -3416,9 +3779,18 @@ END OF MESSAGE</pre>
     const suiteOpenFlightFileBtn = el('suiteOpenFlightFileBtn');
     const suiteOpenAgreementsBtn = el('suiteOpenAgreementsBtn');
     const aircraftServiceabilityHero = el('aircraftServiceabilityHero');
+    const aircraftConsole = el('aircraftConsole');
+    const aircraftStatusHero = el('aircraftStatusHero');
+    const aircraftHealthStrip = el('aircraftHealthStrip');
     const aircraftFuelHero = el('aircraftFuelHero');
+    const aircraftFuelMeta = el('aircraftFuelMeta');
+    const aircraftFuelGauge = el('aircraftFuelGauge');
     const aircraftOilHero = el('aircraftOilHero');
+    const aircraftOilMeta = el('aircraftOilMeta');
+    const aircraftTachHero = el('aircraftTachHero');
     const aircraftMaintenanceHero = el('aircraftMaintenanceHero');
+    const aircraftMaintenanceMeta = el('aircraftMaintenanceMeta');
+    const aircraftRecordGuidance = el('aircraftRecordGuidance');
     const aircraftUpdatedState = el('aircraftUpdatedState');
     const aircraftServiceability = el('aircraftServiceability');
     const aircraftFuelOnBoard = el('aircraftFuelOnBoard');
@@ -3430,11 +3802,13 @@ END OF MESSAGE</pre>
     const aircraftStatusNote = el('aircraftStatusNote');
     const aircraftMaintenanceNote = el('aircraftMaintenanceNote');
     const saveAircraftStatusBtn = el('saveAircraftStatusBtn');
+    const editAircraftStatusBtn = el('editAircraftStatusBtn');
     const fluidLogPhase = el('fluidLogPhase');
     const fluidLogFuel = el('fluidLogFuel');
     const fluidLogOil = el('fluidLogOil');
     const fluidLogNote = el('fluidLogNote');
     const recordFluidLogBtn = el('recordFluidLogBtn');
+    const prefillFluidLogBtn = el('prefillFluidLogBtn');
     const fluidLogState = el('fluidLogState');
     const aircraftLog = el('aircraftLog');
     const installPilotAppBtn = el('installPilotAppBtn');
@@ -3512,14 +3886,25 @@ END OF MESSAGE</pre>
     }
 
     const workspaceCommands = [
-      { view:'dashboard', label:'Operations dashboard', detail:'Live overview, queue totals, schedule, and operational watch' },
-      { view:'flights', label:'Flights', detail:'Booking queue, crew, decisions, passenger files, and timeline' },
-      { view:'flight-plan', label:'Operational flight plan', detail:'Route, fuel, load, release, and movement log' },
-      { view:'weather', label:'Weather dispatch', detail:'Raw METAR, TAF, flight category, and dispatch PDF' },
-      { view:'performance', label:'Aircraft performance', detail:'Takeoff, landing, runway, wind, and density altitude' },
-      { view:'aircraft', label:'Aircraft status', detail:'Serviceability, fuel, oil, hours, and maintenance' },
-      { view:'documents', label:'Flight files', detail:'OFP, agreements, statement, and operations documents' }
+      { view:'dashboard', label:'Operations dashboard', detail:'Live overview, queue totals, schedule, and operational watch', keywords:'home status today overview alerts ready' },
+      { view:'flights', label:'Flights', detail:'Booking queue, crew, decisions, passenger files, and timeline', keywords:'booking passenger commander pilot crew request schedule' },
+      { view:'flight-plan', label:'Operational flight plan', detail:'Route, fuel, load, release, and movement log', keywords:'plan ofp eobt utc local direct dct route release block fuel payload out off on in' },
+      { view:'weather', label:'Weather dispatch', detail:'Raw METAR, TAF, flight category, and dispatch PDF', keywords:'metar taf winds clouds visibility briefing forecast wx' },
+      { view:'performance', label:'Aircraft performance', detail:'Takeoff, landing, runway, wind, and density altitude', keywords:'perf calculate ground roll obstacle accelerate stop weight oat qnh headwind tailwind' },
+      { view:'aircraft', label:'Aircraft status', detail:'Serviceability, fuel, oil, hours, and maintenance', keywords:'technical ready defect tach inspection onboard profile pa28 oh-pmk' },
+      { view:'documents', label:'Flight files', detail:'OFP, agreements, statement, and operations documents', keywords:'pdf file signature signed contract boarding pass download' }
     ];
+
+    const pilotAssistantStopWords = new Set(['A', 'AN', 'AND', 'CAN', 'CHECK', 'DO', 'FOR', 'GO', 'HOW', 'I', 'IN', 'IS', 'ME', 'MY', 'OF', 'OPEN', 'PLEASE', 'SHOW', 'THE', 'TO', 'WANT', 'WHAT', 'WITH']);
+
+    function pilotAssistantTokens(value) {
+      return String(value || '').toUpperCase().split(/[^A-Z0-9-]+/).filter(token => token.length > 1 && !pilotAssistantStopWords.has(token));
+    }
+
+    function pilotAssistantMatches(haystack, tokens) {
+      const searchable = String(haystack || '').toUpperCase();
+      return !tokens.length || tokens.every(token => searchable.includes(token));
+    }
 
     function openShellDialog(dialog, focusTarget) {
       if (!dialog) return;
@@ -3545,8 +3930,9 @@ END OF MESSAGE</pre>
 
     function renderCommandResults(query = '') {
       const normalized = String(query || '').trim().toUpperCase();
-      const modules = workspaceCommands.filter(command => !normalized || `${command.label} ${command.detail}`.toUpperCase().includes(normalized));
-      const flights = sortQueue(requests.filter(req => !normalized || requestSearchText(req).includes(normalized))).slice(0, 8);
+      const tokens = pilotAssistantTokens(normalized);
+      const modules = workspaceCommands.filter(command => pilotAssistantMatches(`${command.label} ${command.detail} ${command.keywords || ''}`, tokens));
+      const flights = sortQueue(requests.filter(req => !tokens.length || pilotAssistantMatches(requestSearchText(req), tokens))).slice(0, 8);
       const moduleMarkup = modules.map(command => `
         <button class="command-result" type="button" data-command-view="${escapeHtml(command.view)}">
           <div><strong>${escapeHtml(command.label)}</strong><small>${escapeHtml(command.detail)}</small></div><span>OPEN TOOL</span>
@@ -3557,7 +3943,7 @@ END OF MESSAGE</pre>
           <div><strong>${escapeHtml(req.id)} / ${escapeHtml(req.route || 'MANUAL OFP')}</strong><small>${escapeHtml([req.requestDate, req.requestTime, req.name || 'PILOT FILE', req.status].filter(Boolean).join(' / '))}</small></div><span>OPEN FLIGHT</span>
         </button>
       `).join('');
-      commandResults.innerHTML = moduleMarkup + flightMarkup || '<div class="notification-empty">No matching tools or flights.</div>';
+      commandResults.innerHTML = moduleMarkup + flightMarkup || `<div class="notification-empty">No match for “${escapeHtml(query)}”. Try an airport, flight reference, METAR, OFP, takeoff, or maintenance.</div>`;
     }
 
     function operationalNotifications() {
@@ -3778,6 +4164,65 @@ END OF MESSAGE</pre>
       picReleaseBtn.textContent = state.released ? 'PIC release recorded' : pilotSession?.role === 'COMMANDER' ? 'Record PIC release' : 'Commander release required';
     }
 
+    function setAircraftHealthItem(id, state, detail) {
+      const item = el(id);
+      if (!item) return;
+      item.dataset.state = state;
+      const detailNode = item.querySelector('small');
+      if (detailNode) detailNode.textContent = detail;
+    }
+
+    function aircraftMaintenanceReadiness(status) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const signals = [];
+      if (status?.nextMaintenanceDate) {
+        const dueDate = new Date(`${status.nextMaintenanceDate}T00:00:00`);
+        if (Number.isFinite(dueDate.getTime())) {
+          const days = Math.ceil((dueDate.getTime() - today.getTime()) / 86400000);
+          signals.push(days < 0
+            ? { state:'danger', detail:`Maintenance date overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'}` }
+            : days <= 30
+              ? { state:'caution', detail:`Maintenance due in ${days} day${days === 1 ? '' : 's'}` }
+              : { state:'ready', detail:`Maintenance due in ${days} days` });
+        }
+      }
+      const tach = finite(status?.tachHours);
+      const dueTach = finite(status?.nextMaintenanceTachHours);
+      if (Number.isFinite(tach) && Number.isFinite(dueTach)) {
+        const remaining = Math.round((dueTach - tach) * 10) / 10;
+        signals.push(remaining < 0
+          ? { state:'danger', detail:`Maintenance tach overdue by ${Math.abs(remaining)} H` }
+          : remaining <= 10
+            ? { state:'caution', detail:`Maintenance due in ${remaining} H` }
+            : { state:'ready', detail:`${remaining} H until maintenance` });
+      }
+      if (!signals.length) return { state:'pending', detail:'Maintenance due schedule not entered' };
+      return signals.find(signal => signal.state === 'danger') || signals.find(signal => signal.state === 'caution') || signals[0];
+    }
+
+    function syncAircraftFormGuidance() {
+      if (!aircraftRecordGuidance) return;
+      const serviceability = aircraftServiceability.value;
+      const fuelRecorded = finite(aircraftFuelOnBoard.value) !== null;
+      const oilRecorded = finite(aircraftOilQuantity.value) !== null;
+      let state = 'ready';
+      let message = 'Aircraft record is complete and ready to save. Operational suitability remains the pilot’s decision.';
+      if (serviceability === 'GROUNDED') {
+        state = 'danger';
+        message = 'Aircraft is grounded. Flight release remains blocked until the status is changed by an authorized pilot.';
+      } else if (serviceability === 'RESTRICTED') {
+        state = 'caution';
+        message = 'Restricted status requires pilot review and a clear operational note.';
+      } else if (!fuelRecorded || !oilRecorded) {
+        state = 'caution';
+        message = `${!fuelRecorded && !oilRecorded ? 'Fuel and oil readings are' : !fuelRecorded ? 'Fuel reading is' : 'Oil reading is'} missing from the aircraft record.`;
+      }
+      aircraftRecordGuidance.dataset.state = state;
+      aircraftRecordGuidance.querySelector('span').textContent = message;
+      el('aircraftRecordPanel').dataset.state = state;
+    }
+
     function aircraftMaintenanceLabel(status) {
       if (!status) return 'NOT ENTERED';
       const values = [];
@@ -3788,11 +4233,25 @@ END OF MESSAGE</pre>
 
     function renderAircraftStatus(status = aircraftStatus, updateForm = true) {
       if (!status) return;
-      aircraftServiceabilityHero.textContent = status.serviceability || 'REVIEW';
+      const serviceability = status.serviceability || 'REVIEW';
+      const heroState = serviceability === 'SERVICEABLE' ? 'serviceable' : serviceability === 'GROUNDED' ? 'grounded' : 'restricted';
+      aircraftConsole.dataset.state = heroState;
+      aircraftStatusHero.dataset.state = heroState;
+      aircraftServiceabilityHero.textContent = serviceability;
       aircraftServiceabilityHero.style.color = status.serviceability === 'SERVICEABLE' ? 'var(--live)' : status.serviceability === 'GROUNDED' ? 'var(--danger)' : 'var(--warn)';
+      el('efbFlightHero').dataset.aircraftState = String(status.serviceability || 'REVIEW').toLowerCase();
+      el('efbHeroAircraftStatus').textContent = `${status.serviceability || 'REVIEW'}${status.fuelOnBoardGal === null || status.fuelOnBoardGal === undefined ? '' : ` / ${status.fuelOnBoardGal} USG`}`;
       aircraftFuelHero.textContent = status.fuelOnBoardGal === null || status.fuelOnBoardGal === undefined ? '-- USG' : `${status.fuelOnBoardGal} USG`;
       aircraftOilHero.textContent = status.oilQuarts === null || status.oilQuarts === undefined ? '-- QT' : `${status.oilQuarts} QT`;
+      aircraftTachHero.textContent = status.tachHours === null || status.tachHours === undefined ? '-- H' : `${status.tachHours} H`;
       aircraftMaintenanceHero.textContent = aircraftMaintenanceLabel(status);
+      const fuelValue = finite(status.fuelOnBoardGal);
+      const fuelPercent = Number.isFinite(fuelValue) ? Math.max(0, Math.min(100, Math.round(fuelValue / 48 * 100))) : 0;
+      aircraftFuelGauge.style.setProperty('--aircraft-fuel-level', `${fuelPercent}%`);
+      aircraftFuelMeta.textContent = Number.isFinite(fuelValue) ? `${fuelPercent}% of 48 USG capacity · verify for flight` : 'Capacity record pending';
+      aircraftOilMeta.textContent = status.oilQuarts === null || status.oilQuarts === undefined ? 'Latest check pending' : 'Latest recorded quantity · verify dipstick';
+      const maintenance = aircraftMaintenanceReadiness(status);
+      aircraftMaintenanceMeta.textContent = maintenance.detail;
       aircraftUpdatedState.textContent = status.updatedAt ? `UPDATED ${new Date(status.updatedAt).toLocaleString('en-GB', { hour12:false })}` : 'NOT YET RECORDED';
       if (updateForm) {
         aircraftServiceability.value = status.serviceability || 'RESTRICTED';
@@ -3805,6 +4264,13 @@ END OF MESSAGE</pre>
         aircraftStatusNote.value = status.statusNote || '';
         aircraftMaintenanceNote.value = status.maintenanceNote || '';
       }
+      setAircraftHealthItem('aircraftHealthService', heroState === 'serviceable' ? 'ready' : heroState === 'grounded' ? 'danger' : 'caution', heroState === 'serviceable' ? 'Aircraft marked serviceable' : heroState === 'grounded' ? 'Aircraft grounded · release blocked' : 'Operational restriction requires review');
+      const fluidsReady = fuelValue !== null && finite(status.oilQuarts) !== null;
+      setAircraftHealthItem('aircraftHealthFluids', fluidsReady ? 'ready' : 'caution', fluidsReady ? 'Fuel and oil quantities recorded' : 'Fuel or oil reading is missing');
+      setAircraftHealthItem('aircraftHealthMaintenance', maintenance.state, maintenance.detail);
+      setAircraftHealthItem('aircraftHealthSync', status.updatedAt ? 'ready' : 'pending', status.updatedAt ? `Synced ${new Date(status.updatedAt).toLocaleString('en-GB', { hour12:false })}` : 'Aircraft record has not been saved');
+      aircraftHealthStrip.dataset.state = heroState === 'grounded' || maintenance.state === 'danger' ? 'danger' : heroState === 'restricted' || maintenance.state === 'caution' || !fluidsReady ? 'caution' : 'ready';
+      syncAircraftFormGuidance();
       const logs = Array.isArray(status.fuelLog) ? status.fuelLog.slice().reverse() : [];
       aircraftLog.innerHTML = logs.length ? logs.slice(0, 30).map(entry => `
         <div class="aircraft-log-entry"><span>${escapeHtml(entry.phase || 'CHECK')}</span><strong>${escapeHtml([entry.flightId, entry.fuelGal === null || entry.fuelGal === undefined ? '' : `FUEL ${entry.fuelGal} USG`, entry.oilQuarts === null || entry.oilQuarts === undefined ? '' : `OIL ${entry.oilQuarts} QT`, entry.note].filter(Boolean).join(' / '))}</strong><small>${escapeHtml(entry.recordedAt ? new Date(entry.recordedAt).toLocaleString('en-GB', { hour12:false }) : '')}<br>${escapeHtml(entry.recordedBy || '')}</small></div>
@@ -3814,9 +4280,16 @@ END OF MESSAGE</pre>
     }
 
     async function loadAircraftStatus() {
+      aircraftConsole.dataset.state = 'loading';
+      aircraftStatusHero.dataset.state = 'loading';
       const response = await fetch('/api/booking-ops/aircraft-status', { cache:'no-store' });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'AIRCRAFT STATUS UNAVAILABLE');
+      if (!response.ok) {
+        aircraftConsole.dataset.state = 'danger';
+        aircraftStatusHero.dataset.state = 'error';
+        setAircraftHealthItem('aircraftHealthSync', 'danger', data.error || 'Aircraft record unavailable');
+        throw new Error(data.error || 'AIRCRAFT STATUS UNAVAILABLE');
+      }
       aircraftStatus = data.aircraftStatus;
       renderAircraftStatus();
       return aircraftStatus;
@@ -3975,6 +4448,43 @@ END OF MESSAGE</pre>
       activeFlightDocs.textContent = docsLabel;
       setStripTone(activeFlightPhaseCard, phase.tone);
       setStripTone(activeFlightWeatherCard, weatherReady ? (weatherPartial ? 'warn' : categoryRisk) : (req ? 'warn' : ''));
+
+      const hero = el('efbFlightHero');
+      const heroRoute = req ? (req.route || `${req.dep || '----'} > ${req.arr || '----'}`) : 'Select a flight to begin';
+      hero.dataset.active = String(Boolean(req));
+      hero.dataset.tone = phase.tone || 'neutral';
+      el('efbHeroState').textContent = req ? phase.label : 'Standby';
+      el('efbHeroRoute').textContent = heroRoute;
+      el('efbHeroReference').textContent = req
+        ? `${req.id || 'REFERENCE PENDING'} / ${phase.detail}`
+        : 'The aircraft, schedule, weather, load, and release state will stay visible across the EFB.';
+      el('efbHeroSchedule').textContent = req
+        ? `${scheduleLocal}L${scheduleUtc ? ` / ${scheduleUtc}` : ' / UTC pending'}`
+        : 'Local / UTC pending';
+      el('efbHeroFuel').textContent = req ? (ofp.blockFuelGal ? `${ofp.blockFuelGal} USG` : 'TBC') : 'TBC';
+      el('efbHeroLoad').textContent = req ? `${load.totalKg} KG` : 'TBC';
+      el('efbHeroWeather').textContent = !req
+        ? 'Not briefed'
+        : weatherReady
+          ? (weatherPartial ? 'Partial data' : `${depCategory} / ${arrCategory}`)
+          : 'Not briefed';
+      el('efbHeroAircraftStatus').textContent = aircraftStatus?.serviceability
+        ? `${aircraftStatus.serviceability}${aircraftStatus.fuelOnBoardGal === null || aircraftStatus.fuelOnBoardGal === undefined ? '' : ` / ${aircraftStatus.fuelOnBoardGal} USG`}`
+        : 'Awaiting live status';
+      const heroPhaseIndex = !req ? -1
+        : ofp.actualIn ? 3
+          : ofp.actualOn ? 3
+            : ofp.actualOff ? 2
+              : ofp.actualOut || releaseClientState(req).released ? 1
+                : 0;
+      const heroPhaseProgress = [-1, 0, 1, 2, 3].includes(heroPhaseIndex)
+        ? ['0%', '12%', '42%', '72%', '100%'][heroPhaseIndex + 1]
+        : '0%';
+      el('efbHeroPhase').style.setProperty('--phase-progress', heroPhaseProgress);
+      document.querySelectorAll('[data-hero-phase]').forEach((step, index) => {
+        step.classList.toggle('complete', heroPhaseIndex >= index);
+        step.classList.toggle('active', heroPhaseIndex === index);
+      });
       renderFlightContextPanel(req);
     }
 
@@ -4390,6 +4900,7 @@ END OF MESSAGE</pre>
       select.value = selectedValue;
       if (!select.value && runways.length) select.value = runways[0].ident;
       select.dataset.selectionSource = selectedValue ? 'saved' : 'auto';
+      syncPerformanceWorkflowState();
     }
 
     function runwayComponents(runway, wind) {
@@ -4578,7 +5089,9 @@ END OF MESSAGE</pre>
       visibleWorkspace.classList.remove('workspace-enter');
       window.requestAnimationFrame(() => visibleWorkspace.classList.add('workspace-enter'));
       history.replaceState(null, '', view === 'dashboard' ? location.pathname : `${location.pathname}#${view}`);
-      if (!dashboardActive && !flightsActive) opsToolWorkspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+      if (dashboardActive || flightsActive) window.scrollTo({ top:0, behavior:scrollBehavior });
+      else opsToolWorkspace.scrollIntoView({ behavior:scrollBehavior, block:'start' });
     }
 
     const PERFORMANCE_AIRCRAFT = Object.freeze({
@@ -4590,6 +5103,82 @@ END OF MESSAGE</pre>
 
     function performanceMetric(label, value, tone = '') {
       return `<div class="performance-metric"><span>${escapeHtml(label)}</span><strong class="${tone}">${escapeHtml(value ?? 'N/A')}</strong></div>`;
+    }
+
+    function setPerformanceReadinessStep(id, state, detail) {
+      const step = el(id);
+      if (!step) return;
+      step.dataset.state = state;
+      const detailNode = step.querySelector('small');
+      if (detailNode && detail) detailNode.textContent = detail;
+      const marker = step.querySelector(':scope > i');
+      if (marker) marker.textContent = state === 'complete' ? '✓' : ({ perfStepRoute:'1', perfStepRunways:'2', perfStepWeight:'3', perfStepWeather:'4' }[id] || '•');
+    }
+
+    function syncPerformanceWorkflowState() {
+      if (!performanceConsole) return;
+      const dep = perfDep.value.trim().toUpperCase();
+      const arr = perfArr.value.trim().toUpperCase();
+      const routeReady = /^[A-Z0-9]{4}$/.test(dep) && /^[A-Z0-9]{4}$/.test(arr);
+      const depSelected = Boolean(perfDepRunway.value);
+      const arrSelected = Boolean(perfArrRunway.value);
+      const depConfirmed = depSelected && ['pilot', 'saved'].includes(perfDepRunway.dataset.selectionSource);
+      const arrConfirmed = arrSelected && ['pilot', 'saved'].includes(perfArrRunway.dataset.selectionSource);
+      const runwaysReady = depConfirmed && arrConfirmed;
+      const takeoffWeight = finite(perfTow.value);
+      const landingWeight = finite(perfLdw.value);
+      const weightsReady = Number.isFinite(takeoffWeight) && Number.isFinite(landingWeight) && takeoffWeight >= 1400 && landingWeight >= 1400 && takeoffWeight <= PERFORMANCE_AIRCRAFT.maxTakeoffWeightLbs && landingWeight <= PERFORMANCE_AIRCRAFT.maxLandingWeightLbs;
+      const weatherReady = Boolean(latestPerformanceData);
+      const calculations = [latestPerformanceCalculations?.takeoff, latestPerformanceCalculations?.landing].filter(Boolean);
+      const calculationIncomplete = calculations.some(calc => calc?.incompleteReasons?.length);
+      const calculationCaution = calculations.some(calc => calc?.cautions?.length || finite(calc?.remaining) < 0 || finite(calc?.stopMargin) < 0);
+
+      setPerformanceReadinessStep('perfStepRoute', routeReady ? 'complete' : 'active', routeReady ? `${dep} to ${arr}` : 'Select a flight or enter airports');
+      setPerformanceReadinessStep('perfStepRunways', runwaysReady ? 'complete' : routeReady ? 'active' : 'pending', runwaysReady ? `${perfDepRunway.value} and ${perfArrRunway.value} confirmed` : depSelected || arrSelected ? 'Pilot confirmation required' : 'Confirm both runway ends');
+      setPerformanceReadinessStep('perfStepWeight', weightsReady ? 'complete' : routeReady ? 'caution' : 'pending', weightsReady ? `${Math.round(takeoffWeight)} LB TOW · ${Math.round(landingWeight)} LB LDW` : 'Verified TOW and LDW required');
+      setPerformanceReadinessStep('perfStepWeather', weatherReady && calculations.length === 2 && !calculationIncomplete ? 'complete' : runPerformanceBtn.disabled ? 'active' : calculationIncomplete ? 'caution' : 'pending', weatherReady ? calculationIncomplete ? 'Review incomplete data' : 'Live review calculated' : 'Calculate live conditions');
+
+      const setLegState = (kind, icao, selectedRunway, confirmed) => {
+        const setup = el(kind === 'departure' ? 'performanceDepartureSetup' : 'performanceArrivalSetup');
+        const label = el(kind === 'departure' ? 'perfDepLegState' : 'perfArrLegState');
+        const airportReady = /^[A-Z0-9]{4}$/.test(icao);
+        const state = !airportReady ? 'empty' : !selectedRunway ? 'active' : confirmed ? 'ready' : 'active';
+        setup.dataset.state = state;
+        label.textContent = !airportReady ? 'Airport required' : !selectedRunway ? 'Select runway' : confirmed ? `RWY ${selectedRunway} confirmed` : 'Pilot confirmation required';
+      };
+      setLegState('departure', dep, perfDepRunway.value, depConfirmed);
+      setLegState('arrival', arr, perfArrRunway.value, arrConfirmed);
+
+      const runwayCount = performanceRunwayCatalog.departure.length + performanceRunwayCatalog.arrival.length;
+      performanceRunwaySource.dataset.state = runwayCount ? 'ready' : routeReady ? 'loading' : 'pending';
+      performanceRunwaySource.textContent = runwayCount ? `${runwayCount} runway ends loaded` : routeReady ? 'Loading runway database' : 'Runway database pending';
+      el('performanceWeightSource').dataset.state = weightsReady ? 'ready' : 'caution';
+      performanceWeatherSource.dataset.state = weatherReady ? 'ready' : runPerformanceBtn.disabled ? 'loading' : 'pending';
+      const takeoffStation = latestPerformanceData?.takeoff?.runwayAndWeather?.weatherSource?.station;
+      const landingStation = latestPerformanceData?.landing?.airportAndWeather?.weatherSource?.station;
+      performanceWeatherSource.textContent = weatherReady ? `METAR ${[takeoffStation, landingStation].filter(Boolean).join(' / ') || 'loaded'}` : runPerformanceBtn.disabled ? 'Loading METAR weather' : 'METAR pending';
+
+      const state = runPerformanceBtn.disabled ? 'loading' : calculationIncomplete || calculationCaution ? 'caution' : calculations.length === 2 ? 'ready' : routeReady ? 'active' : 'empty';
+      performanceConsole.dataset.state = state;
+      performanceFlightSetup.dataset.state = runwaysReady && weightsReady ? 'ready' : routeReady ? 'active' : 'empty';
+      performanceStageTabs.forEach(button => {
+        const calc = latestPerformanceCalculations?.[button.dataset.performanceStage];
+        button.dataset.state = !calc ? 'pending' : calc.incompleteReasons?.length ? 'caution' : calc.cautions?.length || finite(calc.remaining) < 0 ? 'caution' : 'ready';
+      });
+    }
+
+    function syncPerformanceStatusTone() {
+      const message = performanceStatus.textContent.toUpperCase();
+      performanceStatus.dataset.state = /LOADING|REFRESHING|SAVING/.test(message)
+        ? 'loading'
+        : /FAILED|ERROR|UNAVAILABLE|EXCEEDED|ABOVE LIMIT/.test(message)
+          ? 'danger'
+          : /INCOMPLETE|REQUIRED|SELECT|ENTER|REVIEW|PENDING/.test(message)
+            ? 'caution'
+            : /READY|SAVED|APPLIED|CONFIRMED|CALCULATED/.test(message)
+              ? 'ready'
+              : 'active';
+      syncPerformanceWorkflowState();
     }
 
     function setPerformanceStage(stage) {
@@ -4977,7 +5566,8 @@ END OF MESSAGE</pre>
       const tone = incompleteReasons.length ? 'incomplete' : outsideReasons.length ? 'danger' : calc?.cautions?.length ? 'warn' : 'advisory';
       const status = tone === 'incomplete' ? 'DATA INCOMPLETE' : tone === 'danger' ? 'ADVISORY LIMIT EXCEEDED' : tone === 'warn' ? 'CAUTION / REVIEW' : 'ADVISORY PASS';
       const header = el(`${prefix}ResultHeader`);
-      header.className = `performance-result-header ${tone}`;
+      header.className = `performance-result-header ${tone}${tone === 'advisory' ? ' good' : ''}`;
+      header.dataset.state = tone === 'advisory' ? 'ready' : tone === 'incomplete' ? 'caution' : tone;
       el(`${prefix}ResultStatus`).textContent = status;
       el(`${prefix}ResultMeta`).textContent = `${wx?.apt?.icao || '----'} RWY ${wx?.rwy || '--'} / ${Math.round(Number(calc?.weight) || 0)} LB / NGA-PA28R-1 / ${new Date().toISOString().slice(11,16)}Z${incompleteReasons.length ? ` / ${incompleteReasons.join(' / ')}` : outsideReasons.length ? ` / ${outsideReasons.join(' / ')}` : ''}`;
       el(`${prefix}ResultRequired`).textContent = feet(required);
@@ -5056,6 +5646,19 @@ END OF MESSAGE</pre>
       el(kind === 'takeoff' ? 'perfTakeoffAcars' : 'perfLandingAcars').textContent = performanceAcarsText(kind, data, calc);
     }
 
+    function updatePerformanceReviewStatus() {
+      const calculations = [latestPerformanceCalculations?.takeoff, latestPerformanceCalculations?.landing].filter(Boolean);
+      if (calculations.length !== 2) return;
+      const route = `${perfDep.value.trim().toUpperCase() || '----'}-${perfArr.value.trim().toUpperCase() || '----'}`;
+      const incomplete = [...new Set(calculations.flatMap(calculation => calculation?.incompleteReasons || []))];
+      const cautions = [...new Set(calculations.flatMap(calculation => calculation?.cautions || []))];
+      performanceStatus.textContent = incomplete.length
+        ? `${route} DATA INCOMPLETE / ${incomplete.join(' / ')}`
+        : cautions.length
+          ? `${route} REVIEW REQUIRED / ${cautions.join(' / ')}`
+          : `${route} PERFORMANCE READY / VERIFY AGAINST CURRENT APPROVED AFM/POH BEFORE OPERATION.`;
+    }
+
     function calculatePerformanceSection(kind) {
       if (!latestPerformanceData) {
         performanceStatus.textContent = 'LOAD AIRPORT, WEATHER, AND RUNWAY DATA FIRST.';
@@ -5066,6 +5669,7 @@ END OF MESSAGE</pre>
       const calculation = kind === 'takeoff' ? calculateTakeoff(effectiveData) : calculateLanding(effectiveData);
       latestPerformanceCalculations = { ...(latestPerformanceCalculations || {}), [kind]:calculation };
       renderPerformanceCalculation(kind, effectiveData, calculation);
+      updatePerformanceReviewStatus();
       return calculation;
     }
 
@@ -5106,10 +5710,7 @@ END OF MESSAGE</pre>
         latestPerformanceCalculations = { takeoff:calculateTakeoff(effectiveData), landing:calculateLanding(effectiveData) };
         renderPerformanceCalculation('takeoff', effectiveData, latestPerformanceCalculations.takeoff);
         renderPerformanceCalculation('landing', effectiveData, latestPerformanceCalculations.landing);
-        const incomplete = [...(latestPerformanceCalculations.takeoff.incompleteReasons || []), ...(latestPerformanceCalculations.landing.incompleteReasons || [])];
-        performanceStatus.textContent = incomplete.length
-          ? `${dep}-${arr} DATA INCOMPLETE / ${[...new Set(incomplete)].join(' / ')}`
-          : `${dep}-${arr} PERFORMANCE READY / VERIFY AGAINST CURRENT APPROVED AFM/POH BEFORE OPERATION.`;
+        updatePerformanceReviewStatus();
       } catch (error) {
         performanceStatus.textContent = error.message || 'Performance data unavailable.';
       } finally {
@@ -6051,6 +6652,7 @@ END OF MESSAGE</pre>
 
     async function saveAircraftStatus() {
       saveAircraftStatusBtn.disabled = true;
+      el('aircraftRecordPanel').dataset.state = 'loading';
       aircraftUpdatedState.textContent = 'SAVING AIRCRAFT STATUS';
       const payload = {
         serviceability:aircraftServiceability.value,
@@ -6075,6 +6677,9 @@ END OF MESSAGE</pre>
         renderAircraftStatus();
         mode.textContent = 'MODE: AIRCRAFT STATUS SAVED';
       } catch (error) {
+        el('aircraftRecordPanel').dataset.state = 'danger';
+        aircraftRecordGuidance.dataset.state = 'danger';
+        aircraftRecordGuidance.querySelector('span').textContent = error.message || 'Aircraft record could not be saved.';
         aircraftUpdatedState.textContent = error.message || 'SAVE FAILED';
         mode.textContent = `MODE: ${error.message || 'AIRCRAFT STATUS UPDATE FAILED'}`;
       } finally {
@@ -6083,13 +6688,16 @@ END OF MESSAGE</pre>
     }
 
     async function recordFluidCheckpoint() {
+      const fluidPanel = document.querySelector('.aircraft-fluid-panel');
       const fuelGal = nullableNumber(fluidLogFuel.value);
       const oilQuarts = nullableNumber(fluidLogOil.value);
       if (fuelGal === null && oilQuarts === null) {
+        fluidPanel.dataset.state = 'caution';
         fluidLogState.textContent = 'ENTER FUEL OR OIL';
         return;
       }
       recordFluidLogBtn.disabled = true;
+      fluidPanel.dataset.state = 'loading';
       fluidLogState.textContent = 'RECORDING';
       try {
         const response = await fetch('/api/booking-ops/aircraft-status/fuel-log', {
@@ -6110,9 +6718,11 @@ END OF MESSAGE</pre>
         fluidLogFuel.value = '';
         fluidLogOil.value = '';
         fluidLogNote.value = '';
+        fluidPanel.dataset.state = 'ready';
         fluidLogState.textContent = `${data.entry.phase} RECORDED`;
         mode.textContent = `MODE: ${data.entry.phase} AIRCRAFT CHECKPOINT RECORDED`;
       } catch (error) {
+        fluidPanel.dataset.state = 'danger';
         fluidLogState.textContent = error.message || 'RECORD FAILED';
         mode.textContent = `MODE: ${error.message || 'AIRCRAFT CHECKPOINT FAILED'}`;
       } finally {
@@ -6522,6 +7132,8 @@ END OF MESSAGE</pre>
       weatherDataKey = '';
       loadWeatherWorkspace(true).catch(() => {});
     }));
+    new MutationObserver(syncPerformanceStatusTone).observe(performanceStatus, { childList:true, characterData:true, subtree:true });
+    syncPerformanceStatusTone();
     performanceStageTabs.forEach(button => button.addEventListener('click', () => setPerformanceStage(button.dataset.performanceStage)));
     runPerformanceBtn.addEventListener('click', runPerformanceReview);
     [
@@ -6543,6 +7155,7 @@ END OF MESSAGE</pre>
     [perfTow, perfLdw].forEach(input => input.addEventListener('input', () => {
       input.dataset.weightSource = 'pilot';
       el('performanceWeightSource').textContent = 'Pilot-entered planning weights / verify W&B';
+      syncPerformanceWorkflowState();
     }));
     [perfDepRunway, perfArrRunway].forEach(input => input.addEventListener('change', () => {
       input.dataset.selectionSource = 'pilot';
@@ -6584,17 +7197,6 @@ END OF MESSAGE</pre>
     });
     [el('perfTakeoffPower'), el('perfTakeoffAc')].forEach(input => input.addEventListener('change', () => refreshPerformanceManualDisplay('takeoff')));
     [el('perfLandingAc')].forEach(input => input.addEventListener('change', () => refreshPerformanceManualDisplay('landing')));
-    document.querySelectorAll('#performanceOpsPane [contenteditable="true"]').forEach(node => {
-      const kind = node.closest('.performance-block')?.querySelector('#perfTakeoffAcars') ? 'takeoff' : 'landing';
-      node.addEventListener('input', () => refreshPerformanceManualDisplay(kind));
-      node.addEventListener('blur', () => refreshPerformanceManualDisplay(kind, true));
-      node.addEventListener('keydown', event => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          node.blur();
-        }
-      });
-    });
     const performanceAirportTimers = [null, null];
     async function refreshPerformanceAirport(input, index) {
       const icao = input.value.trim().toUpperCase();
@@ -6791,6 +7393,22 @@ END OF MESSAGE</pre>
     }));
     saveAircraftStatusBtn.addEventListener('click', saveAircraftStatus);
     recordFluidLogBtn.addEventListener('click', recordFluidCheckpoint);
+    editAircraftStatusBtn.addEventListener('click', () => {
+      el('aircraftRecordPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+      window.setTimeout(() => aircraftServiceability.focus({ preventScroll:true }), 260);
+    });
+    prefillFluidLogBtn.addEventListener('click', () => {
+      const fuel = finite(aircraftStatus?.fuelOnBoardGal);
+      const oil = finite(aircraftStatus?.oilQuarts);
+      fluidLogFuel.value = Number.isFinite(fuel) ? fuel : '';
+      fluidLogOil.value = Number.isFinite(oil) ? oil : '';
+      document.querySelector('.aircraft-fluid-panel').dataset.state = Number.isFinite(fuel) || Number.isFinite(oil) ? 'ready' : 'caution';
+      fluidLogState.textContent = Number.isFinite(fuel) || Number.isFinite(oil) ? 'LATEST READINGS LOADED' : 'NO SAVED READINGS';
+    });
+    [aircraftServiceability, aircraftFuelOnBoard, aircraftOilQuantity, aircraftStatusNote].forEach(input => {
+      input.addEventListener('input', syncAircraftFormGuidance);
+      input.addEventListener('change', syncAircraftFormGuidance);
+    });
 
     window.addEventListener('beforeinstallprompt', event => {
       event.preventDefault();
@@ -6863,7 +7481,7 @@ END OF MESSAGE</pre>
     sidebarRailToggle.addEventListener('click', toggleSidebar);
 
     globalSearchBtn.addEventListener('click', () => {
-      el('commandDialogTitle').textContent = 'Search EFB';
+      el('commandDialogTitle').textContent = 'Pilot EFB assistant';
       commandInput.value = '';
       renderCommandResults('');
       openShellDialog(commandDialog, commandInput);
@@ -6926,11 +7544,32 @@ END OF MESSAGE</pre>
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        el('commandDialogTitle').textContent = 'Search EFB';
+        el('commandDialogTitle').textContent = 'Pilot EFB assistant';
         commandInput.value = '';
         renderCommandResults('');
         openShellDialog(commandDialog, commandInput);
       }
+    });
+
+    const efbThemeToggle = el('efbThemeToggle');
+    function applyEfbTheme(value, persist = true) {
+      const theme = value === 'night' ? 'night' : 'day';
+      document.documentElement.dataset.efbTheme = theme;
+      efbThemeToggle.textContent = theme === 'night' ? 'Day' : 'Night';
+      efbThemeToggle.setAttribute('aria-pressed', String(theme === 'night'));
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#07111b' : '#edf3f6');
+      if (persist) {
+        try { localStorage.setItem('nga-efb-theme', theme); } catch {}
+      }
+      if (ofpOpsFrame.contentWindow) ofpOpsFrame.contentWindow.postMessage({ type:'nga-efb-theme', theme }, location.origin);
+    }
+    applyEfbTheme(document.documentElement.dataset.efbTheme, false);
+    efbThemeToggle.addEventListener('click', () => applyEfbTheme(document.documentElement.dataset.efbTheme === 'night' ? 'day' : 'night'));
+    ofpOpsFrame.addEventListener('load', () => {
+      ofpOpsFrame.contentWindow?.postMessage({ type:'nga-efb-theme', theme:document.documentElement.dataset.efbTheme || 'day' }, location.origin);
+    });
+    window.addEventListener('storage', event => {
+      if (event.key === 'nga-efb-theme' && event.newValue) applyEfbTheme(event.newValue, false);
     });
 
     renderActiveFlightStrip();
