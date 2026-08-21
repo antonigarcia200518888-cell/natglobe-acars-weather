@@ -5,8 +5,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#040b12",
-  "theme_color": "#07111b",
+  "background_color": "#f3f6f8",
+  "theme_color": "#edf3f6",
   "description": "NGA pilot operations, flight release, aircraft status, and operational flight planning.",
   "icons": [
     {

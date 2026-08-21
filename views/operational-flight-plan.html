@@ -3,9 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#07111b" />
+  <meta name="theme-color" content="#edf3f6" />
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <title>Operational Flight Plan</title>
+  <script>
+    (() => {
+      const themeKey = 'nga-efb-theme';
+      const applyTheme = (value, persist = false) => {
+        const theme = value === 'night' ? 'night' : 'day';
+        document.documentElement.dataset.efbTheme = theme;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#07111b' : '#eef3f7');
+        const button = document.getElementById('efbThemeToggleOFP');
+        if (button) {
+          const nextTheme = theme === 'night' ? 'day' : 'night';
+          button.textContent = nextTheme === 'night' ? 'Night' : 'Day';
+          button.setAttribute('aria-label', `Use ${nextTheme} display mode`);
+          button.setAttribute('aria-pressed', String(theme === 'night'));
+        }
+        if (persist) {
+          try { localStorage.setItem(themeKey, theme); } catch (_) {}
+        }
+        return theme;
+      };
+      let savedTheme = 'day';
+      try { savedTheme = localStorage.getItem(themeKey) || 'day'; } catch (_) {}
+      applyTheme(savedTheme);
+      window.applyOFPTheme = applyTheme;
+      window.addEventListener('message', event => {
+        if (event.origin && event.origin !== location.origin) return;
+        if (event.data?.type !== 'nga-efb-theme') return;
+        applyTheme(event.data.theme);
+      });
+      window.addEventListener('DOMContentLoaded', () => applyTheme(document.documentElement.dataset.efbTheme));
+    })();
+  </script>
   <style>
     :root { --bg:#030506; --panel:#071019; --panel2:#0b151d; --line:#40505c; --ink:#f4f7f9; --muted:#91a0aa; --blue:#8ec5ff; --green:#66ff99; --amber:#ffcc66; --red:#ff7777; }
     * { box-sizing:border-box; }
@@ -1864,55 +1895,62 @@
       .movement-grid { grid-template-columns:1fr; }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-14-6" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-3" />
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="topbar-title">
+  <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
+    <header class="topbar ofp-app-header">
+      <div class="topbar-title ofp-header-context">
         <span class="ofp-brand-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span>
-        <div><div class="eyebrow">NGA Pilot EFB / Dispatch</div><h1>Operational Flight Plan</h1><div class="sub">Build the plan, verify the release gates, and generate the controlled flight document.</div></div>
+        <div><div class="eyebrow">NGA Pilot EFB</div><h1>Flight plan</h1><div class="sub">Plan, brief, release, and record the flight in one controlled workspace.</div></div>
       </div>
-      <div class="top-actions"><button id="backBtn" class="btn" type="button">Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather</button><button id="saveBtn" class="btn" type="button">Save Draft</button><button id="previewBtn" class="btn primary" type="button">Generate OFP</button><button id="pdfBtn" class="btn" type="button">Open PDF</button></div>
+      <div class="top-actions ofp-header-actions">
+        <div class="ofp-header-nav-actions"><button id="backBtn" class="btn" type="button" aria-label="Return to Pilot Operations">Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather</button><button id="efbThemeToggleOFP" class="btn efb-theme-toggle" type="button" aria-label="Use night display mode" aria-pressed="false">Night</button></div>
+        <div class="ofp-header-document-actions"><button id="saveBtn" class="btn" type="button">Save draft</button><button id="pdfBtn" class="btn" type="button">PDF</button><button id="previewBtn" class="btn primary" type="button">Generate OFP</button></div>
+      </div>
     </header>
-    <section class="dispatch-overview" aria-label="Current flight dispatch summary">
-      <div class="dispatch-identity">
-        <span>Active flight plan</span>
-        <div class="dispatch-route"><strong id="overviewDeparture">----</strong><i aria-hidden="true">&#8594;</i><strong id="overviewDestination">----</strong></div>
-        <small><b id="refStatus">...</b><em id="overviewRules">VFR</em><em id="overviewAircraft">PA28</em></small>
+    <section id="ofpFlightHero" class="dispatch-overview ofp-flight-hero" aria-label="Active flight plan" data-component="flight-hero" data-readiness="planning">
+      <div class="dispatch-identity ofp-flight-hero-main">
+        <span class="ofp-flight-hero-label">Active flight</span>
+        <div class="dispatch-route ofp-flight-route" aria-label="Planned route">
+          <div class="ofp-flight-endpoint"><span>From</span><strong id="overviewDeparture">----</strong></div>
+          <div class="ofp-flight-path" aria-hidden="true"><i></i><b>&#8594;</b><i></i></div>
+          <div class="ofp-flight-endpoint"><span>To</span><strong id="overviewDestination">----</strong></div>
+        </div>
+        <small class="ofp-flight-badges"><b id="refStatus">...</b><em id="overviewRules">VFR</em><em id="overviewAircraft">PA28</em></small>
       </div>
-      <div class="statusline">
-        <div class="statusbox"><span>Route</span><strong id="routeStatus">...</strong></div>
-        <div class="statusbox"><span>Schedule</span><strong id="scheduleStatus">...</strong></div>
-        <div class="statusbox"><span>Commander</span><strong id="crewStatus">...</strong></div>
-        <div class="statusbox"><span>Document</span><strong id="documentStatus">DRAFT</strong></div>
+      <div class="statusline ofp-flight-facts" aria-label="Flight plan status">
+        <div class="statusbox" data-flight-fact="route"><span>Route</span><strong id="routeStatus">...</strong></div>
+        <div class="statusbox" data-flight-fact="schedule"><span>EOBT</span><strong id="scheduleStatus">...</strong></div>
+        <div class="statusbox" data-flight-fact="commander"><span>Commander</span><strong id="crewStatus">...</strong></div>
+        <div class="statusbox" data-flight-fact="document"><span>OFP status</span><strong id="documentStatus">DRAFT</strong></div>
       </div>
-      <div class="overview-readiness">
+      <div class="overview-readiness ofp-flight-hero-readiness">
         <div><span>Planning readiness</span><strong id="planningReadinessText">0 / 5 gates</strong></div>
         <div class="readiness-track" role="progressbar" aria-label="Planning readiness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="planningReadinessBar"></span></div>
         <small id="planningReadinessHint">Complete flight setup to begin.</small>
       </div>
     </section>
-    <div class="dispatch-meta-row">
+    <div class="dispatch-meta-row ofp-context-strip">
       <section id="flightSource" class="flight-source"><div id="flightSourceBadge" class="flight-source-badge">BOOKING PRELOAD</div><div><strong id="flightSourceTitle">Selected flight loaded</strong><span id="flightSourceDetail">Schedule and declared load are prefilled. Pilot planning fields remain editable.</span></div></section>
       <div id="saveState" class="save-state loading" role="status" aria-live="polite">Loading flight file...</div>
     </div>
-    <nav class="ofp-workspaces" aria-label="Operational flight plan workspaces">
-      <button class="ofp-workspace-button" type="button" data-workspace="SETUP" data-step="1" aria-selected="true"><span>Identity &amp; EOBT</span><strong>Flight Info</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="ROUTE" data-step="2" aria-selected="false"><span>Navigation</span><strong>Route</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="LOAD" data-step="3" aria-selected="false"><span>Fuel &amp; payload</span><strong>Fuel &amp; Load</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="BRIEF" data-step="4" aria-selected="false"><span>Weather &amp; perf</span><strong>Preflight</strong><em class="workspace-state">Open</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="FLY" data-step="5" aria-selected="false"><span>OUT / OFF / ON / IN</span><strong>Movement</strong><em class="workspace-state">0 / 4</em></button>
-      <button class="ofp-workspace-button" type="button" data-workspace="RELEASE" data-step="6" aria-selected="false"><span>Commander</span><strong>PIC Release</strong><em class="workspace-state">Pending</em></button>
+    <nav class="ofp-workspaces ofp-task-rail" aria-label="Flight plan stages" role="tablist" data-component="task-rail">
+      <button id="taskTabSetup" class="ofp-workspace-button ofp-task-tab" type="button" role="tab" data-workspace="SETUP" data-step="1" data-state="open" aria-controls="flightSetupSection" aria-selected="true" tabindex="0"><span class="task-kicker">Flight &amp; schedule</span><strong class="task-title">Setup</strong><em class="workspace-state">Open</em></button>
+      <button id="taskTabRoute" class="ofp-workspace-button ofp-task-tab" type="button" role="tab" data-workspace="ROUTE" data-step="2" data-state="open" aria-controls="routeSection" aria-selected="false" tabindex="-1"><span class="task-kicker">Navigation</span><strong class="task-title">Route</strong><em class="workspace-state">Open</em></button>
+      <button id="taskTabLoad" class="ofp-workspace-button ofp-task-tab" type="button" role="tab" data-workspace="LOAD" data-step="3" data-state="open" aria-controls="fuelSection loadSection" aria-selected="false" tabindex="-1"><span class="task-kicker">Fuel &amp; payload</span><strong class="task-title">Aircraft load</strong><em class="workspace-state">Open</em></button>
+      <button id="taskTabBrief" class="ofp-workspace-button ofp-task-tab" type="button" role="tab" data-workspace="BRIEF" data-step="4" data-state="open" aria-controls="dispatchSection" aria-selected="false" tabindex="-1"><span class="task-kicker">Weather &amp; perf</span><strong class="task-title">Preflight</strong><em class="workspace-state">Open</em></button>
+      <button id="taskTabFly" class="ofp-workspace-button ofp-task-tab" type="button" role="tab" data-workspace="FLY" data-step="5" data-state="open" aria-controls="movementSection" aria-selected="false" tabindex="-1"><span class="task-kicker">Live flight</span><strong class="task-title">Movement</strong><em class="workspace-state">0 / 4</em></button>
+      <button id="taskTabRelease" class="ofp-workspace-button ofp-task-tab" type="button" role="tab" data-workspace="RELEASE" data-step="6" data-state="open" aria-controls="releaseSection" aria-selected="false" tabindex="-1"><span class="task-kicker">Commander</span><strong class="task-title">PIC release</strong><em class="workspace-state">Pending</em></button>
     </nav>
-    <div class="workspace">
-      <section class="editor">
-        <details id="flightSetupSection" open>
-          <summary>Flight setup</summary>
+    <div class="workspace ofp-app-workspace">
+      <section class="editor ofp-task-content" aria-label="Selected flight plan stage">
+        <details id="flightSetupSection" class="ofp-task-panel" data-task="SETUP" role="tabpanel" aria-labelledby="taskTabSetup" open>
+          <summary class="ofp-task-panel-summary"><span>01</span><strong>Flight &amp; schedule</strong><em>Identity, aircraft, airports and EOBT</em></summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Flight information</span><strong>Define the operation</strong></div><p>Start with the flight identity, route endpoints, aircraft, rules, and expected off-block time.</p></div>
+            <div class="section-heading ofp-card-head"><div><span>Flight information</span><strong>Define the operation</strong></div><p>Confirm the flight identity once. Local time, UTC and the movement schedule stay synchronized automatically.</p></div>
 
-            <section class="flight-info-composer" aria-label="Flight information composer">
+            <section class="flight-info-composer ofp-smart-card ofp-flight-setup-card" aria-label="Flight information composer" data-smart-card="flight-setup">
               <header class="flight-info-head">
                 <div><span>Active flight file</span><strong id="flightInfoTitle">NEW OPERATIONAL FLIGHT PLAN</strong><small>Internal private-flight record / reference generated by Flight Operations</small></div>
                 <div class="eobt-summary"><span>Smart departure / EOBT</span><strong id="eobtDisplay">SELECT LOCAL DATE AND TIME</strong><small id="eobtTimezone">LOCAL TIME CONVERTS TO UTC AUTOMATICALLY</small></div>
@@ -1937,7 +1975,7 @@
                     <small id="departureTimeZoneDisplay">AUTO FROM DEPARTURE AIRPORT</small>
                   </div>
                 </div>
-                <div class="aircraft-profile-field">
+                <div class="aircraft-profile-field ofp-smart-aircraft-card" data-component="aircraft-profile">
                   <span class="aircraft-profile-caption">Aircraft profile</span>
                   <select class="aircraft-select aircraft-profile-select" data-field="aircraftRegistration" aria-label="Aircraft registration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select>
                   <button id="aircraftProfileBtn" class="aircraft-profile-button" type="button" aria-haspopup="dialog" aria-controls="aircraftProfileDialog">
@@ -1955,7 +1993,7 @@
               <input data-field="routeMode" type="hidden" value="VFR" />
               <input data-field="routeDataSource" type="hidden" value="PILOT / CURRENT AIP" />
 
-              <div class="flight-route-strip">
+              <div class="flight-route-strip ofp-airport-selector" data-component="airport-selector">
                 <div class="flight-route-point">
                   <span>Depart</span>
                   <label><span id="departureFieldLabel">Departure ICAO</span><input data-field="departure" maxlength="4" placeholder="ZZZZ" autocomplete="off" /></label>
@@ -1976,7 +2014,7 @@
               <div id="alternateSuggestions" class="alternate-suggestions" hidden></div>
             </section>
 
-            <section class="schedule-workbench" aria-label="Planned flight schedule">
+            <section class="schedule-workbench ofp-smart-card ofp-schedule-card" aria-label="Planned flight schedule" data-smart-card="schedule">
               <div class="schedule-workbench-head"><div><span>Smart schedule</span><strong>Planned movement timeline</strong></div><small>LOCAL + UTC / AUTO</small></div>
               <div class="schedule-primary-grid schedule-primary-grid-compact">
                 <label>Planned EET (MIN)<input data-field="estimatedEnrouteMinutes" type="number" min="0" step="1" /></label>
@@ -1994,13 +2032,13 @@
           </div>
         </details>
 
-        <details id="routeSection" open>
-          <summary>Route planning</summary>
+        <details id="routeSection" class="ofp-task-panel" data-task="ROUTE" role="tabpanel" aria-labelledby="taskTabRoute" open>
+          <summary class="ofp-task-panel-summary"><span>02</span><strong>Route</strong><em>Build, verify and brief the navigation plan</em></summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Navigation</span><strong>Build and verify the route</strong></div><p>Compose the route, select procedures, and review the alternate against current approved sources.</p></div>
+            <div class="section-heading ofp-card-head"><div><span>Navigation</span><strong>Build and verify the route</strong></div><p>Use smart route entry for speed, then verify every leg, runway, procedure and alternate against current approved sources.</p></div>
 
-            <section class="route-workbench" aria-label="Smart route builder">
-              <div class="route-workbench-head"><div><span>Route builder</span><strong id="routeBuilderTitle">VFR route sequence</strong><small>Type an identifier and add it. The builder identifies airports, airways, DCT, and navigation points automatically.</small></div><div class="data-source-badge">PILOT VERIFIED</div></div>
+            <section class="route-workbench ofp-smart-card ofp-route-card" aria-label="Smart route builder" data-smart-card="route">
+              <div class="route-workbench-head"><div><span>Smart route</span><strong id="routeBuilderTitle">VFR route sequence</strong><small>Enter a waypoint, navaid, airway or airport. The builder classifies each leg while keeping the operational route directly editable.</small></div><div class="data-source-badge" data-smart-state="review-required">SMART INPUT / PILOT VERIFY</div></div>
               <div class="route-composer smart">
                 <label>Waypoint, navaid, airway, or airport<input id="routeTokenInput" list="routeHistory" maxlength="32" placeholder="NIKUN, N850, DEGER, DCT..." autocomplete="off" /></label>
                 <button id="routeTokenAddBtn" class="btn primary-soft" type="button">Add leg</button>
@@ -2059,10 +2097,10 @@
           </div>
         </details>
 
-        <details id="fuelSection" open>
-          <summary>Fuel planning</summary>
+        <details id="fuelSection" class="ofp-task-panel ofp-subtask-panel" data-task="LOAD" data-subtask="FUEL" role="tabpanel" aria-labelledby="taskTabLoad" open>
+          <summary class="ofp-task-panel-summary"><span>03A</span><strong>Fuel plan</strong><em>Trip, reserve, alternate and extra fuel</em></summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Fuel plan</span><strong>Build block fuel</strong></div><p>Start from planned time, then apply the pilot fuel policy, alternate, reserve, and operational conditions.</p></div>
+            <div class="section-heading ofp-card-head"><div><span>Fuel plan</span><strong>Build block fuel</strong></div><p>Start from the planned time, then apply the pilot fuel policy, alternate, reserve and operational conditions.</p></div>
             <div class="fuel-ladder" aria-label="Fuel plan summary">
               <div><span>Taxi</span><strong id="fuelTaxiSummary">0.0</strong><small>USG</small></div>
               <div><span>Trip</span><strong id="fuelTripSummary">0.0</strong><small>USG</small></div>
@@ -2083,10 +2121,10 @@
           </div>
         </details>
 
-        <details id="loadSection" open>
-          <summary>Weight and balance</summary>
+        <details id="loadSection" class="ofp-task-panel ofp-subtask-panel" data-task="LOAD" data-subtask="WEIGHT_BALANCE" role="tabpanel" aria-labelledby="taskTabLoad" open>
+          <summary class="ofp-task-panel-summary"><span>03B</span><strong>Weight &amp; balance</strong><em>Manifest, limits, mass and CG</em></summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Load control</span><strong>Manifest and approved envelope</strong></div><p>Booking weights load automatically. Switch to actual load only when measured values differ.</p></div>
+            <div class="section-heading ofp-card-head"><div><span>Aircraft load</span><strong>Manifest and approved envelope</strong></div><p>Booking weights load automatically. Use actual-load mode only when verified measured values differ.</p></div>
             <div class="locked-profile"><div><strong>Aircraft weight and balance profile</strong><small id="profileVersion">Authoritative station arms and structural limits are protected by the server.</small></div><span class="lock-badge">LOCKED</span></div>
             <div class="load-mode-control">
               <label>Weight manifest source<select id="loadModeSelect" class="aircraft-select" data-field="loadMode"><option value="BOOKING">AUTO / BOOKING MANIFEST</option><option value="MANUAL">MANUAL / ACTUAL LOAD</option></select></label>
@@ -2143,10 +2181,10 @@
           </div>
         </details>
 
-        <details id="dispatchSection">
-          <summary>Briefing review</summary>
+        <details id="dispatchSection" class="ofp-task-panel" data-task="BRIEF" role="tabpanel" aria-labelledby="taskTabBrief">
+          <summary class="ofp-task-panel-summary"><span>04</span><strong>Preflight</strong><em>Weather, NOTAM, airspace and performance</em></summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Operational review</span><strong>Weather, NOTAM and airspace</strong></div><p>Aircraft Performance remains in its dedicated Pilot Ops workspace.</p></div>
+            <div class="section-heading ofp-card-head"><div><span>Operational review</span><strong>Briefing &amp; performance</strong></div><p>Open the live modules, review approved sources, and return here to confirm the preflight gates.</p></div>
             <div class="briefing-modules">
               <button id="openWeatherWorkspaceBtn" type="button"><span>Live module</span><strong>Weather Dispatch</strong><small>Raw METAR, TAF, and category</small><em id="weatherModuleState">REVIEW OPEN</em></button>
               <button id="openPerformanceWorkspaceBtn" type="button"><span>Live module</span><strong>Aircraft Performance</strong><small>Departure and arrival runway analysis</small><em id="performanceModuleState">DATA OPEN</em></button>
@@ -2159,10 +2197,10 @@
           </div>
         </details>
 
-        <details id="movementSection" open>
-          <summary>Movement and flight times</summary>
+        <details id="movementSection" class="ofp-task-panel" data-task="FLY" role="tabpanel" aria-labelledby="taskTabFly" open>
+          <summary class="ofp-task-panel-summary"><span>05</span><strong>Movement</strong><em>OUT, OFF, ON and IN event log</em></summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Live movement log</span><strong>OUT / OFF / ON / IN</strong></div><p>Stamp each phase as it happens, or enter a correction manually. Every phase remains available throughout the flight.</p></div>
+            <div class="section-heading ofp-card-head"><div><span>Live movement log</span><strong>OUT / OFF / ON / IN</strong></div><p>Stamp each event as it happens. Manual correction remains available with the correct airport-local and UTC context.</p></div>
             <div class="movement-sequence" aria-hidden="true"><span>Block out</span><i></i><span>Airborne</span><i></i><span>Touchdown</span><i></i><span>Block in</span></div>
             <div class="movement-grid">
               <article class="movement-card" data-movement-card="actualOut"><strong class="movement-code">OUT</strong><span>Start taxi / brakes released</span><div id="actualOutDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OUT local time" data-manual-time="actualOut" /><button class="btn" type="button" data-manual-field="actualOut">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOut">Stamp now</button></article>
@@ -2174,27 +2212,35 @@
           </div>
         </details>
 
-        <details id="releaseSection">
-          <summary>PIC release</summary>
+        <details id="releaseSection" class="ofp-task-panel ofp-release-workspace" data-task="RELEASE" role="tabpanel" aria-labelledby="taskTabRelease">
+          <summary class="ofp-task-panel-summary"><span>06</span><strong>PIC release</strong><em>Final commander verification</em></summary>
           <div class="detail-body">
-            <div class="section-heading"><div><span>Commander action</span><strong>Final flight release</strong></div><p>Release only after the dedicated weather, performance, load, fuel, aircraft, and document checks are complete.</p></div>
-            <div class="grid two"><label>Commander / release name<input data-field="releaseName" /></label><label>Commander phone<input data-field="commanderPhone" /></label></div>
-            <label class="checkline"><input data-field="releaseAccepted" type="checkbox" />I have independently verified the route, weather, NOTAMs, runway suitability, fuel policy, aircraft status, performance, mass and balance, legal requirements, and the locked aircraft profile against current approved operational sources and the aircraft AFM/POH.</label>
-            <div class="notice release-advisory">Planning aid only. The released OFP does not replace the current AFM/POH, approved aircraft records, weather and NOTAM briefing, performance calculations, fuel policy, or pilot-in-command judgement.</div>
-            <div id="releaseSnapshotState" class="release-snapshot"><strong>No frozen release snapshot</strong>Save the completed plan with pilot release acknowledged to record the released flight configuration.</div>
+            <div class="section-heading ofp-card-head"><div><span>Commander action</span><strong>Final flight release</strong></div><p>The server rechecks every release dependency before it freezes the controlled flight configuration.</p></div>
+            <div class="ofp-release-grid">
+              <section class="ofp-release-card ofp-release-identity-card" aria-label="Commander identity">
+                <div class="ofp-release-card-head"><div><span>Step 1</span><strong>Commander identity</strong></div><em>Required</em></div>
+                <div class="grid two"><label>Commander / release name<input data-field="releaseName" autocomplete="name" /></label><label>Commander phone<input data-field="commanderPhone" autocomplete="tel" /></label></div>
+              </section>
+              <section class="ofp-release-card ofp-release-confirmation-card" aria-label="Commander verification">
+                <div class="ofp-release-card-head"><div><span>Step 2</span><strong>Independent verification</strong></div><em>Safety critical</em></div>
+                <label class="checkline ofp-release-check"><input data-field="releaseAccepted" type="checkbox" /><span><strong>Accept PIC release responsibility</strong>I have independently verified the route, weather, NOTAMs, runway suitability, fuel policy, aircraft status, performance, mass and balance, legal requirements, and the locked aircraft profile against current approved operational sources and the aircraft AFM/POH.</span></label>
+              </section>
+              <div class="notice release-advisory ofp-release-advisory">Planning aid only. The released OFP does not replace the current AFM/POH, approved aircraft records, weather and NOTAM briefing, performance calculations, fuel policy, or pilot-in-command judgement.</div>
+              <div id="releaseSnapshotState" class="release-snapshot ofp-release-authority" role="status" aria-live="polite" data-release-state="pending"><strong>No frozen release snapshot</strong>Save the completed plan with pilot release acknowledged to record the released flight configuration.</div>
+            </div>
           </div>
         </details>
       </section>
 
-      <aside class="console">
-        <div class="console-mode-switch" role="tablist" aria-label="Flight plan inspector">
-          <button id="summaryInspectorBtn" type="button" role="tab" aria-selected="true" aria-controls="consoleSummary">Flight status</button>
-          <button id="pdfInspectorBtn" type="button" role="tab" aria-selected="false" aria-controls="pdfPreviewPanel">PDF preview</button>
+      <aside class="console ofp-inspector" aria-label="Flight readiness inspector" data-component="readiness-inspector">
+        <div class="console-mode-switch ofp-inspector-tabs" role="tablist" aria-label="Flight plan inspector">
+          <button id="summaryInspectorBtn" type="button" role="tab" data-inspector-mode="SUMMARY" aria-selected="true" aria-controls="consoleSummary">Readiness</button>
+          <button id="pdfInspectorBtn" type="button" role="tab" data-inspector-mode="PDF" aria-selected="false" aria-controls="pdfPreviewPanel">OFP preview</button>
         </div>
-        <div id="consoleSummary" class="console-summary">
-        <section class="dispatch-brief-card" aria-label="Flight planning readiness">
+        <div id="consoleSummary" class="console-summary ofp-inspector-summary" role="tabpanel" aria-labelledby="summaryInspectorBtn">
+        <section class="dispatch-brief-card ofp-readiness-card" aria-label="Flight planning readiness">
           <div class="dispatch-brief-head"><div><span>Flight readiness</span><strong id="briefReference">FLIGHT FILE</strong></div><b id="briefState">PLANNING</b></div>
-          <div class="brief-next-action">
+          <div class="brief-next-action ofp-next-action">
             <span id="briefGatePosition">NEXT ACTION</span>
             <strong id="briefNextAction">Complete flight setup</strong>
             <p id="briefNextDetail">Confirm the aircraft, airports, schedule, and planned flight time.</p>
@@ -2205,9 +2251,9 @@
             <button id="previousWorkspaceBtn" class="btn subtle" type="button">Previous</button>
             <button id="nextWorkspaceBtn" class="btn" type="button">Next stage</button>
           </div>
-          <button id="generateOfpBtn" class="btn primary dispatch-generate" type="button">Save &amp; Generate OFP</button>
+          <button id="generateOfpBtn" class="btn primary dispatch-generate ofp-primary-action" type="button">Save &amp; generate OFP</button>
         </section>
-        <section class="console-card"><div class="console-title">Flight totals</div><div class="metric-grid primary-metrics">
+        <section class="console-card ofp-flight-totals-card"><div class="console-title">Flight totals</div><div class="metric-grid primary-metrics">
           <div class="metric"><span>Block fuel</span><strong id="blockFuel">0.0 USG</strong></div>
           <div id="towMetric" class="metric"><span>Takeoff weight</span><strong id="takeoffWeight">0 LB</strong></div>
           <div id="landingMetric" class="metric"><span>Landing weight</span><strong id="landingWeight">0 LB</strong></div>
@@ -2221,7 +2267,7 @@
           <div id="rampMetric" class="metric"><span>Ramp weight</span><strong id="rampWeight">0 LB</strong></div>
           <div id="gearCgMetric" class="metric"><span>Gear-up CG</span><strong id="gearUpCg">0.00 IN</strong></div>
         </div></div></details></section>
-        <section class="console-card readiness-card">
+        <section class="console-card readiness-card ofp-release-checks-card" data-release-checks="open">
           <div class="console-title release-check-title"><span>Release checks</span><strong id="warningCount">0 OPEN</strong></div>
           <div id="warningList" class="warning-list"></div>
         </section>
@@ -2251,11 +2297,11 @@
         </section>
       </aside>
     </div>
-    <nav class="ofp-action-dock" aria-label="Flight plan actions">
+    <nav class="ofp-action-dock ofp-command-bar" aria-label="Flight plan actions" data-component="command-bar">
       <button id="dockPreviousBtn" class="btn subtle" type="button">Back</button>
       <button id="dockSaveBtn" class="btn" type="button">Save</button>
       <button id="dockNextBtn" class="btn" type="button">Next</button>
-      <button id="dockPreviewBtn" class="btn primary" type="button">Generate</button>
+      <button id="dockPreviewBtn" class="btn primary" type="button">Generate OFP</button>
       <button id="dockPdfBtn" class="btn" type="button">PDF</button>
     </nav>
     <dialog id="aircraftProfileDialog" class="aircraft-profile-dialog" aria-labelledby="aircraftProfileTitle">
@@ -2312,7 +2358,18 @@
     };
     const workspaceOrder = ['SETUP', 'ROUTE', 'LOAD', 'BRIEF', 'FLY', 'RELEASE'];
     const workspaceLabels = { SETUP:'Flight Info', ROUTE:'Route', LOAD:'Fuel & Load', BRIEF:'Preflight', FLY:'Movement Times', RELEASE:'PIC Release' };
+    const ofpWorkspaceStorageKey = `nga-ofp-workspace-v3:${requestId}`;
     let currentWorkspace = 'SETUP';
+
+    function storedWorkspace() {
+      try { return localStorage.getItem(ofpWorkspaceStorageKey) || 'SETUP'; }
+      catch (_) { return 'SETUP'; }
+    }
+
+    function rememberWorkspace(workspace) {
+      try { localStorage.setItem(ofpWorkspaceStorageKey, workspace); }
+      catch (_) { /* Private mode may block storage; navigation still works. */ }
+    }
 
     function setSaveState(state, message) {
       const node = el('saveState');
@@ -2346,22 +2403,27 @@
       const blockers = Array.isArray(releasePanel?.blockers) ? releasePanel.blockers.filter(Boolean) : [];
       if (isAuthoritativelyReleased()) {
         const snapshot = plan.releaseSnapshot;
+        node.dataset.releaseState = 'released';
         node.innerHTML = `<strong>Release snapshot ${escapeHtml(snapshot.releaseId)}</strong>${escapeHtml(snapshot.releasedAt ? `Released ${new Date(snapshot.releasedAt).toLocaleString('en-GB', { hour12:false })}` : 'Release time recorded')}${snapshot.releasedBy ? ` / ${escapeHtml(snapshot.releasedBy)}` : ''}`;
         return;
       }
       if (!saved) {
         const previousChecks = blockers.length ? ` Last server check: ${blockers.join(' / ')}.` : '';
+        node.dataset.releaseState = 'unsaved';
         node.innerHTML = `<strong>Unsaved flight-plan changes</strong>${escapeHtml(`Save the draft to refresh the authoritative release checks.${previousChecks}`)}`;
         return;
       }
       if (!releasePanel) {
+        node.dataset.releaseState = 'unavailable';
         node.innerHTML = '<strong>Release status unavailable</strong>Reload the flight plan before attempting PIC release.';
         return;
       }
       if (releasePanel.ready === true) {
+        node.dataset.releaseState = 'ready';
         node.innerHTML = '<strong>Server release checks complete</strong>The commander may review the acknowledgement and record the final release.';
         return;
       }
+      node.dataset.releaseState = 'blocked';
       node.innerHTML = blockers.length
         ? `<strong>Release blocked / ${blockers.length} open</strong>${escapeHtml(blockers.join(' / '))}`
         : '<strong>Release pending</strong>The server has not marked this flight ready for PIC release.';
@@ -2386,8 +2448,13 @@
       document.body.classList.toggle('pdf-preview-active', pdfActive);
       el('summaryInspectorBtn').setAttribute('aria-selected', String(!pdfActive));
       el('pdfInspectorBtn').setAttribute('aria-selected', String(pdfActive));
+      el('summaryInspectorBtn').tabIndex = pdfActive ? -1 : 0;
+      el('pdfInspectorBtn').tabIndex = pdfActive ? 0 : -1;
       el('consoleSummary').hidden = pdfActive;
+      el('consoleSummary').setAttribute('aria-hidden', String(pdfActive));
       el('pdfPreviewPanel').hidden = !pdfActive;
+      el('pdfPreviewPanel').setAttribute('aria-hidden', String(!pdfActive));
+      document.querySelector('.ofp-inspector').dataset.mode = inspectorMode.toLowerCase();
     }
 
     function ofpPdfUrl(cacheBuster = '') {
@@ -2434,14 +2501,25 @@
       currentWorkspace = selected;
       const visible = new Set(workspaceSections[selected]);
       document.querySelector('.shell').dataset.workspace = selected;
+      document.body.dataset.ofpStage = selected.toLowerCase();
       Object.values(workspaceSections).flat().forEach(id => {
         const section = el(id);
         section.hidden = !visible.has(id);
+        section.setAttribute('aria-hidden', String(section.hidden));
         if (!section.hidden) section.open = true;
       });
-      document.querySelectorAll('[data-workspace]').forEach(button => {
-        button.setAttribute('aria-selected', String(button.dataset.workspace === selected));
+      document.querySelectorAll('.ofp-workspace-button[data-workspace]').forEach(button => {
+        const active = button.dataset.workspace === selected;
+        button.setAttribute('aria-selected', String(active));
+        button.setAttribute('aria-current', active ? 'step' : 'false');
+        button.tabIndex = active ? 0 : -1;
       });
+      const activeTask = document.querySelector(`.ofp-workspace-button[data-workspace="${selected}"]`);
+      window.requestAnimationFrame(() => activeTask?.scrollIntoView({
+        behavior:persist && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto',
+        block:'nearest',
+        inline:'center'
+      }));
       const index = workspaceOrder.indexOf(selected);
       el('previousWorkspaceBtn').disabled = index <= 0;
       el('nextWorkspaceBtn').disabled = index >= workspaceOrder.length - 1;
@@ -2449,7 +2527,7 @@
       el('nextWorkspaceBtn').textContent = index < workspaceOrder.length - 1 ? `Continue to ${workspaceLabels[workspaceOrder[index + 1]]}` : 'Release review';
       el('dockPreviousBtn').disabled = index <= 0;
       el('dockNextBtn').disabled = index >= workspaceOrder.length - 1;
-      if (persist) localStorage.setItem('nga-ofp-workspace-v2', selected);
+      if (persist) rememberWorkspace(selected);
     }
 
     function moveWorkspace(direction) {
@@ -2457,7 +2535,7 @@
       const next = workspaceOrder[Math.max(0, Math.min(workspaceOrder.length - 1, index + direction))];
       if (!next || next === currentWorkspace) return;
       setWorkspace(next);
-      document.querySelector('.ofp-workspaces').scrollIntoView({ behavior:'smooth', block:'nearest' });
+      document.querySelector('.ofp-task-rail').scrollIntoView({ behavior:'smooth', block:'nearest' });
     }
 
     function inputFor(name) { return document.querySelector(`[data-field="${name}"]`); }
@@ -3170,7 +3248,10 @@
       if (!button) return;
       button.dataset.state = complete ? 'complete' : 'open';
       const state = button.querySelector(':scope > .workspace-state');
-      if (state) state.textContent = label;
+      if (state) {
+        state.textContent = label;
+        state.setAttribute('aria-label', `Stage status: ${label}`);
+      }
     }
 
     function scheduleMinutes(value) {
@@ -3298,6 +3379,10 @@
       const completed = gates.filter(gate => gate.ready).length;
       const percent = Math.round((completed / gates.length) * 100);
       const firstOpen = gates.find(gate => !gate.ready);
+      const readinessState = released ? 'released' : percent === 100 ? serverReleaseReady ? 'release-ready' : 'checks-open' : 'planning';
+      el('ofpFlightHero').dataset.readiness = readinessState;
+      document.querySelector('.ofp-readiness-card').dataset.readiness = readinessState;
+      document.querySelector('.ofp-release-checks-card').dataset.releaseChecks = calc.warnings.length ? 'open' : 'complete';
       el('planningReadinessText').textContent = `${completed} / ${gates.length} gates`;
       el('planningReadinessHint').textContent = firstOpen?.detail || 'Preflight planning gates complete. Review the PIC release.';
       el('planningReadinessBar').style.width = `${percent}%`;
@@ -3308,6 +3393,7 @@
       el('briefProgressBar').classList.toggle('complete', percent === 100);
       const readyForRelease = percent === 100 && serverReleaseReady;
       el('briefState').textContent = released ? 'RELEASED' : readyForRelease ? 'READY TO RELEASE' : percent === 100 ? 'RELEASE CHECKS OPEN' : 'PLANNING';
+      el('briefState').dataset.state = readinessState;
       el('briefState').classList.toggle('ready', readyForRelease || released);
       const action = released
         ? { workspace:'RELEASE', title:'Flight released', detail:'Review the frozen release snapshot and controlled document before operation.' }
@@ -3424,6 +3510,16 @@
       el('documentStatus').textContent = released ? 'RELEASE ACKNOWLEDGED' : saved ? 'DRAFT SAVED' : 'UNSAVED DRAFT';
       el('documentStatus').style.color = released ? 'var(--green)' : 'var(--amber)';
       el('crewStatus').textContent = inputFor('releaseName').value || inputFor('commanderName')?.value || plan.commanderName || 'UNASSIGNED';
+      const commanderAssigned = el('crewStatus').textContent !== 'UNASSIGNED';
+      document.querySelector('[data-flight-fact="route"]').dataset.state = progress.routeReady ? 'complete' : 'attention';
+      document.querySelector('[data-flight-fact="schedule"]').dataset.state = smartSchedule ? 'complete' : 'attention';
+      document.querySelector('[data-flight-fact="commander"]').dataset.state = commanderAssigned ? 'complete' : 'attention';
+      document.querySelector('[data-flight-fact="document"]').dataset.state = released ? 'released' : saved ? 'saved' : 'unsaved';
+      document.querySelector('.ofp-flight-setup-card').dataset.state = progress.setupReady ? 'complete' : 'attention';
+      document.querySelector('.ofp-schedule-card').dataset.state = smartSchedule ? 'complete' : departureTimeNeedsOccurrence ? 'attention' : 'open';
+      document.querySelector('.ofp-route-card').dataset.state = progress.routeReady ? 'complete' : 'review-required';
+      document.querySelector('.ofp-smart-aircraft-card').dataset.state = String(plan.aircraftRegistration || '').trim() ? 'complete' : 'attention';
+      document.querySelector('.ofp-release-workspace').dataset.releaseState = released ? 'released' : progress.serverReleaseReady ? 'ready' : 'blocked';
       renderServerReleasePanel();
       ['actualOut','actualOff','actualOn','actualIn'].forEach(field => {
         const value = String(inputFor(field).value || '').trim();
@@ -3712,7 +3808,22 @@
       el(id).addEventListener('input', renderConversions);
       el(id).addEventListener('change', renderConversions);
     });
-    document.querySelectorAll('[data-workspace]').forEach(button => button.addEventListener('click', () => setWorkspace(button.dataset.workspace)));
+    const taskTabs = [...document.querySelectorAll('.ofp-workspace-button[data-workspace]')];
+    taskTabs.forEach(button => button.addEventListener('click', () => setWorkspace(button.dataset.workspace)));
+    document.querySelector('.ofp-task-rail').addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      const currentIndex = Math.max(0, taskTabs.findIndex(button => button.dataset.workspace === currentWorkspace));
+      const nextIndex = event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? taskTabs.length - 1
+          : Math.max(0, Math.min(taskTabs.length - 1, currentIndex + (event.key === 'ArrowRight' ? 1 : -1)));
+      const nextTab = taskTabs[nextIndex];
+      setWorkspace(nextTab.dataset.workspace);
+      nextTab.focus({ preventScroll:true });
+      nextTab.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'nearest' });
+    });
     el('openNextGateBtn').addEventListener('click', event => setWorkspace(event.currentTarget.dataset.workspace || 'SETUP'));
     el('aircraftProfileBtn').addEventListener('click', () => {
       renderAircraftProfile();
@@ -3727,7 +3838,7 @@
     el('nextWorkspaceBtn').addEventListener('click', () => moveWorkspace(1));
     el('dockPreviousBtn').addEventListener('click', () => moveWorkspace(-1));
     el('dockNextBtn').addEventListener('click', () => moveWorkspace(1));
-    setWorkspace(localStorage.getItem('nga-ofp-workspace-v2') || localStorage.getItem('nga-ofp-workspace-v1') || 'SETUP', false);
+    setWorkspace(storedWorkspace(), false);
     renderConversions();
     el('loadModeSelect').addEventListener('change', () => {
       const manual = el('loadModeSelect').value === 'MANUAL';
@@ -3765,6 +3876,10 @@
     el('dockSaveBtn').addEventListener('click', saveDraft);
     el('dockPreviewBtn').addEventListener('click', refreshPdfPreview);
     el('dockPdfBtn').addEventListener('click', openCurrentPdf);
+    el('efbThemeToggleOFP').addEventListener('click', () => {
+      const nextTheme = document.documentElement.dataset.efbTheme === 'night' ? 'day' : 'night';
+      window.applyOFPTheme(nextTheme, true);
+    });
     el('backBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops'; });
     el('weatherBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
     el('openWeatherWorkspaceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });

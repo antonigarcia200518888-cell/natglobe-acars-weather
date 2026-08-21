@@ -1,11 +1,12 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-08-v8';
-const PILOT_EFB_CSS = '/pilot-efb.css?v=2026-08-14-6';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-08-v11';
+const PILOT_EFB_CSS = '/pilot-efb.css?v=2026-08-21-3';
 const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
   '/pilot-manifest.webmanifest',
   PILOT_EFB_CSS,
   '/icon-192.png',
   '/icon-512.png',
+  '/piper-render-transparent.png',
   '/fonts/computer-says-no.woff2'
 ];
 
