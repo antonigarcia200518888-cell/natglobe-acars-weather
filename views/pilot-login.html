@@ -10,9 +10,11 @@
     try {
       const savedTheme = localStorage.getItem('nga-efb-theme') === 'night' ? 'night' : 'day';
       document.documentElement.dataset.efbTheme = savedTheme;
+      document.documentElement.style.colorScheme = savedTheme === 'night' ? 'dark' : 'light';
       document.querySelector('meta[name="theme-color"]')?.setAttribute('content', savedTheme === 'night' ? '#07111b' : '#edf3f6');
     } catch (_) {
       document.documentElement.dataset.efbTheme = 'day';
+      document.documentElement.style.colorScheme = 'light';
     }
   </script>
   <style>
@@ -149,13 +151,14 @@
       text-transform: uppercase;
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-3" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-12" />
 </head>
 <body class="pilot-login">
   <main class="frame">
     <header class="pilot-access-brand">
       <span class="pilot-access-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span>
       <div><small>NGA Private Aviation</small><strong>Pilot EFB</strong></div>
+      <button id="efbThemeToggleLogin" class="btn efb-theme-toggle" type="button" aria-label="Switch to night mode" aria-pressed="false" title="Switch to night mode"><span class="efb-theme-icon" aria-hidden="true"><svg class="efb-theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg><svg class="efb-theme-icon-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></span></button>
     </header>
     <div class="title">Welcome aboard</div>
     <div id="clock" class="clock">UTC --:--:--</div>
@@ -181,6 +184,31 @@
     const form = document.getElementById('loginForm');
     const code = document.getElementById('code');
     const passkeyLogin = document.getElementById('passkeyLogin');
+    const themeToggle = document.getElementById('efbThemeToggleLogin');
+    const themeKey = 'nga-efb-theme';
+
+    function applyLoginTheme(value, persist = true) {
+      const theme = value === 'night' ? 'night' : 'day';
+      const nextTheme = theme === 'night' ? 'day' : 'night';
+      document.documentElement.dataset.efbTheme = theme;
+      document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#07111b' : '#edf3f6');
+      themeToggle.dataset.currentTheme = theme;
+      themeToggle.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
+      themeToggle.setAttribute('aria-pressed', String(theme === 'night'));
+      themeToggle.title = `Switch to ${nextTheme} mode`;
+      if (persist) {
+        try { localStorage.setItem(themeKey, theme); } catch (_) {}
+      }
+    }
+
+    applyLoginTheme(document.documentElement.dataset.efbTheme, false);
+    themeToggle.addEventListener('click', () => {
+      applyLoginTheme(document.documentElement.dataset.efbTheme === 'night' ? 'day' : 'night');
+    });
+    window.addEventListener('storage', event => {
+      if (event.key === themeKey) applyLoginTheme(event.newValue, false);
+    });
 
     function tick() {
       clock.textContent = `UTC ${new Date().toISOString().slice(11, 19)}`;

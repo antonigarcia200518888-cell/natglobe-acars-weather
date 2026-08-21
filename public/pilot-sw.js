@@ -1,9 +1,16 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-08-v11';
-const PILOT_EFB_CSS = '/pilot-efb.css?v=2026-08-21-3';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-08-v15';
+const PILOT_STYLESHEET_VERSION = '2026-08-21-12';
+const PILOT_EFB_STYLESHEETS = [
+  `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-tools-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-secondary-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-ofp-reference.css?v=${PILOT_STYLESHEET_VERSION}`
+];
 const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
   '/pilot-manifest.webmanifest',
-  PILOT_EFB_CSS,
+  ...PILOT_EFB_STYLESHEETS,
   '/icon-192.png',
   '/icon-512.png',
   '/piper-render-transparent.png',
@@ -46,7 +53,8 @@ self.addEventListener('fetch', event => {
 
   const shellAsset = PILOT_SHELL_ASSETS.find(asset => new URL(asset, self.location.origin).pathname === url.pathname);
   if (shellAsset) {
-    if (url.pathname === new URL(PILOT_EFB_CSS, self.location.origin).pathname) {
+    const isEfbStylesheet = PILOT_EFB_STYLESHEETS.some(asset => new URL(asset, self.location.origin).pathname === url.pathname);
+    if (isEfbStylesheet) {
       event.respondWith(
         fetch(request)
           .then(response => {

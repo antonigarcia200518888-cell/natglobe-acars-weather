@@ -1,0 +1,1370 @@
+/*
+ * NGA Pilot EFB — reference-faithful OFP workspace
+ *
+ * This file is intentionally scoped to the Operational Flight Plan page and
+ * loaded after the shared Pilot EFB theme. It reshapes the existing, tested
+ * workflow into one app canvas without changing any planning or release data.
+ */
+
+html {
+  --ofp-shell-gap: 12px;
+  --ofp-rail-width: 76px;
+  --ofp-inspector-width: 306px;
+  --ofp-command-height: 70px;
+  --ofp-ink: var(--efb-text);
+}
+
+html,
+body {
+  min-width: 320px;
+  background: var(--efb-canvas-art) fixed !important;
+}
+
+body {
+  display: block;
+  padding: 0 0 calc(var(--ofp-command-height) + 24px + env(safe-area-inset-bottom)) !important;
+  overflow-x: hidden;
+}
+
+html.embedded body {
+  padding: 0 0 calc(var(--ofp-command-height) + 18px + env(safe-area-inset-bottom)) !important;
+}
+
+.ofp-app-shell,
+html.embedded .ofp-app-shell {
+  display: grid;
+  grid-template-columns: var(--ofp-rail-width) minmax(0, 1fr);
+  grid-template-areas:
+    "header header"
+    "hero hero"
+    "context context"
+    "rail workspace";
+  gap: var(--ofp-shell-gap);
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* One compact app header. Document actions live in the command bar below. */
+.ofp-app-header,
+html.embedded .ofp-app-header {
+  grid-area: header;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 62px;
+  margin: 10px 12px 0;
+  padding: 8px 10px;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--efb-border) 82%, transparent);
+  border-radius: 19px;
+  background: var(--efb-glass-strong);
+  box-shadow: var(--efb-shadow-small);
+  backdrop-filter: blur(28px) saturate(1.18);
+  -webkit-backdrop-filter: blur(28px) saturate(1.18);
+}
+
+.ofp-header-context,
+.topbar-title.ofp-header-context {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ofp-brand-mark {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--efb-glass-solid) 76%, var(--efb-border));
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 7px 18px rgba(35, 53, 65, .1);
+}
+
+.ofp-brand-mark img {
+  width: 31px;
+  height: 25px;
+  object-fit: contain;
+}
+
+.ofp-app-header .eyebrow {
+  color: var(--efb-tertiary);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.ofp-app-header h1 {
+  margin: 2px 0 0;
+  color: var(--efb-text);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -.025em;
+  text-transform: none;
+}
+
+.ofp-app-header .sub,
+.ofp-header-document-actions {
+  display: none;
+}
+
+.ofp-header-actions,
+.ofp-header-nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  width: auto;
+}
+
+.ofp-header-nav-actions .btn {
+  min-width: 0;
+  min-height: 42px;
+  border-radius: 13px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.ofp-header-nav-actions .efb-theme-toggle {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+}
+
+/* The symbol advertises the action: moon enters night, sun returns to day. */
+.ofp-app-header .efb-theme-toggle .efb-theme-icon-sun { display: none; }
+.ofp-app-header .efb-theme-toggle .efb-theme-icon-moon { display: block; }
+[data-efb-theme="night"] .ofp-app-header .efb-theme-toggle .efb-theme-icon-sun { display: block; }
+[data-efb-theme="night"] .ofp-app-header .efb-theme-toggle .efb-theme-icon-moon { display: none; }
+
+/* Aircraft-centred flight stage, matching the supplied dashboard composition. */
+.ofp-flight-hero,
+html.embedded .ofp-flight-hero {
+  grid-area: hero;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(226px, .72fr) minmax(360px, 1.28fr) minmax(250px, .72fr);
+  grid-template-areas:
+    "identity aircraft facts"
+    "identity aircraft readiness";
+  gap: 9px;
+  min-height: 244px;
+  margin: 0 12px;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid var(--efb-border);
+  border-radius: 25px;
+  background:
+    radial-gradient(circle at 54% 28%, color-mix(in srgb, var(--efb-glass-solid) 82%, transparent), transparent 19rem),
+    radial-gradient(circle at 78% 8%, var(--efb-cyan-soft), transparent 18rem),
+    linear-gradient(128deg, var(--efb-glass-solid), color-mix(in srgb, var(--efb-mint) 18%, var(--efb-glass-solid)) 58%, color-mix(in srgb, var(--efb-cyan) 16%, var(--efb-glass-solid)));
+  box-shadow: var(--efb-shadow);
+}
+
+.ofp-flight-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: auto 20% 10px 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--efb-text) 17%, transparent), transparent);
+  box-shadow: 0 24px 36px color-mix(in srgb, var(--efb-text) 9%, transparent);
+}
+
+.ofp-flight-hero-main,
+.dispatch-identity.ofp-flight-hero-main {
+  grid-area: identity;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 20px;
+  border: 0;
+  border-radius: 19px;
+  background: color-mix(in srgb, var(--efb-glass-solid) 69%, transparent);
+  box-shadow: none;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.ofp-flight-hero-label {
+  color: var(--efb-tertiary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.ofp-flight-route,
+.dispatch-route.ofp-flight-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+  align-items: end;
+  gap: 5px;
+  margin: 18px 0 14px;
+}
+
+.ofp-flight-endpoint span {
+  display: block;
+  color: var(--efb-tertiary);
+  font-family: var(--efb-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.ofp-flight-endpoint strong,
+.dispatch-route .ofp-flight-endpoint strong {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  color: var(--efb-text);
+  font-family: var(--efb-mono);
+  font-size: clamp(27px, 2.4vw, 38px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ofp-flight-endpoint:last-child { text-align: right; }
+
+.ofp-flight-path {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 2px;
+  padding-bottom: 3px;
+  color: var(--efb-blue-strong);
+}
+
+.ofp-flight-path i {
+  width: auto;
+  height: 1px;
+  background: color-mix(in srgb, var(--efb-blue) 38%, transparent);
+}
+
+.ofp-flight-path b {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.ofp-flight-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+.ofp-flight-badges > * {
+  min-width: 0;
+  padding: 6px 8px;
+  overflow: hidden;
+  border: 1px solid var(--efb-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--efb-glass-solid) 78%, transparent);
+  color: var(--efb-secondary);
+  font-family: var(--efb-mono);
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ofp-flight-aircraft {
+  grid-area: aircraft;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  min-height: 188px;
+  place-items: center;
+  pointer-events: none;
+}
+
+.ofp-flight-aircraft img {
+  width: min(100%, 650px);
+  height: 202px;
+  object-fit: contain;
+  opacity: var(--efb-aircraft-opacity);
+  filter: var(--efb-aircraft-filter);
+  transform: scale(1.08);
+}
+
+.ofp-flight-aircraft > span {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--efb-safe) 24%, var(--efb-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--efb-glass-solid) 82%, transparent);
+  color: var(--efb-secondary);
+  font-family: var(--efb-ui);
+  font-size: 9px;
+  font-weight: 700;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.ofp-flight-aircraft > span i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--efb-safe);
+  box-shadow: 0 0 0 4px var(--efb-safe-soft);
+}
+
+.ofp-flight-facts,
+.ofp-flight-hero .statusline.ofp-flight-facts {
+  grid-area: facts;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: end;
+  gap: 7px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.ofp-flight-facts .statusbox,
+.dispatch-overview .ofp-flight-facts .statusbox {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  min-height: 54px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--efb-glass-solid) 70%, var(--efb-border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--efb-glass-solid) 78%, transparent);
+  box-shadow: 0 7px 18px rgba(38, 58, 72, .05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.ofp-flight-facts .statusbox span {
+  color: var(--efb-tertiary);
+  font-family: var(--efb-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: none;
+}
+
+.ofp-flight-facts .statusbox strong {
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--efb-text);
+  font-family: var(--efb-mono);
+  font-size: 13px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ofp-flight-hero-readiness,
+.overview-readiness.ofp-flight-hero-readiness {
+  grid-area: readiness;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--efb-glass-solid) 70%, var(--efb-border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--efb-glass-solid) 78%, transparent);
+  box-shadow: none;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.ofp-flight-hero-readiness > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ofp-flight-hero-readiness span,
+.ofp-flight-hero-readiness small {
+  color: var(--efb-tertiary);
+  font-family: var(--efb-ui);
+  font-size: 9px;
+  text-transform: none;
+}
+
+.ofp-flight-hero-readiness strong {
+  color: var(--efb-text);
+  font-family: var(--efb-mono);
+  font-size: 12px;
+}
+
+.ofp-flight-hero-readiness .readiness-track {
+  height: 5px;
+  margin: 9px 0 7px;
+  border-radius: 999px;
+}
+
+/* Context stays quiet until the pilot needs its source or save state. */
+.ofp-context-strip,
+.dispatch-meta-row.ofp-context-strip {
+  grid-area: context;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 42px;
+  margin: -2px 12px 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.ofp-context-strip .flight-source,
+.ofp-context-strip .save-state {
+  min-height: 40px;
+  margin: 0;
+  border: 1px solid var(--efb-border);
+  border-radius: 14px;
+  background: var(--efb-glass);
+  box-shadow: var(--efb-shadow-small);
+}
+
+.ofp-context-strip .flight-source {
+  flex: 1 1 auto;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 6px 9px;
+}
+
+.ofp-context-strip .flight-source-badge {
+  padding: 5px 7px;
+  border-radius: 999px;
+  font-size: 8px;
+}
+
+.ofp-context-strip .flight-source strong {
+  font-size: 10px;
+  text-transform: none;
+}
+
+.ofp-context-strip .flight-source span { display: none; }
+
+.ofp-context-strip .save-state {
+  flex: 0 1 42%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 7px 10px;
+  overflow: hidden;
+  color: var(--efb-secondary);
+  font-family: var(--efb-mono);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A single icon-like stage rail instead of six full-width cards. */
+.ofp-task-rail,
+.ofp-workspaces.ofp-task-rail,
+html.embedded .ofp-task-rail {
+  grid-area: rail;
+  position: sticky;
+  top: 84px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-self: start;
+  gap: 4px;
+  width: var(--ofp-rail-width);
+  height: auto;
+  min-height: 0;
+  margin: 0 0 0 12px;
+  padding: 6px;
+  overflow: visible;
+  border: 1px solid var(--efb-border);
+  border-radius: 22px;
+  background: var(--efb-glass);
+  box-shadow: var(--efb-shadow-small);
+  backdrop-filter: blur(24px) saturate(1.16);
+  -webkit-backdrop-filter: blur(24px) saturate(1.16);
+}
+
+.ofp-task-tab,
+.ofp-workspace-button.ofp-task-tab {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  width: 60px;
+  min-width: 0;
+  height: 44px;
+  min-height: 44px;
+  padding: 2px;
+  overflow: visible;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.ofp-task-tab::before,
+.ofp-workspace-button.ofp-task-tab::before {
+  content: attr(data-step);
+  position: static;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  transform: none;
+  place-items: center;
+  border: 1px solid var(--efb-border);
+  border-radius: 50%;
+  background: var(--efb-glass-solid);
+  color: var(--efb-secondary);
+  font-family: var(--efb-mono);
+  font-size: 9px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(38, 58, 72, .07);
+}
+
+.ofp-task-tab .task-kicker,
+.ofp-task-tab .workspace-state { display: none; }
+
+.ofp-task-tab .task-title,
+.ofp-workspace-button.ofp-task-tab .task-title {
+  display: block;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: var(--efb-secondary);
+  font-family: var(--efb-ui);
+  font-size: 7.5px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: normal;
+}
+
+.ofp-task-tab[aria-selected="true"],
+.ofp-workspace-button.ofp-task-tab[aria-selected="true"] {
+  border-color: color-mix(in srgb, var(--efb-mint) 32%, var(--efb-border));
+  background: var(--efb-mint-soft);
+}
+
+.ofp-task-tab[aria-selected="true"]::before,
+.ofp-workspace-button.ofp-task-tab[aria-selected="true"]::before {
+  border-color: var(--efb-active);
+  background: var(--efb-active);
+  color: var(--efb-active-text);
+}
+
+.ofp-task-tab[aria-selected="true"] .task-title { color: var(--efb-text); }
+
+.ofp-task-tab[data-state="complete"]::before,
+.ofp-workspace-button.ofp-task-tab[data-state="complete"]::before {
+  content: "\2713";
+  border-color: var(--efb-safe);
+  background: var(--efb-safe);
+  color: #fff;
+}
+
+/* One active planning canvas. The details remain in the DOM for semantics. */
+.ofp-app-workspace,
+.workspace.ofp-app-workspace,
+html.embedded .ofp-app-workspace {
+  grid-area: workspace;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ofp-inspector-width);
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+  margin: 0 12px 0 0;
+  padding: 0;
+}
+
+body.ofp-inspector-collapsed .ofp-app-workspace,
+html.embedded body.ofp-inspector-collapsed .ofp-app-workspace {
+  grid-template-columns: minmax(0, 1fr) 58px;
+}
+
+.ofp-task-content,
+.editor.ofp-task-content {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--efb-border);
+  border-radius: 24px;
+  background: var(--efb-glass-strong);
+  box-shadow: var(--efb-shadow);
+}
+
+.ofp-task-panel,
+.editor > details.ofp-task-panel {
+  min-width: 0;
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ofp-task-panel + .ofp-task-panel:not([hidden]) {
+  border-top: 1px solid var(--efb-divider);
+}
+
+.ofp-task-panel > summary.ofp-task-panel-summary { display: none; }
+
+.ofp-task-panel > .detail-body,
+.editor > details.ofp-task-panel > .detail-body {
+  padding: 0 20px 22px;
+  border: 0;
+}
+
+.ofp-card-head,
+.section-heading.ofp-card-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 22px;
+  min-height: 84px;
+  margin: 0 -20px 18px;
+  padding: 18px 20px 15px;
+  border-bottom: 1px solid var(--efb-divider);
+  background:
+    radial-gradient(circle at 92% 12%, var(--efb-cyan-soft), transparent 13rem),
+    var(--efb-glass-tint);
+}
+
+.ofp-card-head span {
+  display: block;
+  color: var(--efb-blue-strong);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.ofp-card-head strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--efb-text);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -.025em;
+}
+
+.ofp-card-head p {
+  max-width: 500px;
+  margin: 0;
+  color: var(--efb-secondary);
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.ofp-smart-card,
+.flight-info-composer,
+.schedule-workbench,
+.route-workbench {
+  border-color: var(--efb-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--efb-field) 42%, transparent);
+  box-shadow: none;
+}
+
+.ofp-flight-setup-card,
+.flight-info-composer.ofp-flight-setup-card {
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+}
+
+.flight-info-head {
+  min-height: 84px;
+  border: 1px solid var(--efb-border);
+  border-radius: 17px 17px 0 0;
+  background: linear-gradient(120deg, var(--efb-glass-solid), var(--efb-mint-soft));
+}
+
+.flight-info-head > div:first-child strong { font-size: 18px; }
+.eobt-summary { min-width: 240px; }
+.eobt-summary strong {
+  overflow-wrap: anywhere;
+  font-size: 17px;
+  white-space: normal;
+}
+
+.flight-identity-grid {
+  border: 1px solid var(--efb-border);
+  border-top: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.ofp-app-shell .flight-identity-grid input[type="date"],
+.ofp-app-shell .flight-identity-grid input[type="time"],
+.ofp-app-shell .flight-identity-grid input[data-field="dateUtc"],
+.ofp-app-shell .flight-identity-grid input[data-field="scheduledOutLocal"] {
+  color: var(--ofp-ink) !important;
+  caret-color: var(--ofp-ink);
+  -webkit-text-fill-color: var(--ofp-ink) !important;
+  font-family: var(--efb-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ofp-app-shell .flight-identity-grid input[type="date"]::-webkit-datetime-edit,
+.ofp-app-shell .flight-identity-grid input[type="time"]::-webkit-datetime-edit,
+.ofp-app-shell .flight-identity-grid input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.ofp-app-shell .flight-identity-grid input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+.ofp-app-shell .flight-identity-grid input[type="date"]::-webkit-datetime-edit-text,
+.ofp-app-shell .flight-identity-grid input[type="time"]::-webkit-datetime-edit-text,
+.ofp-app-shell .flight-identity-grid input[type="date"]::-webkit-datetime-edit-day-field,
+.ofp-app-shell .flight-identity-grid input[type="date"]::-webkit-datetime-edit-month-field,
+.ofp-app-shell .flight-identity-grid input[type="date"]::-webkit-datetime-edit-year-field,
+.ofp-app-shell .flight-identity-grid input[type="time"]::-webkit-datetime-edit-hour-field,
+.ofp-app-shell .flight-identity-grid input[type="time"]::-webkit-datetime-edit-minute-field,
+.ofp-app-shell .flight-identity-grid input[type="time"]::-webkit-datetime-edit-ampm-field {
+  color: var(--ofp-ink) !important;
+  -webkit-text-fill-color: var(--ofp-ink) !important;
+}
+
+.ofp-app-shell .flight-identity-grid input[type="date"]::-webkit-calendar-picker-indicator,
+.ofp-app-shell .flight-identity-grid input[type="time"]::-webkit-calendar-picker-indicator {
+  color: var(--ofp-ink);
+  opacity: .72;
+}
+
+.flight-route-strip {
+  margin-top: 12px;
+  border: 1px solid var(--efb-border);
+  border-radius: 18px;
+  background: transparent;
+}
+
+.flight-route-point {
+  border-color: var(--efb-border);
+  background: var(--efb-glass-solid);
+  box-shadow: none;
+}
+
+.route-swap-large {
+  border-radius: 50%;
+  background: var(--efb-glass-solid);
+  box-shadow: var(--efb-shadow-small);
+}
+
+.schedule-workbench {
+  margin-top: 12px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.schedule-workbench-head,
+.route-workbench-head {
+  min-height: 60px;
+  padding: 13px 15px;
+}
+
+.grid,
+.grid.two,
+.flight-identity-grid,
+.schedule-primary-grid-compact,
+.route-procedures {
+  gap: 10px;
+}
+
+.fuel-ladder > div,
+.load-margin-strip > div,
+.movement-card,
+.briefing-modules > button,
+.checkline,
+.locked-profile,
+.load-mode-control {
+  border-radius: 15px;
+  box-shadow: none;
+}
+
+.movement-card { min-height: 188px; }
+
+.ofp-release-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.ofp-release-card {
+  overflow: hidden;
+  border: 1px solid var(--efb-border);
+  border-radius: 17px;
+  padding: 15px;
+  background: var(--efb-field);
+  box-shadow: none;
+}
+
+.ofp-release-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: -15px -15px 14px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--efb-divider);
+  background: var(--efb-glass-tint);
+}
+
+.ofp-release-card-head span,
+.ofp-release-card-head strong { display: block; }
+.ofp-release-card-head span {
+  color: var(--efb-blue-strong);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.ofp-release-card-head strong {
+  margin-top: 4px;
+  color: var(--efb-text);
+  font-size: 15px;
+  line-height: 1.2;
+}
+.ofp-release-card-head em {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  border: 1px solid var(--efb-border);
+  border-radius: 999px;
+  background: var(--efb-glass-solid);
+  color: var(--efb-secondary);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.ofp-release-card .grid { margin-top: 0; }
+.ofp-release-card .checkline { margin: 0; background: var(--efb-glass-solid); }
+.ofp-release-advisory,
+.ofp-release-authority { border-radius: 15px; }
+
+/* Narrow, secondary readiness inspector with a real collapse control. */
+.ofp-inspector,
+.console.ofp-inspector {
+  position: sticky;
+  top: 84px;
+  z-index: 28;
+  display: block;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  max-height: calc(100dvh - var(--ofp-command-height) - 108px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--efb-border);
+  border-radius: 21px;
+  background: var(--efb-glass-strong);
+  box-shadow: var(--efb-shadow-small);
+  scrollbar-width: thin;
+}
+
+.ofp-inspector-toggle {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-bottom: 1px solid var(--efb-divider);
+  border-radius: 20px 20px 0 0;
+  padding: 9px 11px;
+  background: var(--efb-glass-solid);
+  color: var(--efb-text);
+  cursor: pointer;
+}
+
+.ofp-inspector-toggle span,
+.ofp-inspector-toggle small,
+.ofp-inspector-toggle strong { display: block; text-align: left; }
+.ofp-inspector-toggle small { color: var(--efb-tertiary); font-size: 8px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.ofp-inspector-toggle strong { margin-top: 2px; color: var(--efb-text); font-size: 12px; }
+.ofp-inspector-toggle i {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--efb-border);
+  border-radius: 50%;
+  background: var(--efb-field);
+  color: var(--efb-secondary);
+  font-size: 20px;
+  font-style: normal;
+  transform: rotate(180deg);
+  transition: transform .18s ease;
+}
+
+.ofp-inspector-body {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+}
+
+.ofp-inspector-tabs,
+.console-mode-switch.ofp-inspector-tabs {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  min-height: 42px;
+  padding: 4px;
+  border-radius: 13px;
+  box-shadow: none;
+}
+
+.ofp-inspector-tabs button { min-height: 34px; border-radius: 10px; font-size: 10px; }
+.ofp-inspector-summary,
+.console-summary.ofp-inspector-summary { display: grid; grid-template-columns: 1fr; gap: 8px; }
+
+.ofp-readiness-card,
+.ofp-flight-totals-card,
+.ofp-release-checks-card,
+.ofp-inspector .utility-card {
+  overflow: hidden;
+  border: 1px solid var(--efb-border);
+  border-radius: 15px;
+  background: var(--efb-field);
+  box-shadow: none;
+}
+
+.dispatch-brief-head { padding: 10px; }
+.brief-next-action { padding: 11px; }
+.brief-next-action p { margin: 5px 0 9px; font-size: 9px; line-height: 1.4; }
+.brief-next-action .btn { min-height: 38px; }
+.brief-progress { padding: 10px; }
+
+.brief-actions,
+.ofp-readiness-card .dispatch-generate { display: none; }
+
+.ofp-flight-totals-card { padding: 10px; }
+.ofp-flight-totals-card .console-title { margin-bottom: 8px; }
+.ofp-flight-totals-card .metric-grid { gap: 6px; }
+.ofp-flight-totals-card .metric { min-height: 58px; padding: 8px; border-radius: 11px; }
+.ofp-flight-totals-card .metric strong { font-size: 13px; }
+.ofp-flight-totals-card .console-details { margin-top: 8px; }
+
+.ofp-release-checks-card { padding: 10px; }
+.ofp-release-checks-card .warning-list { gap: 5px; }
+.ofp-release-checks-card .warning { padding: 7px 8px; border-radius: 9px; font-size: 9px; }
+
+.ofp-inspector[data-collapsed="true"] {
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.ofp-inspector[data-collapsed="true"] .ofp-inspector-body { display: none; }
+
+.ofp-inspector[data-collapsed="true"] .ofp-inspector-toggle {
+  width: 56px;
+  height: 56px;
+  min-height: 56px;
+  justify-content: center;
+  border-bottom: 0;
+  border-radius: 17px;
+  padding: 0;
+}
+
+.ofp-inspector[data-collapsed="true"] .ofp-inspector-toggle > span { display: none; }
+.ofp-inspector[data-collapsed="true"] .ofp-inspector-toggle i { transform: rotate(0); }
+
+.pdf-preview-panel { min-width: 0; }
+.pdf-preview-frame { min-height: 520px; border-radius: 12px; }
+
+body.pdf-preview-active:not(.ofp-inspector-collapsed) .ofp-app-workspace,
+html.embedded body.pdf-preview-active:not(.ofp-inspector-collapsed) .ofp-app-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(390px, .62fr);
+}
+
+/* One safe-area command surface for every viewport. */
+.ofp-command-bar,
+.ofp-action-dock.ofp-command-bar,
+html.embedded .ofp-command-bar {
+  position: fixed;
+  z-index: 90;
+  right: 12px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  left: calc(var(--ofp-rail-width) + 24px);
+  display: grid;
+  grid-template-columns: minmax(88px, .7fr) minmax(88px, .7fr) minmax(88px, .7fr) minmax(160px, 1.35fr) minmax(76px, .6fr);
+  gap: 7px;
+  width: auto;
+  min-height: var(--ofp-command-height);
+  padding: 9px;
+  border: 1px solid var(--efb-border-strong);
+  border-radius: 21px;
+  background: var(--efb-glass-strong);
+  box-shadow: 0 18px 44px rgba(38, 58, 72, .17);
+  backdrop-filter: blur(28px) saturate(1.2);
+  -webkit-backdrop-filter: blur(28px) saturate(1.2);
+}
+
+.ofp-command-bar .btn {
+  min-width: 0;
+  min-height: 50px;
+  border-radius: 14px;
+  font-size: 11px;
+}
+
+.ofp-command-bar #dockPreviousBtn::before { content: "\2190\00A0"; }
+.ofp-command-bar #dockNextBtn::after { content: "\00A0\2192"; }
+
+@media (min-width: 1200px) {
+  .flight-identity-grid {
+    grid-template-columns:
+      minmax(220px, 2fr)
+      minmax(136px, 1fr)
+      minmax(136px, 1fr)
+      minmax(110px, .74fr)
+      minmax(130px, .9fr);
+  }
+
+  .flight-identity-grid > label.reference-field,
+  .flight-identity-grid > label.date-field,
+  .flight-identity-grid > label.local-time-field,
+  .flight-identity-grid > label.rules-field,
+  .flight-identity-grid > label.operator-field { grid-column: auto; }
+
+  .flight-identity-grid > .time-conversion-panel,
+  .flight-identity-grid > .aircraft-profile-field { grid-column: 1 / -1; }
+}
+
+/* 1024 landscape: keep the aircraft central and the inspector narrow. */
+@media (min-width: 900px) and (max-width: 1199px) {
+  html {
+    --ofp-rail-width: 70px;
+    --ofp-inspector-width: 272px;
+  }
+
+  .ofp-app-shell,
+  html.embedded .ofp-app-shell { gap: 10px; }
+
+  .ofp-app-header,
+  html.embedded .ofp-app-header,
+  .ofp-flight-hero,
+  html.embedded .ofp-flight-hero,
+  .ofp-context-strip,
+  .dispatch-meta-row.ofp-context-strip { margin-inline: 10px; }
+
+  .ofp-flight-hero,
+  html.embedded .ofp-flight-hero {
+    grid-template-columns: minmax(205px, .68fr) minmax(300px, 1.2fr) minmax(214px, .7fr);
+    min-height: 222px;
+  }
+
+  .ofp-flight-hero-main,
+  .dispatch-identity.ofp-flight-hero-main { padding: 15px; }
+  .ofp-flight-route,
+  .dispatch-route.ofp-flight-route { grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr); }
+  .ofp-flight-endpoint strong,
+  .dispatch-route .ofp-flight-endpoint strong { font-size: 27px; }
+  .ofp-flight-aircraft { min-height: 176px; }
+  .ofp-flight-aircraft img { height: 186px; transform: scale(1.05); }
+  .ofp-flight-aircraft > span { right: 2px; }
+  .ofp-flight-facts .statusbox,
+  .dispatch-overview .ofp-flight-facts .statusbox { min-height: 52px; padding: 7px; }
+  .ofp-flight-facts .statusbox strong { font-size: 11px; }
+
+  .ofp-task-rail,
+  .ofp-workspaces.ofp-task-rail,
+  html.embedded .ofp-task-rail { width: var(--ofp-rail-width); margin-left: 10px; padding: 6px; }
+  .ofp-task-tab,
+  .ofp-workspace-button.ofp-task-tab { width: 56px; height: 44px; min-height: 44px; }
+
+  .ofp-app-workspace,
+  .workspace.ofp-app-workspace,
+  html.embedded .ofp-app-workspace { margin-right: 10px; gap: 10px; }
+  .ofp-task-panel > .detail-body,
+  .editor > details.ofp-task-panel > .detail-body { padding: 0 16px 18px; }
+  .ofp-card-head,
+  .section-heading.ofp-card-head { margin-inline: -16px; padding-inline: 16px; }
+  .ofp-card-head p { max-width: 390px; }
+
+  .flight-identity-grid > label.reference-field { grid-column: span 6; }
+  .flight-identity-grid > label.date-field,
+  .flight-identity-grid > label.local-time-field,
+  .flight-identity-grid > label.rules-field,
+  .flight-identity-grid > label.operator-field { grid-column: span 3; }
+}
+
+/* 834 portrait: full-width active canvas, six visible stages, floating status. */
+@media (max-width: 899px) {
+  html {
+    --ofp-shell-gap: 8px;
+    --ofp-command-height: 72px;
+  }
+
+  body,
+  html.embedded body {
+    padding-bottom: calc(var(--ofp-command-height) + 22px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .ofp-app-shell,
+  html.embedded .ofp-app-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "header"
+      "hero"
+      "context"
+      "rail"
+      "workspace";
+  }
+
+  .ofp-app-header,
+  html.embedded .ofp-app-header {
+    min-height: 58px;
+    margin: 7px 8px 0;
+    border-radius: 17px;
+  }
+
+  .ofp-app-header .eyebrow { display: none; }
+  .ofp-app-header h1 { font-size: 17px; }
+  .ofp-brand-mark { width: 39px; height: 39px; flex-basis: 39px; }
+  .ofp-header-nav-actions .btn { min-height: 40px; padding-inline: 10px; font-size: 10px; }
+  .ofp-header-nav-actions .efb-theme-toggle { width: 40px; min-width: 40px; }
+
+  .ofp-flight-hero,
+  html.embedded .ofp-flight-hero {
+    grid-template-columns: minmax(244px, .78fr) minmax(0, 1.22fr);
+    grid-template-areas:
+      "identity aircraft"
+      "facts facts"
+      "readiness readiness";
+    min-height: 338px;
+    margin-inline: 8px;
+    padding: 8px;
+    border-radius: 22px;
+  }
+
+  .ofp-flight-hero-main,
+  .dispatch-identity.ofp-flight-hero-main {
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .ofp-flight-route,
+  .dispatch-route.ofp-flight-route { margin-block: 13px 11px; }
+  .ofp-flight-endpoint strong,
+  .dispatch-route .ofp-flight-endpoint strong { font-size: 29px; }
+  .ofp-flight-aircraft { min-height: 176px; }
+  .ofp-flight-aircraft img { height: 184px; transform: scale(1.12); }
+  .ofp-flight-aircraft > span { right: 0; bottom: 0; font-size: 8px; }
+  .ofp-flight-facts,
+  .ofp-flight-hero .statusline.ofp-flight-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ofp-flight-facts .statusbox,
+  .dispatch-overview .ofp-flight-facts .statusbox { min-height: 60px; }
+  .ofp-flight-facts .statusbox strong { font-size: 11px; }
+  .ofp-flight-hero-readiness,
+  .overview-readiness.ofp-flight-hero-readiness { padding: 10px 12px; }
+
+  .ofp-context-strip,
+  .dispatch-meta-row.ofp-context-strip { margin-inline: 8px; }
+  .ofp-context-strip .save-state { flex-basis: 58%; }
+
+  .ofp-task-rail,
+  .ofp-workspaces.ofp-task-rail,
+  html.embedded .ofp-task-rail {
+    top: 66px;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    width: auto;
+    min-width: 0;
+    margin: 0 8px;
+    padding: 5px;
+    overflow: visible;
+    border-radius: 18px;
+  }
+
+  .ofp-task-tab,
+  .ofp-workspace-button.ofp-task-tab {
+    width: 100%;
+    height: 56px;
+    min-height: 56px;
+    border-radius: 13px;
+  }
+
+  .ofp-task-tab::before,
+  .ofp-workspace-button.ofp-task-tab::before { width: 25px; height: 25px; font-size: 8px; }
+  .ofp-task-tab .task-title,
+  .ofp-workspace-button.ofp-task-tab .task-title { font-size: 8px; white-space: nowrap; }
+
+  .ofp-app-workspace,
+  .workspace.ofp-app-workspace,
+  html.embedded .ofp-app-workspace,
+  body.ofp-inspector-collapsed .ofp-app-workspace,
+  html.embedded body.ofp-inspector-collapsed .ofp-app-workspace,
+  body.pdf-preview-active:not(.ofp-inspector-collapsed) .ofp-app-workspace,
+  html.embedded body.pdf-preview-active:not(.ofp-inspector-collapsed) .ofp-app-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0 8px;
+  }
+
+  .ofp-task-content,
+  .editor.ofp-task-content { border-radius: 21px; }
+  .ofp-task-panel > .detail-body,
+  .editor > details.ofp-task-panel > .detail-body { padding: 0 16px 18px; }
+  .ofp-card-head,
+  .section-heading.ofp-card-head { min-height: 78px; margin-inline: -16px; padding-inline: 16px; }
+  .ofp-card-head p { max-width: 48%; }
+
+  .grid,
+  .grid.two,
+  .flight-identity-grid,
+  .schedule-primary-grid-compact,
+  .route-procedures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .flight-identity-grid > .reference-field,
+  .flight-identity-grid > .time-conversion-panel,
+  .flight-identity-grid > .aircraft-profile-field { grid-column: 1 / -1; }
+
+  .time-conversion-panel { grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr); }
+  .time-conversion-panel .time-zone-chip { grid-column: 1 / -1; }
+  .flight-route-strip { grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr); }
+  .flight-route-strip .alternate-point { grid-column: 1 / -1; }
+  .route-swap-large { width: 42px; }
+  .movement-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .ofp-inspector,
+  .console.ofp-inspector {
+    position: fixed;
+    top: auto;
+    right: 10px;
+    bottom: calc(var(--ofp-command-height) + 20px + env(safe-area-inset-bottom));
+    z-index: 86;
+    width: min(380px, calc(100vw - 20px));
+    max-height: min(68dvh, 720px);
+    border-radius: 21px;
+    box-shadow: var(--efb-shadow-float);
+  }
+
+  .ofp-inspector[data-collapsed="true"] {
+    right: 10px;
+    width: 56px;
+    height: 56px;
+  }
+
+  .ofp-command-bar,
+  .ofp-action-dock.ofp-command-bar,
+  html.embedded .ofp-command-bar {
+    right: 8px;
+    bottom: max(7px, env(safe-area-inset-bottom));
+    left: 8px;
+    grid-template-columns: .66fr .72fr .66fr 1.28fr .54fr;
+    min-height: var(--ofp-command-height);
+    padding: 7px;
+    border-radius: 19px;
+  }
+
+  .ofp-command-bar .btn { min-height: 52px; padding-inline: 6px; font-size: 10px; }
+}
+
+@media (max-width: 640px) {
+  .ofp-header-nav-actions #weatherBtn { display: none; }
+
+  .ofp-flight-hero,
+  html.embedded .ofp-flight-hero {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "identity"
+      "aircraft"
+      "facts"
+      "readiness";
+    min-height: 0;
+  }
+
+  .ofp-flight-hero-main,
+  .dispatch-identity.ofp-flight-hero-main { min-height: 148px; }
+  .ofp-flight-aircraft { min-height: 152px; }
+  .ofp-flight-aircraft img { height: 165px; }
+  .ofp-flight-facts,
+  .ofp-flight-hero .statusline.ofp-flight-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .ofp-context-strip .flight-source { display: none; }
+  .ofp-context-strip .save-state { flex: 1 1 100%; justify-content: flex-start; }
+
+  .ofp-task-rail,
+  .ofp-workspaces.ofp-task-rail,
+  html.embedded .ofp-task-rail {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .ofp-task-rail::-webkit-scrollbar { display: none; }
+  .ofp-task-tab,
+  .ofp-workspace-button.ofp-task-tab { flex: 0 0 92px; scroll-snap-align: center; }
+
+  .ofp-card-head,
+  .section-heading.ofp-card-head { display: block; }
+  .ofp-card-head p { display: none; }
+  .ofp-card-head strong { font-size: 19px; }
+
+  .grid,
+  .grid.two,
+  .flight-identity-grid,
+  .schedule-primary-grid-compact,
+  .route-procedures,
+  .movement-grid { grid-template-columns: minmax(0, 1fr); }
+
+  .flight-identity-grid > * { grid-column: 1 !important; }
+  .time-conversion-panel { grid-template-columns: minmax(0, 1fr); }
+  .time-conversion-panel > i { min-height: 18px; transform: rotate(90deg); }
+  .time-conversion-panel .time-zone-chip { grid-column: 1; }
+  .flight-route-strip { grid-template-columns: minmax(0, 1fr); }
+  .route-swap-large { width: 100%; border-radius: 13px; }
+
+  .ofp-command-bar,
+  .ofp-action-dock.ofp-command-bar,
+  html.embedded .ofp-command-bar { grid-template-columns: .62fr .68fr .62fr 1.25fr .5fr; gap: 4px; }
+  .ofp-command-bar .btn { min-height: 50px; padding: 5px 2px; font-size: 9px; }
+  .ofp-command-bar #dockPreviousBtn::before,
+  .ofp-command-bar #dockNextBtn::after { content: ""; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ofp-inspector-toggle i { transition: none; }
+}
