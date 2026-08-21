@@ -7,8 +7,15 @@
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <title>NGA Pilot Operations Centre</title>
   <script>
-    try { document.documentElement.dataset.efbTheme = localStorage.getItem('nga-efb-theme') || 'day'; }
-    catch { document.documentElement.dataset.efbTheme = 'day'; }
+    (() => {
+      const theme = (() => {
+        try { return localStorage.getItem('nga-efb-theme') === 'night' ? 'night' : 'day'; }
+        catch (_) { return 'day'; }
+      })();
+      document.documentElement.dataset.efbTheme = theme;
+      document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#07111b' : '#edf3f6');
+    })();
   </script>
   <style>
     :root {
@@ -2932,20 +2939,23 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-3" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-12" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-08-21-12" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-08-21-12" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-08-21-12" />
 </head>
 <body>
   <main class="frame">
     <header class="efb-masthead">
-      <button id="sidebarToggle" class="shell-icon-button" type="button" aria-label="Collapse navigation">NAV</button>
-      <div class="masthead-brand"><span class="efb-logo-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA PILOT EFB</div><div class="intro">Flights, planning, weather, performance, aircraft, and documents.</div></div></div>
+      <button id="sidebarToggle" class="shell-icon-button masthead-menu-button" type="button" aria-label="Collapse navigation" title="Navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span></button>
+      <div class="masthead-brand"><span class="efb-logo-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
       <div class="masthead-status">
-        <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button"><span class="shell-search-label">Ask Pilot EFB or search</span><kbd>CTRL K</kbd></button>
-        <button id="notificationsBtn" class="shell-icon-button" type="button">Alerts <span id="notificationCount" class="count">0</span></button>
-        <button id="userMenuBtn" class="shell-icon-button" type="button">Crew</button>
-        <button id="efbThemeToggle" class="shell-icon-button efb-theme-toggle" type="button" aria-pressed="false">Night</button>
-        <button id="flightContextBtn" class="shell-icon-button flight-context-trigger" type="button" aria-controls="flightContextPanel" aria-expanded="false">Flight</button>
-        <button id="appUpdateBtn" class="shell-icon-button" type="button" hidden>Update ready</button>
+        <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg></span><span class="shell-search-label">Ask Pilot EFB or search</span><kbd>⌘ K</kbd></button>
+        <button id="notificationsBtn" class="shell-icon-button masthead-round-button" type="button" aria-label="Open alerts" title="Alerts"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span><span id="notificationCount" class="count">0</span></button>
+        <button id="userMenuBtn" class="shell-icon-button masthead-crew-button" type="button" aria-label="Open crew menu"><span class="app-avatar" aria-hidden="true">PIC</span><span class="masthead-crew-copy"><strong>Crew</strong><small>Pilot</small></span></button>
+        <button id="efbThemeToggle" class="shell-icon-button efb-theme-toggle" type="button" aria-label="Switch to night mode" aria-pressed="false" title="Switch to night mode"><span class="efb-theme-icon" aria-hidden="true"><svg class="efb-theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg><svg class="efb-theme-icon-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></span></button>
+        <button id="flightContextBtn" class="shell-icon-button masthead-round-button flight-context-trigger" type="button" aria-label="Open active flight context" title="Active flight" aria-controls="flightContextPanel" aria-expanded="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 16l20-8-8 20-3-9-9-3Z"></path><path d="m11 19 4-4"></path></svg></span></button>
+        <button id="appUpdateBtn" class="shell-icon-button masthead-round-button" type="button" aria-label="Refresh application" title="Update ready" hidden><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.34 5.66"></path><path d="M20 4v7h-7"></path></svg></span></button>
         <div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div>
         <div id="networkStatus" class="offline-indicator">NETWORK CHECK</div>
         <div id="clock" class="clock">UTC --:--:--</div>
@@ -2962,15 +2972,15 @@
     </section>
     <div class="efb-layout">
     <nav class="ops-suite-nav" aria-label="Pilot operations workspaces">
-      <div class="suite-nav-tools"><span class="suite-nav-label">Workspaces</span><button id="sidebarRailToggle" class="shell-icon-button" type="button" aria-label="Collapse navigation rail">&lt;&lt;</button></div>
-      <button class="suite-tab active" type="button" data-suite-view="dashboard"><span>Flight deck</span><strong>Home</strong><small>Operational picture and tools</small></button>
-      <button class="suite-tab" type="button" data-suite-view="flights"><span>Control</span><strong>Flights</strong><small>Queue, crew, passengers, decision</small></button>
-      <button class="suite-tab" type="button" data-suite-view="flight-plan"><span>Plan</span><strong>OFP</strong><small>Route, fuel, load, movement log</small></button>
-      <button class="suite-tab" type="button" data-suite-view="weather"><span>Preflight</span><strong>Weather</strong><small>Raw METAR, TAF, and dispatch PDF</small></button>
-      <button class="suite-tab" type="button" data-suite-view="performance"><span>Runway</span><strong>Perf</strong><small>Runway, wind, density altitude</small></button>
-      <button class="suite-tab" type="button" data-suite-view="aircraft"><span>Technical</span><strong>Aircraft</strong><small>Fuel, oil, maintenance, serviceability</small></button>
-      <button class="suite-tab" type="button" data-suite-view="documents"><span>Flight file</span><strong>Files</strong><small>OFP, statement, agreements</small></button>
-      <button id="mobileMoreBtn" class="suite-tab mobile-more-tab" type="button"><span>More tools</span><strong>More</strong><small>Performance, aircraft, files, and search</small></button>
+      <div class="suite-nav-tools"><span class="suite-nav-label">Workspaces</span><button id="sidebarRailToggle" class="shell-icon-button" type="button" aria-label="Collapse navigation rail" title="Collapse navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></span></button></div>
+      <button class="suite-tab active" type="button" data-suite-view="dashboard" aria-label="Home" title="Home"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg></span><strong>Home</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="flights" aria-label="Flights" title="Flights"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 16h18"></path><path d="m6 16 3-5h7l2 5"></path><path d="M8 19h.01M17 19h.01"></path><path d="M12 11V5"></path></svg></span><strong>Flights</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="flight-plan" aria-label="Operational flight plan" title="OFP"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6M8 13h8M8 17h6"></path></svg></span><strong>OFP</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="weather" aria-label="Weather" title="Weather"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17.5 19H7a5 5 0 1 1 1.6-9.74A6 6 0 0 1 20 12a3.5 3.5 0 0 1-2.5 7Z"></path><path d="M12 3v2M4.93 4.93l1.42 1.42M2 12h2"></path></svg></span><strong>Weather</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="performance" aria-label="Aircraft performance" title="Performance"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18h16"></path><path d="M6 14h12"></path><path d="m9 10 3-6 3 6"></path><path d="M12 4v14"></path></svg></span><strong>Perf</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="aircraft" aria-label="Aircraft" title="Aircraft"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 16h20"></path><path d="m6 16 4-5h7l3 5"></path><path d="M12 11 9 4h3l4 7"></path></svg></span><strong>Aircraft</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="documents" aria-label="Flight files" title="Files"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6M8 12h8M8 16h8"></path></svg></span><strong>Files</strong></button>
+      <button id="mobileMoreBtn" class="suite-tab mobile-more-tab" type="button" aria-label="More tools" title="More"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></span><strong>More</strong></button>
     </nav>
     <div class="efb-content">
     <section id="dashboardWorkspace" class="ops-dashboard">
@@ -3069,6 +3079,7 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
       </div>
       <div id="performanceOpsPane" class="ops-tool-pane" hidden>
         <div id="performanceConsole" class="performance-console performance-app" data-state="empty">
+          <section class="performance-reference-scene" aria-label="Aircraft performance planning canvas">
           <header class="aircraft-performance-head performance-aircraft-hero">
             <div class="aircraft-identity performance-aircraft-identity">
               <span>Performance computer</span>
@@ -3109,15 +3120,19 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
                 <div class="runway-guidance"><small id="perfArrRunwayHint" class="runway-smart-hint">Enter an airport to load runway guidance.</small><button id="confirmArrRunwayBtn" type="button">Confirm runway</button></div>
               </div>
             </div>
-            <div class="performance-source-row" aria-label="Calculation sources"><span id="performanceWeightSource" data-source="weight" data-state="pending">Planned weight pending</span><span id="performanceWeatherSource" data-source="weather" data-state="pending">METAR pending</span><span id="performanceRunwaySource" data-source="runway" data-state="pending">Runway database pending</span><span data-source="aircraft" data-state="ready">PA-28R profile ready</span></div>
+            <details class="performance-source-drawer">
+              <summary><span>Calculation sources</span><strong>View connected data</strong></summary>
+              <div class="performance-source-row" aria-label="Calculation sources"><span id="performanceWeightSource" data-source="weight" data-state="pending">Planned weight pending</span><span id="performanceWeatherSource" data-source="weather" data-state="pending">METAR pending</span><span id="performanceRunwaySource" data-source="runway" data-state="pending">Runway database pending</span><span data-source="aircraft" data-state="ready">PA-28R profile ready</span></div>
+            </details>
           </section>
           <div id="performanceStatus" class="performance-status performance-smart-status" data-state="empty" role="status" aria-live="polite">Select a flight and runway ends. Current weather, wind components, density altitude, and runway data will load automatically.</div>
+          </section>
           <div class="performance-stage-tabs" role="tablist" aria-label="Aircraft performance phase">
-            <button class="active" type="button" role="tab" aria-selected="true" data-performance-stage="takeoff"><span>Departure</span><strong>Takeoff</strong><small id="takeoffStageSummary">Select runway</small></button>
-            <button type="button" role="tab" aria-selected="false" data-performance-stage="landing"><span>Arrival</span><strong>Landing</strong><small id="landingStageSummary">Select runway</small></button>
+            <button id="takeoffPerformanceTab" class="active" type="button" role="tab" aria-selected="true" aria-controls="takeoffPerformancePanel" tabindex="0" data-performance-stage="takeoff"><span>Departure</span><strong>Takeoff</strong><small id="takeoffStageSummary">Select runway</small></button>
+            <button id="landingPerformanceTab" type="button" role="tab" aria-selected="false" aria-controls="landingPerformancePanel" tabindex="-1" data-performance-stage="landing"><span>Arrival</span><strong>Landing</strong><small id="landingStageSummary">Select runway</small></button>
           </div>
           <div class="performance-results">
-            <section class="performance-block active" data-performance-panel="takeoff">
+            <section id="takeoffPerformancePanel" class="performance-block active" role="tabpanel" aria-labelledby="takeoffPerformanceTab" aria-hidden="false" data-performance-panel="takeoff">
               <header class="performance-block-header"><div><small>Departure analysis</small><h3>Takeoff performance</h3></div><em id="takeoffPerfBadge" class="perf-status-badge">Not calculated</em></header>
               <div id="takeoffResultHeader" class="performance-result-header">
                 <div class="performance-result-status"><i class="status-lamp"></i><div><span>Overall result</span><strong id="takeoffResultStatus">DATA INCOMPLETE</strong><small id="takeoffResultMeta">Calculate to create a runway assessment</small></div></div>
@@ -3179,7 +3194,7 @@ LOAD DATA TO CALCULATE.</pre></details>
               </div>
               </div>
             </section>
-            <section class="performance-block" data-performance-panel="landing">
+            <section id="landingPerformancePanel" class="performance-block" role="tabpanel" aria-labelledby="landingPerformanceTab" aria-hidden="true" data-performance-panel="landing">
               <header class="performance-block-header"><div><small>Arrival analysis</small><h3>Landing performance</h3></div><em id="landingPerfBadge" class="perf-status-badge">Not calculated</em></header>
               <div id="landingResultHeader" class="performance-result-header">
                 <div class="performance-result-status"><i class="status-lamp"></i><div><span>Overall result</span><strong id="landingResultStatus">DATA INCOMPLETE</strong><small id="landingResultMeta">Calculate to create a runway assessment</small></div></div>
@@ -3244,11 +3259,12 @@ LOAD DATA TO CALCULATE.</pre></details>
       </div>
       <div id="aircraftOpsPane" class="ops-tool-pane" hidden>
         <div id="aircraftConsole" class="aircraft-console aircraft-app" data-state="loading">
+          <section class="aircraft-reference-scene" aria-label="Aircraft health overview">
           <section id="aircraftStatusHero" class="aircraft-status-hero aircraft-fleet-hero" data-state="loading" aria-label="Current aircraft status">
             <div class="aircraft-hero-copy">
-              <span>Primary aircraft · OH-PMK</span>
-              <h2>Piper Arrow II</h2>
-              <p>PA-28R-200 · Four seat complex single</p>
+              <span>Primary aircraft</span>
+              <h2>OH-PMK</h2>
+              <p>Piper Arrow II · PA-28R-200</p>
               <div class="aircraft-serviceability-pill"><i aria-hidden="true"></i><strong id="aircraftServiceabilityHero">STATUS LOADING</strong></div>
               <button id="editAircraftStatusBtn" class="aircraft-hero-action" type="button">Update aircraft</button>
             </div>
@@ -3266,8 +3282,11 @@ LOAD DATA TO CALCULATE.</pre></details>
             <div id="aircraftHealthMaintenance" data-state="pending"><i aria-hidden="true"></i><span><strong>Maintenance</strong><small>Due status pending</small></span></div>
             <div id="aircraftHealthSync" data-state="pending"><i aria-hidden="true"></i><span><strong>Record sync</strong><small>Connecting to aircraft file</small></span></div>
           </section>
+          </section>
           <div class="aircraft-panel-grid">
-            <section id="aircraftRecordPanel" class="aircraft-panel aircraft-record-panel" data-state="loading">
+            <details id="aircraftRecordPanel" class="aircraft-panel aircraft-record-panel aircraft-record-drawer" data-state="loading">
+              <summary class="aircraft-record-drawer-summary"><span><strong>Update aircraft record</strong><small>Serviceability, fuel, oil and technical details</small></span><em>Open sheet</em></summary>
+              <div class="aircraft-record-drawer-body">
               <header class="aircraft-panel-head"><div><span>Aircraft control</span><strong>Current status</strong><p>Keep the three flight-critical records current. Technical time and maintenance details remain available below.</p></div><em id="aircraftUpdatedState">NOT SYNCED</em></header>
               <div class="aircraft-form-grid aircraft-quick-fields">
                 <label>Serviceability<select id="aircraftServiceability"><option value="SERVICEABLE">Serviceable</option><option value="RESTRICTED">Restricted / review</option><option value="GROUNDED">Grounded</option></select></label>
@@ -3287,7 +3306,8 @@ LOAD DATA TO CALCULATE.</pre></details>
                 </div>
               </details>
               <button id="saveAircraftStatusBtn" class="aircraft-save" type="button">Save aircraft record</button>
-            </section>
+              </div>
+            </details>
             <section class="aircraft-panel aircraft-fluid-panel" data-state="ready">
               <header class="aircraft-panel-head"><div><span>Quick checkpoint</span><strong>Fuel &amp; oil log</strong><p>Capture the current reading without changing the technical record.</p></div><em id="fluidLogState">READY</em></header>
               <div class="aircraft-form-grid fluid-log-form">
@@ -3335,8 +3355,10 @@ LOAD DATA TO CALCULATE.</pre></details>
     <div id="bookingsWorkspace" hidden>
     <div class="layout">
       <aside class="panel queue-panel">
-        <div class="panel-title">OPERATIONS QUEUE</div>
-        <div class="queue-filters">
+        <div class="panel-title">Flights <span>Operations queue</span></div>
+        <details class="queue-filter-drawer" open>
+          <summary><span>Search &amp; filters</span><strong>Refine queue</strong></summary>
+        <div id="queueFilters" class="queue-filters">
           <input id="filterQuery" type="search" placeholder="Search route or passenger" />
           <select id="filterStatus"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option><option value="CANCELLED">Cancelled</option></select>
           <input id="filterDate" type="date" aria-label="Departure date from" title="Departure date from" />
@@ -3353,12 +3375,13 @@ LOAD DATA TO CALCULATE.</pre></details>
             <button class="quick-filter" type="button" data-quick-filter="PROPOSAL">Time proposal</button>
           </div>
         </div>
+        </details>
         <div id="requestList" class="request-list"></div>
       </aside>
 
       <section>
         <div class="panel">
-          <div class="panel-title">ACTIVE FLIGHT FILE</div>
+          <div class="panel-title">Active flight file</div>
           <div class="meta-grid">
             <div class="meta"><span>REF</span><strong id="ref">.....</strong></div>
             <div class="meta" hidden><span>ROUTE</span><strong id="route">.....</strong></div>
@@ -3621,6 +3644,13 @@ END OF MESSAGE</pre>
     const filterPilot = el('filterPilot');
     const filterPayment = el('filterPayment');
     const filterSort = el('filterSort');
+    const queueFilterDrawer = document.querySelector('.queue-filter-drawer');
+    const queueFilterBreakpoint = window.matchMedia('(max-width: 1020px)');
+    const syncQueueFilterDrawer = () => {
+      if (queueFilterDrawer) queueFilterDrawer.open = !queueFilterBreakpoint.matches;
+    };
+    syncQueueFilterDrawer();
+    queueFilterBreakpoint.addEventListener?.('change', syncQueueFilterDrawer);
     const commander = el('commander');
     const secondary = el('secondary');
     const saveCrewBtn = el('saveCrewBtn');
@@ -5025,6 +5055,7 @@ END OF MESSAGE</pre>
       });
       const dashboardActive = view === 'dashboard';
       const flightsActive = view === 'flights';
+      opsToolWorkspace.dataset.activeTool = dashboardActive || flightsActive ? '' : view;
       dashboardWorkspace.hidden = !dashboardActive;
       bookingsWorkspace.hidden = !flightsActive;
       opsToolWorkspace.hidden = dashboardActive || flightsActive;
@@ -5090,8 +5121,12 @@ END OF MESSAGE</pre>
       window.requestAnimationFrame(() => visibleWorkspace.classList.add('workspace-enter'));
       history.replaceState(null, '', view === 'dashboard' ? location.pathname : `${location.pathname}#${view}`);
       const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
-      if (dashboardActive || flightsActive) window.scrollTo({ top:0, behavior:scrollBehavior });
-      else opsToolWorkspace.scrollIntoView({ behavior:scrollBehavior, block:'start' });
+      const workspaceScroller = document.querySelector('.efb-content');
+      if (window.innerWidth <= 640) {
+        window.scrollTo({ top:0, behavior:scrollBehavior });
+      } else if (workspaceScroller) {
+        workspaceScroller.scrollTo({ top:0, behavior:scrollBehavior });
+      }
     }
 
     const PERFORMANCE_AIRCRAFT = Object.freeze({
@@ -5187,8 +5222,13 @@ END OF MESSAGE</pre>
         const active = button.dataset.performanceStage === selectedStage;
         button.classList.toggle('active', active);
         button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
       });
-      performancePanels.forEach(panel => panel.classList.toggle('active', panel.dataset.performancePanel === selectedStage));
+      performancePanels.forEach(panel => {
+        const active = panel.dataset.performancePanel === selectedStage;
+        panel.classList.toggle('active', active);
+        panel.setAttribute('aria-hidden', String(!active));
+      });
     }
 
     function finite(value) {
@@ -6789,8 +6829,9 @@ END OF MESSAGE</pre>
         if (req.manualFlight) return `
           <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
             <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">MANUAL OFP</span></div>
-            ${escapeHtml(req.route || 'MANUAL OFP')} / ${escapeHtml(req.requestDate || 'DATE OPEN')} ${escapeHtml(req.requestTime || 'TIME OPEN')}<br>
-            PILOT-ONLY FLIGHT FILE / NO PASSENGER NOTIFICATIONS<br>
+            <strong class="request-route">${escapeHtml(req.route || 'MANUAL OFP')}</strong>
+            <span class="request-schedule">${escapeHtml(req.requestDate || 'DATE OPEN')} · ${escapeHtml(req.requestTime || 'TIME OPEN')}</span>
+            <span class="request-detail">Pilot-only flight file · No passenger notifications</span>
             <div class="request-state-row"><span class="request-state state-info">MANUAL</span><span class="request-state state-good">READY TO PLAN</span><span class="request-state ${releaseClientState(req).released ? 'state-good' : 'state-warn'}">${releaseClientState(req).released ? 'RELEASED' : 'DRAFT'}</span></div>
           </div>
         `;
@@ -6803,8 +6844,9 @@ END OF MESSAGE</pre>
         return `
         <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
           <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
-          ${escapeHtml(req.route)} / ${escapeHtml(req.requestDate)} ${escapeHtml(req.requestTime)}L / ${escapeHtml(requestUtcTime(req))}<br>
-          ${escapeHtml(req.aircraft || 'AIRCRAFT OPEN')} / ${escapeHtml(req.crew?.commander || 'CMD UNASSIGNED')} / ${escapeHtml(req.seats)} PAX / ${escapeHtml(req.status)}<br>
+          <strong class="request-route">${escapeHtml(req.route)}</strong>
+          <span class="request-schedule">${escapeHtml(req.requestDate)} · ${escapeHtml(req.requestTime)}L / ${escapeHtml(requestUtcTime(req))}</span>
+          <span class="request-detail">${escapeHtml(req.aircraft || 'Aircraft open')} · ${escapeHtml(req.crew?.commander || 'Commander unassigned')} · ${escapeHtml(req.seats)} passengers</span>
           <div class="request-state-row"><span class="request-state ${priority.tone === 'info' ? 'state-info' : `state-${priority.tone}`}">${escapeHtml(priority.label.replace(' PRIORITY', ''))}</span><span class="request-state ${actionClass}">${needsOpsAction(req) ? 'ACTION' : 'READY'}</span><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span>${req.timeProposal ? `<span class="request-state ${proposalClass}">TIME ${escapeHtml(proposal || 'PENDING')}</span>` : ''}</div>
         </div>
       `;
@@ -6870,12 +6912,6 @@ END OF MESSAGE</pre>
       renderAlerts(req);
       renderDispatchBoard(req);
       renderActiveFlightStrip(req);
-      if (
-        selectionChanged
-        && window.innerWidth >= 1280
-        && !flightContextDismissed
-        && ['dashboard', 'flights'].includes(activeWorkspace)
-      ) openFlightContext();
       renderDispatchIntelligence(req);
       renderFlightControl(req);
       updateSuiteContext(req);
@@ -7134,7 +7170,21 @@ END OF MESSAGE</pre>
     }));
     new MutationObserver(syncPerformanceStatusTone).observe(performanceStatus, { childList:true, characterData:true, subtree:true });
     syncPerformanceStatusTone();
-    performanceStageTabs.forEach(button => button.addEventListener('click', () => setPerformanceStage(button.dataset.performanceStage)));
+    performanceStageTabs.forEach((button, index) => {
+      button.addEventListener('click', () => setPerformanceStage(button.dataset.performanceStage));
+      button.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const targetIndex = event.key === 'Home'
+          ? 0
+          : event.key === 'End'
+            ? performanceStageTabs.length - 1
+            : (index + (event.key === 'ArrowRight' ? 1 : -1) + performanceStageTabs.length) % performanceStageTabs.length;
+        const target = performanceStageTabs[targetIndex];
+        setPerformanceStage(target.dataset.performanceStage);
+        target.focus();
+      });
+    });
     runPerformanceBtn.addEventListener('click', runPerformanceReview);
     [
       [el('confirmDepRunwayBtn'), perfDepRunway, 'takeoff'],
@@ -7394,7 +7444,9 @@ END OF MESSAGE</pre>
     saveAircraftStatusBtn.addEventListener('click', saveAircraftStatus);
     recordFluidLogBtn.addEventListener('click', recordFluidCheckpoint);
     editAircraftStatusBtn.addEventListener('click', () => {
-      el('aircraftRecordPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+      const recordPanel = el('aircraftRecordPanel');
+      recordPanel.open = true;
+      recordPanel.scrollIntoView({ behavior:'smooth', block:'start' });
       window.setTimeout(() => aircraftServiceability.focus({ preventScroll:true }), 260);
     });
     prefillFluidLogBtn.addEventListener('click', () => {
@@ -7554,9 +7606,13 @@ END OF MESSAGE</pre>
     const efbThemeToggle = el('efbThemeToggle');
     function applyEfbTheme(value, persist = true) {
       const theme = value === 'night' ? 'night' : 'day';
+      const nextTheme = theme === 'night' ? 'day' : 'night';
       document.documentElement.dataset.efbTheme = theme;
-      efbThemeToggle.textContent = theme === 'night' ? 'Day' : 'Night';
+      document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
+      efbThemeToggle.dataset.currentTheme = theme;
+      efbThemeToggle.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
       efbThemeToggle.setAttribute('aria-pressed', String(theme === 'night'));
+      efbThemeToggle.title = `Switch to ${nextTheme} mode`;
       document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#07111b' : '#edf3f6');
       if (persist) {
         try { localStorage.setItem('nga-efb-theme', theme); } catch {}
@@ -7569,7 +7625,11 @@ END OF MESSAGE</pre>
       ofpOpsFrame.contentWindow?.postMessage({ type:'nga-efb-theme', theme:document.documentElement.dataset.efbTheme || 'day' }, location.origin);
     });
     window.addEventListener('storage', event => {
-      if (event.key === 'nga-efb-theme' && event.newValue) applyEfbTheme(event.newValue, false);
+      if (event.key === 'nga-efb-theme') applyEfbTheme(event.newValue, false);
+    });
+    window.addEventListener('message', event => {
+      if (event.origin !== location.origin || event.source !== ofpOpsFrame.contentWindow) return;
+      if (event.data?.type === 'nga-efb-theme') applyEfbTheme(event.data.theme);
     });
 
     renderActiveFlightStrip();
