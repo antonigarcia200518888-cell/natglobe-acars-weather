@@ -144,6 +144,7 @@ const bookingManageLinkThrottle = new Map();
 const pilotPasskeys = new Map();
 const passkeyRegistrationChallenges = new Map();
 const passkeyAuthenticationChallenges = new Map();
+const crewLogbookEntries = [];
 const AIRCRAFT_STATUS_KEY = 'PA28R-PRIMARY';
 const AIRCRAFT_STATUS_LOG_LIMIT = 120;
 let aircraftOperationalStatus = {
@@ -166,6 +167,7 @@ let bookingPool = null;
 let bookingStoreStatus = {
   mode: 'INITIALIZING',
   loadedRequests: 0,
+  loadedCrewLogbookEntries: 0,
   warning: ''
 };
 
@@ -174,6 +176,7 @@ async function initializeBookingStore() {
     bookingStoreStatus = {
       mode: 'TEMPORARY',
       loadedRequests: 0,
+      loadedCrewLogbookEntries: 0,
       warning: 'DATABASE_URL NOT SET'
     };
     console.warn('BOOKING STORE: DATABASE_URL not set; using temporary runtime storage.');
@@ -200,6 +203,7 @@ async function initializeBookingStore() {
     bookingStoreStatus = {
       mode: 'POSTGRESQL',
       loadedRequests: bookingRequests.length,
+      loadedCrewLogbookEntries: 0,
       warning: ''
     };
   } catch (err) {
@@ -208,6 +212,7 @@ async function initializeBookingStore() {
     bookingStoreStatus = {
       mode: 'TEMPORARY',
       loadedRequests: 0,
+      loadedCrewLogbookEntries: 0,
       warning: String(err.message || 'DATABASE CONNECTION FAILED').slice(0, 240)
     };
     console.error('BOOKING STORE: database unavailable; using temporary runtime storage.', err.message);
@@ -307,6 +312,22 @@ async function initializeBookingStore() {
     }
   });
 
+  await loadSupportingStore('crew logbook', async () => {
+    await bookingPool.query(`
+      CREATE TABLE IF NOT EXISTS crew_logbook_entries (
+        id TEXT PRIMARY KEY,
+        crew_key TEXT NOT NULL,
+        payload JSONB NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await bookingPool.query('CREATE INDEX IF NOT EXISTS crew_logbook_entries_crew_key_idx ON crew_logbook_entries (crew_key)');
+    const entries = await bookingPool.query('SELECT payload FROM crew_logbook_entries ORDER BY created_at ASC');
+    crewLogbookEntries.push(...entries.rows.map(row => row.payload).filter(entry => entry && typeof entry === 'object'));
+    bookingStoreStatus.loadedCrewLogbookEntries = crewLogbookEntries.length;
+  });
+
   console.log(`BOOKING STORE: loaded ${bookingRequests.length} requests from PostgreSQL.`);
 }
 
@@ -318,6 +339,19 @@ async function persistBookingRequest(request) {
     `INSERT INTO booking_requests (id, payload, created_at) VALUES ($1, $2::jsonb, $3)
      ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
     [request.id, JSON.stringify(request), request.createdAt || new Date().toISOString()]
+  );
+}
+
+async function persistCrewLogbookEntry(entry) {
+  if (!bookingPool) return;
+  await bookingPool.query(
+    `INSERT INTO crew_logbook_entries (id, crew_key, payload, created_at, updated_at)
+     VALUES ($1, $2, $3::jsonb, $4, $5)
+     ON CONFLICT (id) DO UPDATE SET
+       crew_key = EXCLUDED.crew_key,
+       payload = EXCLUDED.payload,
+       updated_at = EXCLUDED.updated_at`,
+    [entry.id, entry.crewKey, JSON.stringify(entry), entry.createdAt, entry.updatedAt]
   );
 }
 
@@ -1311,9 +1345,11 @@ function pilotCapabilities(profile) {
     viewPerformance: true,
     viewAircraft: true,
     viewDocuments: true,
+    viewLogbook: flightCrew,
     createOFP: flightCrew,
     editOFP: flightCrew,
     recordMovements: flightCrew,
+    editLogbook: flightCrew,
     editAircraft: flightCrew,
     manageBookings: operationsControl,
     releaseFlight: role === 'COMMANDER'
@@ -1462,6 +1498,458 @@ function normalizeBookingText(input, max = 80) {
     .trim()
     .replace(/\s+/g, ' ')
     .slice(0, max);
+}
+
+const CREW_LOGBOOK_VERSION = 'NGA-CREW-LOGBOOK-2026-09';
+const CREW_LOGBOOK_ROLES = Object.freeze(['PIC', 'SIC', 'DUAL', 'INSTRUCTOR', 'OBSERVER', 'SAFETY PILOT', 'OTHER']);
+const CREW_LOGBOOK_STATUSES = Object.freeze(['DRAFT', 'CONFIRMED', 'VOID']);
+const CREW_LOGBOOK_AUDIT_LIMIT = 100;
+const CREW_LOGBOOK_MAX_DURATION_MINUTES = 72 * 60;
+
+function crewLogbookOwner(req) {
+  const role = normalizeBookingText(req.pilotSession?.role, 30).toUpperCase();
+  const name = normalizeBookingText(req.pilotSession?.name, 80).toUpperCase();
+  return {
+    key: `${role}|${name}`,
+    role,
+    name
+  };
+}
+
+function requireCrewLogbookAccess(req, res, next) {
+  if (!requireFlightCrew(req, res)) return;
+  next();
+}
+
+function crewLogbookPublicView(entry) {
+  const { crewKey, ...view } = entry;
+  return view;
+}
+
+function crewLogbookEntryForRequest(req, id) {
+  const owner = crewLogbookOwner(req);
+  return crewLogbookEntries.find(entry => entry.id === String(id || '').trim().toUpperCase() && entry.crewKey === owner.key) || null;
+}
+
+function crewLogbookAudit(entry, type, actor, detail = '') {
+  const event = {
+    id: `LGA-${randomUUID().slice(0, 8).toUpperCase()}`,
+    type,
+    at: new Date().toISOString(),
+    by: actor,
+    detail: normalizeBookingText(detail, 400)
+  };
+  entry.audit = [...(Array.isArray(entry.audit) ? entry.audit : []), event].slice(-CREW_LOGBOOK_AUDIT_LIMIT);
+  return event;
+}
+
+function crewLogbookTimestamp(value, label, errors) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw)) {
+    errors.push(`${label} MUST BE AN ISO 8601 TIMESTAMP WITH A UTC OFFSET`);
+    return '';
+  }
+  const instant = new Date(raw);
+  if (!Number.isFinite(instant.getTime())) {
+    errors.push(`${label} IS NOT A VALID TIMESTAMP`);
+    return '';
+  }
+  return instant.toISOString();
+}
+
+function validCrewLogbookDate(value) {
+  const date = String(value || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const parsed = new Date(`${date}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+}
+
+function crewLogbookInteger(value, label, errors, max = CREW_LOGBOOK_MAX_DURATION_MINUTES) {
+  if (value === null || value === undefined || String(value).trim() === '') return 0;
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0 || number > max) {
+    errors.push(`${label} MUST BE BETWEEN 0 AND ${max}`);
+    return 0;
+  }
+  return Math.round(number);
+}
+
+function deriveCrewLogbookDurations(entry, errors = []) {
+  const ordered = [
+    ['OUT', entry.outAt],
+    ['OFF', entry.offAt],
+    ['ON', entry.onAt],
+    ['IN', entry.inAt]
+  ].filter(([, value]) => value);
+  for (let index = 1; index < ordered.length; index += 1) {
+    if (new Date(ordered[index][1]).getTime() < new Date(ordered[index - 1][1]).getTime()) {
+      errors.push(`${ordered[index][0]} MUST NOT BE EARLIER THAN ${ordered[index - 1][0]}`);
+    }
+  }
+  const minutesBetween = (start, end, label) => {
+    if (!start || !end) return null;
+    const minutes = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000);
+    if (minutes < 0) errors.push(`${label} TIME CANNOT BE NEGATIVE`);
+    if (minutes > CREW_LOGBOOK_MAX_DURATION_MINUTES) errors.push(`${label} TIME EXCEEDS 72 HOURS`);
+    return minutes >= 0 && minutes <= CREW_LOGBOOK_MAX_DURATION_MINUTES ? minutes : null;
+  };
+  entry.blockMinutes = minutesBetween(entry.outAt, entry.inAt, 'BLOCK');
+  entry.airborneMinutes = minutesBetween(entry.offAt, entry.onAt, 'AIRBORNE');
+  if (entry.blockMinutes !== null && entry.airborneMinutes !== null && entry.airborneMinutes > entry.blockMinutes) {
+    errors.push('AIRBORNE TIME CANNOT EXCEED BLOCK TIME');
+  }
+  return entry;
+}
+
+function applyCrewLogbookFields(base, input = {}) {
+  const next = { ...base };
+  const errors = [];
+  const changedFields = [];
+  const setField = (field, value) => {
+    if (JSON.stringify(next[field]) === JSON.stringify(value)) return;
+    next[field] = value;
+    changedFields.push(field);
+  };
+  const has = field => Object.prototype.hasOwnProperty.call(input, field);
+  if (has('date')) {
+    const date = normalizeBookingText(input.date, 10);
+    if (date && !validCrewLogbookDate(date)) errors.push('DATE MUST BE A VALID YYYY-MM-DD DATE');
+    setField('date', date);
+  }
+  const textFields = [
+    ['flightReference', 40, true],
+    ['aircraftRegistration', 20, true],
+    ['aircraftType', 40, true],
+    ['departure', 12, true],
+    ['destination', 12, true]
+  ];
+  textFields.forEach(([field, max, uppercase]) => {
+    if (!has(field)) return;
+    const value = normalizeBookingText(input[field], max);
+    setField(field, uppercase ? value.toUpperCase() : value);
+  });
+  if (has('role')) {
+    const role = normalizeBookingText(input.role, 30).toUpperCase();
+    if (role && !CREW_LOGBOOK_ROLES.includes(role)) errors.push('INVALID LOGBOOK DUTY ROLE');
+    setField('role', role);
+  }
+  const timestampAliases = [
+    ['outAt', 'actualOut', 'OUT'],
+    ['offAt', 'actualOff', 'OFF'],
+    ['onAt', 'actualOn', 'ON'],
+    ['inAt', 'actualIn', 'IN']
+  ];
+  timestampAliases.forEach(([field, alias, label]) => {
+    if (!has(field) && !has(alias)) return;
+    setField(field, crewLogbookTimestamp(has(field) ? input[field] : input[alias], label, errors));
+  });
+  const minuteFields = [
+    ['picMinutes', 'PIC TIME'],
+    ['sicMinutes', 'SIC TIME'],
+    ['dualMinutes', 'DUAL TIME'],
+    ['instructorMinutes', 'INSTRUCTOR TIME'],
+    ['nightMinutes', 'NIGHT TIME'],
+    ['instrumentMinutes', 'INSTRUMENT TIME']
+  ];
+  minuteFields.forEach(([field, label]) => {
+    if (has(field)) setField(field, crewLogbookInteger(input[field], label, errors));
+  });
+  [['landingsDay', 'DAY LANDINGS'], ['landingsNight', 'NIGHT LANDINGS']].forEach(([field, label]) => {
+    if (has(field)) setField(field, crewLogbookInteger(input[field], label, errors, 99));
+  });
+  if (has('remarks')) {
+    const remarks = String(input.remarks || '').trim().replace(/\r/g, '').slice(0, 1200);
+    setField('remarks', remarks);
+  }
+  deriveCrewLogbookDurations(next, errors);
+  const block = next.blockMinutes;
+  if (block !== null) {
+    minuteFields.forEach(([field, label]) => {
+      if (Number(next[field] || 0) > block) errors.push(`${label} CANNOT EXCEED BLOCK TIME`);
+    });
+  }
+  return { entry: next, errors: [...new Set(errors)], changedFields };
+}
+
+function crewLogbookConfirmationErrors(entry) {
+  const errors = [];
+  if (!validCrewLogbookDate(entry.date)) errors.push('A VALID FLIGHT DATE IS REQUIRED');
+  if (!entry.flightReference) errors.push('FLIGHT REFERENCE IS REQUIRED');
+  if (!entry.aircraftRegistration) errors.push('AIRCRAFT REGISTRATION IS REQUIRED');
+  if (!entry.aircraftType) errors.push('AIRCRAFT TYPE IS REQUIRED');
+  if (!entry.departure || !entry.destination) errors.push('DEPARTURE AND DESTINATION ARE REQUIRED');
+  if (!CREW_LOGBOOK_ROLES.includes(entry.role)) errors.push('DUTY ROLE IS REQUIRED');
+  if (!entry.outAt || !entry.inAt) errors.push('OUT AND IN TIMES ARE REQUIRED');
+  if (Boolean(entry.offAt) !== Boolean(entry.onAt)) errors.push('OFF AND ON TIMES MUST BE ENTERED TOGETHER');
+  deriveCrewLogbookDurations(entry, errors);
+  if (!(Number(entry.blockMinutes) > 0)) errors.push('BLOCK TIME MUST BE GREATER THAN ZERO');
+  const requiredCredit = {
+    PIC: 'picMinutes',
+    SIC: 'sicMinutes',
+    DUAL: 'dualMinutes',
+    INSTRUCTOR: 'instructorMinutes'
+  }[entry.role];
+  if (requiredCredit && !(Number(entry[requiredCredit]) > 0)) {
+    errors.push(`${entry.role} CREDIT MUST BE GREATER THAN ZERO`);
+  }
+  return [...new Set(errors)];
+}
+
+function crewLogbookCompactUtcClock(value) {
+  const match = String(value || '').toUpperCase().match(/(?:^|\s)(\d{2})(\d{2})Z(?:\/|\s|$)/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour > 23 || minute > 59) return null;
+  return { hour, minute };
+}
+
+function crewLogbookLegacyMovementIso(value, expectedIso, previousIso = '') {
+  const clock = crewLogbookCompactUtcClock(value);
+  if (!clock) return '';
+  const expected = new Date(expectedIso || '');
+  const anchor = Number.isFinite(expected.getTime()) ? expected : new Date();
+  const candidates = [-2, -1, 0, 1, 2].map(dayOffset => new Date(Date.UTC(
+    anchor.getUTCFullYear(),
+    anchor.getUTCMonth(),
+    anchor.getUTCDate() + dayOffset,
+    clock.hour,
+    clock.minute
+  )));
+  const previousTime = previousIso ? new Date(previousIso).getTime() : Number.NEGATIVE_INFINITY;
+  const orderedCandidates = candidates.filter(candidate => candidate.getTime() >= previousTime);
+  const available = orderedCandidates.length ? orderedCandidates : candidates;
+  available.sort((left, right) => Math.abs(left.getTime() - anchor.getTime()) - Math.abs(right.getTime() - anchor.getTime()));
+  return available[0]?.toISOString() || '';
+}
+
+function crewLogbookFlightRequest(reference) {
+  const normalized = String(reference || '').trim().toUpperCase();
+  return bookingRequests.find(request => (
+    String(request.id || '').toUpperCase() === normalized
+    || String(request.flightId || '').toUpperCase() === normalized
+  )) || null;
+}
+
+function crewLogbookPrefill(request, req) {
+  const owner = crewLogbookOwner(req);
+  const plan = request.operationalFlightPlan
+    ? normalizeOperationalFlightPlan(request.operationalFlightPlan, request)
+    : operationalFlightPlanDefaults(request);
+  const smartSchedule = ofpSmartSchedule(
+    plan.dateUtc,
+    plan.scheduledOutLocal,
+    plan.departureTimeZone || bookingAirportTimeZone(plan.departure),
+    plan.estimatedEnrouteMinutes,
+    plan.departureTimeOccurrence
+  );
+  let previousIso = '';
+  const actualTimes = {};
+  ['out', 'off', 'on', 'in'].forEach(phase => {
+    const field = `actual${phase[0].toUpperCase()}${phase.slice(1)}`;
+    const isoField = `${field}Iso`;
+    const storedIso = crewLogbookTimestamp(plan[isoField], phase.toUpperCase(), []);
+    const inferredIso = storedIso || crewLogbookLegacyMovementIso(plan[field], smartSchedule?.[phase]?.instant, previousIso);
+    actualTimes[`${phase}At`] = inferredIso;
+    if (inferredIso) previousIso = inferredIso;
+  });
+  const crewName = owner.name;
+  const commander = normalizeBookingText(plan.commanderName || request.crew?.commander, 80).toUpperCase();
+  const secondary = normalizeBookingText(request.crew?.secondary, 80).toUpperCase();
+  const role = crewName && crewName === commander
+    ? 'PIC'
+    : crewName && crewName === secondary
+      ? 'SIC'
+      : owner.role === 'COMMANDER' ? 'PIC' : 'SIC';
+  const movementCount = Object.values(actualTimes).filter(Boolean).length;
+  const warnings = [];
+  if (!movementCount) warnings.push('NO ACTUAL MOVEMENT TIMES RECORDED; ENTER OUT/OFF/ON/IN BEFORE CONFIRMING');
+  else if (!actualTimes.outAt || !actualTimes.inAt) warnings.push('ACTUAL MOVEMENT RECORD IS INCOMPLETE');
+  if (!plan.releaseAccepted) warnings.push('OFP IS NOT PIC RELEASED; PREFILL REMAINS A DRAFT');
+  const prefill = {
+    date: normalizeBookingText(plan.dateUtc || request.requestDate, 10),
+    flightId: request.id,
+    flightReference: normalizeBookingText(plan.flightReference || request.id, 40).toUpperCase(),
+    aircraftRegistration: normalizeBookingText(plan.aircraftRegistration, 20).toUpperCase(),
+    aircraftType: normalizeBookingText(plan.aircraftModel || plan.aircraftCode || request.aircraft, 40).toUpperCase(),
+    departure: normalizeBookingText(plan.departure || request.dep, 12).toUpperCase(),
+    destination: normalizeBookingText(plan.destination || request.arr, 12).toUpperCase(),
+    role,
+    ...actualTimes,
+    source: movementCount ? 'FLIGHT MOVEMENT PREFILL' : 'LINKED FLIGHT DRAFT'
+  };
+  const derived = applyCrewLogbookFields({
+    ...prefill,
+    blockMinutes: null,
+    airborneMinutes: null,
+    picMinutes: 0,
+    sicMinutes: 0,
+    dualMinutes: 0,
+    instructorMinutes: 0,
+    nightMinutes: 0,
+    instrumentMinutes: 0,
+    landingsDay: 0,
+    landingsNight: 0,
+    remarks: ''
+  }, {});
+  return {
+    ...derived.entry,
+    warnings,
+    linkedFlight: {
+      requestId: request.id,
+      releaseId: plan.releaseSnapshot?.releaseId || '',
+      released: Boolean(plan.releaseAccepted && plan.releaseSnapshot?.releaseId),
+      movementCount
+    }
+  };
+}
+
+function newCrewLogbookEntry(req, prefill = {}) {
+  const owner = crewLogbookOwner(req);
+  const now = new Date().toISOString();
+  const localFlightDate = helsinkiFlightDateTime().date || now.slice(0, 10);
+  return {
+    version: CREW_LOGBOOK_VERSION,
+    id: `LOG-${now.slice(0, 10).replaceAll('-', '')}-${randomUUID().slice(0, 8).toUpperCase()}`,
+    crewKey: owner.key,
+    owner: { role: owner.role, name: owner.name },
+    date: localFlightDate,
+    flightId: '',
+    flightReference: '',
+    aircraftRegistration: '',
+    aircraftType: '',
+    departure: '',
+    destination: '',
+    role: owner.role === 'COMMANDER' ? 'PIC' : 'SIC',
+    outAt: '',
+    offAt: '',
+    onAt: '',
+    inAt: '',
+    blockMinutes: null,
+    airborneMinutes: null,
+    picMinutes: 0,
+    sicMinutes: 0,
+    dualMinutes: 0,
+    instructorMinutes: 0,
+    nightMinutes: 0,
+    instrumentMinutes: 0,
+    landingsDay: 0,
+    landingsNight: 0,
+    remarks: '',
+    source: 'MANUAL PILOT ENTRY',
+    status: 'DRAFT',
+    createdAt: now,
+    createdBy: pilotActor(req),
+    updatedAt: now,
+    updatedBy: pilotActor(req),
+    confirmedAt: '',
+    confirmedBy: '',
+    voidedAt: '',
+    voidedBy: '',
+    voidReason: '',
+    restoredAt: '',
+    restoredBy: '',
+    audit: [],
+    ...prefill
+  };
+}
+
+function crewLogbookTotals(entries) {
+  const fields = [
+    'blockMinutes',
+    'airborneMinutes',
+    'picMinutes',
+    'sicMinutes',
+    'dualMinutes',
+    'instructorMinutes',
+    'nightMinutes',
+    'instrumentMinutes',
+    'landingsDay',
+    'landingsNight'
+  ];
+  const totals = Object.fromEntries(fields.map(field => [field, entries.reduce((sum, entry) => sum + Number(entry[field] || 0), 0)]));
+  totals.flightCount = entries.length;
+  totals.hours = Object.fromEntries(fields
+    .filter(field => field.endsWith('Minutes'))
+    .map(field => [field.replace('Minutes', 'Hours'), Math.round((totals[field] / 60) * 10) / 10]));
+  return totals;
+}
+
+function crewLogbookStats(entries, now = new Date()) {
+  const active = entries.filter(entry => entry.status !== 'VOID');
+  const confirmed = active.filter(entry => entry.status === 'CONFIRMED');
+  const currentFlightDate = helsinkiFlightDateTime().date || now.toISOString().slice(0, 10);
+  const dateAnchor = new Date(`${currentFlightDate}T12:00:00.000Z`);
+  const dateBefore = days => new Date(dateAnchor.getTime() - ((days - 1) * 86400000)).toISOString().slice(0, 10);
+  const recent30 = confirmed.filter(entry => entry.date >= dateBefore(30) && entry.date <= currentFlightDate);
+  const recent90 = confirmed.filter(entry => entry.date >= dateBefore(90) && entry.date <= currentFlightDate);
+  const byMonth = new Map();
+  confirmed.forEach(entry => {
+    const month = /^\d{4}-\d{2}/.test(entry.date) ? entry.date.slice(0, 7) : 'UNKNOWN';
+    const bucket = byMonth.get(month) || [];
+    bucket.push(entry);
+    byMonth.set(month, bucket);
+  });
+  const aircraft = new Map();
+  confirmed.forEach(entry => {
+    const registration = entry.aircraftRegistration || 'UNSPECIFIED';
+    const bucket = aircraft.get(registration) || [];
+    bucket.push(entry);
+    aircraft.set(registration, bucket);
+  });
+  return {
+    scope: 'CONFIRMED NON-VOID ENTRIES',
+    statusCounts: Object.fromEntries(CREW_LOGBOOK_STATUSES.map(status => [status.toLowerCase(), entries.filter(entry => entry.status === status).length])),
+    totals: crewLogbookTotals(confirmed),
+    recent: {
+      last30Days: crewLogbookTotals(recent30),
+      last90Days: crewLogbookTotals(recent90),
+      windowStart30: dateBefore(30),
+      windowStart90: dateBefore(90)
+    },
+    byMonth: [...byMonth.entries()].sort(([left], [right]) => right.localeCompare(left)).slice(0, 12).map(([month, monthEntries]) => ({
+      month,
+      ...crewLogbookTotals(monthEntries)
+    })),
+    byAircraft: [...aircraft.entries()].map(([registration, aircraftEntries]) => ({
+      registration,
+      ...crewLogbookTotals(aircraftEntries)
+    })).sort((left, right) => right.blockMinutes - left.blockMinutes).slice(0, 10),
+    activityAdvisory: 'RECENCY TOTALS ARE AN ACTIVITY SUMMARY ONLY. THE PILOT REMAINS RESPONSIBLE FOR DETERMINING LEGAL LICENCE, RATING AND CURRENCY COMPLIANCE.'
+  };
+}
+
+function filterCrewLogbookEntries(entries, query = {}) {
+  const status = normalizeBookingText(query.status, 20).toUpperCase();
+  const role = normalizeBookingText(query.role, 30).toUpperCase();
+  const from = normalizeBookingText(query.from, 10);
+  const to = normalizeBookingText(query.to, 10);
+  const search = normalizeBookingText(query.q, 100).toUpperCase();
+  const includeVoided = String(query.includeVoided || '').toLowerCase() === 'true' || status === 'VOID';
+  return entries.filter(entry => {
+    if (!includeVoided && entry.status === 'VOID') return false;
+    if (status && status !== 'ALL' && entry.status !== status) return false;
+    if (role && role !== 'ALL' && entry.role !== role) return false;
+    if (from && entry.date < from) return false;
+    if (to && entry.date > to) return false;
+    if (search) {
+      const haystack = [
+        entry.id,
+        entry.flightReference,
+        entry.aircraftRegistration,
+        entry.aircraftType,
+        entry.departure,
+        entry.destination,
+        entry.remarks
+      ].join(' ').toUpperCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  }).sort((left, right) => (
+    String(right.date || '').localeCompare(String(left.date || ''))
+    || String(right.createdAt || '').localeCompare(String(left.createdAt || ''))
+  ));
 }
 
 function normalizeReimbursementStatement(input) {
@@ -1699,6 +2187,10 @@ function normalizeOperationalFlightPlan(input, request) {
     actualOff: textField('actualOff', 24).toUpperCase(),
     actualOn: textField('actualOn', 24).toUpperCase(),
     actualIn: textField('actualIn', 24).toUpperCase(),
+    actualOutIso: textField('actualOutIso', 40),
+    actualOffIso: textField('actualOffIso', 40),
+    actualOnIso: textField('actualOnIso', 40),
+    actualInIso: textField('actualInIso', 40),
     fuelFlowGph: numberField('fuelFlowGph', 0, 40),
     taxiFuelGal: numberField('taxiFuelGal', 0, 100),
     tripFuelGal: numberField('tripFuelGal', 0, 100),
@@ -4997,11 +5489,14 @@ app.post('/api/booking-ops/aircraft-status/fuel-log', requirePilotAccess, async 
 app.get('/api/booking-ops/storage-health', requirePilotAccess, async (req, res) => {
   await bookingStoreReady;
   let persistedRequests = null;
+  let persistedCrewLogbookEntries = null;
   let liveWarning = bookingStoreStatus.warning;
   if (bookingPool) {
     try {
       const result = await bookingPool.query('SELECT COUNT(*)::int AS count FROM booking_requests');
       persistedRequests = Number(result.rows[0]?.count || 0);
+      const logbookResult = await bookingPool.query('SELECT COUNT(*)::int AS count FROM crew_logbook_entries');
+      persistedCrewLogbookEntries = Number(logbookResult.rows[0]?.count || 0);
     } catch (err) {
       liveWarning = [liveWarning, `booking count: ${err.message}`].filter(Boolean).join(' / ').slice(0, 500);
     }
@@ -5011,8 +5506,216 @@ app.get('/api/booking-ops/storage-health', requirePilotAccess, async (req, res) 
     mode: bookingStoreStatus.mode,
     loadedRequests: bookingRequests.length,
     persistedRequests,
+    loadedCrewLogbookEntries: crewLogbookEntries.length,
+    persistedCrewLogbookEntries,
     warning: liveWarning
   });
+});
+
+app.get('/api/booking-ops/logbook', requirePilotAccess, requireCrewLogbookAccess, async (req, res) => {
+  await bookingStoreReady;
+  const owner = crewLogbookOwner(req);
+  const queryStatus = normalizeBookingText(req.query.status, 20).toUpperCase();
+  const queryRole = normalizeBookingText(req.query.role, 30).toUpperCase();
+  const from = normalizeBookingText(req.query.from, 10);
+  const to = normalizeBookingText(req.query.to, 10);
+  if (queryStatus && queryStatus !== 'ALL' && !CREW_LOGBOOK_STATUSES.includes(queryStatus)) {
+    return res.status(400).json({ error: 'INVALID LOGBOOK STATUS FILTER' });
+  }
+  if (queryRole && queryRole !== 'ALL' && !CREW_LOGBOOK_ROLES.includes(queryRole)) {
+    return res.status(400).json({ error: 'INVALID LOGBOOK ROLE FILTER' });
+  }
+  if ((from && !validCrewLogbookDate(from)) || (to && !validCrewLogbookDate(to))) {
+    return res.status(400).json({ error: 'LOGBOOK DATE FILTERS MUST USE VALID YYYY-MM-DD DATES' });
+  }
+  if (from && to && from > to) return res.status(400).json({ error: 'LOGBOOK FROM DATE MUST NOT BE AFTER TO DATE' });
+  const ownedEntries = crewLogbookEntries.filter(entry => entry.crewKey === owner.key);
+  const filteredEntries = filterCrewLogbookEntries(ownedEntries, req.query);
+  const requestedLimit = Number(req.query.limit);
+  const requestedOffset = Number(req.query.offset);
+  const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(500, Math.floor(requestedLimit))) : 100;
+  const offset = Number.isFinite(requestedOffset) ? Math.max(0, Math.floor(requestedOffset)) : 0;
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    version: CREW_LOGBOOK_VERSION,
+    owner: { role: owner.role, name: owner.name },
+    entries: filteredEntries.slice(offset, offset + limit).map(crewLogbookPublicView),
+    total: filteredEntries.length,
+    limit,
+    offset,
+    stats: crewLogbookStats(ownedEntries),
+    filteredStats: crewLogbookStats(filteredEntries),
+    storageMode: bookingStoreStatus.mode
+  });
+});
+
+app.get('/api/booking-ops/logbook/stats', requirePilotAccess, requireCrewLogbookAccess, async (req, res) => {
+  await bookingStoreReady;
+  const owner = crewLogbookOwner(req);
+  const ownedEntries = crewLogbookEntries.filter(entry => entry.crewKey === owner.key);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    version: CREW_LOGBOOK_VERSION,
+    owner: { role: owner.role, name: owner.name },
+    stats: crewLogbookStats(ownedEntries),
+    storageMode: bookingStoreStatus.mode
+  });
+});
+
+app.get('/api/booking-ops/logbook/prefill/:flightId', requirePilotAccess, requireCrewLogbookAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = crewLogbookFlightRequest(req.params.flightId);
+  if (!request) return res.status(404).json({ error: 'FLIGHT RECORD NOT FOUND' });
+  const owner = crewLogbookOwner(req);
+  const existing = crewLogbookEntries.find(entry => entry.crewKey === owner.key && entry.flightId === request.id);
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({
+    prefill: crewLogbookPrefill(request, req),
+    existingEntry: existing ? crewLogbookPublicView(existing) : null
+  });
+});
+
+app.get('/api/booking-ops/logbook/entries/:id', requirePilotAccess, requireCrewLogbookAccess, async (req, res) => {
+  await bookingStoreReady;
+  const entry = crewLogbookEntryForRequest(req, req.params.id);
+  if (!entry) return res.status(404).json({ error: 'LOGBOOK ENTRY NOT FOUND' });
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.json({ entry: crewLogbookPublicView(entry) });
+});
+
+app.post('/api/booking-ops/logbook/entries', requirePilotAccess, requireCrewLogbookAccess, async (req, res) => {
+  await bookingStoreReady;
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const owner = crewLogbookOwner(req);
+  const linkedReference = normalizeBookingText(body.flightId, 80).toUpperCase();
+  let linkedRequest = null;
+  let prefill = {};
+  let prefillWarnings = [];
+  if (linkedReference) {
+    linkedRequest = crewLogbookFlightRequest(linkedReference);
+    if (!linkedRequest) return res.status(404).json({ error: 'FLIGHT RECORD NOT FOUND' });
+    const duplicate = crewLogbookEntries.find(entry => entry.crewKey === owner.key && entry.flightId === linkedRequest.id);
+    if (duplicate) {
+      return res.status(409).json({
+        error: duplicate.status === 'VOID'
+          ? 'A VOIDED ENTRY ALREADY EXISTS FOR THIS FLIGHT; RESTORE IT INSTEAD OF CREATING A DUPLICATE'
+          : 'A LOGBOOK ENTRY ALREADY EXISTS FOR THIS FLIGHT',
+        entry: crewLogbookPublicView(duplicate)
+      });
+    }
+    const flightPrefill = crewLogbookPrefill(linkedRequest, req);
+    prefillWarnings = flightPrefill.warnings;
+    const { warnings, linkedFlight, ...flightFields } = flightPrefill;
+    prefill = { ...flightFields, linkedFlight, prefillWarnings };
+  }
+  const base = newCrewLogbookEntry(req, prefill);
+  const normalized = applyCrewLogbookFields(base, body);
+  if (normalized.errors.length) return res.status(400).json({ error: normalized.errors.join(' / '), errors: normalized.errors });
+  const entry = normalized.entry;
+  if (linkedRequest) {
+    entry.flightId = linkedRequest.id;
+    entry.flightReference = normalizeBookingText(linkedRequest.operationalFlightPlan?.flightReference || linkedRequest.id, 40).toUpperCase();
+    entry.source = prefill.source;
+  }
+  entry.status = 'DRAFT';
+  entry.createdAt = base.createdAt;
+  entry.createdBy = base.createdBy;
+  entry.updatedAt = base.updatedAt;
+  entry.updatedBy = base.updatedBy;
+  crewLogbookAudit(entry, 'CREATED', pilotActor(req), linkedRequest ? `DRAFT PREFILLED FROM ${linkedRequest.id}` : 'MANUAL DRAFT CREATED');
+  crewLogbookEntries.push(entry);
+  await persistCrewLogbookEntry(entry);
+  res.status(201).json({ entry: crewLogbookPublicView(entry), warnings: prefillWarnings });
+});
+
+app.patch('/api/booking-ops/logbook/entries/:id', requirePilotAccess, requireCrewLogbookAccess, async (req, res) => {
+  await bookingStoreReady;
+  const entry = crewLogbookEntryForRequest(req, req.params.id);
+  if (!entry) return res.status(404).json({ error: 'LOGBOOK ENTRY NOT FOUND' });
+  if (entry.status === 'VOID') return res.status(409).json({ error: 'RESTORE THE VOIDED ENTRY BEFORE EDITING IT' });
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const normalized = applyCrewLogbookFields(entry, body);
+  if (normalized.errors.length) return res.status(400).json({ error: normalized.errors.join(' / '), errors: normalized.errors });
+  if (!normalized.changedFields.length) return res.json({ entry: crewLogbookPublicView(entry), changedFields: [] });
+  Object.assign(entry, normalized.entry);
+  const actor = pilotActor(req);
+  if (entry.status === 'CONFIRMED') {
+    entry.status = 'DRAFT';
+    entry.confirmationInvalidatedAt = new Date().toISOString();
+    entry.confirmationInvalidatedBy = actor;
+    entry.confirmedAt = '';
+    entry.confirmedBy = '';
+    crewLogbookAudit(entry, 'CONFIRMATION INVALIDATED', actor, 'ENTRY CHANGED; PILOT RECONFIRMATION REQUIRED');
+  }
+  entry.updatedAt = new Date().toISOString();
+  entry.updatedBy = actor;
+  crewLogbookAudit(entry, 'UPDATED', actor, normalized.changedFields.join(', '));
+  await persistCrewLogbookEntry(entry);
+  res.json({ entry: crewLogbookPublicView(entry), changedFields: normalized.changedFields });
+});
+
+app.post('/api/booking-ops/logbook/entries/:id/confirm', requirePilotAccess, requireCrewLogbookAccess, async (req, res) => {
+  await bookingStoreReady;
+  const entry = crewLogbookEntryForRequest(req, req.params.id);
+  if (!entry) return res.status(404).json({ error: 'LOGBOOK ENTRY NOT FOUND' });
+  if (entry.status === 'VOID') return res.status(409).json({ error: 'VOIDED LOGBOOK ENTRIES CANNOT BE CONFIRMED' });
+  const attested = req.body?.attested === true || req.body?.attested === 'true';
+  if (!attested) return res.status(400).json({ error: 'PILOT ATTESTATION IS REQUIRED TO CONFIRM THIS ENTRY' });
+  const errors = crewLogbookConfirmationErrors(entry);
+  if (errors.length) return res.status(400).json({ error: errors.join(' / '), errors, entry: crewLogbookPublicView(entry) });
+  const actor = pilotActor(req);
+  const now = new Date().toISOString();
+  entry.status = 'CONFIRMED';
+  entry.confirmedAt = now;
+  entry.confirmedBy = actor;
+  entry.updatedAt = now;
+  entry.updatedBy = actor;
+  crewLogbookAudit(entry, 'CONFIRMED', actor, 'PILOT ATTESTED THE ENTRY IS COMPLETE AND ACCURATE');
+  await persistCrewLogbookEntry(entry);
+  res.json({ entry: crewLogbookPublicView(entry) });
+});
+
+async function voidCrewLogbookEntry(req, res) {
+  await bookingStoreReady;
+  const entry = crewLogbookEntryForRequest(req, req.params.id);
+  if (!entry) return res.status(404).json({ error: 'LOGBOOK ENTRY NOT FOUND' });
+  const reason = normalizeBookingText(req.body?.reason, 300);
+  if (reason.length < 3) return res.status(400).json({ error: 'ENTER A REASON FOR VOIDING OR ARCHIVING THIS ENTRY' });
+  if (entry.status === 'VOID') return res.json({ entry: crewLogbookPublicView(entry) });
+  const actor = pilotActor(req);
+  const now = new Date().toISOString();
+  entry.previousStatus = entry.status;
+  entry.status = 'VOID';
+  entry.voidedAt = now;
+  entry.voidedBy = actor;
+  entry.voidReason = reason;
+  entry.updatedAt = now;
+  entry.updatedBy = actor;
+  crewLogbookAudit(entry, 'VOIDED', actor, reason);
+  await persistCrewLogbookEntry(entry);
+  return res.json({ entry: crewLogbookPublicView(entry) });
+}
+
+app.post('/api/booking-ops/logbook/entries/:id/void', requirePilotAccess, requireCrewLogbookAccess, voidCrewLogbookEntry);
+app.post('/api/booking-ops/logbook/entries/:id/archive', requirePilotAccess, requireCrewLogbookAccess, voidCrewLogbookEntry);
+
+app.post('/api/booking-ops/logbook/entries/:id/restore', requirePilotAccess, requireCrewLogbookAccess, async (req, res) => {
+  await bookingStoreReady;
+  const entry = crewLogbookEntryForRequest(req, req.params.id);
+  if (!entry) return res.status(404).json({ error: 'LOGBOOK ENTRY NOT FOUND' });
+  if (entry.status !== 'VOID') return res.status(409).json({ error: 'ONLY A VOIDED ENTRY CAN BE RESTORED' });
+  const actor = pilotActor(req);
+  const now = new Date().toISOString();
+  entry.status = 'DRAFT';
+  entry.restoredAt = now;
+  entry.restoredBy = actor;
+  entry.updatedAt = now;
+  entry.updatedBy = actor;
+  entry.confirmedAt = '';
+  entry.confirmedBy = '';
+  crewLogbookAudit(entry, 'RESTORED AS DRAFT', actor, 'PILOT RECONFIRMATION REQUIRED');
+  await persistCrewLogbookEntry(entry);
+  res.json({ entry: crewLogbookPublicView(entry) });
 });
 
 app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
@@ -5263,6 +5966,10 @@ function operationalFlightPlanDefaults(request) {
     actualOff: '',
     actualOn: '',
     actualIn: '',
+    actualOutIso: '',
+    actualOffIso: '',
+    actualOnIso: '',
+    actualInIso: '',
     fuelFlowGph,
     taxiFuelGal,
     tripFuelGal,
@@ -6322,7 +7029,11 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   if (!timestampRecord) return res.status(400).json({ error: 'ENTER A VALID LOCAL TIME IN HH:MM FORMAT' });
   const timestamp = timestampRecord.value;
   const source = manualTime ? 'MANUAL LOCAL TIME' : 'SERVER CLOCK';
-  const flightPlan = normalizeOperationalFlightPlan({ ...previousPlan, [step.field]: timestamp }, request);
+  const flightPlan = normalizeOperationalFlightPlan({
+    ...previousPlan,
+    [step.field]: timestamp,
+    [`${step.field}Iso`]: timestampRecord.instant
+  }, request);
   request.operationalFlightPlan = flightPlan;
   await persistBookingRequest(request);
   await addBookingTimelineEvent(
