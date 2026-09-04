@@ -1672,3 +1672,342 @@
   #performanceOpsPane *,
   #aircraftOpsPane * { scroll-behavior: auto !important; }
 }
+
+/* -------------------------------------------------------------------------
+   Desktop performance workbench
+
+   PC uses the available application pane as a true two-column workbench.
+   Setup stays visible at left, the active takeoff/landing analysis owns the
+   right pane, and each side scrolls independently without growing the shell.
+   ------------------------------------------------------------------------- */
+
+@media (min-width: 960px) {
+  body.pilot-ops-v2 .ops-tool-workspace[data-active-tool="performance"] {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.pilot-ops-v2 .ops-tool-workspace[data-active-tool="performance"] #performanceOpsPane {
+    height: calc(100% - 58px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-console {
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+    min-height: 0;
+    gap: 7px;
+    overflow: hidden;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-desktop-workbench {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(360px, .72fr) minmax(0, 1.28fr);
+    grid-template-rows: 112px 64px minmax(0, 1fr);
+    gap: 7px;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-reference-scene {
+    display: contents;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    grid-template-columns: minmax(245px, .72fr) minmax(300px, 1.15fr) minmax(315px, .9fr);
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 112px;
+    min-height: 0;
+    padding: 8px 12px;
+    overflow: hidden;
+    box-sizing: border-box;
+    border: 1px solid var(--tool-line);
+    border-radius: 17px;
+    background: var(--tool-scene);
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity {
+    position: relative;
+    align-self: center;
+    padding: 0 0 0 5px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title {
+    display: flex;
+    align-items: center;
+    flex-flow: row nowrap;
+    gap: 8px;
+    margin: 3px 0 5px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title h2 {
+    width: auto;
+    margin: 0;
+    font-size: 30px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title em {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity > strong {
+    display: none;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-profile-state {
+    min-height: 25px;
+    margin-top: 0;
+    padding: 4px 8px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual {
+    position: relative;
+    align-self: stretch;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual > img {
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    max-height: 104px;
+    margin: 0 auto;
+    object-fit: contain;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards {
+    position: static;
+    grid-column: auto;
+    align-self: center;
+    justify-self: stretch;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards > div {
+    min-height: 64px;
+    padding: 8px 9px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards strong {
+    margin-top: 5px;
+    font-size: 14px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-flight-setup {
+    grid-column: 1;
+    grid-row: 2 / 4;
+    align-self: stretch;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding-bottom: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-context {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    min-height: 0;
+    padding: 11px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-context > div:first-child > small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-context-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-context .performance-source-chip {
+    display: none;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-run {
+    width: 100%;
+    min-width: 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-readiness-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 8px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-readiness-step {
+    min-height: 48px;
+    padding: 7px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-readiness-step small {
+    display: none;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-leg-setup-grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 0 8px 8px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-route-arrow {
+    display: none;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-source-drawer {
+    margin: 0 8px 8px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane #performanceStatus {
+    position: static;
+    z-index: auto;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: stretch;
+    width: auto;
+    min-height: 0;
+    max-height: none;
+    margin: 0 0 0 337px;
+    overflow: hidden;
+    border-radius: 11px;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    background: color-mix(in srgb, var(--efb-glass-solid) 92%, transparent);
+    box-shadow: none;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs {
+    position: static;
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    align-self: stretch;
+    width: 330px;
+    height: 64px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs button {
+    min-height: 52px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-results {
+    grid-column: 2;
+    grid-row: 3;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-block.active {
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-result-header {
+    grid-template-columns: minmax(190px, 1.25fr) repeat(5, minmax(96px, .7fr));
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-workspace-grid {
+    grid-template-columns: minmax(275px, .72fr) minmax(0, 1.28fr);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-control-column,
+  body.pilot-ops-v2 #performanceOpsPane .performance-output-column {
+    position: static;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .runway-visual {
+    height: 230px;
+    min-height: 230px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-footer-actions {
+    position: static;
+    grid-template-columns: repeat(2, minmax(150px, 205px));
+    min-height: 48px;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  body.pilot-ops-v2 #performanceOpsPane .performance-desktop-workbench {
+    grid-template-columns: minmax(330px, .76fr) minmax(0, 1.24fr);
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero {
+    grid-template-columns: minmax(205px, .7fr) minmax(235px, 1fr) minmax(270px, .92fr);
+    gap: 7px;
+    padding-inline: 9px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity {
+    padding-left: 2px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title h2 {
+    font-size: 27px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual > img {
+    max-width: 330px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards {
+    gap: 5px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards > div {
+    padding-inline: 7px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs {
+    width: 270px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane #performanceStatus {
+    margin-left: 277px;
+    font-size: 9px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-result-header {
+    grid-template-columns: minmax(185px, 1.35fr) repeat(3, minmax(92px, .8fr));
+    overflow: hidden;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-result-header > .performance-result-metric:nth-last-child(-n + 2) {
+    display: none;
+  }
+}

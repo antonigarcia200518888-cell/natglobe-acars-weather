@@ -2939,12 +2939,13 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-08-21-12" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-08-21-12" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-08-21-12" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-08-21-12" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-09-03-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-09-03-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-09-03-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-09-03-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-09-03-1" />
 </head>
-<body>
+<body class="pilot-ops-v2">
   <main class="frame">
     <header class="efb-masthead">
       <button id="sidebarToggle" class="shell-icon-button masthead-menu-button" type="button" aria-label="Collapse navigation" title="Navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span></button>
@@ -2979,12 +2980,14 @@
       <button class="suite-tab" type="button" data-suite-view="weather" aria-label="Weather" title="Weather"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17.5 19H7a5 5 0 1 1 1.6-9.74A6 6 0 0 1 20 12a3.5 3.5 0 0 1-2.5 7Z"></path><path d="M12 3v2M4.93 4.93l1.42 1.42M2 12h2"></path></svg></span><strong>Weather</strong></button>
       <button class="suite-tab" type="button" data-suite-view="performance" aria-label="Aircraft performance" title="Performance"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18h16"></path><path d="M6 14h12"></path><path d="m9 10 3-6 3 6"></path><path d="M12 4v14"></path></svg></span><strong>Perf</strong></button>
       <button class="suite-tab" type="button" data-suite-view="aircraft" aria-label="Aircraft" title="Aircraft"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 16h20"></path><path d="m6 16 4-5h7l3 5"></path><path d="M12 11 9 4h3l4 7"></path></svg></span><strong>Aircraft</strong></button>
+      <button id="logbookNavBtn" class="suite-tab" type="button" data-suite-view="logbook" aria-label="Crew logbook" title="Logbook"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 21.5Z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H15a2 2 0 0 0-2 2v16a2 2 0 0 1 2-2h2.5a2.5 2.5 0 0 1 2.5 2.5Z"></path></svg></span><strong>Logbook</strong></button>
       <button class="suite-tab" type="button" data-suite-view="documents" aria-label="Flight files" title="Files"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6M8 12h8M8 16h8"></path></svg></span><strong>Files</strong></button>
       <button id="mobileMoreBtn" class="suite-tab mobile-more-tab" type="button" aria-label="More tools" title="More"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></span><strong>More</strong></button>
     </nav>
     <div class="efb-content">
     <section id="dashboardWorkspace" class="ops-dashboard">
       <header class="dashboard-head"><div><span>Pilot EFB / Operations Control</span><h2>Operations Dashboard</h2><p>Start with the current flight picture, then open the workspace you need without carrying the full booking queue into every task.</p></div><strong>Live operations view</strong></header>
+      <div class="dashboard-cockpit">
       <section id="efbFlightHero" class="efb-flight-hero" aria-label="Active aircraft and flight overview" data-active="false">
         <div class="efb-flight-hero-copy">
           <span class="efb-eyebrow">Primary aircraft / active operation</span>
@@ -3015,14 +3018,19 @@
           <div><span>Preflight</span><strong id="efbHeroWeather">Not briefed</strong></div>
         </div>
       </section>
+      <aside class="dashboard-deck" aria-label="Pilot quick deck">
+      <header class="dashboard-deck-head"><div><span>Pilot quick deck</span><strong>Workspaces</strong></div><small>Open a task without losing the active flight.</small></header>
       <div class="dashboard-actions" aria-label="Operations tools">
         <button class="dashboard-action" type="button" data-dashboard-view="flights"><span>Flight control</span><strong>Open flights</strong><small>Review the queue, assign crew, update decisions, and manage passenger files.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="weather"><span>Preflight dispatch</span><strong>Weather</strong><small>Enter any ICAO route or load the selected flight for raw METAR, TAF, category, and PDF.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="flight-plan"><span>Controlled document</span><strong>Flight plan</strong><small>Build the OFP, record movement times, fuel, load, release, and PDF.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="aircraft"><span>Aircraft control</span><strong>Aircraft status</strong><small>Record fuel and oil, serviceability, hours, and scheduled maintenance.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="logbook"><span>Crew records</span><strong>Crew logbook</strong><small>Import completed flights, review duty time, and confirm pilot logbook entries.</small></button>
         <button class="dashboard-action" type="button" data-dashboard-view="documents"><span>Flight file</span><strong>Documents</strong><small>Open the OFP, reimbursement statement, agreements, and operations PDF.</small></button>
         <button id="createManualOfpBtn" class="dashboard-action manual-flight" type="button"><span>Pilot-only file</span><strong>New manual OFP</strong><small>Start an empty operational flight plan with editable route, fuel, load, runway, and timings.</small></button>
       </div>
+      <details class="dashboard-pulse" open>
+        <summary><span>Operations pulse</span><strong>Live queue and movement watch</strong></summary>
       <section class="ops-command-strip" aria-label="Operations queue totals">
         <div class="ops-command-card"><span>Total requests</span><strong id="opsTotal">0</strong></div>
         <div class="ops-command-card"><span>Needs action</span><strong id="opsNeedsAction">0</strong></div>
@@ -3038,6 +3046,9 @@
         <div id="opsLoadWatchCard" class="ops-watch-card"><span>Load watch</span><strong id="opsLoadWatch">0</strong><small>W&amp;B review queue</small></div>
       </section>
       <details class="ops-calendar"><summary>Movement schedule</summary><div id="opsCalendar" class="calendar-grid">Loading scheduled requests...</div></details>
+      </details>
+      </aside>
+      </div>
     </section>
     <section id="opsToolWorkspace" class="ops-tool-workspace" hidden>
       <header class="tool-workspace-head"><div><span id="toolWorkspaceKicker">Pilot tool</span><strong id="toolWorkspaceTitle">Operations workspace</strong></div><div id="toolFlightContext" class="tool-flight-context">NO FLIGHT SELECTED</div></header>
@@ -3079,6 +3090,7 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
       </div>
       <div id="performanceOpsPane" class="ops-tool-pane" hidden>
         <div id="performanceConsole" class="performance-console performance-app" data-state="empty">
+          <div class="performance-desktop-workbench">
           <section class="performance-reference-scene" aria-label="Aircraft performance planning canvas">
           <header class="aircraft-performance-head performance-aircraft-hero">
             <div class="aircraft-identity performance-aircraft-identity">
@@ -3254,6 +3266,7 @@ LOAD DATA TO CALCULATE.</pre></details>
               </div>
             </section>
           </div>
+          </div>
           <div class="performance-footer-actions"><button id="applyPerformanceToOfpBtn" class="efb-action primary" type="button">Apply snapshot to OFP</button><button id="openPerformanceOfpBtn" class="efb-action" type="button">Open flight plan</button></div>
         </div>
       </div>
@@ -3327,6 +3340,61 @@ LOAD DATA TO CALCULATE.</pre></details>
           </section>
         </div>
       </div>
+      <div id="logbookOpsPane" class="ops-tool-pane" hidden>
+        <section id="crewLogbook" class="logbook-app" data-state="loading" aria-label="Crew logbook">
+          <header class="logbook-hero">
+            <div class="logbook-hero-copy">
+              <span class="logbook-kicker">Personal crew record</span>
+              <h2>Crew Logbook</h2>
+              <p>Import actual flight movements, review credited time, and confirm each record only after pilot verification.</p>
+              <div class="logbook-owner"><i aria-hidden="true"></i><span><strong id="logbookOwnerName">Loading crew profile</strong><small id="logbookOwnerMeta">Private crew-scoped record</small></span></div>
+            </div>
+            <div class="logbook-hero-actions">
+              <button id="logbookImportFlightBtn" class="efb-action primary" type="button">Import active flight</button>
+              <button id="logbookNewEntryBtn" class="efb-action" type="button">New manual entry</button>
+              <button id="logbookExportBtn" class="efb-action" type="button">Export CSV</button>
+            </div>
+          </header>
+
+          <section class="logbook-summary-grid" aria-label="Confirmed logbook totals">
+            <article class="logbook-summary-card primary"><span>Total block</span><strong id="logbookTotalBlock">00:00</strong><small id="logbookTotalFlights">0 confirmed flights</small></article>
+            <article class="logbook-summary-card"><span>PIC</span><strong id="logbookTotalPic">00:00</strong><small>Pilot in command</small></article>
+            <article class="logbook-summary-card"><span>SIC</span><strong id="logbookTotalSic">00:00</strong><small>Second in command</small></article>
+            <article class="logbook-summary-card"><span>Night</span><strong id="logbookTotalNight">00:00</strong><small>Night flight time</small></article>
+            <article class="logbook-summary-card"><span>Instrument</span><strong id="logbookTotalInstrument">00:00</strong><small>Instrument time</small></article>
+            <article class="logbook-summary-card"><span>Landings</span><strong id="logbookTotalLandings">0 / 0</strong><small>Day / night</small></article>
+          </section>
+
+          <section class="logbook-activity" aria-label="Recent flying activity">
+            <div class="logbook-activity-title"><span>Recent activity</span><strong>30 / 90 day view</strong><small>Awareness only — not a legal currency determination.</small></div>
+            <div><span>Last 30 days</span><strong id="logbook30DayBlock">00:00</strong><small id="logbook30DayFlights">0 flights</small></div>
+            <div><span>Last 90 days</span><strong id="logbook90DayBlock">00:00</strong><small id="logbook90DayFlights">0 flights</small></div>
+            <div><span>90-day landings</span><strong id="logbook90DayLandings">0 / 0</strong><small>Day / night</small></div>
+            <div id="logbookDraftCard" data-state="ready"><span>Open drafts</span><strong id="logbookDraftCount">0</strong><small>Need pilot confirmation</small></div>
+          </section>
+
+          <section class="logbook-records">
+            <header class="logbook-records-head">
+              <div><span>Flight records</span><strong>Entries</strong><small id="logbookResultCount">Loading logbook…</small></div>
+              <div class="logbook-filters" aria-label="Logbook filters">
+                <label class="logbook-search"><span>Search</span><input id="logbookSearch" type="search" placeholder="Reference, route, aircraft" /></label>
+                <label><span>From</span><input id="logbookDateFrom" type="date" /></label>
+                <label><span>To</span><input id="logbookDateTo" type="date" /></label>
+                <label><span>Status</span><select id="logbookStatusFilter"><option value="ALL">All active</option><option value="CONFIRMED">Confirmed</option><option value="DRAFT">Draft</option><option value="VOID">Voided</option></select></label>
+                <label><span>Role</span><select id="logbookRoleFilter"><option value="ALL">All roles</option><option value="PIC">PIC</option><option value="SIC">SIC</option><option value="DUAL">Dual</option><option value="INSTRUCTOR">Instructor</option><option value="SAFETY PILOT">Safety pilot</option></select></label>
+              </div>
+            </header>
+            <div id="logbookStatus" class="logbook-status" role="status">Connecting to the crew logbook…</div>
+            <div class="logbook-table" role="table" aria-label="Crew logbook entries">
+              <div class="logbook-table-head" role="row">
+                <span role="columnheader">Date</span><span role="columnheader">Flight</span><span role="columnheader">Route</span><span role="columnheader">Role</span><span role="columnheader">Block</span><span role="columnheader">Airborne</span><span role="columnheader">State</span><span aria-hidden="true"></span>
+              </div>
+              <div id="logbookEntryList" class="logbook-entry-list" role="rowgroup"><div class="logbook-empty">Loading crew records…</div></div>
+            </div>
+          </section>
+          <footer class="logbook-disclaimer"><strong>Pilot record integrity</strong><span>Only confirmed entries are included in totals. Imported movement times remain drafts until the signed-in pilot verifies the record. Compare this logbook with the aircraft journey log and applicable licensing records.</span></footer>
+        </section>
+      </div>
       <div id="documentsOpsPane" class="ops-tool-pane" hidden>
         <section class="flight-file-library" aria-label="Selected flight document library">
           <header class="flight-file-head"><div><span>Controlled documents</span><h2>Flight File</h2><p>One organized record for planning, passenger documents, payment, and the final operations archive.</p></div><strong id="suiteDocFlight">NO FLIGHT SELECTED</strong></header>
@@ -3352,7 +3420,7 @@ LOAD DATA TO CALCULATE.</pre></details>
         </section>
       </div>
     </section>
-    <div id="bookingsWorkspace" hidden>
+    <div id="bookingsWorkspace" data-detail-tab="overview" hidden>
     <div class="layout">
       <aside class="panel queue-panel">
         <div class="panel-title">Flights <span>Operations queue</span></div>
@@ -3404,6 +3472,14 @@ LOAD DATA TO CALCULATE.</pre></details>
             <div id="opsMovementOn" class="movement-phase"><span>ON / Landed</span><strong>NOT RECORDED</strong></div>
             <div id="opsMovementIn" class="movement-phase"><span>IN / On stand</span><strong>NOT RECORDED</strong></div>
           </div>
+          <nav class="flight-detail-tabs" aria-label="Active flight file sections">
+            <button class="active" type="button" data-flight-detail-tab="overview" aria-selected="true">Overview</button>
+            <button type="button" data-flight-detail-tab="release" aria-selected="false">Release</button>
+            <button type="button" data-flight-detail-tab="movement" aria-selected="false">Movement</button>
+            <button type="button" data-flight-detail-tab="crew" aria-selected="false">Crew</button>
+            <button type="button" data-flight-detail-tab="passengers" aria-selected="false">Passengers</button>
+            <button type="button" data-flight-detail-tab="more" aria-selected="false">More</button>
+          </nav>
           <div class="dispatch-intelligence" aria-label="Automated dispatch intelligence" hidden>
             <div class="readiness-console">
               <div class="console-kicker">Automated dispatch intelligence</div>
@@ -3432,18 +3508,18 @@ LOAD DATA TO CALCULATE.</pre></details>
             <button id="callPassengerBtn" class="ops-tool" type="button">CALL LEAD PASSENGER</button>
           </div>
           <section class="pilot-flight-control" aria-label="Pilot flight control and document dashboard">
-            <div class="flight-control-head">
+            <div class="flight-control-head" data-flight-detail-section="overview">
               <div><strong>Pilot Flight Control</strong><span>Selected-flight operational sequence and controlled document workspace.</span></div>
               <em id="flightControlSummary">SELECT A FLIGHT FILE</em>
             </div>
-            <div class="flight-control-sequence">
+            <div class="flight-control-sequence" data-flight-detail-section="overview">
               <div id="controlFlight" class="control-phase danger"><strong>01 / Flight</strong>Load and verify route</div>
               <div id="controlCrew" class="control-phase warn"><strong>02 / Crew</strong>Commander assignment</div>
               <div id="controlOfp" class="control-phase warn"><strong>03 / OFP</strong>Planning document</div>
               <div id="controlDocuments" class="control-phase danger"><strong>04 / Documents</strong>Passenger and cost files</div>
               <div id="controlDecision" class="control-phase danger"><strong>05 / Decision</strong>Pilot disposition</div>
             </div>
-            <section class="release-console" aria-label="Flight release panel">
+            <section class="release-console" aria-label="Flight release panel" data-flight-detail-section="release">
               <header class="release-console-head"><div><span>Commander release</span><strong>Flight release panel</strong><small>Complete the operational checks, then the commander records the final PIC release and timestamp.</small></div><div id="releasePanelState" class="release-state">NOT READY</div></header>
               <div class="release-check-grid">
                 <button class="release-check" type="button" data-release-check="weather"><span>01 / Weather</span><strong id="releaseWeatherState">OPEN</strong><small id="releaseWeatherDetail">Weather, NOTAM and airspace review</small></button>
@@ -3455,7 +3531,7 @@ LOAD DATA TO CALCULATE.</pre></details>
               </div>
               <div class="release-action"><div id="releaseBlockers" class="release-blockers"><strong>Release blocked:</strong> Select a flight file.</div><button id="picReleaseBtn" class="pic-release-button" type="button" disabled>Record PIC release</button></div>
             </section>
-            <div class="live-movement-console" aria-label="Live flight movement controls">
+            <div class="live-movement-console" aria-label="Live flight movement controls" data-flight-detail-section="movement">
               <div class="live-movement-intro"><span>PM quick record</span><strong>OFP movement clock</strong><small>Stamp any movement phase when it occurs. Existing values can be corrected and every change is written to the timeline.</small></div>
               <div class="live-movement-actions">
                 <button id="recordOutBtn" class="movement-command" type="button"><span>OUT / TAXI</span><strong>STAMP OUT</strong><small>Tap to record now</small></button>
@@ -3478,7 +3554,7 @@ LOAD DATA TO CALCULATE.</pre></details>
             </div>
           </div>
           <div class="ops-brief">
-            <details class="brief-card wide ops-history">
+            <details class="brief-card wide ops-history" data-flight-detail-section="more">
               <summary class="brief-title">Departure time proposal</summary>
               <div class="brief-line"><span>Current proposal</span><strong id="proposalSummary">NO ACTIVE PROPOSAL</strong></div>
               <div id="proposalStatus" class="proposal-status">Send a proposed new departure time to the booker for acceptance.</div>
@@ -3489,7 +3565,7 @@ LOAD DATA TO CALCULATE.</pre></details>
               </div>
               <button id="sendProposalBtn" class="btn ghost" type="button">SEND TIME PROPOSAL</button>
             </details>
-            <div id="managementRequestCard" class="brief-card full" hidden>
+            <div id="managementRequestCard" class="brief-card full" data-flight-detail-section="passengers" hidden>
               <div class="brief-title">Passenger management request</div>
               <div class="brief-line"><span>Type</span><strong id="managementRequestType">.....</strong></div>
               <div class="brief-line"><span>Passenger</span><strong id="managementRequestPassenger">.....</strong></div>
@@ -3501,23 +3577,23 @@ LOAD DATA TO CALCULATE.</pre></details>
                 <button id="declineManagementRequestBtn" class="btn ghost danger" type="button">DECLINE PASSENGER REQUEST</button>
               </div>
             </div>
-            <div class="brief-card full">
+            <div class="brief-card full" data-flight-detail-section="passengers">
               <div class="brief-title">Passenger manifest</div>
               <div id="manifestList" class="manifest-list"></div>
             </div>
-            <div class="brief-card third">
+            <div class="brief-card third" data-flight-detail-section="passengers">
               <div class="brief-title">Baggage</div>
               <div class="brief-line"><span>Carry-on</span><strong id="briefBaggage">.....</strong></div>
               <div class="brief-line"><span>Weight</span><strong id="briefBagWeight">.....</strong></div>
               <div class="brief-line"><span>Power banks</span><strong id="briefPowerBanks">.....</strong></div>
             </div>
-            <div class="brief-card third">
+            <div class="brief-card third" data-flight-detail-section="crew">
               <div class="brief-title">Flight crew assignment</div>
               <div class="brief-line"><span>Commander</span><select id="commander"><option value="UNASSIGNED">Unassigned</option><option value="ANTONI GARCIA">Antoni Garcia</option><option value="SAUL GARCIA">Saul Garcia</option></select></div>
               <div class="brief-line"><span>Secondary pilot</span><select id="secondary"><option value="NONE">None assigned</option><option value="ANTONI GARCIA">Antoni Garcia</option><option value="SAUL GARCIA">Saul Garcia</option></select></div>
               <button id="saveCrewBtn" class="btn ghost" type="button">SAVE CREW</button>
             </div>
-            <details class="brief-card full ops-history">
+            <details class="brief-card full ops-history" data-flight-detail-section="more">
               <summary class="brief-title">Operations timeline</summary>
               <div id="timelineList" class="timeline-list"><div class="timeline-event">Select a request to load its timeline.</div></div>
               <div class="timeline-compose">
@@ -3531,7 +3607,7 @@ LOAD DATA TO CALCULATE.</pre></details>
 NO REQUEST SELECTED
 
 END OF MESSAGE</pre>
-          <div class="review-actions">
+          <div class="review-actions" data-flight-detail-section="more">
             <div class="review-stage"><span>01</span>Flight information reviewed above</div>
             <div class="review-stage"><span>02</span>Reimbursement statement <strong id="statementStatus" class="statement-status required">REQUIRED BEFORE APPROVAL</strong></div>
             <button id="openStatementBtn" class="btn ghost" type="button">OPEN REIMBURSEMENT STATEMENT</button>
@@ -3550,20 +3626,18 @@ END OF MESSAGE</pre>
             <div class="review-stage"><span>04</span>Operations PDF</div>
             <button id="openPdfBtn" class="btn ghost" type="button">OPEN PDF</button>
           </div>
-          <div class="wallet-actions">
+          <div class="wallet-actions" data-flight-detail-section="passengers">
             <select id="walletPassenger" aria-label="Passenger boarding pass"></select>
             <button id="webPassBtn" class="btn" type="button">ISSUE PASSENGER FLIGHT PASS</button>
           </div>
-          <div id="walletPassStatus" class="ops-mini-status">Pilot approval required before issuing a passenger flight pass.</div>
-          <details class="device-access">
+          <div id="walletPassStatus" class="ops-mini-status" data-flight-detail-section="passengers">Pilot approval required before issuing a passenger flight pass.</div>
+          <details class="device-access" data-flight-detail-section="more">
             <summary>Face ID / Touch ID device access</summary>
             <p>Set up this trusted device for biometric Pilot Ops sign-in. Your biometric data stays on your device; the pilot access code remains available as a fallback.</p>
             <button id="passkeySetupBtn" class="btn" type="button">SET UP THIS DEVICE</button>
             <div id="passkeyDeviceList" class="device-passkey-list">Checking registered devices...</div>
           </details>
-          <button id="refreshBtn" class="btn ghost" type="button">REFRESH</button>
-          <button id="deleteBtn" class="btn ghost danger" type="button">DELETE REQUEST</button>
-          <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
+          <div class="flight-file-system-actions" data-flight-detail-section="more"><button id="refreshBtn" class="btn ghost" type="button">REFRESH</button><button id="deleteBtn" class="btn ghost danger" type="button">DELETE REQUEST</button><button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button></div>
         </div>
       </section>
     </div>
@@ -3581,10 +3655,78 @@ END OF MESSAGE</pre>
       <button type="button" data-flight-dock-view="weather">Weather</button>
       <button type="button" data-flight-dock-view="performance">Perf</button>
       <button type="button" data-flight-dock-view="flight-plan">OFP</button>
+      <button type="button" data-flight-dock-view="logbook">Logbook</button>
       <button type="button" data-flight-dock-view="documents">Files</button>
       <button type="button" data-flight-context-open>Summary</button>
     </nav>
   </main>
+
+  <dialog id="logbookEntryDialog" class="shell-dialog logbook-entry-dialog" aria-labelledby="logbookEntryDialogTitle" aria-describedby="logbookEntryDialogHint">
+    <form id="logbookEntryForm" class="logbook-entry-form">
+      <header class="shell-dialog-head logbook-dialog-head">
+        <div><span id="logbookEntryDialogKicker">Draft crew record</span><strong id="logbookEntryDialogTitle">New logbook entry</strong><small id="logbookEntryDialogHint">All movement times use UTC. Save a draft before pilot confirmation.</small></div>
+        <button class="shell-icon-button" type="button" data-close-dialog="logbookEntryDialog" aria-label="Close logbook entry">Close</button>
+      </header>
+      <div class="logbook-form-scroll">
+        <div id="logbookFormStatus" class="logbook-form-status" data-state="ready" role="status">Ready for entry.</div>
+        <section class="logbook-form-section">
+          <header><span>01</span><div><strong>Flight identity</strong><small>Aircraft, route, date, and duty role</small></div></header>
+          <div class="logbook-form-grid identity">
+            <label>Flight date<input id="logbookFlightDate" type="date" required /></label>
+            <label>Flight reference<input id="logbookFlightReference" maxlength="40" placeholder="INTERNAL REFERENCE" required /></label>
+            <label>Aircraft registration<input id="logbookAircraftRegistration" maxlength="20" placeholder="OH-PMK" required /></label>
+            <label>Aircraft type<input id="logbookAircraftType" maxlength="40" placeholder="PA-28R-200" required /></label>
+            <label>Departure<input id="logbookDeparture" maxlength="12" placeholder="EFHV" required /></label>
+            <label>Destination<input id="logbookDestination" maxlength="12" placeholder="EFHN" required /></label>
+            <label>Duty role<select id="logbookDutyRole" required><option value="PIC">PIC</option><option value="SIC">SIC</option><option value="DUAL">Dual received</option><option value="INSTRUCTOR">Instructor</option><option value="SAFETY PILOT">Safety pilot</option><option value="OBSERVER">Observer</option><option value="OTHER">Other</option></select></label>
+            <div class="logbook-linked-flight"><span>Source</span><strong id="logbookEntrySource">Manual pilot entry</strong><small id="logbookLinkedFlightMeta">Not linked to an operations flight</small></div>
+          </div>
+        </section>
+
+        <section class="logbook-form-section">
+          <header><span>02</span><div><strong>Actual movement times</strong><small>UTC instants calculate block and airborne time automatically</small></div></header>
+          <div class="logbook-time-grid">
+            <label><span>OUT <small>Off stand</small></span><input id="logbookOutAt" type="datetime-local" /></label>
+            <label><span>OFF <small>Airborne</small></span><input id="logbookOffAt" type="datetime-local" /></label>
+            <label><span>ON <small>Landed</small></span><input id="logbookOnAt" type="datetime-local" /></label>
+            <label><span>IN <small>On stand</small></span><input id="logbookInAt" type="datetime-local" /></label>
+          </div>
+          <div class="logbook-derived-times">
+            <div><span>Block time</span><strong id="logbookDerivedBlock">--:--</strong><small>OUT → IN</small></div>
+            <div><span>Airborne</span><strong id="logbookDerivedAirborne">--:--</strong><small>OFF → ON</small></div>
+            <button id="logbookUseBlockCreditBtn" type="button">Credit block time to selected role</button>
+          </div>
+        </section>
+
+        <section class="logbook-form-section">
+          <header><span>03</span><div><strong>Credited time</strong><small>Enter decimal hours; totals include confirmed entries only</small></div></header>
+          <div class="logbook-form-grid credits">
+            <label>PIC hours<input id="logbookPicHours" type="number" min="0" max="72" step="0.01" inputmode="decimal" value="0" /></label>
+            <label>SIC hours<input id="logbookSicHours" type="number" min="0" max="72" step="0.01" inputmode="decimal" value="0" /></label>
+            <label>Dual hours<input id="logbookDualHours" type="number" min="0" max="72" step="0.01" inputmode="decimal" value="0" /></label>
+            <label>Instructor hours<input id="logbookInstructorHours" type="number" min="0" max="72" step="0.01" inputmode="decimal" value="0" /></label>
+            <label>Night hours<input id="logbookNightHours" type="number" min="0" max="72" step="0.01" inputmode="decimal" value="0" /></label>
+            <label>Instrument hours<input id="logbookInstrumentHours" type="number" min="0" max="72" step="0.01" inputmode="decimal" value="0" /></label>
+            <label>Day landings<input id="logbookDayLandings" type="number" min="0" max="99" step="1" inputmode="numeric" value="0" /></label>
+            <label>Night landings<input id="logbookNightLandings" type="number" min="0" max="99" step="1" inputmode="numeric" value="0" /></label>
+          </div>
+        </section>
+
+        <section class="logbook-form-section">
+          <header><span>04</span><div><strong>Remarks and verification</strong><small>Record operational context before confirmation</small></div></header>
+          <label class="logbook-remarks">Remarks<textarea id="logbookRemarks" maxlength="1200" placeholder="Route, conditions, approaches, training detail, or record note"></textarea></label>
+          <label id="logbookAttestationLabel" class="logbook-attestation"><input id="logbookAttestation" type="checkbox" /><span><strong>Pilot attestation</strong><small>I have checked this entry against the flight and aircraft records and confirm it is complete and accurate.</small></span></label>
+          <div id="logbookVoidControl" class="logbook-void-control" hidden><label>Reason for voiding<input id="logbookVoidReason" maxlength="300" placeholder="Correction, duplicate, or superseded record" /></label><button id="logbookVoidBtn" type="button">Void entry</button></div>
+        </section>
+      </div>
+      <footer class="logbook-dialog-actions">
+        <button type="button" class="efb-action" data-close-dialog="logbookEntryDialog">Cancel</button>
+        <button id="logbookRestoreBtn" class="efb-action" type="button" hidden>Restore as draft</button>
+        <button id="logbookSaveBtn" class="efb-action" type="submit">Save draft</button>
+        <button id="logbookConfirmBtn" class="efb-action primary" type="button">Confirm entry</button>
+      </footer>
+    </form>
+  </dialog>
 
   <dialog id="commandDialog" class="shell-dialog" aria-labelledby="commandDialogTitle">
     <div class="shell-dialog-head"><strong id="commandDialogTitle">Pilot EFB assistant</strong><button class="shell-icon-button" type="button" data-close-dialog="commandDialog">Close</button></div>
@@ -3752,12 +3894,40 @@ END OF MESSAGE</pre>
     const suiteTabs = [...document.querySelectorAll('[data-suite-view]')];
     const dashboardWorkspace = el('dashboardWorkspace');
     const bookingsWorkspace = el('bookingsWorkspace');
+    const flightDetailTabs = [...document.querySelectorAll('[data-flight-detail-tab]')];
     const opsToolWorkspace = el('opsToolWorkspace');
     const weatherOpsPane = el('weatherOpsPane');
     const flightPlanOpsPane = el('flightPlanOpsPane');
     const performanceOpsPane = el('performanceOpsPane');
     const aircraftOpsPane = el('aircraftOpsPane');
+    const logbookOpsPane = el('logbookOpsPane');
     const documentsOpsPane = el('documentsOpsPane');
+    const logbookNavBtn = el('logbookNavBtn');
+    const crewLogbook = el('crewLogbook');
+    const logbookOwnerName = el('logbookOwnerName');
+    const logbookOwnerMeta = el('logbookOwnerMeta');
+    const logbookImportFlightBtn = el('logbookImportFlightBtn');
+    const logbookNewEntryBtn = el('logbookNewEntryBtn');
+    const logbookExportBtn = el('logbookExportBtn');
+    const logbookSearch = el('logbookSearch');
+    const logbookDateFrom = el('logbookDateFrom');
+    const logbookDateTo = el('logbookDateTo');
+    const logbookStatusFilter = el('logbookStatusFilter');
+    const logbookRoleFilter = el('logbookRoleFilter');
+    const logbookStatus = el('logbookStatus');
+    const logbookEntryList = el('logbookEntryList');
+    const logbookResultCount = el('logbookResultCount');
+    const logbookEntryDialog = el('logbookEntryDialog');
+    const logbookEntryForm = el('logbookEntryForm');
+    const logbookFormStatus = el('logbookFormStatus');
+    const logbookSaveBtn = el('logbookSaveBtn');
+    const logbookConfirmBtn = el('logbookConfirmBtn');
+    const logbookRestoreBtn = el('logbookRestoreBtn');
+    const logbookVoidBtn = el('logbookVoidBtn');
+    const logbookVoidControl = el('logbookVoidControl');
+    const logbookAttestation = el('logbookAttestation');
+    const logbookUseBlockCreditBtn = el('logbookUseBlockCreditBtn');
+    const logbookTimeInputs = ['logbookOutAt','logbookOffAt','logbookOnAt','logbookInAt'].map(el);
     const weatherRoute = el('weatherRoute');
     const weatherDep = el('weatherDep');
     const weatherArr = el('weatherArr');
@@ -3887,6 +4057,15 @@ END OF MESSAGE</pre>
     let deferredInstallPrompt = null;
     let flightContextDismissed = false;
     let performanceRunwayCatalog = { departure:[], arrival:[] };
+    let logbookEntries = [];
+    let logbookStats = null;
+    let logbookOwner = null;
+    let logbookEditingEntry = null;
+    let logbookLinkedFlightId = '';
+    let logbookLoaded = false;
+    let logbookLoading = false;
+    let logbookReloadPending = false;
+    let logbookSearchTimer = null;
 
     function tick() {
       const now = new Date();
@@ -3922,6 +4101,7 @@ END OF MESSAGE</pre>
       { view:'weather', label:'Weather dispatch', detail:'Raw METAR, TAF, flight category, and dispatch PDF', keywords:'metar taf winds clouds visibility briefing forecast wx' },
       { view:'performance', label:'Aircraft performance', detail:'Takeoff, landing, runway, wind, and density altitude', keywords:'perf calculate ground roll obstacle accelerate stop weight oat qnh headwind tailwind' },
       { view:'aircraft', label:'Aircraft status', detail:'Serviceability, fuel, oil, hours, and maintenance', keywords:'technical ready defect tach inspection onboard profile pa28 oh-pmk' },
+      { view:'logbook', label:'Crew logbook', detail:'Pilot flight records, credited time, recent activity, and CSV export', keywords:'log book hours pic sic night instrument landing duty record currency experience' },
       { view:'documents', label:'Flight files', detail:'OFP, agreements, statement, and operations documents', keywords:'pdf file signature signed contract boarding pass download' }
     ];
 
@@ -3938,7 +4118,7 @@ END OF MESSAGE</pre>
 
     function openShellDialog(dialog, focusTarget) {
       if (!dialog) return;
-      [commandDialog, notificationsDialog, userDialog].forEach(item => {
+      [commandDialog, notificationsDialog, userDialog, logbookEntryDialog].forEach(item => {
         if (item && item !== dialog && item.open) item.close();
       });
       if (!dialog.open) dialog.showModal();
@@ -4008,6 +4188,13 @@ END OF MESSAGE</pre>
         title:`AIRCRAFT ${aircraftStatus.serviceability || 'REVIEW REQUIRED'}`,
         detail:aircraftStatus.statusNote || 'Open aircraft control before assigning the next flight.'
       });
+      const openLogbookDrafts = Number(logbookStats?.statusCounts?.draft || 0);
+      if (openLogbookDrafts) items.push({
+        view:'logbook',
+        tone:'warn',
+        title:`CREW LOGBOOK / ${openLogbookDrafts} DRAFT${openLogbookDrafts === 1 ? '' : 'S'}`,
+        detail:'Pilot verification is required before draft entries are included in confirmed totals.'
+      });
       return items.slice(0, 20);
     }
 
@@ -4029,6 +4216,8 @@ END OF MESSAGE</pre>
       const canFly = pilotCapabilities.editOFP === true;
       const canRecord = pilotCapabilities.recordMovements === true;
       const canEditAircraft = pilotCapabilities.editAircraft === true;
+      const canViewLogbook = pilotCapabilities.viewLogbook === true;
+      const canEditLogbook = pilotCapabilities.editLogbook === true;
       [
         approveBtn, needsInfoBtn, declineBtn, saveCrewBtn, sendProposalBtn, deleteBtn,
         applyManagementRequestBtn, declineManagementRequestBtn, paymentStatus, commander, secondary, webPassBtn
@@ -4039,6 +4228,10 @@ END OF MESSAGE</pre>
       [createManualOfpBtn, createManualOfpFromPlanBtn].filter(Boolean).forEach(control => { control.disabled = !canFly || !navigator.onLine; });
       [recordOutBtn, recordOffBtn, recordOnBtn, recordInBtn].filter(Boolean).forEach(control => { control.disabled = !canRecord || !selected || !navigator.onLine; });
       [saveAircraftStatusBtn, recordFluidLogBtn].filter(Boolean).forEach(control => { control.disabled = !canEditAircraft || !navigator.onLine; });
+      [logbookNewEntryBtn, logbookImportFlightBtn, logbookSaveBtn, logbookConfirmBtn].filter(Boolean).forEach(control => { control.disabled = !canEditLogbook || !navigator.onLine; });
+      if (logbookImportFlightBtn) logbookImportFlightBtn.disabled = !canEditLogbook || !navigator.onLine || !selected;
+      if (logbookNavBtn) logbookNavBtn.hidden = !canViewLogbook;
+      document.querySelectorAll('[data-dashboard-view="logbook"]').forEach(control => { control.hidden = !canViewLogbook; });
       releaseCheckButtons.forEach(control => { control.disabled = !canFly || !selected || !navigator.onLine; });
       if (picReleaseBtn) picReleaseBtn.disabled = pilotCapabilities.releaseFlight !== true || !selected || !navigator.onLine;
       document.body.dataset.pilotRole = pilotSession?.role || 'UNKNOWN';
@@ -5042,8 +5235,29 @@ END OF MESSAGE</pre>
       }
     }
 
+    function setFlightDetailTab(tab) {
+      const allowedTabs = new Set(['overview', 'release', 'movement', 'crew', 'passengers', 'more']);
+      const next = allowedTabs.has(tab) ? tab : 'overview';
+      bookingsWorkspace.dataset.detailTab = next;
+      document.querySelectorAll('[data-flight-detail-section]').forEach(section => {
+        const sectionActive = section.dataset.flightDetailSection === next;
+        const managementAvailable = section.id !== 'managementRequestCard' || selected?.managementRequest?.status === 'PENDING';
+        section.hidden = !(sectionActive && managementAvailable);
+      });
+      flightDetailTabs.forEach(button => {
+        const active = button.dataset.flightDetailTab === next;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
+      });
+      const flightFileScroller = bookingsWorkspace.querySelector(':scope > .layout > section > .panel');
+      if (flightFileScroller) flightFileScroller.scrollTo({ top:0, behavior:'auto' });
+      const contentScroller = document.querySelector('.efb-content');
+      if (contentScroller && activeWorkspace === 'flights') contentScroller.scrollTo({ top:0, behavior:'smooth' });
+    }
+
     function switchOpsWorkspace(view) {
-      const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'aircraft', 'documents']);
+      const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'aircraft', 'logbook', 'documents']);
       if (!allowedViews.has(view)) view = 'dashboard';
       activeWorkspace = view;
       rememberOpsWorkspace(view);
@@ -5063,11 +5277,12 @@ END OF MESSAGE</pre>
       weatherOpsPane.hidden = view !== 'weather';
       performanceOpsPane.hidden = view !== 'performance';
       aircraftOpsPane.hidden = view !== 'aircraft';
+      logbookOpsPane.hidden = view !== 'logbook';
       documentsOpsPane.hidden = view !== 'documents';
       flightTaskDock.querySelectorAll('[data-flight-dock-view]').forEach(button => {
         button.classList.toggle('active', button.dataset.flightDockView === view);
       });
-      mobileMoreBtn.classList.toggle('active', ['performance', 'aircraft', 'documents'].includes(view));
+      mobileMoreBtn.classList.toggle('active', ['performance', 'aircraft', 'logbook', 'documents'].includes(view));
       if (view === 'flight-plan') {
         toolWorkspaceKicker.textContent = selected?.manualFlight ? 'Pilot-only workflow' : 'Selected flight / Pilot workflow';
         toolWorkspaceTitle.textContent = 'Operational Flight Plan';
@@ -5103,8 +5318,12 @@ END OF MESSAGE</pre>
         toolWorkspaceKicker.textContent = '06 / Aircraft control';
         toolWorkspaceTitle.textContent = 'Aircraft Status';
         renderAircraftStatus();
+      } else if (view === 'logbook') {
+        toolWorkspaceKicker.textContent = '07 / Crew records';
+        toolWorkspaceTitle.textContent = 'Crew Logbook';
+        loadCrewLogbook().catch(() => {});
       } else if (view === 'documents') {
-        toolWorkspaceKicker.textContent = '07 / Flight file';
+        toolWorkspaceKicker.textContent = '08 / Flight file';
         toolWorkspaceTitle.textContent = 'Documents';
       }
       updateSuiteContext();
@@ -6252,7 +6471,7 @@ END OF MESSAGE</pre>
     function renderManagementRequest(req) {
       const request = req.managementRequest;
       const pending = request?.status === 'PENDING';
-      managementRequestCard.hidden = !pending;
+      managementRequestCard.hidden = !pending || bookingsWorkspace.dataset.detailTab !== 'passengers';
       if (!pending) return;
       managementRequestType.textContent = request.type || 'CHANGE';
       managementRequestPassenger.textContent = `${request.passengerName || 'PASSENGER'} / ${request.submittedBy || 'EMAIL NIL'}`;
@@ -6570,6 +6789,382 @@ END OF MESSAGE</pre>
         : 'Pilot approval required before issuing a passenger flight pass.';
     }
 
+    function logbookFormatMinutes(value) {
+      const minutes = Math.max(0, Math.round(Number(value) || 0));
+      return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+    }
+
+    function logbookDisplayDate(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))) return value || 'DATE OPEN';
+      const instant = new Date(`${value}T12:00:00Z`);
+      return new Intl.DateTimeFormat('en-GB', { day:'2-digit', month:'short', year:'numeric', timeZone:'UTC' }).format(instant);
+    }
+
+    function logbookIsoToInput(value) {
+      const instant = new Date(value || '');
+      return Number.isFinite(instant.getTime()) ? instant.toISOString().slice(0, 16) : '';
+    }
+
+    function logbookInputToIso(input) {
+      const value = String(input?.value || '').trim();
+      if (!value) return '';
+      const instant = new Date(`${value}:00Z`);
+      return Number.isFinite(instant.getTime()) ? instant.toISOString() : '';
+    }
+
+    function logbookHours(minutes) {
+      const value = Math.max(0, Number(minutes) || 0) / 60;
+      return value ? String(Math.round(value * 100) / 100) : '0';
+    }
+
+    function logbookSetStatus(message, state = 'ready') {
+      if (!logbookStatus) return;
+      logbookStatus.textContent = message;
+      logbookStatus.dataset.state = state;
+    }
+
+    function logbookSetFormStatus(message, state = 'ready') {
+      logbookFormStatus.textContent = message;
+      logbookFormStatus.dataset.state = state;
+    }
+
+    function renderCrewLogbookSummary(stats = {}) {
+      const totals = stats.totals || {};
+      const recent30 = stats.recent?.last30Days || {};
+      const recent90 = stats.recent?.last90Days || {};
+      setText('logbookTotalBlock', logbookFormatMinutes(totals.blockMinutes));
+      setText('logbookTotalFlights', `${totals.flightCount || 0} confirmed flight${Number(totals.flightCount) === 1 ? '' : 's'}`);
+      setText('logbookTotalPic', logbookFormatMinutes(totals.picMinutes));
+      setText('logbookTotalSic', logbookFormatMinutes(totals.sicMinutes));
+      setText('logbookTotalNight', logbookFormatMinutes(totals.nightMinutes));
+      setText('logbookTotalInstrument', logbookFormatMinutes(totals.instrumentMinutes));
+      setText('logbookTotalLandings', `${totals.landingsDay || 0} / ${totals.landingsNight || 0}`);
+      setText('logbook30DayBlock', logbookFormatMinutes(recent30.blockMinutes));
+      setText('logbook30DayFlights', `${recent30.flightCount || 0} flight${Number(recent30.flightCount) === 1 ? '' : 's'}`);
+      setText('logbook90DayBlock', logbookFormatMinutes(recent90.blockMinutes));
+      setText('logbook90DayFlights', `${recent90.flightCount || 0} flight${Number(recent90.flightCount) === 1 ? '' : 's'}`);
+      setText('logbook90DayLandings', `${recent90.landingsDay || 0} / ${recent90.landingsNight || 0}`);
+      setText('logbookDraftCount', stats.statusCounts?.draft || 0);
+      const draftCard = el('logbookDraftCard');
+      if (draftCard) draftCard.dataset.state = Number(stats.statusCounts?.draft || 0) ? 'caution' : 'ready';
+    }
+
+    function renderCrewLogbookEntries() {
+      logbookResultCount.textContent = `${logbookEntries.length} matching entr${logbookEntries.length === 1 ? 'y' : 'ies'}`;
+      logbookEntryList.innerHTML = logbookEntries.length ? logbookEntries.map(entry => {
+        const state = String(entry.status || 'DRAFT').toLowerCase();
+        const route = `${entry.departure || '----'} → ${entry.destination || '----'}`;
+        const flight = [entry.flightReference, entry.aircraftRegistration].filter(Boolean).join(' / ') || 'UNASSIGNED';
+        const source = entry.flightId ? `Linked ${entry.flightId}` : (entry.source || 'Manual entry');
+        return `<article class="logbook-entry-row" role="row" data-state="${escapeHtml(state)}">
+          <span class="logbook-cell date" role="cell"><strong>${escapeHtml(logbookDisplayDate(entry.date))}</strong><small>${escapeHtml(source)}</small></span>
+          <span class="logbook-cell flight" role="cell"><strong>${escapeHtml(flight)}</strong><small>${escapeHtml(entry.aircraftType || 'TYPE OPEN')}</small></span>
+          <span class="logbook-cell route" role="cell"><strong>${escapeHtml(route)}</strong><small>${escapeHtml(entry.remarks || 'No remarks')}</small></span>
+          <span class="logbook-cell role" role="cell"><strong>${escapeHtml(entry.role || '--')}</strong></span>
+          <span class="logbook-cell time" role="cell"><strong>${escapeHtml(logbookFormatMinutes(entry.blockMinutes))}</strong><small>OUT–IN</small></span>
+          <span class="logbook-cell time" role="cell"><strong>${escapeHtml(entry.airborneMinutes === null ? '--:--' : logbookFormatMinutes(entry.airborneMinutes))}</strong><small>OFF–ON</small></span>
+          <span class="logbook-cell state" role="cell"><strong>${escapeHtml(entry.status || 'DRAFT')}</strong><small>${escapeHtml(entry.confirmedAt ? `Confirmed ${logbookDisplayDate(String(entry.confirmedAt).slice(0, 10))}` : 'Pilot check open')}</small></span>
+          <button class="logbook-row-action" type="button" data-logbook-entry="${escapeHtml(entry.id)}" aria-label="Open ${escapeHtml(entry.flightReference || 'logbook entry')}"><span aria-hidden="true">›</span></button>
+        </article>`;
+      }).join('') : `<div class="logbook-empty"><span>No matching crew records</span><strong>${logbookLoaded ? 'Start a manual entry or import the active flight.' : 'Connecting to the crew logbook…'}</strong><button type="button" data-logbook-new>New entry</button></div>`;
+    }
+
+    function logbookFilterQuery() {
+      const query = new URLSearchParams({ limit:'500' });
+      if (logbookSearch.value.trim()) query.set('q', logbookSearch.value.trim());
+      if (logbookDateFrom.value) query.set('from', logbookDateFrom.value);
+      if (logbookDateTo.value) query.set('to', logbookDateTo.value);
+      if (logbookStatusFilter.value !== 'ALL') query.set('status', logbookStatusFilter.value);
+      if (logbookRoleFilter.value !== 'ALL') query.set('role', logbookRoleFilter.value);
+      return query;
+    }
+
+    async function loadCrewLogbook() {
+      if (logbookLoading) {
+        logbookReloadPending = true;
+        return;
+      }
+      logbookLoading = true;
+      logbookReloadPending = false;
+      crewLogbook.dataset.state = logbookLoaded ? 'refreshing' : 'loading';
+      logbookSetStatus(logbookLoaded ? 'Refreshing crew records…' : 'Connecting to the private crew logbook…', 'loading');
+      try {
+        const response = await fetch(`/api/booking-ops/logbook?${logbookFilterQuery()}`, { cache:'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'CREW LOGBOOK UNAVAILABLE');
+        logbookEntries = Array.isArray(data.entries) ? data.entries : [];
+        logbookStats = data.stats || {};
+        logbookOwner = data.owner || null;
+        logbookLoaded = true;
+        crewLogbook.dataset.state = 'ready';
+        logbookOwnerName.textContent = logbookOwner?.name || pilotSession?.name || 'CREW MEMBER';
+        logbookOwnerMeta.textContent = `${logbookOwner?.role || pilotSession?.role || 'PILOT'} / ${data.storageMode === 'POSTGRESQL' ? 'Synced operational record' : 'Temporary local server record'}`;
+        renderCrewLogbookSummary(logbookStats);
+        renderCrewLogbookEntries();
+        logbookSetStatus(`${data.total || 0} record${Number(data.total) === 1 ? '' : 's'} in this view / confirmed entries drive totals.`, data.storageMode === 'POSTGRESQL' ? 'ready' : 'caution');
+        renderNotifications();
+      } catch (error) {
+        crewLogbook.dataset.state = 'danger';
+        logbookEntryList.innerHTML = '<div class="logbook-empty"><span>Logbook unavailable</span><strong>Reconnect and retry. No record was changed.</strong></div>';
+        logbookSetStatus(error.message || 'CREW LOGBOOK UNAVAILABLE', 'danger');
+      } finally {
+        logbookLoading = false;
+        if (logbookReloadPending) {
+          logbookReloadPending = false;
+          window.queueMicrotask(() => loadCrewLogbook().catch(() => {}));
+        }
+      }
+    }
+
+    function syncLogbookDerivedTimes() {
+      const instants = logbookTimeInputs.map(logbookInputToIso).map(value => value ? new Date(value).getTime() : null);
+      const between = (start, end) => Number.isFinite(start) && Number.isFinite(end) ? Math.round((end - start) / 60000) : null;
+      const blockMinutes = between(instants[0], instants[3]);
+      const airborneMinutes = between(instants[1], instants[2]);
+      el('logbookDerivedBlock').textContent = blockMinutes !== null && blockMinutes >= 0 ? logbookFormatMinutes(blockMinutes) : '--:--';
+      el('logbookDerivedAirborne').textContent = airborneMinutes !== null && airborneMinutes >= 0 ? logbookFormatMinutes(airborneMinutes) : '--:--';
+      logbookUseBlockCreditBtn.dataset.blockMinutes = blockMinutes !== null && blockMinutes >= 0 ? String(blockMinutes) : '';
+      logbookUseBlockCreditBtn.disabled = !(blockMinutes > 0);
+      const completeMovement = instants[0] !== null && instants[3] !== null;
+      if ((blockMinutes !== null && blockMinutes < 0) || (airborneMinutes !== null && airborneMinutes < 0)) {
+        logbookSetFormStatus('Movement times are out of sequence. Check the UTC date and time for each phase.', 'danger');
+      } else if (!completeMovement) {
+        logbookSetFormStatus('OUT and IN are required before confirmation. You can save an incomplete draft.', 'caution');
+      } else {
+        logbookSetFormStatus(`Calculated block ${logbookFormatMinutes(blockMinutes)}${airborneMinutes !== null ? ` / airborne ${logbookFormatMinutes(airborneMinutes)}` : ''}. Review credit before confirmation.`, 'ready');
+      }
+    }
+
+    function setLogbookField(id, value) {
+      const input = el(id);
+      if (input) input.value = value ?? '';
+    }
+
+    function openLogbookEditor(entry = null, prefill = null) {
+      const source = entry || prefill || {};
+      logbookEditingEntry = entry;
+      logbookLinkedFlightId = source.flightId || '';
+      setText('logbookEntryDialogKicker', entry ? `${entry.status || 'DRAFT'} CREW RECORD` : prefill ? 'SMART FLIGHT IMPORT' : 'NEW MANUAL RECORD');
+      setText('logbookEntryDialogTitle', entry ? (entry.flightReference || 'Logbook entry') : prefill ? (prefill.flightReference || 'Imported flight draft') : 'New logbook entry');
+      setLogbookField('logbookFlightDate', source.date || new Date().toISOString().slice(0, 10));
+      setLogbookField('logbookFlightReference', source.flightReference || '');
+      setLogbookField('logbookAircraftRegistration', source.aircraftRegistration || 'OH-PMK');
+      setLogbookField('logbookAircraftType', source.aircraftType || 'PA-28R-200');
+      setLogbookField('logbookDeparture', source.departure || '');
+      setLogbookField('logbookDestination', source.destination || '');
+      setLogbookField('logbookDutyRole', source.role || (pilotSession?.role === 'SECONDARY' ? 'SIC' : 'PIC'));
+      setLogbookField('logbookOutAt', logbookIsoToInput(source.outAt));
+      setLogbookField('logbookOffAt', logbookIsoToInput(source.offAt));
+      setLogbookField('logbookOnAt', logbookIsoToInput(source.onAt));
+      setLogbookField('logbookInAt', logbookIsoToInput(source.inAt));
+      setLogbookField('logbookPicHours', logbookHours(source.picMinutes));
+      setLogbookField('logbookSicHours', logbookHours(source.sicMinutes));
+      setLogbookField('logbookDualHours', logbookHours(source.dualMinutes));
+      setLogbookField('logbookInstructorHours', logbookHours(source.instructorMinutes));
+      setLogbookField('logbookNightHours', logbookHours(source.nightMinutes));
+      setLogbookField('logbookInstrumentHours', logbookHours(source.instrumentMinutes));
+      setLogbookField('logbookDayLandings', source.landingsDay || 0);
+      setLogbookField('logbookNightLandings', source.landingsNight || 0);
+      setLogbookField('logbookRemarks', source.remarks || '');
+      setLogbookField('logbookVoidReason', '');
+      logbookAttestation.checked = false;
+      el('logbookEntrySource').textContent = source.source || (prefill ? 'Flight movement prefill' : 'Manual pilot entry');
+      el('logbookLinkedFlightMeta').textContent = source.flightId ? `Linked to ${source.flightId}${source.linkedFlight?.released ? ' / released OFP' : ' / draft source'}` : 'Not linked to an operations flight';
+      const isVoid = entry?.status === 'VOID';
+      const isConfirmed = entry?.status === 'CONFIRMED';
+      logbookSaveBtn.hidden = isVoid;
+      logbookSaveBtn.textContent = entry ? (isConfirmed ? 'Save changes as draft' : 'Save draft') : 'Save draft';
+      logbookConfirmBtn.hidden = isVoid || isConfirmed;
+      el('logbookAttestationLabel').hidden = isVoid || isConfirmed;
+      logbookVoidControl.hidden = !entry || isVoid;
+      logbookRestoreBtn.hidden = !isVoid;
+      [...logbookEntryForm.elements].forEach(control => {
+        if (!(control instanceof HTMLButtonElement)) control.disabled = isVoid;
+      });
+      syncLogbookDerivedTimes();
+      if (isVoid) {
+        logbookSetFormStatus(`Voided entry / ${entry.voidReason || 'reason not recorded'}. Restore it as a draft before editing.`, 'danger');
+      } else if (isConfirmed) {
+        logbookSetFormStatus('This is a confirmed record. Any saved edit returns it to Draft and requires pilot reconfirmation.', 'caution');
+      } else if (Array.isArray(source.warnings) && source.warnings.length) {
+        logbookSetFormStatus(source.warnings.join(' / '), 'caution');
+      }
+      openShellDialog(logbookEntryDialog, el('logbookFlightReference'));
+    }
+
+    async function importActiveFlightToLogbook() {
+      if (!selected?.id) {
+        logbookSetStatus('Select a flight before importing movement data.', 'caution');
+        return;
+      }
+      logbookImportFlightBtn.disabled = true;
+      logbookSetStatus(`Reading actual movement data from ${selected.id}…`, 'loading');
+      try {
+        const response = await fetch(`/api/booking-ops/logbook/prefill/${encodeURIComponent(selected.id)}`, { cache:'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'FLIGHT IMPORT UNAVAILABLE');
+        if (data.existingEntry) {
+          logbookSetStatus(`${selected.id} already has a crew entry. Opening the existing record.`, 'caution');
+          openLogbookEditor(data.existingEntry);
+          return;
+        }
+        openLogbookEditor(null, data.prefill || {});
+        logbookSetStatus(`${selected.id} loaded into an unsaved draft. Verify movement and credited time.`, 'ready');
+      } catch (error) {
+        logbookSetStatus(error.message || 'FLIGHT IMPORT UNAVAILABLE', 'danger');
+      } finally {
+        logbookImportFlightBtn.disabled = pilotCapabilities.editLogbook !== true || !selected || !navigator.onLine;
+      }
+    }
+
+    function crewLogbookFormPayload() {
+      const hoursToMinutes = id => Math.max(0, Math.round((Number(el(id).value) || 0) * 60));
+      const payload = {
+        date:el('logbookFlightDate').value,
+        flightReference:el('logbookFlightReference').value.trim().toUpperCase(),
+        aircraftRegistration:el('logbookAircraftRegistration').value.trim().toUpperCase(),
+        aircraftType:el('logbookAircraftType').value.trim().toUpperCase(),
+        departure:el('logbookDeparture').value.trim().toUpperCase(),
+        destination:el('logbookDestination').value.trim().toUpperCase(),
+        role:el('logbookDutyRole').value,
+        outAt:logbookInputToIso(el('logbookOutAt')),
+        offAt:logbookInputToIso(el('logbookOffAt')),
+        onAt:logbookInputToIso(el('logbookOnAt')),
+        inAt:logbookInputToIso(el('logbookInAt')),
+        picMinutes:hoursToMinutes('logbookPicHours'),
+        sicMinutes:hoursToMinutes('logbookSicHours'),
+        dualMinutes:hoursToMinutes('logbookDualHours'),
+        instructorMinutes:hoursToMinutes('logbookInstructorHours'),
+        nightMinutes:hoursToMinutes('logbookNightHours'),
+        instrumentMinutes:hoursToMinutes('logbookInstrumentHours'),
+        landingsDay:Math.max(0, Math.round(Number(el('logbookDayLandings').value) || 0)),
+        landingsNight:Math.max(0, Math.round(Number(el('logbookNightLandings').value) || 0)),
+        remarks:el('logbookRemarks').value.trim()
+      };
+      if (!logbookEditingEntry && logbookLinkedFlightId) payload.flightId = logbookLinkedFlightId;
+      return payload;
+    }
+
+    async function saveCrewLogbookEntry(confirmAfter = false) {
+      if (!logbookEntryForm.reportValidity()) return null;
+      if (confirmAfter && !logbookAttestation.checked) {
+        logbookSetFormStatus('Tick the pilot attestation after checking the complete entry.', 'caution');
+        logbookAttestation.focus();
+        return null;
+      }
+      logbookSaveBtn.disabled = true;
+      logbookConfirmBtn.disabled = true;
+      logbookSetFormStatus(confirmAfter ? 'Saving and confirming pilot record…' : 'Saving draft…', 'loading');
+      try {
+        const editing = logbookEditingEntry;
+        const response = await fetch(editing ? `/api/booking-ops/logbook/entries/${encodeURIComponent(editing.id)}` : '/api/booking-ops/logbook/entries', {
+          method:editing ? 'PATCH' : 'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body:JSON.stringify(crewLogbookFormPayload())
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'LOGBOOK SAVE FAILED');
+        let savedEntry = data.entry;
+        if (confirmAfter) {
+          const confirmResponse = await fetch(`/api/booking-ops/logbook/entries/${encodeURIComponent(savedEntry.id)}/confirm`, {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json' },
+            body:JSON.stringify({ attested:true })
+          });
+          const confirmData = await confirmResponse.json().catch(() => ({}));
+          if (!confirmResponse.ok) {
+            logbookEditingEntry = savedEntry;
+            throw new Error(confirmData.error || 'LOGBOOK CONFIRMATION FAILED');
+          }
+          savedEntry = confirmData.entry;
+        }
+        logbookEntryDialog.close();
+        logbookLoaded = false;
+        await loadCrewLogbook();
+        logbookSetStatus(confirmAfter ? `${savedEntry.flightReference} confirmed and included in totals.` : `${savedEntry.flightReference || 'Entry'} saved as a draft.`, confirmAfter ? 'ready' : 'caution');
+        mode.textContent = `MODE: LOGBOOK ${confirmAfter ? 'ENTRY CONFIRMED' : 'DRAFT SAVED'}`;
+        return savedEntry;
+      } catch (error) {
+        logbookSetFormStatus(error.message || 'LOGBOOK SAVE FAILED', 'danger');
+        return null;
+      } finally {
+        logbookSaveBtn.disabled = false;
+        logbookConfirmBtn.disabled = false;
+      }
+    }
+
+    async function voidCrewLogbookEntry() {
+      if (!logbookEditingEntry?.id) return;
+      const reason = el('logbookVoidReason').value.trim();
+      if (reason.length < 3) {
+        logbookSetFormStatus('Enter a clear reason before voiding this record.', 'caution');
+        el('logbookVoidReason').focus();
+        return;
+      }
+      logbookVoidBtn.disabled = true;
+      try {
+        const response = await fetch(`/api/booking-ops/logbook/entries/${encodeURIComponent(logbookEditingEntry.id)}/void`, {
+          method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ reason })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'UNABLE TO VOID LOGBOOK ENTRY');
+        logbookEntryDialog.close();
+        await loadCrewLogbook();
+        logbookSetStatus(`${data.entry.flightReference || 'Entry'} voided and excluded from totals.`, 'caution');
+      } catch (error) {
+        logbookSetFormStatus(error.message || 'UNABLE TO VOID LOGBOOK ENTRY', 'danger');
+      } finally {
+        logbookVoidBtn.disabled = false;
+      }
+    }
+
+    async function restoreCrewLogbookEntry() {
+      if (!logbookEditingEntry?.id) return;
+      logbookRestoreBtn.disabled = true;
+      try {
+        const response = await fetch(`/api/booking-ops/logbook/entries/${encodeURIComponent(logbookEditingEntry.id)}/restore`, { method:'POST' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'UNABLE TO RESTORE LOGBOOK ENTRY');
+        logbookEntryDialog.close();
+        await loadCrewLogbook();
+        logbookSetStatus(`${data.entry.flightReference || 'Entry'} restored as a draft.`, 'caution');
+      } catch (error) {
+        logbookSetFormStatus(error.message || 'UNABLE TO RESTORE LOGBOOK ENTRY', 'danger');
+      } finally {
+        logbookRestoreBtn.disabled = false;
+      }
+    }
+
+    function exportCrewLogbookCsv() {
+      if (!logbookEntries.length) {
+        logbookSetStatus('There are no entries in the current view to export.', 'caution');
+        return;
+      }
+      const columns = [
+        ['Date','date'],['Flight reference','flightReference'],['Aircraft registration','aircraftRegistration'],['Aircraft type','aircraftType'],
+        ['Departure','departure'],['Destination','destination'],['Role','role'],['OUT UTC','outAt'],['OFF UTC','offAt'],['ON UTC','onAt'],['IN UTC','inAt'],
+        ['Block minutes','blockMinutes'],['Airborne minutes','airborneMinutes'],['PIC minutes','picMinutes'],['SIC minutes','sicMinutes'],['Dual minutes','dualMinutes'],
+        ['Instructor minutes','instructorMinutes'],['Night minutes','nightMinutes'],['Instrument minutes','instrumentMinutes'],['Day landings','landingsDay'],
+        ['Night landings','landingsNight'],['Status','status'],['Source','source'],['Remarks','remarks'],['Confirmed at','confirmedAt']
+      ];
+      const csvCell = value => {
+        let text = String(value ?? '');
+        if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+        return `"${text.replaceAll('"', '""')}"`;
+      };
+      const csv = [columns.map(([label]) => csvCell(label)).join(','), ...logbookEntries.map(entry => columns.map(([, key]) => csvCell(entry[key])).join(','))].join('\r\n');
+      const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `NGA-Crew-Logbook-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      logbookSetStatus(`${logbookEntries.length} visible entr${logbookEntries.length === 1 ? 'y' : 'ies'} exported to CSV.`, 'ready');
+    }
+
     function renderTimeline(events) {
       timelineList.innerHTML = events.length ? events.slice().reverse().map(event => `
         <div class="timeline-event">
@@ -6590,6 +7185,7 @@ END OF MESSAGE</pre>
       userSessionName.textContent = data.session.name;
       userSessionMeta.textContent = `${pilotCapabilities.appRole || data.session.role}${pilotSessionExpiresAt ? ` / SESSION EXPIRES ${new Date(pilotSessionExpiresAt).toLocaleString('en-GB', { hour12:false })}` : ''}`;
       enforceCapabilityControls();
+      if (activeWorkspace === 'logbook' && pilotCapabilities.viewLogbook !== true) switchOpsWorkspace('dashboard');
       renderReleasePanel();
       loadPilotPasskeys().catch(() => {});
     }
@@ -7118,6 +7714,65 @@ END OF MESSAGE</pre>
       mode.textContent = 'MODE: TIME PROPOSAL SENT';
     });
 
+    flightDetailTabs.forEach((button, index) => {
+      button.addEventListener('click', () => setFlightDetailTab(button.dataset.flightDetailTab));
+      button.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const targetIndex = event.key === 'Home' ? 0 : event.key === 'End' ? flightDetailTabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + flightDetailTabs.length) % flightDetailTabs.length;
+        const target = flightDetailTabs[targetIndex];
+        setFlightDetailTab(target.dataset.flightDetailTab);
+        target.focus();
+      });
+    });
+
+    logbookImportFlightBtn.addEventListener('click', importActiveFlightToLogbook);
+    logbookNewEntryBtn.addEventListener('click', () => openLogbookEditor());
+    logbookExportBtn.addEventListener('click', exportCrewLogbookCsv);
+    logbookEntryList.addEventListener('click', event => {
+      const entryButton = event.target.closest('[data-logbook-entry]');
+      if (entryButton) {
+        const entry = logbookEntries.find(item => item.id === entryButton.dataset.logbookEntry);
+        if (entry) openLogbookEditor(entry);
+        return;
+      }
+      if (event.target.closest('[data-logbook-new]')) openLogbookEditor();
+    });
+    [logbookDateFrom, logbookDateTo, logbookStatusFilter, logbookRoleFilter].forEach(control => control.addEventListener('change', () => loadCrewLogbook().catch(() => {})));
+    logbookSearch.addEventListener('input', () => {
+      window.clearTimeout(logbookSearchTimer);
+      logbookSearchTimer = window.setTimeout(() => loadCrewLogbook().catch(() => {}), 260);
+    });
+    logbookTimeInputs.forEach(input => input.addEventListener('input', syncLogbookDerivedTimes));
+    ['logbookFlightReference','logbookAircraftRegistration','logbookAircraftType','logbookDeparture','logbookDestination'].map(el).forEach(input => input.addEventListener('input', () => {
+      const start = input.selectionStart;
+      input.value = input.value.toUpperCase();
+      if (start !== null) input.setSelectionRange(start, start);
+    }));
+    logbookUseBlockCreditBtn.addEventListener('click', () => {
+      const minutes = Number(logbookUseBlockCreditBtn.dataset.blockMinutes);
+      if (!(minutes > 0)) return;
+      const fieldByRole = { PIC:'logbookPicHours', SIC:'logbookSicHours', DUAL:'logbookDualHours', INSTRUCTOR:'logbookInstructorHours' };
+      const field = fieldByRole[el('logbookDutyRole').value];
+      if (!field) {
+        logbookSetFormStatus('The selected duty role has no primary time-credit field. Enter the applicable credit manually.', 'caution');
+        return;
+      }
+      el(field).value = logbookHours(minutes);
+      logbookSetFormStatus(`${logbookFormatMinutes(minutes)} credited to ${el('logbookDutyRole').value}. Review before saving.`, 'ready');
+    });
+    logbookEntryForm.addEventListener('submit', event => {
+      event.preventDefault();
+      saveCrewLogbookEntry(false).catch(() => {});
+    });
+    logbookConfirmBtn.addEventListener('click', () => saveCrewLogbookEntry(true).catch(() => {}));
+    logbookVoidBtn.addEventListener('click', () => voidCrewLogbookEntry().catch(() => {}));
+    logbookRestoreBtn.addEventListener('click', () => restoreCrewLogbookEntry().catch(() => {}));
+    logbookEntryDialog.addEventListener('close', () => {
+      logbookEditingEntry = null;
+      logbookLinkedFlightId = '';
+    });
+
     openWeatherOpsBtn.addEventListener('click', () => switchOpsWorkspace('weather'));
     suiteTabs.forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.suiteView)));
     document.querySelectorAll('[data-dashboard-view]').forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.dashboardView)));
@@ -7584,7 +8239,7 @@ END OF MESSAGE</pre>
     document.querySelectorAll('[data-close-dialog]').forEach(button => {
       button.addEventListener('click', () => el(button.dataset.closeDialog)?.close());
     });
-    [commandDialog, notificationsDialog, userDialog].forEach(dialog => {
+    [commandDialog, notificationsDialog, userDialog, logbookEntryDialog].forEach(dialog => {
       dialog?.addEventListener('click', event => {
         if (event.target === dialog) dialog.close();
       });
@@ -7632,6 +8287,7 @@ END OF MESSAGE</pre>
       if (event.data?.type === 'nga-efb-theme') applyEfbTheme(event.data.theme);
     });
 
+    setFlightDetailTab('overview');
     renderActiveFlightStrip();
     renderReleasePanel();
     updateNetworkState();
