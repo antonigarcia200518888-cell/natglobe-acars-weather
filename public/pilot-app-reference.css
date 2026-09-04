@@ -2021,3 +2021,129 @@ label { color: var(--app-muted); }
     bottom: 12px;
   }
 }
+
+/* Semantic EFB tool symbols: each action now carries its own operational icon. */
+.pilot-ops-v2 .suite-nav-tools[hidden] {
+  display: none !important;
+}
+
+.pilot-ops-v2 .dashboard-action::before {
+  content: none !important;
+  display: none !important;
+}
+
+.pilot-ops-v2 .dashboard-action > .dashboard-action-icon {
+  position: absolute;
+  top: 17px;
+  left: 16px;
+  display: grid !important;
+  width: 41px;
+  height: 41px;
+  place-items: center;
+  padding: 9px;
+  border: 1px solid var(--app-line);
+  border-radius: 50%;
+  background: var(--app-card-solid);
+  color: var(--app-ink);
+  font: inherit;
+  line-height: 1;
+}
+
+.pilot-ops-v2 .dashboard-action-icon svg,
+.pilot-ops-v2 .command-result-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pilot-ops-v2 .dashboard-action.manual-flight {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--app-active) 7%, var(--app-card-solid));
+}
+
+.pilot-ops-v2 .dashboard-action.manual-flight > .dashboard-action-icon {
+  border-color: color-mix(in srgb, var(--app-active) 55%, var(--app-line));
+  background: color-mix(in srgb, var(--app-active) 12%, var(--app-card-solid));
+  color: var(--app-active);
+}
+
+.pilot-ops-v2 .command-result {
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+}
+
+.pilot-ops-v2 .command-result-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 7px;
+  border: 1px solid var(--app-line);
+  border-radius: 50%;
+  background: var(--app-card-solid);
+  color: var(--app-ink) !important;
+}
+
+.pilot-ops-v2 .command-result-action {
+  color: var(--live);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+@media (min-width: 1280px) {
+  .pilot-ops-v2 .dashboard-action > .dashboard-action-icon {
+    top: 9px;
+    left: 10px;
+    width: 30px;
+    height: 30px;
+    padding: 6px;
+  }
+
+  .pilot-ops-v2 .dashboard-action strong {
+    font-size: 13px;
+  }
+
+  .pilot-ops-v2 .dashboard-action small {
+    font-size: 10.5px;
+    line-height: 1.32;
+  }
+}
+
+@media (max-width: 1180px) {
+  .pilot-ops-v2 .dashboard-action > .dashboard-action-icon {
+    top: 14px;
+    left: 13px;
+    width: 38px;
+    height: 38px;
+    padding: 8px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 920px) {
+  .pilot-ops-v2 .dashboard-action > .dashboard-action-icon { top: 13px; }
+}
+
+@media (min-width: 641px) and (max-width: 820px) {
+  .pilot-ops-v2 .dashboard-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .pilot-ops-v2 .dashboard-action,
+  .pilot-ops-v2 .dashboard-action:nth-child(n + 3),
+  .pilot-ops-v2 .dashboard-action:nth-child(n + 4) {
+    display: block;
+  }
+}
+
+@media (max-width: 520px) {
+  .pilot-ops-v2 .command-result {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .pilot-ops-v2 .command-result-action { display: none; }
+}
