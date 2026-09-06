@@ -2011,3 +2011,221 @@
     display: none;
   }
 }
+
+/* -------------------------------------------------------------------------
+   Apple-platform refinement
+
+   Keep the dense operational content, but present it as a calm hierarchy of
+   materials, native-sized controls and unambiguous blue actions. Green is
+   reserved for an actual serviceable / completed state.
+   ------------------------------------------------------------------------- */
+
+#performanceOpsPane,
+#aircraftOpsPane {
+  --tool-glass: color-mix(in srgb, var(--efb-glass-solid) 91%, transparent);
+  --tool-glass-soft: color-mix(in srgb, var(--efb-glass-solid) 76%, transparent);
+  --tool-line: color-mix(in srgb, var(--efb-text) 6%, transparent);
+  --tool-line-strong: color-mix(in srgb, var(--efb-text) 11%, transparent);
+  --tool-shadow: 0 20px 48px color-mix(in srgb, var(--efb-text) 8%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--efb-glass-solid) 82%, transparent) inset;
+  --tool-shadow-small: 0 8px 24px color-mix(in srgb, var(--efb-text) 6%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--efb-glass-solid) 78%, transparent) inset;
+  --tool-radius-xl: 26px;
+  --tool-radius-lg: 20px;
+  --tool-radius: 15px;
+  overflow-x: clip;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#performanceOpsPane :is(button, summary),
+#aircraftOpsPane :is(button, summary) {
+  min-height: 44px !important;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#performanceOpsPane :is(input:not([type="checkbox"]):not([type="radio"]), select),
+#aircraftOpsPane :is(input:not([type="checkbox"]):not([type="radio"]), select) {
+  min-height: 44px !important;
+}
+
+#performanceOpsPane :is(button, summary, input, select, textarea):focus-visible,
+#aircraftOpsPane :is(button, summary, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--efb-blue) 28%, transparent) !important;
+  outline-offset: 2px;
+  border-color: color-mix(in srgb, var(--efb-blue) 66%, var(--tool-line)) !important;
+}
+
+#performanceOpsPane :is(
+  .performance-aircraft-identity > span,
+  .performance-context > div:first-child > span,
+  .performance-leg-title span,
+  .performance-setup-fields label,
+  .performance-label,
+  .performance-result-status span,
+  .performance-result-metric span,
+  .performance-section-title,
+  .performance-visual-title
+),
+#aircraftOpsPane :is(
+  .aircraft-hero-copy > span,
+  .aircraft-status-metric span,
+  .aircraft-status-metric small,
+  .aircraft-panel-head span,
+  .aircraft-form-grid label
+) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#performanceOpsPane .performance-reference-scene,
+#aircraftOpsPane .aircraft-reference-scene {
+  border-color: var(--tool-line);
+  background:
+    radial-gradient(circle at 76% 8%, color-mix(in srgb, var(--efb-blue-soft) 58%, transparent), transparent 25rem),
+    linear-gradient(138deg,
+      color-mix(in srgb, var(--efb-glass-solid) 94%, var(--efb-canvas)) 0%,
+      color-mix(in srgb, var(--efb-canvas) 88%, var(--efb-glass-solid)) 100%);
+  box-shadow: var(--tool-shadow);
+}
+
+#performanceOpsPane .performance-flight-setup,
+#performanceOpsPane .performance-block,
+#aircraftOpsPane .aircraft-panel {
+  border-color: var(--tool-line);
+  background: var(--tool-glass-soft);
+  box-shadow: var(--tool-shadow-small);
+  backdrop-filter: blur(28px) saturate(1.14);
+  -webkit-backdrop-filter: blur(28px) saturate(1.14);
+}
+
+#performanceOpsPane .performance-limit-cards > div,
+#performanceOpsPane .performance-readiness-step,
+#performanceOpsPane .performance-leg-setup,
+#performanceOpsPane .performance-result-status,
+#performanceOpsPane .performance-result-metric,
+#performanceOpsPane .performance-control-column,
+#performanceOpsPane .performance-output-column,
+#performanceOpsPane .performance-item,
+#aircraftOpsPane .aircraft-hero-metrics .aircraft-status-metric,
+#aircraftOpsPane .aircraft-health-strip > div {
+  border-color: var(--tool-line);
+  background: var(--tool-glass);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--efb-text) 3%, transparent);
+}
+
+/* Operational values retain tabular alignment; prose and actions stay native. */
+#performanceOpsPane :is(
+  .performance-aircraft-title h2,
+  .performance-limit-cards strong,
+  .performance-result-status strong,
+  .performance-result-metric strong,
+  .performance-value
+),
+#aircraftOpsPane :is(
+  .aircraft-hero-copy h2,
+  .aircraft-status-metric strong,
+  .aircraft-health-strip strong
+) {
+  font-family: var(--efb-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* Native segmented control: the selection sits above the quiet material. */
+#performanceOpsPane .performance-stage-tabs {
+  gap: 3px;
+  padding: 4px;
+  border-color: var(--tool-line);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--efb-canvas) 70%, var(--tool-glass));
+  box-shadow: inset 0 0 0 .5px var(--tool-line);
+}
+
+#performanceOpsPane .performance-stage-tabs button {
+  min-height: 48px;
+  border-radius: 11px;
+  transition: color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+#performanceOpsPane .performance-stage-tabs button.active {
+  border: 0;
+  background: var(--efb-glass-solid);
+  color: var(--efb-blue-strong);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--efb-text) 10%, transparent),
+    0 0 0 .5px var(--tool-line-strong);
+}
+
+#performanceOpsPane :is(.performance-run, .performance-actions button.primary),
+#aircraftOpsPane :is(.aircraft-hero-action, #saveAircraftStatusBtn, #recordFluidLogBtn) {
+  border-color: var(--efb-blue);
+  background: var(--efb-blue);
+  color: var(--efb-active-text);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--efb-blue) 22%, transparent);
+}
+
+#performanceOpsPane :is(.performance-run, .performance-actions button.primary):active,
+#aircraftOpsPane :is(.aircraft-hero-action, #saveAircraftStatusBtn, #recordFluidLogBtn):active {
+  transform: scale(.985);
+}
+
+#performanceOpsPane :is(.performance-setup-fields, .performance-value) :is(input, select),
+#aircraftOpsPane :is(.aircraft-form-grid, .fluid-log-form) :is(input, select, textarea) {
+  border-color: var(--tool-line-strong);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--efb-field) 88%, var(--efb-glass-solid));
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--efb-text) 4%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--efb-glass-solid) 82%, transparent) inset;
+}
+
+#performanceOpsPane :is(.performance-source-drawer, .performance-document-preview),
+#aircraftOpsPane :is(.aircraft-record-drawer, .aircraft-advanced-record) {
+  border-color: var(--tool-line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--tool-glass-soft) 92%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #performanceOpsPane :is(button, summary):hover,
+  #aircraftOpsPane :is(button, summary):hover {
+    border-color: color-mix(in srgb, var(--efb-blue) 25%, var(--tool-line));
+  }
+
+  #performanceOpsPane .performance-stage-tabs button:not(.active):hover {
+    background: color-mix(in srgb, var(--efb-glass-solid) 48%, transparent);
+    color: var(--efb-text);
+  }
+}
+
+/* Reflow result metrics instead of requiring a horizontal swipe on iPad. */
+@media (max-width: 959px) {
+  #performanceOpsPane .performance-result-header {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow-x: clip;
+  }
+
+  #performanceOpsPane .performance-result-status {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  #performanceOpsPane .performance-result-header {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 7px;
+  }
+
+  #performanceOpsPane .performance-result-status {
+    grid-column: 1 / -1;
+  }
+
+  #performanceOpsPane .performance-result-metric,
+  #performanceOpsPane .performance-result-status {
+    min-height: 68px;
+  }
+
+  #performanceOpsPane .performance-aircraft-hero,
+  #aircraftOpsPane .aircraft-reference-scene {
+    border-radius: 22px;
+  }
+}

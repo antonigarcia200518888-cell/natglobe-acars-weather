@@ -1241,3 +1241,314 @@ html:not([data-efb-theme="night"]) body #bookingsWorkspace :is(
 @media (prefers-reduced-motion: reduce) {
   #bookingsWorkspace .request { transition: none; }
 }
+
+/* --------------------------------------------------------------------------
+   Apple-platform refinement — Flights, Weather and Files
+
+   A quieter material stack keeps the pilot's attention on the selected flight
+   and current data. Blue communicates navigation/action; green remains a
+   serviceability or completed-state signal only.
+   -------------------------------------------------------------------------- */
+
+#bookingsWorkspace,
+#weatherOpsPane,
+#documentsOpsPane {
+  --secondary-material: color-mix(in srgb, var(--app-card-solid) 91%, transparent);
+  --secondary-material-soft: color-mix(in srgb, var(--app-card-muted) 78%, transparent);
+  --secondary-hairline: color-mix(in srgb, var(--app-ink) 6%, transparent);
+  --secondary-hairline-strong: color-mix(in srgb, var(--app-ink) 11%, transparent);
+  --secondary-shadow: 0 18px 46px color-mix(in srgb, var(--app-ink) 7%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--app-card-solid) 86%, transparent) inset;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#bookingsWorkspace :is(button, summary),
+#weatherOpsPane :is(button, summary),
+#documentsOpsPane :is(button, summary) {
+  min-height: 44px !important;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#bookingsWorkspace :is(button, summary, input, select, textarea):focus-visible,
+#weatherOpsPane :is(button, summary, input, select, textarea):focus-visible,
+#documentsOpsPane :is(button, summary, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--app-blue) 27%, transparent) !important;
+  outline-offset: 2px;
+  border-color: color-mix(in srgb, var(--app-blue) 65%, var(--secondary-hairline)) !important;
+}
+
+#bookingsWorkspace :is(
+  .panel-title span,
+  .request-detail,
+  .request-state,
+  .meta span,
+  .dispatch-route span,
+  .dispatch-metric span,
+  .movement-phase span,
+  .brief-title,
+  .brief-line span,
+  .flight-control-head span,
+  .release-console-head span,
+  .live-movement-intro span
+),
+#weatherOpsPane :is(
+  .acars-console-head span,
+  .weather-route span,
+  .weather-toolbar label,
+  .weather-option-group > strong,
+  .weather-category-role,
+  .weather-card-head span,
+  .weather-report span,
+  .weather-report small
+),
+#documentsOpsPane :is(
+  .flight-file-head span,
+  .suite-doc-summary span,
+  .flight-file-group > header span,
+  .flight-file-row small
+) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#bookingsWorkspace .panel,
+#weatherOpsPane .acars-console-head,
+#weatherOpsPane :is(.weather-route, .weather-option-group, .weather-category-tile, .weather-card, .weather-brief, .acars-preview),
+#documentsOpsPane :is(.flight-file-head, .suite-doc-summary > div, .flight-file-group) {
+  border-color: var(--secondary-hairline);
+  background-color: var(--secondary-material);
+  box-shadow: var(--secondary-shadow);
+  backdrop-filter: blur(26px) saturate(1.12);
+  -webkit-backdrop-filter: blur(26px) saturate(1.12);
+}
+
+#bookingsWorkspace .panel {
+  border-radius: 24px;
+  padding: 15px;
+}
+
+/* Search and segmented filters read like native controls, not form chrome. */
+#bookingsWorkspace .queue-filters :is(input, select),
+#bookingsWorkspace :is(input, select, textarea),
+#weatherOpsPane .weather-toolbar input {
+  min-height: 44px;
+  border-color: var(--secondary-hairline-strong) !important;
+  border-radius: 12px !important;
+  background-color: color-mix(in srgb, var(--app-field) 92%, var(--app-card-solid)) !important;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--app-ink) 4%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--app-card-solid) 86%, transparent) inset;
+}
+
+#bookingsWorkspace .quick-filters {
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid var(--secondary-hairline);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--app-canvas) 70%, var(--secondary-material-soft));
+}
+
+#bookingsWorkspace .quick-filter {
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--app-muted);
+  transition: color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+#bookingsWorkspace .quick-filter.active {
+  border: 0;
+  background: var(--app-card-solid);
+  color: var(--app-blue);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--app-ink) 10%, transparent),
+    0 0 0 .5px var(--secondary-hairline-strong);
+}
+
+#bookingsWorkspace .request {
+  min-height: 142px;
+  border-color: var(--secondary-hairline);
+  border-radius: 17px;
+  background: var(--secondary-material);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--app-ink) 4%, transparent);
+}
+
+#bookingsWorkspace .request.selected,
+html:not([data-efb-theme="night"]) body #bookingsWorkspace .request.selected {
+  border-color: color-mix(in srgb, var(--app-blue) 34%, var(--secondary-hairline)) !important;
+  background-color: var(--secondary-material) !important;
+  background-image: linear-gradient(135deg,
+    color-mix(in srgb, var(--efb-blue-soft) 80%, var(--app-card-solid)),
+    var(--app-card-solid) 68%) !important;
+  box-shadow: 0 9px 24px color-mix(in srgb, var(--app-blue) 10%, transparent);
+}
+
+#bookingsWorkspace .request.selected::before {
+  width: 4px;
+  background: var(--app-blue);
+}
+
+#bookingsWorkspace :is(
+  .meta,
+  .dispatch-route,
+  .dispatch-metric,
+  .movement-phase,
+  .brief-card,
+  .manifest-card,
+  .ops-alert,
+  .ops-readiness,
+  .document-card,
+  .release-check,
+  .control-phase
+) {
+  border-color: var(--secondary-hairline);
+  border-radius: 14px;
+  background: var(--secondary-material);
+}
+
+#bookingsWorkspace :is(
+  .pilot-flight-control,
+  .release-console,
+  .live-movement-console,
+  .readiness-console,
+  .intelligence-console
+) {
+  border-color: var(--secondary-hairline);
+  border-radius: 19px;
+  background: var(--secondary-material-soft);
+}
+
+#bookingsWorkspace :is(.pic-release-button:not(:disabled), #approveBtn, #webPassBtn),
+#weatherOpsPane .efb-action.primary {
+  border-color: var(--app-blue);
+  background: var(--app-blue);
+  color: var(--app-active-ink);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--app-blue) 22%, transparent);
+}
+
+#weatherOpsPane .weather-console {
+  border-radius: 24px;
+}
+
+#weatherOpsPane .acars-console-head {
+  min-height: 76px;
+  border-radius: 20px;
+}
+
+#weatherOpsPane .weather-route,
+#weatherOpsPane .weather-option-group,
+#weatherOpsPane .weather-category-tile,
+#weatherOpsPane .weather-card,
+#weatherOpsPane .weather-brief,
+#weatherOpsPane .acars-preview {
+  border-radius: 16px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--app-ink) 3%, transparent);
+}
+
+#weatherOpsPane .weather-option-group input {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  accent-color: var(--app-blue);
+}
+
+#weatherOpsPane .weather-option-group label {
+  min-height: 44px;
+}
+
+#weatherOpsPane .weather-status {
+  border-color: color-mix(in srgb, var(--app-blue) 20%, var(--secondary-hairline));
+  border-left-width: 1px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--efb-blue-soft) 72%, var(--secondary-material));
+}
+
+#weatherOpsPane .acars-preview pre {
+  border-color: var(--secondary-hairline);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--app-canvas) 64%, var(--app-card-solid));
+}
+
+#documentsOpsPane .flight-file-head {
+  min-height: 124px;
+  border-radius: 22px;
+  background-image:
+    radial-gradient(circle at 88% 10%, color-mix(in srgb, var(--efb-blue-soft) 82%, transparent), transparent 15rem),
+    linear-gradient(132deg, var(--secondary-material), color-mix(in srgb, var(--app-cyan) 18%, var(--secondary-material)));
+}
+
+#documentsOpsPane .flight-file-head span {
+  color: var(--app-blue);
+}
+
+#documentsOpsPane .suite-doc-summary > div {
+  border-radius: 17px;
+}
+
+#documentsOpsPane .flight-file-group {
+  border-radius: 20px;
+}
+
+#documentsOpsPane .file-type {
+  background: color-mix(in srgb, var(--efb-blue-soft) 84%, var(--app-card-solid));
+  color: var(--app-blue);
+}
+
+#documentsOpsPane .flight-file-row button {
+  min-height: 44px;
+  border-color: var(--secondary-hairline-strong);
+  border-radius: 12px;
+}
+
+#documentsOpsPane .flight-file-row button:hover:not(:disabled) {
+  border-color: var(--app-blue);
+  background: var(--app-blue);
+  color: var(--app-active-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #bookingsWorkspace .request:hover {
+    border-color: color-mix(in srgb, var(--app-blue) 20%, var(--secondary-hairline));
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--app-ink) 7%, transparent);
+  }
+
+  #bookingsWorkspace .quick-filter:not(.active):hover {
+    background: color-mix(in srgb, var(--app-card-solid) 52%, transparent);
+    color: var(--app-ink);
+  }
+}
+
+@media (max-width: 1020px) {
+  #bookingsWorkspace .layout {
+    gap: 10px;
+  }
+
+  #bookingsWorkspace .queue-filter-drawer > summary {
+    border-color: var(--secondary-hairline);
+    border-radius: 14px;
+    background: var(--secondary-material);
+  }
+}
+
+@media (max-width: 640px) {
+  #bookingsWorkspace .panel,
+  #weatherOpsPane .acars-console-head,
+  #documentsOpsPane .flight-file-head {
+    border-radius: 20px;
+  }
+
+  #bookingsWorkspace .quick-filter {
+    flex: 0 0 auto;
+    min-width: 84px;
+  }
+
+  #documentsOpsPane .flight-file-row {
+    min-width: 0;
+    overflow: hidden;
+  }
+}
