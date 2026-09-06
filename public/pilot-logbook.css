@@ -5,7 +5,8 @@
  * consistent with the rest of the EFB.
  */
 
-#logbookOpsPane {
+#logbookOpsPane,
+.shell-dialog.logbook-entry-dialog {
   min-width: 0;
   padding: 0;
 }
@@ -1093,5 +1094,255 @@
 @media (prefers-reduced-motion: reduce) {
   .logbook-entry-row {
     transition: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Apple-platform refinement
+
+   The logbook is a personal record, so it uses a quieter document material
+   than dispatch while retaining aviation-grade tabular alignment. Blue marks
+   actions and the current selection; green is reserved for confirmed records.
+   -------------------------------------------------------------------------- */
+
+#logbookOpsPane {
+  --logbook-material: color-mix(in srgb, var(--app-card-solid) 91%, transparent);
+  --logbook-material-soft: color-mix(in srgb, var(--app-card-muted) 79%, transparent);
+  --logbook-hairline: color-mix(in srgb, var(--app-ink) 6%, transparent);
+  --logbook-hairline-strong: color-mix(in srgb, var(--app-ink) 11%, transparent);
+  --logbook-shadow: 0 18px 46px color-mix(in srgb, var(--app-ink) 7%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--app-card-solid) 86%, transparent) inset;
+  max-width: 100%;
+  overflow-x: clip;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#logbookOpsPane :is(button, summary) {
+  min-height: 44px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#logbookOpsPane :is(button, summary, input, select, textarea):focus-visible,
+.logbook-entry-dialog :is(button, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--app-blue) 27%, transparent) !important;
+  outline-offset: 2px;
+  border-color: color-mix(in srgb, var(--app-blue) 65%, var(--logbook-hairline, var(--app-line))) !important;
+}
+
+.logbook-app {
+  gap: 10px;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.logbook-hero,
+.logbook-summary-card,
+.logbook-activity,
+.logbook-records,
+.logbook-disclaimer,
+.logbook-form-section {
+  border-color: var(--logbook-hairline, var(--app-line));
+  background-color: var(--logbook-material, var(--app-card-solid));
+  box-shadow: var(--logbook-shadow, var(--app-shadow));
+  backdrop-filter: blur(26px) saturate(1.12);
+  -webkit-backdrop-filter: blur(26px) saturate(1.12);
+}
+
+.logbook-hero {
+  min-height: 172px;
+  border-radius: 24px;
+  background-image:
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--efb-blue-soft) 82%, transparent), transparent 20rem),
+    linear-gradient(132deg,
+      color-mix(in srgb, var(--app-card-solid) 96%, transparent),
+      color-mix(in srgb, var(--app-cyan) 18%, var(--app-card-solid)));
+}
+
+.logbook-hero::after {
+  border-color: color-mix(in srgb, var(--app-blue) 17%, transparent);
+  opacity: .42;
+}
+
+.logbook-kicker,
+.logbook-records-head > div:first-child span,
+.logbook-filters label > span,
+.logbook-form-section header small,
+.logbook-dialog-head span {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.logbook-hero-actions .efb-action,
+.logbook-dialog-actions .efb-action,
+.logbook-empty button,
+.logbook-derived-times button,
+.logbook-void-control button {
+  min-height: 44px;
+  border-color: var(--logbook-hairline-strong, var(--app-line-strong));
+  border-radius: 12px;
+  background: var(--logbook-material, var(--app-card-solid));
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--app-ink) 4%, transparent);
+}
+
+.logbook-hero-actions .efb-action.primary,
+.logbook-dialog-actions .efb-action.primary,
+.logbook-empty button {
+  border-color: var(--app-blue);
+  background: var(--app-blue);
+  color: var(--app-active-ink);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--app-blue) 22%, transparent);
+}
+
+.logbook-summary-card {
+  border-radius: 17px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--app-ink) 4%, transparent);
+}
+
+.logbook-summary-card.primary {
+  border-color: color-mix(in srgb, var(--app-blue) 26%, var(--logbook-hairline));
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--efb-blue-soft) 82%, var(--app-card-solid)),
+    var(--app-card-solid));
+}
+
+.logbook-summary-card strong,
+.logbook-activity strong,
+.logbook-cell :is(strong, small),
+.logbook-derived-times strong {
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.logbook-activity {
+  border-radius: 18px;
+  background: var(--logbook-hairline);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--app-ink) 3%, transparent);
+}
+
+.logbook-activity > div {
+  background: var(--logbook-material);
+}
+
+.logbook-records {
+  border-radius: 21px;
+}
+
+.logbook-records-head {
+  border-bottom-color: var(--logbook-hairline);
+  background: color-mix(in srgb, var(--logbook-material-soft) 72%, transparent);
+}
+
+.logbook-filters :is(input, select),
+.logbook-form-grid :is(input, select),
+.logbook-time-grid input,
+.logbook-remarks textarea,
+.logbook-void-control input {
+  min-height: 44px;
+  border-color: var(--logbook-hairline-strong);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--app-field) 92%, var(--app-card-solid));
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--app-ink) 4%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--app-card-solid) 84%, transparent) inset;
+}
+
+.logbook-table-head {
+  border-bottom-color: var(--logbook-hairline);
+  background: color-mix(in srgb, var(--app-canvas) 66%, var(--logbook-material));
+}
+
+.logbook-entry-row {
+  border-bottom-color: var(--logbook-hairline);
+  background: var(--logbook-material);
+}
+
+.logbook-row-action {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-color: var(--logbook-hairline);
+  background: var(--app-card-solid);
+  color: var(--app-blue);
+  transition: background-color .16s ease, transform .16s ease;
+}
+
+.logbook-form-section > header > span {
+  background: var(--app-blue);
+  color: var(--app-active-ink);
+}
+
+.logbook-linked-flight,
+.logbook-derived-times > div {
+  border-color: color-mix(in srgb, var(--app-blue) 18%, var(--logbook-hairline));
+  background: color-mix(in srgb, var(--efb-blue-soft) 62%, var(--logbook-material));
+}
+
+.shell-dialog.logbook-entry-dialog {
+  border-color: var(--logbook-hairline-strong, var(--app-line-strong));
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--app-card-solid) 94%, transparent);
+  box-shadow: 0 28px 80px color-mix(in srgb, #000 24%, transparent);
+  backdrop-filter: blur(32px) saturate(1.14);
+  -webkit-backdrop-filter: blur(32px) saturate(1.14);
+}
+
+.shell-dialog.logbook-entry-dialog::backdrop {
+  background: color-mix(in srgb, #0b1115 34%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.logbook-dialog-head,
+.logbook-dialog-actions {
+  border-color: var(--logbook-hairline, var(--app-line));
+  background: color-mix(in srgb, var(--app-card-solid) 88%, transparent);
+  backdrop-filter: blur(26px) saturate(1.12);
+  -webkit-backdrop-filter: blur(26px) saturate(1.12);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .logbook-entry-row:hover {
+    background: color-mix(in srgb, var(--efb-blue-soft) 56%, var(--logbook-material));
+  }
+
+  .logbook-row-action:hover,
+  .logbook-hero-actions .efb-action:not(.primary):hover,
+  .logbook-dialog-actions .efb-action:not(.primary):hover {
+    background: color-mix(in srgb, var(--efb-blue-soft) 44%, var(--app-card-solid));
+  }
+}
+
+/* A 1024-point iPad gets a full-width hero and one stable action row. */
+@media (min-width: 821px) and (max-width: 1080px) {
+  .logbook-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .logbook-hero-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1081px) and (max-width: 1320px) {
+  .logbook-hero-actions {
+    grid-template-columns: repeat(3, minmax(126px, 1fr));
+    min-width: min(44vw, 470px);
+  }
+}
+
+@media (max-width: 640px) {
+  .logbook-hero,
+  .logbook-records {
+    border-radius: 20px;
+  }
+
+  .logbook-entry-row {
+    min-width: 0;
+  }
+
+  .shell-dialog.logbook-entry-dialog {
+    border-radius: 0;
+    box-shadow: none;
   }
 }

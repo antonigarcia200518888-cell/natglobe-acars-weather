@@ -3569,3 +3569,372 @@ html.embedded .ofp-task-rail { top: 0; }
   .topbar { padding-top: max(10px, env(safe-area-inset-top)); }
   .frame { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
 }
+
+/* Native control finish -------------------------------------------------
+   Shared interaction details only. Workspace layout and operational state
+   colours stay with their owning components above. */
+
+:root {
+  --efb-control-radius: 14px;
+  --efb-control-shadow: 0 1px 2px rgba(28, 45, 57, .06), 0 5px 15px rgba(28, 45, 57, .055), inset 0 1px 0 rgba(255, 255, 255, .72);
+  --efb-control-shadow-hover: 0 2px 4px rgba(28, 45, 57, .07), 0 9px 22px rgba(28, 45, 57, .09), inset 0 1px 0 rgba(255, 255, 255, .82);
+  --efb-focus-ring: color-mix(in srgb, var(--efb-blue) 76%, transparent);
+  --efb-scroll-thumb: rgba(73, 94, 107, .3);
+  --efb-scroll-thumb-hover: rgba(58, 81, 95, .46);
+  --efb-motion-fast: 130ms;
+  --efb-motion-control: 190ms;
+  --efb-motion-sheet: 260ms;
+  --efb-ease-out: cubic-bezier(.16, 1, .3, 1);
+  --efb-ease-press: cubic-bezier(.2, .8, .2, 1);
+  --efb-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10' viewBox='0 0 16 10'%3E%3Cpath d='m2 2 6 6 6-6' fill='none' stroke='%23536571' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+[data-efb-theme="night"] {
+  --efb-control-shadow: 0 1px 2px rgba(0, 0, 0, .22), 0 6px 17px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .055);
+  --efb-control-shadow-hover: 0 2px 5px rgba(0, 0, 0, .25), 0 10px 24px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .075);
+  --efb-scroll-thumb: rgba(161, 188, 204, .28);
+  --efb-scroll-thumb-hover: rgba(178, 207, 224, .44);
+  --efb-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10' viewBox='0 0 16 10'%3E%3Cpath d='m2 2 6 6 6-6' fill='none' stroke='%23A8BBC7' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-kerning: normal;
+  font-synthesis: none;
+}
+
+button,
+[role="button"] {
+  min-block-size: 44px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button,
+[role="button"],
+[role="tab"],
+summary {
+  transform-origin: center;
+  transition-timing-function: var(--efb-ease-out);
+}
+
+:where(button, [role="button"], [role="tab"], summary) {
+  transition-property: transform, opacity, filter;
+  transition-duration: var(--efb-motion-fast);
+}
+
+.btn,
+.efb-action,
+.shell-icon-button {
+  border-radius: var(--efb-control-radius);
+  box-shadow: var(--efb-control-shadow);
+  transition:
+    transform var(--efb-motion-control) var(--efb-ease-out),
+    box-shadow var(--efb-motion-control) var(--efb-ease-out),
+    border-color var(--efb-motion-fast) ease-out,
+    background-color var(--efb-motion-fast) ease-out,
+    color var(--efb-motion-fast) ease-out,
+    opacity var(--efb-motion-fast) ease-out;
+}
+
+a[href]:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="option"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[contenteditable="true"]:focus-visible {
+  outline: 3px solid var(--efb-focus-ring) !important;
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[contenteditable="true"]:focus-visible {
+  outline-offset: 1px;
+}
+
+a[href]:focus:not(:focus-visible),
+button:focus:not(:focus-visible),
+summary:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible),
+[role="tab"]:focus:not(:focus-visible) {
+  outline: none;
+}
+
+input,
+select,
+textarea {
+  background-clip: padding-box;
+  caret-color: var(--efb-blue);
+  transition:
+    border-color var(--efb-motion-fast) ease-out,
+    background-color var(--efb-motion-fast) ease-out,
+    box-shadow var(--efb-motion-fast) ease-out;
+}
+
+input:not([type]),
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+input[type="tel"],
+select,
+textarea {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select:not([multiple]) {
+  padding-inline-end: 40px !important;
+  background-image: var(--efb-select-chevron) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 13px auto !important;
+}
+
+select option {
+  background: var(--efb-surface-strong);
+  color: var(--efb-text);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 21px;
+  min-width: 21px;
+  height: 21px;
+  min-height: 21px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+  accent-color: var(--efb-blue);
+  flex: 0 0 auto;
+}
+
+input[type="radio"] { border-radius: 50%; }
+
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]) { cursor: pointer; }
+
+label:has(input[type="checkbox"]:disabled),
+label:has(input[type="radio"]:disabled) { cursor: not-allowed; }
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--efb-danger) !important;
+  box-shadow: 0 0 0 3px var(--efb-danger-soft);
+}
+
+@supports selector(input:user-invalid) {
+  input:user-invalid,
+  select:user-invalid,
+  textarea:user-invalid {
+    border-color: var(--efb-danger) !important;
+    box-shadow: 0 0 0 3px var(--efb-danger-soft);
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--efb-text);
+  caret-color: var(--efb-blue);
+  box-shadow: 0 0 0 1000px var(--efb-field) inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
+[data-efb-theme="night"] input::-webkit-calendar-picker-indicator,
+[data-efb-theme="night"] input::-webkit-time-picker-indicator {
+  filter: invert(1);
+  opacity: .76;
+}
+
+:where(button, [role="button"]):disabled,
+:where(button, [role="button"])[aria-disabled="true"],
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+:where(
+  button[aria-pressed="true"],
+  [role="button"][aria-pressed="true"],
+  [role="tab"][aria-selected="true"],
+  [role="option"][aria-selected="true"],
+  [aria-current="page"]
+) {
+  border-color: color-mix(in srgb, var(--efb-blue) 42%, var(--efb-border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--efb-blue) 14%, transparent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--efb-scroll-thumb) transparent;
+}
+
+*::-webkit-scrollbar { width: 11px; height: 11px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  min-height: 38px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--efb-scroll-thumb);
+  background-clip: padding-box;
+}
+
+.shell-dialog-body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shell-dialog-head > button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+dialog {
+  transform-origin: 50% 42%;
+}
+
+dialog[open] {
+  animation: efb-dialog-enter var(--efb-motion-sheet) var(--efb-ease-out) both;
+}
+
+dialog[open]::backdrop {
+  animation: efb-backdrop-enter var(--efb-motion-sheet) ease-out both;
+}
+
+@keyframes efb-dialog-enter {
+  from { opacity: 0; transform: translateY(12px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes efb-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover,
+  .efb-action:hover,
+  .shell-icon-button:hover {
+    transform: translateY(-1px) scale(1.005);
+    box-shadow: var(--efb-control-shadow-hover);
+  }
+
+  input:not(:disabled):not([readonly]):hover,
+  select:not(:disabled):hover,
+  textarea:not(:disabled):not([readonly]):hover {
+    border-color: color-mix(in srgb, var(--efb-blue) 28%, var(--efb-border-strong));
+  }
+
+  *::-webkit-scrollbar-thumb:hover { background-color: var(--efb-scroll-thumb-hover); }
+}
+
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(.985);
+  transition-duration: 70ms;
+  transition-timing-function: var(--efb-ease-press);
+}
+
+.btn:not(:disabled):active,
+.efb-action:not(:disabled):active,
+.shell-icon-button:not(:disabled):active {
+  transform: translateY(0) scale(.972);
+  box-shadow: 0 1px 3px rgba(28, 45, 57, .09), inset 0 1px 1px rgba(0, 0, 0, .045);
+}
+
+@media (hover: none) {
+  .btn:hover,
+  .efb-action:hover,
+  .shell-icon-button:hover { transform: none; }
+}
+
+@media (max-width: 680px) {
+  .shell-dialog {
+    position: fixed;
+    inset: auto 0 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: min(88dvh, 760px);
+    margin: 0;
+    border-width: 1px 0 0;
+    border-radius: 25px 25px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    transform-origin: 50% 100%;
+  }
+
+  .shell-dialog::before {
+    position: absolute;
+    z-index: 2;
+    top: 7px;
+    left: 50%;
+    width: 38px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--efb-border-strong);
+    content: "";
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+}
+
+@media (forced-colors: active) {
+  select:not([multiple]) {
+    -webkit-appearance: auto;
+    appearance: auto;
+    background-image: none;
+  }
+
+  a[href]:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  [role="button"]:focus-visible,
+  [role="tab"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid Highlight !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-delay: 0s !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  dialog[open],
+  dialog[open]::backdrop { animation: none !important; }
+
+  button:active,
+  [role="button"]:active { transform: none !important; }
+}

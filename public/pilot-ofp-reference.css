@@ -1368,3 +1368,303 @@ html.embedded .ofp-command-bar {
 @media (prefers-reduced-motion: reduce) {
   .ofp-inspector-toggle i { transition: none; }
 }
+
+/* -------------------------------------------------------------------------
+   Apple-platform refinement
+
+   The OFP remains a serious operational workspace, but its visual hierarchy
+   now follows a native app pattern: one calm canvas, elevated sheets, a clear
+   blue selection/action language and 44-point minimum touch targets. Green is
+   reserved for serviceable and completed states.
+   ------------------------------------------------------------------------- */
+
+html {
+  --ofp-material: color-mix(in srgb, var(--efb-glass-solid) 91%, transparent);
+  --ofp-material-soft: color-mix(in srgb, var(--efb-glass-solid) 76%, transparent);
+  --ofp-hairline: color-mix(in srgb, var(--efb-text) 6%, transparent);
+  --ofp-hairline-strong: color-mix(in srgb, var(--efb-text) 11%, transparent);
+  --ofp-sheet-shadow: 0 20px 54px color-mix(in srgb, var(--efb-text) 8%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--efb-glass-solid) 84%, transparent) inset;
+  overflow-x: clip;
+}
+
+body {
+  max-width: 100%;
+  overflow-x: clip;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.ofp-app-shell,
+html.embedded .ofp-app-shell {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.ofp-app-shell :is(button, summary),
+.ofp-command-bar .btn {
+  min-height: 44px !important;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ofp-app-shell :is(input:not([type="checkbox"]):not([type="radio"]), select),
+.ofp-app-shell textarea {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+}
+
+.ofp-app-shell :is(button, summary, input, select, textarea):focus-visible,
+.ofp-command-bar .btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--efb-blue) 28%, transparent) !important;
+  outline-offset: 2px;
+  border-color: color-mix(in srgb, var(--efb-blue) 66%, var(--ofp-hairline)) !important;
+}
+
+.ofp-app-header,
+html.embedded .ofp-app-header,
+.ofp-task-rail,
+.ofp-workspaces.ofp-task-rail,
+html.embedded .ofp-task-rail,
+.ofp-task-content,
+.editor.ofp-task-content,
+.ofp-inspector,
+.console.ofp-inspector,
+.ofp-command-bar,
+.ofp-action-dock.ofp-command-bar,
+html.embedded .ofp-command-bar {
+  border-color: var(--ofp-hairline);
+  background-color: var(--ofp-material);
+  box-shadow: var(--ofp-sheet-shadow);
+  backdrop-filter: blur(30px) saturate(1.14);
+  -webkit-backdrop-filter: blur(30px) saturate(1.14);
+}
+
+.ofp-app-header,
+html.embedded .ofp-app-header {
+  border-radius: 22px;
+}
+
+.ofp-flight-hero,
+html.embedded .ofp-flight-hero {
+  border-color: var(--ofp-hairline);
+  border-radius: 27px;
+  background:
+    radial-gradient(circle at 54% 22%, color-mix(in srgb, var(--efb-glass-solid) 88%, transparent), transparent 20rem),
+    radial-gradient(circle at 82% 6%, color-mix(in srgb, var(--efb-blue-soft) 72%, transparent), transparent 19rem),
+    linear-gradient(132deg,
+      color-mix(in srgb, var(--efb-glass-solid) 96%, var(--efb-canvas)),
+      color-mix(in srgb, var(--efb-canvas) 86%, var(--efb-glass-solid)));
+  box-shadow: var(--ofp-sheet-shadow);
+}
+
+.ofp-flight-hero-main,
+.dispatch-identity.ofp-flight-hero-main,
+.ofp-flight-facts .statusbox,
+.dispatch-overview .ofp-flight-facts .statusbox,
+.ofp-flight-hero-readiness,
+.overview-readiness.ofp-flight-hero-readiness {
+  border-color: var(--ofp-hairline);
+  background: var(--ofp-material-soft);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--efb-text) 3%, transparent);
+}
+
+.ofp-flight-hero-label,
+.ofp-card-head span,
+.ofp-release-card-head span,
+.ofp-release-card-head em,
+.ofp-inspector-toggle small,
+.ofp-flight-endpoint span {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ofp-task-rail,
+.ofp-workspaces.ofp-task-rail,
+html.embedded .ofp-task-rail {
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--efb-canvas) 58%, var(--ofp-material));
+}
+
+.ofp-task-tab,
+.ofp-workspace-button.ofp-task-tab {
+  border-radius: 15px;
+  transition: color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.ofp-task-tab::before,
+.ofp-workspace-button.ofp-task-tab::before {
+  border-color: var(--ofp-hairline);
+  background: var(--efb-glass-solid);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--efb-text) 6%, transparent);
+}
+
+.ofp-task-tab[aria-selected="true"],
+.ofp-workspace-button.ofp-task-tab[aria-selected="true"] {
+  border-color: color-mix(in srgb, var(--efb-blue) 24%, var(--ofp-hairline));
+  background: color-mix(in srgb, var(--efb-blue-soft) 68%, var(--efb-glass-solid));
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--efb-blue) 10%, transparent);
+}
+
+.ofp-task-tab[aria-selected="true"]::before,
+.ofp-workspace-button.ofp-task-tab[aria-selected="true"]::before {
+  border-color: var(--efb-blue);
+  background: var(--efb-blue);
+  color: var(--efb-active-text);
+  box-shadow: 0 5px 13px color-mix(in srgb, var(--efb-blue) 24%, transparent);
+}
+
+.ofp-task-tab[aria-selected="true"] .task-title {
+  color: var(--efb-blue-strong);
+}
+
+.ofp-task-content,
+.editor.ofp-task-content {
+  border-radius: 26px;
+}
+
+.ofp-card-head,
+.section-heading.ofp-card-head {
+  border-bottom-color: var(--ofp-hairline);
+  background:
+    radial-gradient(circle at 92% 10%, color-mix(in srgb, var(--efb-blue-soft) 72%, transparent), transparent 14rem),
+    color-mix(in srgb, var(--ofp-material-soft) 88%, transparent);
+}
+
+.ofp-smart-card,
+.flight-info-composer,
+.schedule-workbench,
+.route-workbench,
+.ofp-release-card,
+.ofp-readiness-card,
+.ofp-flight-totals-card,
+.ofp-release-checks-card,
+.ofp-inspector .utility-card {
+  border-color: var(--ofp-hairline);
+  border-radius: 19px;
+  background: var(--ofp-material-soft);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--efb-text) 3%, transparent);
+}
+
+.flight-info-head {
+  border-color: var(--ofp-hairline);
+  border-radius: 19px 19px 0 0;
+  background: linear-gradient(124deg,
+    var(--efb-glass-solid),
+    color-mix(in srgb, var(--efb-blue-soft) 66%, var(--efb-glass-solid)));
+}
+
+.flight-identity-grid,
+.flight-route-strip,
+.flight-route-point,
+.ofp-release-card-head,
+.ofp-release-card .checkline {
+  border-color: var(--ofp-hairline);
+}
+
+.ofp-app-shell :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-color: var(--ofp-hairline-strong);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--efb-field) 90%, var(--efb-glass-solid));
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--efb-text) 4%, transparent),
+    0 .5px 0 color-mix(in srgb, var(--efb-glass-solid) 84%, transparent) inset;
+}
+
+.ofp-inspector-tabs,
+.console-mode-switch.ofp-inspector-tabs {
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid var(--ofp-hairline);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--efb-canvas) 66%, var(--ofp-material-soft));
+}
+
+.ofp-inspector-tabs button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.ofp-inspector-tabs button[aria-selected="true"] {
+  border: 0;
+  background: var(--efb-glass-solid);
+  color: var(--efb-blue-strong);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--efb-text) 10%, transparent),
+    0 0 0 .5px var(--ofp-hairline-strong);
+}
+
+.ofp-command-bar,
+.ofp-action-dock.ofp-command-bar,
+html.embedded .ofp-command-bar {
+  border-radius: 24px;
+}
+
+.ofp-command-bar .btn {
+  border-color: var(--ofp-hairline);
+  border-radius: 14px;
+  background: var(--ofp-material);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--efb-text) 4%, transparent);
+}
+
+.ofp-command-bar .btn.primary {
+  border-color: var(--efb-blue);
+  background: var(--efb-blue);
+  color: var(--efb-active-text);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--efb-blue) 22%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ofp-task-tab:not([aria-selected="true"]):hover,
+  .ofp-workspace-button.ofp-task-tab:not([aria-selected="true"]):hover {
+    background: color-mix(in srgb, var(--efb-glass-solid) 48%, transparent);
+  }
+
+  .ofp-command-bar .btn:not(.primary):hover,
+  .ofp-inspector-tabs button:not([aria-selected="true"]):hover {
+    border-color: color-mix(in srgb, var(--efb-blue) 22%, var(--ofp-hairline));
+    background: color-mix(in srgb, var(--efb-blue-soft) 36%, var(--ofp-material));
+  }
+}
+
+@media (max-width: 899px) {
+  .ofp-task-rail,
+  .ofp-workspaces.ofp-task-rail,
+  html.embedded .ofp-task-rail {
+    border-radius: 20px;
+  }
+
+  .ofp-task-content,
+  .editor.ofp-task-content {
+    border-radius: 23px;
+  }
+
+  .ofp-inspector,
+  .console.ofp-inspector {
+    border-radius: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ofp-app-header,
+  html.embedded .ofp-app-header,
+  .ofp-flight-hero,
+  html.embedded .ofp-flight-hero,
+  .ofp-task-content,
+  .editor.ofp-task-content {
+    border-radius: 20px;
+  }
+
+  .ofp-task-rail,
+  .ofp-workspaces.ofp-task-rail,
+  html.embedded .ofp-task-rail {
+    overscroll-behavior-inline: contain;
+  }
+
+  .ofp-command-bar,
+  .ofp-action-dock.ofp-command-bar,
+  html.embedded .ofp-command-bar {
+    border-radius: 20px;
+  }
+}

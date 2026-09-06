@@ -2939,11 +2939,11 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-09-03-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-09-03-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-09-03-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-09-03-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-09-03-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-09-06-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -2973,16 +2973,16 @@
     </section>
     <div class="efb-layout">
     <nav class="ops-suite-nav" aria-label="Pilot operations workspaces">
-      <div class="suite-nav-tools"><span class="suite-nav-label">Workspaces</span><button id="sidebarRailToggle" class="shell-icon-button" type="button" aria-label="Collapse navigation rail" title="Collapse navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></span></button></div>
-      <button class="suite-tab active" type="button" data-suite-view="dashboard" aria-label="Home" title="Home"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg></span><strong>Home</strong></button>
-      <button class="suite-tab" type="button" data-suite-view="flights" aria-label="Flights" title="Flights"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 16h18"></path><path d="m6 16 3-5h7l2 5"></path><path d="M8 19h.01M17 19h.01"></path><path d="M12 11V5"></path></svg></span><strong>Flights</strong></button>
-      <button class="suite-tab" type="button" data-suite-view="flight-plan" aria-label="Operational flight plan" title="OFP"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6M8 13h8M8 17h6"></path></svg></span><strong>OFP</strong></button>
-      <button class="suite-tab" type="button" data-suite-view="weather" aria-label="Weather" title="Weather"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17.5 19H7a5 5 0 1 1 1.6-9.74A6 6 0 0 1 20 12a3.5 3.5 0 0 1-2.5 7Z"></path><path d="M12 3v2M4.93 4.93l1.42 1.42M2 12h2"></path></svg></span><strong>Weather</strong></button>
-      <button class="suite-tab" type="button" data-suite-view="performance" aria-label="Aircraft performance" title="Performance"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18h16"></path><path d="M6 14h12"></path><path d="m9 10 3-6 3 6"></path><path d="M12 4v14"></path></svg></span><strong>Perf</strong></button>
-      <button class="suite-tab" type="button" data-suite-view="aircraft" aria-label="Aircraft" title="Aircraft"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 16h20"></path><path d="m6 16 4-5h7l3 5"></path><path d="M12 11 9 4h3l4 7"></path></svg></span><strong>Aircraft</strong></button>
-      <button id="logbookNavBtn" class="suite-tab" type="button" data-suite-view="logbook" aria-label="Crew logbook" title="Logbook"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 21.5Z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H15a2 2 0 0 0-2 2v16a2 2 0 0 1 2-2h2.5a2.5 2.5 0 0 1 2.5 2.5Z"></path></svg></span><strong>Logbook</strong></button>
-      <button class="suite-tab" type="button" data-suite-view="documents" aria-label="Flight files" title="Files"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6M8 12h8M8 16h8"></path></svg></span><strong>Files</strong></button>
-      <button id="mobileMoreBtn" class="suite-tab mobile-more-tab" type="button" aria-label="More tools" title="More"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></span><strong>More</strong></button>
+      <div class="suite-nav-tools" hidden aria-hidden="true"><span class="suite-nav-label">Workspaces</span><button id="sidebarRailToggle" class="shell-icon-button" type="button" tabindex="-1" aria-label="Navigation rail is compact" title="Compact navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></span></button></div>
+      <button class="suite-tab active" type="button" data-suite-view="dashboard" aria-label="Open operations dashboard" title="Operations dashboard"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg></span><strong>Home</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="flights" aria-label="Open flight control" title="Flight control"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="3"></rect><path d="M7 2.5V6M17 2.5V6M2.5 8.5h19"></path><path d="m7 15 10-3-3.25 3L17 18l-10-3Z"></path></svg></span><strong>Flights</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="flight-plan" aria-label="Open operational flight plan" title="Operational flight plan"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6"></path><circle cx="8" cy="16" r="1.25"></circle><circle cx="16" cy="12" r="1.25"></circle><path d="M9.25 15.45 14.75 12.6"></path></svg></span><strong>OFP</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="weather" aria-label="Open weather dispatch" title="Weather dispatch"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M8 2.5v1M3.5 3.5l.8.8M2.5 8h1"></path><path d="M17.5 20H7a4.5 4.5 0 1 1 1.4-8.78A5.5 5.5 0 0 1 19 13a3.5 3.5 0 0 1-1.5 7Z"></path></svg></span><strong>Weather</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="performance" aria-label="Open aircraft performance" title="Aircraft performance"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"></path><path d="M6.5 18h11M12 8v2M6.35 12.3l1.4.8M17.65 12.3l-1.4.8M12 18l4-5"></path><circle cx="12" cy="18" r="1"></circle></svg></span><strong>Perf</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="aircraft" aria-label="Open aircraft status" title="Aircraft status"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10.75 2.5c-.8 0-1.3.7-1.3 1.5v5.1L3 12.5v2l6.45-1.7v4.35L7 19v1l3.75-.9"></path><path d="M13.5 10.3V4c0-.8-.5-1.5-1.3-1.5"></path><circle cx="17" cy="17" r="4"></circle><path d="m15.2 17 1.2 1.2 2.5-2.7"></path></svg></span><strong>Aircraft</strong></button>
+      <button id="logbookNavBtn" class="suite-tab" type="button" data-suite-view="logbook" aria-label="Open crew logbook" title="Crew logbook"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 21.5Z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H15a2 2 0 0 0-2 2v16a2 2 0 0 1 2-2h2.5a2.5 2.5 0 0 1 2.5 2.5Z"></path><path d="M7 8h3M7 12h3M16 8h1.5M16 12h1.5"></path></svg></span><strong>Logbook</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="documents" aria-label="Open flight files" title="Flight files"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5Z"></path><path d="M7.5 11h9M7.5 14.5h7"></path></svg></span><strong>Files</strong></button>
+      <button id="mobileMoreBtn" class="suite-tab mobile-more-tab" type="button" aria-label="Open more EFB tools" title="More EFB tools"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.5"></rect><rect x="14" y="3.5" width="6.5" height="6.5" rx="1.5"></rect><rect x="3.5" y="14" width="6.5" height="6.5" rx="1.5"></rect><path d="M17.25 14v6.5M14 17.25h6.5"></path></svg></span><strong>More</strong></button>
     </nav>
     <div class="efb-content">
     <section id="dashboardWorkspace" class="ops-dashboard">
@@ -2996,8 +2996,8 @@
           <strong id="efbHeroRoute">Select a flight to begin</strong>
           <small id="efbHeroReference">The aircraft, schedule, weather, load, and release state will stay visible across the EFB.</small>
           <div class="efb-hero-actions">
-            <button class="efb-action primary" type="button" data-dashboard-view="flight-plan">Open flight plan</button>
-            <button class="efb-action" type="button" data-dashboard-view="weather">Weather briefing</button>
+            <button id="efbHeroPrimaryAction" class="efb-action primary" type="button" data-dashboard-view="flights">Choose a flight</button>
+            <button id="efbHeroSecondaryAction" class="efb-action" type="button" data-dashboard-view="weather">Check weather</button>
           </div>
         </div>
         <div id="efbHeroPhase" class="efb-flight-phase" aria-label="Flight phase progress" style="--phase-progress:0%">
@@ -3019,16 +3019,17 @@
         </div>
       </section>
       <aside class="dashboard-deck" aria-label="Pilot quick deck">
-      <header class="dashboard-deck-head"><div><span>Pilot quick deck</span><strong>Workspaces</strong></div><small>Open a task without losing the active flight.</small></header>
-      <div class="dashboard-actions" aria-label="Operations tools">
-        <button class="dashboard-action" type="button" data-dashboard-view="flights"><span>Flight control</span><strong>Open flights</strong><small>Review the queue, assign crew, update decisions, and manage passenger files.</small></button>
-        <button class="dashboard-action" type="button" data-dashboard-view="weather"><span>Preflight dispatch</span><strong>Weather</strong><small>Enter any ICAO route or load the selected flight for raw METAR, TAF, category, and PDF.</small></button>
-        <button class="dashboard-action" type="button" data-dashboard-view="flight-plan"><span>Controlled document</span><strong>Flight plan</strong><small>Build the OFP, record movement times, fuel, load, release, and PDF.</small></button>
-        <button class="dashboard-action" type="button" data-dashboard-view="aircraft"><span>Aircraft control</span><strong>Aircraft status</strong><small>Record fuel and oil, serviceability, hours, and scheduled maintenance.</small></button>
-        <button class="dashboard-action" type="button" data-dashboard-view="logbook"><span>Crew records</span><strong>Crew logbook</strong><small>Import completed flights, review duty time, and confirm pilot logbook entries.</small></button>
-        <button class="dashboard-action" type="button" data-dashboard-view="documents"><span>Flight file</span><strong>Documents</strong><small>Open the OFP, reimbursement statement, agreements, and operations PDF.</small></button>
-        <button id="createManualOfpBtn" class="dashboard-action manual-flight" type="button"><span>Pilot-only file</span><strong>New manual OFP</strong><small>Start an empty operational flight plan with editable route, fuel, load, runway, and timings.</small></button>
-      </div>
+      <header class="dashboard-deck-head"><div><span>Pilot quick deck</span><strong id="quickDeckTitle">Workspaces</strong></div><small>Open a task without losing the active flight.</small></header>
+      <nav class="dashboard-actions" aria-labelledby="quickDeckTitle">
+        <button class="dashboard-action" type="button" data-dashboard-view="flights" aria-label="Open flight control workspace"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="3"></rect><path d="M7 2.5V6M17 2.5V6M2.5 8.5h19"></path><path d="m7 15 10-3-3.25 3L17 18l-10-3Z"></path></svg></span><span>Flight control</span><strong>Open flights</strong><small>Review the queue, assign crew, update decisions, and manage passenger files.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="flight-plan" aria-label="Open operational flight plan builder"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6"></path><circle cx="8" cy="16" r="1.25"></circle><circle cx="16" cy="12" r="1.25"></circle><path d="M9.25 15.45 14.75 12.6"></path></svg></span><span>Controlled document</span><strong>OFP Builder</strong><small>Build the OFP, record movement times, fuel, load, release, and PDF.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="weather" aria-label="Open weather dispatch workspace"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M8 2.5v1M3.5 3.5l.8.8M2.5 8h1"></path><path d="M17.5 20H7a4.5 4.5 0 1 1 1.4-8.78A5.5 5.5 0 0 1 19 13a3.5 3.5 0 0 1-1.5 7Z"></path></svg></span><span>Preflight dispatch</span><strong>Weather</strong><small>Review departure, destination, and alternate METAR/TAF, flight category, and briefing PDF.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="performance" aria-label="Open aircraft performance workspace"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"></path><path d="M6.5 18h11M12 8v2M6.35 12.3l1.4.8M17.65 12.3l-1.4.8M12 18l4-5"></path><circle cx="12" cy="18" r="1"></circle></svg></span><span>Runway calculation</span><strong>Performance</strong><small>Calculate takeoff and landing distance, runway margin, wind, and density altitude.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="aircraft" aria-label="Open aircraft status workspace"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10.75 2.5c-.8 0-1.3.7-1.3 1.5v5.1L3 12.5v2l6.45-1.7v4.35L7 19v1l3.75-.9"></path><path d="M13.5 10.3V4c0-.8-.5-1.5-1.3-1.5"></path><circle cx="17" cy="17" r="4"></circle><path d="m15.2 17 1.2 1.2 2.5-2.7"></path></svg></span><span>Aircraft control</span><strong>Aircraft status</strong><small>Record fuel and oil, serviceability, hours, and scheduled maintenance.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="logbook" aria-label="Open crew logbook workspace"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 21.5Z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H15a2 2 0 0 0-2 2v16a2 2 0 0 1 2-2h2.5a2.5 2.5 0 0 1 2.5 2.5Z"></path><path d="M7 8h3M7 12h3M16 8h1.5M16 12h1.5"></path></svg></span><span>Crew records</span><strong>Crew logbook</strong><small>Review credited time, landings, recent activity, and confirm imported or manual entries.</small></button>
+        <button class="dashboard-action" type="button" data-dashboard-view="documents" aria-label="Open flight files workspace"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5Z"></path><path d="M7.5 11h9M7.5 14.5h7"></path></svg></span><span>Flight file</span><strong>Flight files</strong><small>Open the OFP, reimbursement statement, agreements, and operations PDF.</small></button>
+        <button id="createManualOfpBtn" class="dashboard-action manual-flight" type="button" aria-label="Create a new manual operational flight plan"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6M12 12v6M9 15h6"></path></svg></span><span>Pilot-only file</span><strong>New manual OFP</strong><small>Start an empty operational flight plan with editable route, fuel, load, runway, and timings.</small></button>
+      </nav>
       <details class="dashboard-pulse" open>
         <summary><span>Operations pulse</span><strong>Live queue and movement watch</strong></summary>
       <section class="ops-command-strip" aria-label="Operations queue totals">
@@ -3731,8 +3732,8 @@ END OF MESSAGE</pre>
   <dialog id="commandDialog" class="shell-dialog" aria-labelledby="commandDialogTitle">
     <div class="shell-dialog-head"><strong id="commandDialogTitle">Pilot EFB assistant</strong><button class="shell-icon-button" type="button" data-close-dialog="commandDialog">Close</button></div>
     <div class="shell-dialog-body">
-      <input id="commandInput" class="command-input" type="search" autocomplete="off" placeholder="Try ‘takeoff performance’, ‘METAR’, or a flight reference" />
-      <div id="commandResults" class="command-results" role="listbox" aria-label="Search results"></div>
+      <input id="commandInput" class="command-input" type="search" autocomplete="off" aria-label="Search Pilot EFB tools and flights" aria-controls="commandResults" placeholder="Try ‘takeoff performance’, ‘METAR’, or a flight reference" />
+      <div id="commandResults" class="command-results" aria-label="Search results" aria-live="polite"></div>
     </div>
   </dialog>
 
@@ -4105,6 +4106,21 @@ END OF MESSAGE</pre>
       { view:'documents', label:'Flight files', detail:'OFP, agreements, statement, and operations documents', keywords:'pdf file signature signed contract boarding pass download' }
     ];
 
+    const workspaceIconSvgs = Object.freeze({
+      dashboard:'<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg>',
+      flights:'<svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="3"></rect><path d="M7 2.5V6M17 2.5V6M2.5 8.5h19"></path><path d="m7 15 10-3-3.25 3L17 18l-10-3Z"></path></svg>',
+      'flight-plan':'<svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6"></path><circle cx="8" cy="16" r="1.25"></circle><circle cx="16" cy="12" r="1.25"></circle><path d="M9.25 15.45 14.75 12.6"></path></svg>',
+      weather:'<svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M8 2.5v1M3.5 3.5l.8.8M2.5 8h1"></path><path d="M17.5 20H7a4.5 4.5 0 1 1 1.4-8.78A5.5 5.5 0 0 1 19 13a3.5 3.5 0 0 1-1.5 7Z"></path></svg>',
+      performance:'<svg viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"></path><path d="M6.5 18h11M12 8v2M6.35 12.3l1.4.8M17.65 12.3l-1.4.8M12 18l4-5"></path><circle cx="12" cy="18" r="1"></circle></svg>',
+      aircraft:'<svg viewBox="0 0 24 24"><path d="M10.75 2.5c-.8 0-1.3.7-1.3 1.5v5.1L3 12.5v2l6.45-1.7v4.35L7 19v1l3.75-.9"></path><path d="M13.5 10.3V4c0-.8-.5-1.5-1.3-1.5"></path><circle cx="17" cy="17" r="4"></circle><path d="m15.2 17 1.2 1.2 2.5-2.7"></path></svg>',
+      logbook:'<svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 21.5Z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H15a2 2 0 0 0-2 2v16a2 2 0 0 1 2-2h2.5a2.5 2.5 0 0 1 2.5 2.5Z"></path><path d="M7 8h3M7 12h3M16 8h1.5M16 12h1.5"></path></svg>',
+      documents:'<svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5Z"></path><path d="M7.5 11h9M7.5 14.5h7"></path></svg>'
+    });
+
+    function commandResultIcon(view) {
+      return `<span class="command-result-icon" aria-hidden="true">${workspaceIconSvgs[view] || workspaceIconSvgs.dashboard}</span>`;
+    }
+
     const pilotAssistantStopWords = new Set(['A', 'AN', 'AND', 'CAN', 'CHECK', 'DO', 'FOR', 'GO', 'HOW', 'I', 'IN', 'IS', 'ME', 'MY', 'OF', 'OPEN', 'PLEASE', 'SHOW', 'THE', 'TO', 'WANT', 'WHAT', 'WITH']);
 
     function pilotAssistantTokens(value) {
@@ -4141,16 +4157,18 @@ END OF MESSAGE</pre>
     function renderCommandResults(query = '') {
       const normalized = String(query || '').trim().toUpperCase();
       const tokens = pilotAssistantTokens(normalized);
-      const modules = workspaceCommands.filter(command => pilotAssistantMatches(`${command.label} ${command.detail} ${command.keywords || ''}`, tokens));
-      const flights = sortQueue(requests.filter(req => !tokens.length || pilotAssistantMatches(requestSearchText(req), tokens))).slice(0, 8);
+      const toolsOnly = commandDialog.dataset.mode === 'tools';
+      const hiddenMobileTools = new Set(['performance', 'aircraft', 'logbook', 'documents']);
+      const modules = workspaceCommands.filter(command => (!toolsOnly || hiddenMobileTools.has(command.view)) && pilotAssistantMatches(`${command.label} ${command.detail} ${command.keywords || ''}`, tokens));
+      const flights = toolsOnly ? [] : sortQueue(requests.filter(req => !tokens.length || pilotAssistantMatches(requestSearchText(req), tokens))).slice(0, 8);
       const moduleMarkup = modules.map(command => `
-        <button class="command-result" type="button" data-command-view="${escapeHtml(command.view)}">
-          <div><strong>${escapeHtml(command.label)}</strong><small>${escapeHtml(command.detail)}</small></div><span>OPEN TOOL</span>
+        <button class="command-result" type="button" data-command-view="${escapeHtml(command.view)}" aria-label="Open ${escapeHtml(command.label)}: ${escapeHtml(command.detail)}">
+          ${commandResultIcon(command.view)}<div><strong>${escapeHtml(command.label)}</strong><small>${escapeHtml(command.detail)}</small></div><span class="command-result-action">OPEN TOOL</span>
         </button>
       `).join('');
       const flightMarkup = flights.map(req => `
-        <button class="command-result" type="button" data-command-request="${escapeHtml(req.id)}">
-          <div><strong>${escapeHtml(req.id)} / ${escapeHtml(req.route || 'MANUAL OFP')}</strong><small>${escapeHtml([req.requestDate, req.requestTime, req.name || 'PILOT FILE', req.status].filter(Boolean).join(' / '))}</small></div><span>OPEN FLIGHT</span>
+        <button class="command-result" type="button" data-command-request="${escapeHtml(req.id)}" aria-label="Open flight ${escapeHtml(req.id)} ${escapeHtml(req.route || 'manual OFP')}">
+          ${commandResultIcon('flights')}<div><strong>${escapeHtml(req.id)} / ${escapeHtml(req.route || 'MANUAL OFP')}</strong><small>${escapeHtml([req.requestDate, req.requestTime, req.name || 'PILOT FILE', req.status].filter(Boolean).join(' / '))}</small></div><span class="command-result-action">OPEN FLIGHT</span>
         </button>
       `).join('');
       commandResults.innerHTML = moduleMarkup + flightMarkup || `<div class="notification-empty">No match for “${escapeHtml(query)}”. Try an airport, flight reference, METAR, OFP, takeoff, or maintenance.</div>`;
@@ -4694,6 +4712,36 @@ END OF MESSAGE</pre>
       el('efbHeroAircraftStatus').textContent = aircraftStatus?.serviceability
         ? `${aircraftStatus.serviceability}${aircraftStatus.fuelOnBoardGal === null || aircraftStatus.fuelOnBoardGal === undefined ? '' : ` / ${aircraftStatus.fuelOnBoardGal} USG`}`
         : 'Awaiting live status';
+      const heroActions = !req
+        ? [
+            { label:'Choose a flight', view:'flights' },
+            { label:'Check weather', view:'weather' }
+          ]
+        : ofp.actualIn
+          ? [
+              { label:'Complete logbook', view:'logbook' },
+              { label:'Open flight files', view:'documents' }
+            ]
+          : ofp.actualOut || ofp.actualOff || ofp.actualOn
+            ? [
+                { label:'Record movement', view:'flight-plan' },
+                { label:'Update weather', view:'weather' }
+              ]
+            : releaseClientState(req).released
+              ? [
+                  { label:'Open released OFP', view:'flight-plan' },
+                  { label:'Review performance', view:'performance' }
+                ]
+              : [
+                  { label:'Continue OFP', view:'flight-plan' },
+                  { label:'Brief weather', view:'weather' }
+                ];
+      [el('efbHeroPrimaryAction'), el('efbHeroSecondaryAction')].forEach((button, index) => {
+        const action = heroActions[index];
+        button.textContent = action.label;
+        button.dataset.dashboardView = action.view;
+        button.setAttribute('aria-label', `${action.label} workspace`);
+      });
       const heroPhaseIndex = !req ? -1
         : ofp.actualIn ? 3
           : ofp.actualOn ? 3
@@ -7773,9 +7821,24 @@ END OF MESSAGE</pre>
       logbookLinkedFlightId = '';
     });
 
+    function focusOpenedWorkspace(view) {
+      const target = view === 'flights'
+        ? bookingsWorkspace.querySelector('.queue-panel .panel-title')
+        : view === 'dashboard'
+          ? dashboardWorkspace.querySelector('.efb-flight-hero-title h2')
+          : toolWorkspaceTitle;
+      if (!target) return;
+      target.setAttribute('tabindex', '-1');
+      window.requestAnimationFrame(() => target.focus({ preventScroll:true }));
+    }
+
     openWeatherOpsBtn.addEventListener('click', () => switchOpsWorkspace('weather'));
     suiteTabs.forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.suiteView)));
-    document.querySelectorAll('[data-dashboard-view]').forEach(button => button.addEventListener('click', () => switchOpsWorkspace(button.dataset.dashboardView)));
+    document.querySelectorAll('[data-dashboard-view]').forEach(button => button.addEventListener('click', () => {
+      const view = button.dataset.dashboardView;
+      switchOpsWorkspace(view);
+      focusOpenedWorkspace(view);
+    }));
     flightContextBtn.addEventListener('click', () => {
       if (document.body.classList.contains('flight-context-open')) closeFlightContext();
       else openFlightContext();
@@ -7797,6 +7860,8 @@ END OF MESSAGE</pre>
     });
     mobileMoreBtn.addEventListener('click', () => {
       el('commandDialogTitle').textContent = 'EFB Tools';
+      commandDialog.dataset.mode = 'tools';
+      commandInput.placeholder = 'Search performance, aircraft, logbook, or flight files';
       commandInput.value = '';
       renderCommandResults('');
       openShellDialog(commandDialog, commandInput);
@@ -8189,6 +8254,8 @@ END OF MESSAGE</pre>
 
     globalSearchBtn.addEventListener('click', () => {
       el('commandDialogTitle').textContent = 'Pilot EFB assistant';
+      commandDialog.dataset.mode = 'assistant';
+      commandInput.placeholder = 'Try ‘takeoff performance’, ‘METAR’, or a flight reference';
       commandInput.value = '';
       renderCommandResults('');
       openShellDialog(commandDialog, commandInput);
@@ -8252,6 +8319,8 @@ END OF MESSAGE</pre>
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         el('commandDialogTitle').textContent = 'Pilot EFB assistant';
+        commandDialog.dataset.mode = 'assistant';
+        commandInput.placeholder = 'Try ‘takeoff performance’, ‘METAR’, or a flight reference';
         commandInput.value = '';
         renderCommandResults('');
         openShellDialog(commandDialog, commandInput);
