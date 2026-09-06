@@ -2939,11 +2939,11 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-09-05-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-09-05-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-09-05-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-09-05-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-09-05-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-09-06-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -2996,8 +2996,8 @@
           <strong id="efbHeroRoute">Select a flight to begin</strong>
           <small id="efbHeroReference">The aircraft, schedule, weather, load, and release state will stay visible across the EFB.</small>
           <div class="efb-hero-actions">
-            <button class="efb-action primary" type="button" data-dashboard-view="flight-plan">Open flight plan</button>
-            <button class="efb-action" type="button" data-dashboard-view="weather">Weather briefing</button>
+            <button id="efbHeroPrimaryAction" class="efb-action primary" type="button" data-dashboard-view="flights">Choose a flight</button>
+            <button id="efbHeroSecondaryAction" class="efb-action" type="button" data-dashboard-view="weather">Check weather</button>
           </div>
         </div>
         <div id="efbHeroPhase" class="efb-flight-phase" aria-label="Flight phase progress" style="--phase-progress:0%">
@@ -4712,6 +4712,36 @@ END OF MESSAGE</pre>
       el('efbHeroAircraftStatus').textContent = aircraftStatus?.serviceability
         ? `${aircraftStatus.serviceability}${aircraftStatus.fuelOnBoardGal === null || aircraftStatus.fuelOnBoardGal === undefined ? '' : ` / ${aircraftStatus.fuelOnBoardGal} USG`}`
         : 'Awaiting live status';
+      const heroActions = !req
+        ? [
+            { label:'Choose a flight', view:'flights' },
+            { label:'Check weather', view:'weather' }
+          ]
+        : ofp.actualIn
+          ? [
+              { label:'Complete logbook', view:'logbook' },
+              { label:'Open flight files', view:'documents' }
+            ]
+          : ofp.actualOut || ofp.actualOff || ofp.actualOn
+            ? [
+                { label:'Record movement', view:'flight-plan' },
+                { label:'Update weather', view:'weather' }
+              ]
+            : releaseClientState(req).released
+              ? [
+                  { label:'Open released OFP', view:'flight-plan' },
+                  { label:'Review performance', view:'performance' }
+                ]
+              : [
+                  { label:'Continue OFP', view:'flight-plan' },
+                  { label:'Brief weather', view:'weather' }
+                ];
+      [el('efbHeroPrimaryAction'), el('efbHeroSecondaryAction')].forEach((button, index) => {
+        const action = heroActions[index];
+        button.textContent = action.label;
+        button.dataset.dashboardView = action.view;
+        button.setAttribute('aria-label', `${action.label} workspace`);
+      });
       const heroPhaseIndex = !req ? -1
         : ofp.actualIn ? 3
           : ofp.actualOn ? 3
