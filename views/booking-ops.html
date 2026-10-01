@@ -2939,11 +2939,11 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-09-06-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-09-06-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-09-06-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-09-06-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-09-06-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-01-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-01-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-01-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-01-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-01-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3091,7 +3091,7 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
       </div>
       <div id="performanceOpsPane" class="ops-tool-pane" hidden>
         <div id="performanceConsole" class="performance-console performance-app" data-state="empty">
-          <div class="performance-desktop-workbench">
+          <div class="performance-desktop-workbench performance-open-workbench">
           <section class="performance-reference-scene" aria-label="Aircraft performance planning canvas">
           <header class="aircraft-performance-head performance-aircraft-hero">
             <div class="aircraft-identity performance-aircraft-identity">
@@ -3106,16 +3106,11 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
           <section class="performance-flight-setup" aria-label="Performance flight setup" data-state="empty">
             <header class="performance-context">
               <div><span>Flight performance review</span><strong id="performanceRouteContext">NO FLIGHT SELECTED</strong><small>We preload route and planned weights, then combine confirmed runway ends with current weather. You remain responsible for the final AFM/POH check.</small></div>
-              <div class="performance-context-actions"><span class="performance-source-chip"><i aria-hidden="true"></i> Smart data connected</span><button id="runPerformanceBtn" class="performance-run" type="button">Review both legs</button></div>
+              <div class="performance-context-actions"><span class="performance-source-chip"><i aria-hidden="true"></i> Smart data connected</span><button id="runPerformanceBtn" class="performance-run" type="button">Calculate both legs</button></div>
             </header>
-            <div class="performance-readiness-flow" aria-label="Performance setup progress">
-              <div id="perfStepRoute" class="performance-readiness-step" data-state="pending"><i>1</i><span><strong>Route</strong><small>Select a flight or enter airports</small></span></div>
-              <div id="perfStepRunways" class="performance-readiness-step" data-state="pending"><i>2</i><span><strong>Runways</strong><small>Confirm both runway ends</small></span></div>
-              <div id="perfStepWeight" class="performance-readiness-step" data-state="pending"><i>3</i><span><strong>Weights</strong><small>Load verified planning weights</small></span></div>
-              <div id="perfStepWeather" class="performance-readiness-step" data-state="pending"><i>4</i><span><strong>Review</strong><small>Calculate live conditions</small></span></div>
-            </div>
-            <div class="performance-leg-setup-grid">
-              <div id="performanceDepartureSetup" class="performance-leg-setup departure" data-state="empty">
+            <div class="performance-primary-inputs">
+            <div class="performance-leg-setup-grid performance-route-tray">
+              <div id="performanceDepartureSetup" class="performance-leg-setup performance-route-end departure" data-state="empty">
                 <div class="performance-leg-title"><span>Departure</span><strong>Takeoff runway</strong><em id="perfDepLegState">Airport required</em></div>
                 <div class="performance-setup-fields">
                   <label>Airport<input id="perfDep" maxlength="4" placeholder="EFHV" autocomplete="off" /></label>
@@ -3124,7 +3119,7 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
                 <div class="runway-guidance"><small id="perfDepRunwayHint" class="runway-smart-hint">Enter an airport to load runway guidance.</small><button id="confirmDepRunwayBtn" type="button">Confirm runway</button></div>
               </div>
               <div class="performance-route-arrow" aria-hidden="true">&#8594;</div>
-              <div id="performanceArrivalSetup" class="performance-leg-setup arrival" data-state="empty">
+              <div id="performanceArrivalSetup" class="performance-leg-setup performance-route-end arrival" data-state="empty">
                 <div class="performance-leg-title"><span>Arrival</span><strong>Landing runway</strong><em id="perfArrLegState">Airport required</em></div>
                 <div class="performance-setup-fields">
                   <label>Airport<input id="perfArr" maxlength="4" placeholder="EFHN" autocomplete="off" /></label>
@@ -3133,10 +3128,22 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
                 <div class="runway-guidance"><small id="perfArrRunwayHint" class="runway-smart-hint">Enter an airport to load runway guidance.</small><button id="confirmArrRunwayBtn" type="button">Confirm runway</button></div>
               </div>
             </div>
+            </div>
+            <div class="performance-detail-stack">
+            <details class="performance-source-drawer performance-readiness-drawer">
+              <summary><span>Setup status</span><strong>Route, runway, weight and review gates</strong></summary>
+              <div class="performance-readiness-flow" aria-label="Performance setup progress">
+                <div id="perfStepRoute" class="performance-readiness-step" data-state="pending"><i aria-hidden="true">1</i><span><strong>Route</strong><small>Select a flight or enter airports</small></span></div>
+                <div id="perfStepRunways" class="performance-readiness-step" data-state="pending"><i aria-hidden="true">2</i><span><strong>Runways</strong><small>Confirm both runway ends</small></span></div>
+                <div id="perfStepWeight" class="performance-readiness-step" data-state="pending"><i aria-hidden="true">3</i><span><strong>Weights</strong><small>Load verified planning weights</small></span></div>
+                <div id="perfStepWeather" class="performance-readiness-step" data-state="pending"><i aria-hidden="true">4</i><span><strong>Review</strong><small>Calculate live conditions</small></span></div>
+              </div>
+            </details>
             <details class="performance-source-drawer">
               <summary><span>Calculation sources</span><strong>View connected data</strong></summary>
               <div class="performance-source-row" aria-label="Calculation sources"><span id="performanceWeightSource" data-source="weight" data-state="pending">Planned weight pending</span><span id="performanceWeatherSource" data-source="weather" data-state="pending">METAR pending</span><span id="performanceRunwaySource" data-source="runway" data-state="pending">Runway database pending</span><span data-source="aircraft" data-state="ready">PA-28R profile ready</span></div>
             </details>
+            </div>
           </section>
           <div id="performanceStatus" class="performance-status performance-smart-status" data-state="empty" role="status" aria-live="polite">Select a flight and runway ends. Current weather, wind components, density altitude, and runway data will load automatically.</div>
           </section>
@@ -3148,121 +3155,143 @@ ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
             <section id="takeoffPerformancePanel" class="performance-block active" role="tabpanel" aria-labelledby="takeoffPerformanceTab" aria-hidden="false" data-performance-panel="takeoff">
               <header class="performance-block-header"><div><small>Departure analysis</small><h3>Takeoff performance</h3></div><em id="takeoffPerfBadge" class="perf-status-badge">Not calculated</em></header>
               <div id="takeoffResultHeader" class="performance-result-header">
-                <div class="performance-result-status"><i class="status-lamp"></i><div><span>Overall result</span><strong id="takeoffResultStatus">DATA INCOMPLETE</strong><small id="takeoffResultMeta">Calculate to create a runway assessment</small></div></div>
-                <div class="performance-result-metric"><span>T/O dist req</span><strong id="takeoffResultRequired">-- FT</strong></div>
+                <div class="performance-result-status"><i class="status-lamp" aria-hidden="true"></i><div><span>Overall result</span><strong id="takeoffResultStatus">DATA INCOMPLETE</strong><small id="takeoffResultMeta">Calculate to create a runway assessment</small></div></div>
+                <div class="performance-result-metric"><span>Takeoff required</span><strong id="takeoffResultRequired">-- FT</strong></div>
                 <div class="performance-result-metric"><span>Runway avail</span><strong id="takeoffResultAvailable">-- FT</strong></div>
                 <div class="performance-result-metric"><span>Runway remain</span><strong id="takeoffResultMargin">-- FT</strong></div>
-                <div class="performance-result-metric"><span>Density alt</span><strong id="takeoffResultDa">-- FT</strong></div>
+                <div class="performance-result-metric"><span>Rotate</span><strong id="perfTakeoffVr" class="performance-value live">N/A</strong></div>
                 <div class="performance-result-metric"><span>Wind comp</span><strong id="takeoffResultWind">--</strong></div>
               </div>
               <div class="performance-workspace-grid">
               <div class="performance-control-column">
-              <details class="performance-advanced" data-performance-details="takeoff">
-              <summary><span><strong>Runway &amp; weather</strong><small>Automatic values · tap to inspect or override</small></span><em>Live data</em></summary>
-              <div id="takeoffPerformanceMetrics" class="performance-rows performance-data-grid">
-                <div class="performance-item"><span class="performance-label">WIND</span><span class="performance-value performance-inline"><input id="perfTakeoffWind" value="AUTO" /><button id="perfTakeoffWindMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfTakeoffHwXw" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">TORA</span><strong id="perfTakeoffTora" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">OAT / DP</span><span class="performance-value performance-inline"><input id="perfTakeoffOat" value="AUTO" /><button id="perfTakeoffOatMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfTakeoffRunwayHeading" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">QNH</span><span class="performance-value performance-inline"><input id="perfTakeoffQnh" value="AUTO" /><button id="perfTakeoffQnhMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfTakeoffElevation" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY COND</span><span class="performance-value"><select id="perfTakeoffCondition"><option>DRY</option><option>WET</option><option>SNOW</option><option>ICE</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfTakeoffDensityAltitude" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfTakeoffSlope" class="performance-value">N/A</strong></div>
-              </div>
-              </details>
+              <div class="performance-primary-inputs">
               <div class="performance-section-title performance-input-heading"><span>Aircraft setup</span><small>Confirm planned takeoff configuration</small></div>
               <div class="performance-rows performance-input-grid">
-                <div class="performance-item"><span class="performance-label">WEIGHT</span><span class="performance-value"><input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" /></span></div>
-                <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfTakeoffFlaps"><option value="0">0 DEG</option><option value="10" selected>10 DEG</option><option value="25">25 DEG</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">SPEED UNIT</span><span class="performance-value"><select id="perfTakeoffSpeedUnit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
+                <div class="performance-item"><span class="performance-label">Weight</span><span class="performance-value"><input id="perfTow" type="number" min="1400" max="2650" step="1" placeholder="2650" aria-label="Takeoff weight in pounds" /></span></div>
+                <div class="performance-item"><span class="performance-label">Flaps</span><span class="performance-value"><select id="perfTakeoffFlaps" aria-label="Takeoff flap setting"><option value="0">0 DEG</option><option value="10" selected>10 DEG</option><option value="25">25 DEG</option></select></span></div>
+                <div class="performance-item"><span class="performance-label">Speed unit</span><span class="performance-value"><select id="perfTakeoffSpeedUnit" aria-label="Takeoff speed unit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
                 <div hidden><select id="perfTakeoffPower"><option value="FULL">FULL</option></select><select id="perfTakeoffAc"><option>OFF</option></select></div>
               </div>
-              <div id="takeoffPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
-              <div class="performance-actions"><button id="calculateTakeoffBtn" class="primary" type="button">Calculate takeoff</button><button id="openTakeoffPdfBtn" type="button">Open PDF</button></div>
+              <div id="takeoffPerformanceDerived" class="performance-derived"><strong>Calculation basis</strong> Selected runway, current weather, and planned weight</div>
+              <div class="performance-actions"><button id="calculateTakeoffBtn" class="primary" type="button">Calculate takeoff</button><button id="openTakeoffPdfBtn" type="button">Performance PDF</button></div>
+              </div>
+              <div class="performance-detail-stack">
+                <details class="performance-advanced" data-performance-details="takeoff">
+                  <summary><span><strong>Runway &amp; weather</strong><small>Automatic values · inspect or override only when required</small></span><em>Live data</em></summary>
+                  <div id="takeoffPerformanceMetrics" class="performance-rows performance-data-grid">
+                    <div class="performance-item"><span class="performance-label">Wind</span><span class="performance-value performance-inline"><input id="perfTakeoffWind" value="AUTO" aria-label="Takeoff wind" /><button id="perfTakeoffWindMode" type="button" aria-label="Switch takeoff wind between automatic and manual entry">AUTO</button></span></div>
+                    <div class="performance-item"><span class="performance-label">Headwind / crosswind</span><strong id="perfTakeoffHwXw" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">TORA</span><strong id="perfTakeoffTora" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">OAT / dew point</span><span class="performance-value performance-inline"><input id="perfTakeoffOat" value="AUTO" aria-label="Takeoff outside air temperature and dew point" /><button id="perfTakeoffOatMode" type="button" aria-label="Switch takeoff temperature between automatic and manual entry">AUTO</button></span></div>
+                    <div class="performance-item"><span class="performance-label">Runway heading</span><strong id="perfTakeoffRunwayHeading" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">QNH</span><span class="performance-value performance-inline"><input id="perfTakeoffQnh" value="AUTO" aria-label="Takeoff QNH" /><button id="perfTakeoffQnhMode" type="button" aria-label="Switch takeoff QNH between automatic and manual entry">AUTO</button></span></div>
+                    <div class="performance-item"><span class="performance-label">Elevation</span><strong id="perfTakeoffElevation" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">Runway condition</span><span class="performance-value"><select id="perfTakeoffCondition" aria-label="Takeoff runway condition"><option>DRY</option><option>WET</option><option>SNOW</option><option>ICE</option></select></span></div>
+                    <div class="performance-item"><span class="performance-label">Density altitude</span><strong id="perfTakeoffDensityAltitude" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">Runway slope</span><strong id="perfTakeoffSlope" class="performance-value">N/A</strong></div>
+                  </div>
+                </details>
+              </div>
               </div>
               <div class="performance-output-column">
-              <div class="performance-section-title">Outputs</div>
-              <div id="takeoffPerformanceOutputs" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">VR</span><strong id="perfTakeoffVr" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">GROUND ROLL</span><strong id="perfTakeoffDistReq" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VX</span><strong id="perfTakeoffVx" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfTakeoffRwyAvail" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VY</span><strong id="perfTakeoffVy" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfTakeoffRwyRemain" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">ROTATE PITCH</span><strong id="perfTakeoffRotatePitch" class="performance-value">7–9° NOSE UP</strong></div>
-                <div class="performance-item"><span class="performance-label">50 FT / REQUIRED</span><strong id="perfTakeoffDist50" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">ACCEL-STOP</span><strong id="perfTakeoffAccelStop" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">STOP MARGIN</span><strong id="perfTakeoffStopMargin" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">XWIND LIMIT</span><strong id="perfTakeoffXwindLimit" class="performance-value">17 KT</strong></div>
-                <div class="performance-item"><span class="performance-label">WIND COMP</span><strong id="perfTakeoffWindComp" class="performance-value">HW 00 / XW 00</strong></div>
-              </div>
-              <div class="performance-section-title">Visual runway</div><div class="performance-visual-wrap"><div class="performance-visual-title">Calculated takeoff roll, 50 ft requirement, accelerate-stop point, and remaining runway</div><div id="takeoffRunwayVisual" class="runway-visual"></div><div id="takeoffRunwayLegend" class="runway-legend"></div></div>
-              <div class="performance-section-title">Advisories</div><div id="takeoffPerformanceMessages" class="performance-messages">LOAD DATA TO CALCULATE</div>
-              <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
-              <details class="performance-document-preview"><summary>Takeoff document preview</summary><pre id="perfTakeoffAcars" class="performance-acars-block">TAKEOFF PERFORMANCE
+                <div class="performance-primary-result">
+                  <div class="performance-section-title">Runway picture</div>
+                  <div class="performance-visual-wrap"><div class="performance-visual-title">Takeoff roll, 50 ft requirement, accelerate-stop point, and runway remaining</div><div id="takeoffRunwayVisual" class="runway-visual"></div><div id="takeoffRunwayLegend" class="runway-legend"></div></div>
+                  <div class="performance-section-title">Pilot advisories</div><div id="takeoffPerformanceMessages" class="performance-messages">Load data to calculate</div>
+                  <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
+                </div>
+                <div class="performance-detail-stack">
+                  <details class="performance-advanced performance-output-details">
+                    <summary><span><strong>Speeds &amp; complete output</strong><small>All calculated distances, limits, and performance references</small></span><em>Show details</em></summary>
+                    <div id="takeoffPerformanceOutputs" class="performance-rows">
+                      <div class="performance-item"><span class="performance-label">Density altitude</span><strong id="takeoffResultDa" class="performance-value">-- FT</strong></div>
+                      <div class="performance-item"><span class="performance-label">Ground roll</span><strong id="perfTakeoffDistReq" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">VX</span><strong id="perfTakeoffVx" class="performance-value live">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Runway available</span><strong id="perfTakeoffRwyAvail" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">VY</span><strong id="perfTakeoffVy" class="performance-value live">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Runway remaining</span><strong id="perfTakeoffRwyRemain" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Rotate pitch</span><strong id="perfTakeoffRotatePitch" class="performance-value">7–9° NOSE UP</strong></div>
+                      <div class="performance-item"><span class="performance-label">50 ft / required</span><strong id="perfTakeoffDist50" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Accelerate-stop</span><strong id="perfTakeoffAccelStop" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Stop margin</span><strong id="perfTakeoffStopMargin" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Crosswind limit</span><strong id="perfTakeoffXwindLimit" class="performance-value">17 KT</strong></div>
+                      <div class="performance-item"><span class="performance-label">Wind component</span><strong id="perfTakeoffWindComp" class="performance-value">HW 00 / XW 00</strong></div>
+                    </div>
+                  </details>
+                  <details class="performance-document-preview"><summary>Takeoff document preview</summary><pre id="perfTakeoffAcars" class="performance-acars-block">TAKEOFF PERFORMANCE
 ------------------------
 LOAD DATA TO CALCULATE.</pre></details>
+                </div>
               </div>
               </div>
             </section>
             <section id="landingPerformancePanel" class="performance-block" role="tabpanel" aria-labelledby="landingPerformanceTab" aria-hidden="true" data-performance-panel="landing">
               <header class="performance-block-header"><div><small>Arrival analysis</small><h3>Landing performance</h3></div><em id="landingPerfBadge" class="perf-status-badge">Not calculated</em></header>
               <div id="landingResultHeader" class="performance-result-header">
-                <div class="performance-result-status"><i class="status-lamp"></i><div><span>Overall result</span><strong id="landingResultStatus">DATA INCOMPLETE</strong><small id="landingResultMeta">Calculate to create a runway assessment</small></div></div>
-                <div class="performance-result-metric"><span>LDG dist req</span><strong id="landingResultRequired">-- FT</strong></div>
+                <div class="performance-result-status"><i class="status-lamp" aria-hidden="true"></i><div><span>Overall result</span><strong id="landingResultStatus">DATA INCOMPLETE</strong><small id="landingResultMeta">Calculate to create a runway assessment</small></div></div>
+                <div class="performance-result-metric"><span>Landing required</span><strong id="landingResultRequired">-- FT</strong></div>
                 <div class="performance-result-metric"><span>Runway avail</span><strong id="landingResultAvailable">-- FT</strong></div>
                 <div class="performance-result-metric"><span>Runway remain</span><strong id="landingResultMargin">-- FT</strong></div>
-                <div class="performance-result-metric"><span>Density alt</span><strong id="landingResultDa">-- FT</strong></div>
+                <div class="performance-result-metric"><span>Approach</span><strong id="perfLandingVref" class="performance-value live">N/A</strong></div>
                 <div class="performance-result-metric"><span>Wind comp</span><strong id="landingResultWind">--</strong></div>
               </div>
               <div class="performance-workspace-grid">
               <div class="performance-control-column">
-              <details class="performance-advanced" data-performance-details="landing">
-              <summary><span><strong>Runway &amp; weather</strong><small>Automatic values · tap to inspect or override</small></span><em>Live data</em></summary>
-              <div id="landingPerformanceMetrics" class="performance-rows performance-data-grid">
-                <div class="performance-item"><span class="performance-label">WIND</span><span class="performance-value performance-inline"><input id="perfLandingWind" value="AUTO" /><button id="perfLandingWindMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">HW / XW</span><strong id="perfLandingHwXw" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">LDA</span><strong id="perfLandingLda" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">OAT / DP</span><span class="performance-value performance-inline"><input id="perfLandingOat" value="AUTO" /><button id="perfLandingOatMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">HDG</span><strong id="perfLandingRunwayHeading" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">QNH</span><span class="performance-value performance-inline"><input id="perfLandingQnh" value="AUTO" /><button id="perfLandingQnhMode" type="button">AUTO</button></span></div>
-                <div class="performance-item"><span class="performance-label">ELEV</span><strong id="perfLandingElevation" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY COND</span><span class="performance-value"><select id="perfLandingCondition"><option>DRY</option><option>WET</option><option>SNOW</option><option>ICE</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">DENSITY ALT</span><strong id="perfLandingDensityAltitude" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY SLOPE</span><strong id="perfLandingSlope" class="performance-value">N/A</strong></div>
-              </div>
-              </details>
+              <div class="performance-primary-inputs">
               <div class="performance-section-title performance-input-heading"><span>Aircraft setup</span><small>Confirm planned landing configuration</small></div>
               <div class="performance-rows performance-input-grid">
-                <div class="performance-item"><span class="performance-label">WEIGHT</span><span class="performance-value"><input id="perfLdw" type="number" min="1400" max="2650" step="1" placeholder="2600" /></span></div>
-                <div class="performance-item"><span class="performance-label">FLAPS</span><span class="performance-value"><select id="perfLandingFlaps"><option value="40">FULL / 40 DEG</option><option value="25">25 DEG</option><option value="10">10 DEG</option><option value="0">0 DEG</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">SPEED UNIT</span><span class="performance-value"><select id="perfLandingSpeedUnit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
-                <div class="performance-item"><span class="performance-label">BRAKING</span><span class="performance-value"><select id="perfLandingBraking"><option value="MAX">MAX</option><option value="MOD">MOD</option><option value="MIN">MIN</option></select></span></div>
+                <div class="performance-item"><span class="performance-label">Weight</span><span class="performance-value"><input id="perfLdw" type="number" min="1400" max="2650" step="1" placeholder="2600" aria-label="Landing weight in pounds" /></span></div>
+                <div class="performance-item"><span class="performance-label">Flaps</span><span class="performance-value"><select id="perfLandingFlaps" aria-label="Landing flap setting"><option value="40">FULL / 40 DEG</option><option value="25">25 DEG</option><option value="10">10 DEG</option><option value="0">0 DEG</option></select></span></div>
+                <div class="performance-item"><span class="performance-label">Speed unit</span><span class="performance-value"><select id="perfLandingSpeedUnit" aria-label="Landing speed unit"><option value="KTS">KTS</option><option value="MPH">MPH</option></select></span></div>
+                <div class="performance-item"><span class="performance-label">Braking</span><span class="performance-value"><select id="perfLandingBraking" aria-label="Landing braking setting"><option value="MAX">MAX</option><option value="MOD">MOD</option><option value="MIN">MIN</option></select></span></div>
                 <div hidden><select id="perfLandingAc"><option>OFF</option></select></div>
               </div>
-              <div id="landingPerformanceDerived" class="performance-derived"><strong>CALCULATED FROM</strong> SELECTED RUNWAY / LIVE WEATHER / PLANNED WEIGHT</div>
-              <div class="performance-actions"><button id="calculateLandingBtn" class="primary" type="button">Calculate landing</button><button id="openLandingPdfBtn" type="button">Open PDF</button></div>
+              <div id="landingPerformanceDerived" class="performance-derived"><strong>Calculation basis</strong> Selected runway, current weather, and planned weight</div>
+              <div class="performance-actions"><button id="calculateLandingBtn" class="primary" type="button">Calculate landing</button><button id="openLandingPdfBtn" type="button">Performance PDF</button></div>
+              </div>
+              <div class="performance-detail-stack">
+                <details class="performance-advanced" data-performance-details="landing">
+                  <summary><span><strong>Runway &amp; weather</strong><small>Automatic values · inspect or override only when required</small></span><em>Live data</em></summary>
+                  <div id="landingPerformanceMetrics" class="performance-rows performance-data-grid">
+                    <div class="performance-item"><span class="performance-label">Wind</span><span class="performance-value performance-inline"><input id="perfLandingWind" value="AUTO" aria-label="Landing wind" /><button id="perfLandingWindMode" type="button" aria-label="Switch landing wind between automatic and manual entry">AUTO</button></span></div>
+                    <div class="performance-item"><span class="performance-label">Headwind / crosswind</span><strong id="perfLandingHwXw" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">LDA</span><strong id="perfLandingLda" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">OAT / dew point</span><span class="performance-value performance-inline"><input id="perfLandingOat" value="AUTO" aria-label="Landing outside air temperature and dew point" /><button id="perfLandingOatMode" type="button" aria-label="Switch landing temperature between automatic and manual entry">AUTO</button></span></div>
+                    <div class="performance-item"><span class="performance-label">Runway heading</span><strong id="perfLandingRunwayHeading" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">QNH</span><span class="performance-value performance-inline"><input id="perfLandingQnh" value="AUTO" aria-label="Landing QNH" /><button id="perfLandingQnhMode" type="button" aria-label="Switch landing QNH between automatic and manual entry">AUTO</button></span></div>
+                    <div class="performance-item"><span class="performance-label">Elevation</span><strong id="perfLandingElevation" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">Runway condition</span><span class="performance-value"><select id="perfLandingCondition" aria-label="Landing runway condition"><option>DRY</option><option>WET</option><option>SNOW</option><option>ICE</option></select></span></div>
+                    <div class="performance-item"><span class="performance-label">Density altitude</span><strong id="perfLandingDensityAltitude" class="performance-value">N/A</strong></div>
+                    <div class="performance-item"><span class="performance-label">Runway slope</span><strong id="perfLandingSlope" class="performance-value">N/A</strong></div>
+                  </div>
+                </details>
+              </div>
               </div>
               <div class="performance-output-column">
-              <div class="performance-section-title">Outputs</div>
-              <div id="landingPerformanceOutputs" class="performance-rows">
-                <div class="performance-item"><span class="performance-label">VREF</span><strong id="perfLandingVref" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY AVAIL</span><strong id="perfLandingRwyAvail" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">VAPP</span><strong id="perfLandingFinalAppSpeed" class="performance-value live">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY REMAIN</span><strong id="perfLandingRwyRemain" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">LDG DIST REQ</span><strong id="perfLandingDistReq" class="performance-value">N/A</strong></div>
-                <div class="performance-item"><span class="performance-label">RWY WIDTH</span><strong id="perfLandingRwyWidth" class="performance-value">N/A</strong></div>
-              </div>
-              <div class="performance-section-title">Go-around</div>
-              <div class="performance-rows"><div class="performance-item"><span class="performance-label">POWER</span><strong id="perfLandingGoAroundPower" class="performance-value">FULL</strong></div><div class="performance-item"><span class="performance-label">FLAPS UP SPEED</span><strong id="perfLandingFlapsUpSpeed" class="performance-value">87 KIAS</strong></div></div>
-              <div class="performance-section-title">Visual runway</div><div class="performance-visual-wrap"><div class="performance-visual-title">Calculated landing requirement, threshold crossing, stopping point, and remaining runway</div><div id="landingRunwayVisual" class="runway-visual"></div><div id="landingRunwayLegend" class="runway-legend"></div></div>
-              <div class="performance-section-title">Advisories</div><div id="landingPerformanceMessages" class="performance-messages">LOAD DATA TO CALCULATE</div>
-              <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
-              <details class="performance-document-preview"><summary>Landing document preview</summary><pre id="perfLandingAcars" class="performance-acars-block">LANDING PERFORMANCE
+                <div class="performance-primary-result">
+                  <div class="performance-section-title">Runway picture</div>
+                  <div class="performance-visual-wrap"><div class="performance-visual-title">Landing requirement, threshold crossing, stopping point, and runway remaining</div><div id="landingRunwayVisual" class="runway-visual"></div><div id="landingRunwayLegend" class="runway-legend"></div></div>
+                  <div class="performance-section-title">Pilot advisories</div><div id="landingPerformanceMessages" class="performance-messages">Load data to calculate</div>
+                  <div class="performance-note">Advisory planning output only. Verify every figure, correction, obstacle, runway state, and required margin against the current approved AFM/POH.</div>
+                </div>
+                <div class="performance-detail-stack">
+                  <details class="performance-advanced performance-output-details">
+                    <summary><span><strong>Speeds &amp; complete output</strong><small>All calculated distances, runway facts, and go-around references</small></span><em>Show details</em></summary>
+                    <div id="landingPerformanceOutputs" class="performance-rows">
+                      <div class="performance-item"><span class="performance-label">Density altitude</span><strong id="landingResultDa" class="performance-value">-- FT</strong></div>
+                      <div class="performance-item"><span class="performance-label">Runway available</span><strong id="perfLandingRwyAvail" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">VAPP</span><strong id="perfLandingFinalAppSpeed" class="performance-value live">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Runway remaining</span><strong id="perfLandingRwyRemain" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Landing distance required</span><strong id="perfLandingDistReq" class="performance-value">N/A</strong></div>
+                      <div class="performance-item"><span class="performance-label">Runway width</span><strong id="perfLandingRwyWidth" class="performance-value">N/A</strong></div>
+                    </div>
+                    <div class="performance-section-title">Go-around references</div>
+                    <div class="performance-rows"><div class="performance-item"><span class="performance-label">Power</span><strong id="perfLandingGoAroundPower" class="performance-value">FULL</strong></div><div class="performance-item"><span class="performance-label">Flaps-up speed</span><strong id="perfLandingFlapsUpSpeed" class="performance-value">87 KIAS</strong></div></div>
+                  </details>
+                  <details class="performance-document-preview"><summary>Landing document preview</summary><pre id="perfLandingAcars" class="performance-acars-block">LANDING PERFORMANCE
 ------------------------
 LOAD DATA TO CALCULATE.</pre></details>
+                </div>
               </div>
               </div>
             </section>
