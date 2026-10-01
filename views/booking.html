@@ -251,11 +251,28 @@
     }
 
     .route-map-shell .leaflet-control-container {
-      display: none;
+      display: block;
     }
 
     .route-map-shell .leaflet-tile-pane {
       filter: grayscale(1) contrast(1.08) brightness(0.68);
+    }
+
+    .route-map-shell.is-night-map .leaflet-tile-pane {
+      filter: grayscale(0.2) invert(0.92) hue-rotate(175deg) brightness(0.72) contrast(1.15) saturate(0.65);
+    }
+
+    .route-map-shell .leaflet-control-attribution {
+      margin: 0 6px 6px 0;
+      padding: 2px 5px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.88);
+      color: #3f4f68;
+      font: 9px/1.35 Arial, sans-serif;
+    }
+
+    .route-map-shell .leaflet-control-attribution a {
+      color: #173f82;
     }
 
     .route-map-shell .leaflet-pane > svg {
@@ -11432,8 +11449,6 @@
     let routeMap = null;
     let routeTileLayer = null;
     let routeMapTheme = '';
-    let routeTileFailureCount = 0;
-    let routeTileFallbackActive = false;
     let renderedRouteKey = '';
     let routeLayer = null;
     let depMarker = null;
@@ -11622,25 +11637,11 @@
       routeMapShell.classList.toggle('is-night-map', nextTheme === 'night');
       if (nextTheme === routeMapTheme && routeTileLayer) return;
       if (routeTileLayer) routeMap.removeLayer(routeTileLayer);
-      routeTileFailureCount = 0;
-      routeTileFallbackActive = false;
-      const tileStyle = nextTheme === 'night' ? 'dark_all' : 'light_all';
-      routeTileLayer = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${tileStyle}/{z}/{x}/{y}{r}.png`, {
+      routeTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution:'&copy; OpenStreetMap contributors &copy; CARTO',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
         crossOrigin: true
       }).addTo(routeMap);
-      routeTileLayer.on('tileerror', () => {
-        routeTileFailureCount += 1;
-        if (routeTileFailureCount < 3 || routeTileFallbackActive) return;
-        routeTileFallbackActive = true;
-        routeMap.removeLayer(routeTileLayer);
-        routeTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom:19,
-          attribution:'&copy; OpenStreetMap contributors',
-          crossOrigin:true
-        }).addTo(routeMap);
-      });
       routeMapTheme = nextTheme;
     }
 
@@ -11655,7 +11656,7 @@
       try {
         const coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
         routeMap = L.map('routeMap', {
-          attributionControl: false,
+          attributionControl: true,
           zoomControl: false,
           dragging: !coarsePointer,
           touchZoom: !coarsePointer,
@@ -11665,6 +11666,8 @@
           keyboard: false,
           tap: !coarsePointer
         }).setView([60.35, 24.95], 7);
+
+        routeMap.attributionControl.setPrefix(false);
 
         L.control.zoom({
           position: 'topright',
