@@ -1,5 +1,5 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-10-v20';
-const PILOT_STYLESHEET_VERSION = '2026-10-01-2';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-10-v21';
+const PILOT_STYLESHEET_VERSION = '2026-10-01-3';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
@@ -13,6 +13,7 @@ const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
   '/pilot-manifest.webmanifest',
   ...PILOT_EFB_STYLESHEETS,
+  '/foreflight-handoff.js?v=2026-10-01-3',
   '/vendor/leaflet/leaflet.css',
   '/vendor/leaflet/leaflet.js',
   '/vendor/leaflet/images/layers.png',
