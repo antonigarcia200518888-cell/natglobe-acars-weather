@@ -1647,6 +1647,1088 @@
   }
 }
 
+/* -------------------------------------------------------------------------
+   Open navy performance deck
+
+   The performance computer is intentionally flatter than the record-oriented
+   workspaces. Aircraft context, setup and the active answer read as three
+   continuous surfaces; supporting data lives in quiet disclosure rows.
+   ------------------------------------------------------------------------- */
+
+#performanceOpsPane {
+  --perf-navy: #0e3558;
+  --perf-navy-deep: #082640;
+  --perf-blue: #174d78;
+  --perf-ink: #10263e;
+  --perf-copy: #607387;
+  --perf-muted: #8797a7;
+  --perf-ice: #edf3f8;
+  --perf-surface: rgba(255, 255, 255, .88);
+  --perf-solid: #fff;
+  --perf-line: rgba(16, 38, 62, .11);
+  --perf-line-strong: rgba(16, 38, 62, .19);
+  --perf-shadow: 0 18px 50px rgba(14, 42, 66, .08);
+  color: var(--perf-ink);
+}
+
+[data-efb-theme="night"] #performanceOpsPane {
+  --perf-navy: #b3d7ef;
+  --perf-navy-deep: #d6e9f6;
+  --perf-blue: #83b6dc;
+  --perf-ink: #f5f8fb;
+  --perf-copy: #a6b7c7;
+  --perf-muted: #768b9d;
+  --perf-ice: #081827;
+  --perf-surface: rgba(12, 31, 48, .9);
+  --perf-solid: #112a40;
+  --perf-line: rgba(226, 238, 248, .12);
+  --perf-line-strong: rgba(226, 238, 248, .21);
+  --perf-shadow: 0 22px 54px rgba(0, 0, 0, .3);
+}
+
+#performanceOpsPane .performance-console {
+  gap: 18px;
+  color: var(--perf-ink);
+}
+
+#performanceOpsPane .performance-desktop-workbench {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* One large aircraft scene; limits share a single instrument strip. */
+#performanceOpsPane .performance-reference-scene {
+  overflow: hidden;
+  border: 1px solid var(--perf-line);
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse at 63% 20%, rgba(255, 255, 255, .94) 0, rgba(255, 255, 255, .54) 24%, transparent 51%),
+    linear-gradient(138deg, #f8fbfd 0%, #edf3f8 57%, #dce8f1 100%);
+  box-shadow: var(--perf-shadow);
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-reference-scene {
+  background:
+    radial-gradient(ellipse at 63% 18%, rgba(131, 182, 220, .12), transparent 48%),
+    linear-gradient(138deg, #10283d 0%, #0b1d2e 60%, #071522 100%);
+}
+
+#performanceOpsPane .performance-reference-scene::before {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--perf-navy) 4%, transparent), transparent 32%),
+    linear-gradient(180deg, transparent 72%, color-mix(in srgb, var(--perf-navy) 5%, transparent));
+}
+
+#performanceOpsPane .performance-aircraft-hero {
+  grid-template-columns: minmax(240px, .72fr) minmax(420px, 1.55fr) minmax(300px, .9fr);
+  gap: 18px;
+  min-height: 244px;
+  padding: 26px 30px 18px;
+}
+
+#performanceOpsPane .performance-aircraft-identity > span {
+  color: var(--perf-blue);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .035em;
+}
+
+#performanceOpsPane .performance-aircraft-title {
+  margin: 7px 0 9px;
+}
+
+#performanceOpsPane .performance-aircraft-title h2 {
+  color: var(--perf-navy-deep);
+  font-size: clamp(36px, 3.2vw, 48px);
+  font-weight: 700;
+}
+
+#performanceOpsPane .performance-aircraft-title em {
+  border: 1px solid color-mix(in srgb, var(--perf-navy) 14%, transparent);
+  background: rgba(255, 255, 255, .68);
+  color: var(--perf-navy);
+  box-shadow: none;
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-aircraft-title em {
+  background: rgba(255, 255, 255, .07);
+}
+
+#performanceOpsPane .performance-aircraft-identity > strong {
+  color: var(--perf-copy);
+  line-height: 1.5;
+}
+
+#performanceOpsPane .performance-profile-state {
+  border-color: color-mix(in srgb, var(--efb-safe) 25%, transparent);
+  background: color-mix(in srgb, var(--efb-safe) 8%, transparent);
+}
+
+#performanceOpsPane .performance-aircraft-visual {
+  margin: -18px -8% -16px -14%;
+}
+
+#performanceOpsPane .performance-aircraft-visual > img {
+  width: min(132%, 730px);
+  height: 250px;
+  opacity: .8;
+  filter: saturate(.68) contrast(.94) brightness(1.035);
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-aircraft-visual > img {
+  opacity: .52;
+  filter: saturate(.55) contrast(.92) brightness(.74);
+}
+
+#performanceOpsPane .performance-limit-cards {
+  align-self: end;
+  gap: 0;
+  overflow: hidden;
+  margin: 0 0 5px;
+  padding: 5px;
+  border: 1px solid var(--perf-line);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, .66);
+  box-shadow: 0 10px 28px rgba(14, 42, 66, .07);
+  backdrop-filter: blur(20px) saturate(1.08);
+  -webkit-backdrop-filter: blur(20px) saturate(1.08);
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-limit-cards {
+  background: rgba(8, 25, 40, .62);
+}
+
+#performanceOpsPane .performance-limit-cards > div {
+  min-height: 68px;
+  border: 0;
+  border-radius: 0;
+  padding: 11px 12px;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-limit-cards > div + div {
+  border-left: 1px solid var(--perf-line);
+}
+
+#performanceOpsPane .performance-limit-cards span { color: var(--perf-muted); }
+#performanceOpsPane .performance-limit-cards strong { color: var(--perf-navy-deep); }
+
+/* The setup is one compact tray, not a collection of nested cards. */
+#performanceOpsPane .performance-flight-setup {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--perf-line);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--perf-surface) 94%, transparent);
+  box-shadow: none;
+  backdrop-filter: blur(24px) saturate(1.08);
+  -webkit-backdrop-filter: blur(24px) saturate(1.08);
+}
+
+#performanceOpsPane .performance-context {
+  min-height: 72px;
+  padding: 15px 20px 12px;
+  border-bottom: 0;
+}
+
+#performanceOpsPane .performance-context > div:first-child > span { color: var(--perf-blue); }
+#performanceOpsPane .performance-context > div:first-child > strong { color: var(--perf-navy-deep); }
+#performanceOpsPane .performance-context > div:first-child > small { color: var(--perf-copy); }
+
+#performanceOpsPane .performance-context .performance-source-chip { color: var(--perf-copy); }
+
+#performanceOpsPane .performance-run {
+  min-width: 164px;
+  border: 1px solid var(--perf-navy-deep);
+  background: var(--perf-navy-deep);
+  color: #fff;
+  box-shadow: 0 9px 22px rgba(8, 38, 64, .17);
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-run {
+  border-color: #d6e9f6;
+  background: #d6e9f6;
+  color: #071522;
+}
+
+#performanceOpsPane .performance-leg-setup-grid {
+  gap: 0;
+  padding: 0 20px 16px;
+}
+
+#performanceOpsPane .performance-leg-setup {
+  border: 0;
+  border-radius: 0;
+  padding: 5px 18px 5px 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-leg-setup.arrival {
+  padding-right: 0;
+  padding-left: 18px;
+}
+
+#performanceOpsPane .performance-leg-title { min-height: 36px; }
+#performanceOpsPane .performance-leg-title span { color: var(--perf-muted); }
+#performanceOpsPane .performance-leg-title strong { color: var(--perf-navy-deep); }
+#performanceOpsPane .performance-leg-title em {
+  border: 0;
+  background: transparent;
+  color: var(--perf-copy);
+}
+
+#performanceOpsPane .performance-setup-fields :is(input, select),
+#performanceOpsPane .performance-value :is(input, select) {
+  border-color: var(--perf-line-strong);
+  border-radius: 12px;
+  background: var(--perf-solid);
+  color: var(--perf-ink);
+  box-shadow: 0 1px 2px rgba(14, 42, 66, .035);
+}
+
+#performanceOpsPane .runway-smart-hint {
+  border: 0;
+  border-radius: 0;
+  padding-left: 0;
+  background: transparent;
+  color: var(--perf-copy);
+}
+
+#performanceOpsPane .runway-guidance button {
+  border-color: var(--perf-line-strong);
+  background: transparent;
+  color: var(--perf-navy);
+}
+
+#performanceOpsPane .performance-route-arrow::before {
+  border: 0;
+  background: transparent;
+  color: var(--perf-muted);
+}
+
+/* Readiness and source provenance remain available without filling the canvas. */
+#performanceOpsPane .performance-source-drawer,
+#performanceOpsPane .performance-readiness-drawer {
+  margin: 0 20px;
+  border: 0;
+  border-top: 1px solid var(--perf-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-source-drawer + .performance-source-drawer {
+  margin-top: 0;
+}
+
+#performanceOpsPane .performance-source-drawer > summary,
+#performanceOpsPane .performance-readiness-drawer > summary {
+  min-height: 46px;
+  padding: 8px 0;
+  color: var(--perf-copy);
+}
+
+#performanceOpsPane .performance-source-drawer > summary span,
+#performanceOpsPane .performance-readiness-drawer > summary span { color: var(--perf-navy-deep); }
+
+#performanceOpsPane .performance-source-row {
+  padding: 0 0 13px;
+}
+
+#performanceOpsPane .performance-source-row span {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--perf-navy) 6%, transparent);
+  color: var(--perf-copy);
+}
+
+#performanceOpsPane .performance-readiness-flow {
+  gap: 0;
+  margin: 0;
+  padding: 0 0 14px;
+}
+
+#performanceOpsPane .performance-readiness-step {
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  padding: 6px 10px;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-readiness-step + .performance-readiness-step {
+  border-left: 1px solid var(--perf-line);
+}
+
+#performanceOpsPane .performance-readiness-step[data-state="complete"],
+#performanceOpsPane .performance-readiness-step[data-state="active"],
+#performanceOpsPane .performance-readiness-step[data-state="caution"] {
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-readiness-step[data-state="complete"] > i {
+  border-color: color-mix(in srgb, var(--efb-safe) 34%, transparent);
+  background: color-mix(in srgb, var(--efb-safe) 12%, transparent);
+  color: var(--efb-safe);
+}
+
+#performanceOpsPane .performance-readiness-step[data-state="active"] > i {
+  border-color: color-mix(in srgb, var(--perf-navy) 30%, transparent);
+  background: color-mix(in srgb, var(--perf-navy) 10%, transparent);
+  color: var(--perf-navy);
+}
+
+#performanceOpsPane .performance-smart-status {
+  min-height: 45px;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--perf-line);
+  border-radius: 0;
+  padding: 12px 20px 12px 42px !important;
+  background: color-mix(in srgb, var(--perf-navy) 4%, transparent);
+  color: var(--perf-copy);
+}
+
+#performanceOpsPane .performance-smart-status::before { left: 21px; }
+
+/* A compact phase switch followed by one uninterrupted answer surface. */
+#performanceOpsPane .performance-stage-tabs {
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  width: min(100%, 420px);
+  gap: 3px;
+  margin: 0 auto -6px;
+  padding: 4px;
+  border: 1px solid var(--perf-line);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--perf-solid) 92%, transparent);
+  box-shadow: 0 8px 24px rgba(14, 42, 66, .08);
+}
+
+#performanceOpsPane .performance-stage-tabs button {
+  min-height: 50px;
+  border-radius: 11px;
+  color: var(--perf-copy);
+}
+
+#performanceOpsPane .performance-stage-tabs button.active {
+  background: var(--perf-navy-deep);
+  color: #fff;
+  box-shadow: none;
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-stage-tabs button.active {
+  background: #d6e9f6;
+  color: #071522;
+}
+
+#performanceOpsPane .performance-block {
+  overflow: hidden;
+  border: 1px solid var(--perf-line);
+  border-radius: 28px;
+  background: var(--perf-surface);
+  box-shadow: var(--perf-shadow);
+}
+
+#performanceOpsPane .performance-block-header {
+  min-height: 68px;
+  padding: 14px 20px;
+  border-bottom: 0;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-block-header small { color: var(--perf-muted); }
+#performanceOpsPane .performance-block-header h3 {
+  color: var(--perf-navy-deep);
+  font-size: 20px;
+}
+
+#performanceOpsPane .perf-status-badge {
+  border-color: color-mix(in srgb, var(--perf-navy) 14%, transparent);
+  background: color-mix(in srgb, var(--perf-navy) 7%, transparent);
+  color: var(--perf-navy);
+}
+
+/* Result metrics are one navy instrument band, separated by hairlines. */
+#performanceOpsPane .performance-result-header {
+  grid-template-columns: minmax(230px, 1.3fr) repeat(5, minmax(100px, .7fr));
+  gap: 0;
+  margin: 0 12px;
+  padding: 5px;
+  border: 0;
+  border-radius: 19px;
+  background: var(--perf-navy-deep);
+  scrollbar-width: thin;
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-result-header {
+  background: #061726;
+  box-shadow: inset 0 0 0 1px var(--perf-line);
+}
+
+#performanceOpsPane .performance-result-status,
+#performanceOpsPane .performance-result-metric,
+#performanceOpsPane .performance-result-header.good .performance-result-status,
+#performanceOpsPane .performance-result-header.caution .performance-result-status,
+#performanceOpsPane .performance-result-header.danger .performance-result-status {
+  min-height: 78px;
+  border: 0;
+  border-radius: 0;
+  padding: 11px 13px;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-result-header > * + * {
+  border-left: 1px solid rgba(255, 255, 255, .15);
+}
+
+#performanceOpsPane .performance-result-status span,
+#performanceOpsPane .performance-result-metric span,
+#performanceOpsPane .performance-result-status small { color: rgba(255, 255, 255, .62); }
+
+#performanceOpsPane .performance-result-status strong,
+#performanceOpsPane .performance-result-metric strong,
+#performanceOpsPane .performance-result-header.good .performance-result-status strong,
+#performanceOpsPane .performance-result-header.caution .performance-result-status strong,
+#performanceOpsPane .performance-result-header.danger .performance-result-status strong {
+  color: #fff;
+}
+
+#performanceOpsPane .performance-result-header .status-lamp {
+  border: 1px solid rgba(255, 255, 255, .3);
+  background: rgba(255, 255, 255, .45);
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-result-header.good .status-lamp {
+  border-color: var(--efb-safe);
+  background: var(--efb-safe);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--efb-safe) 17%, transparent);
+}
+
+/* Inputs form one shallow tray; runway output owns the visual space. */
+#performanceOpsPane .performance-workspace-grid {
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: 0;
+}
+
+#performanceOpsPane .performance-control-column,
+#performanceOpsPane .performance-output-column {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-control-column {
+  border-bottom: 1px solid var(--perf-line);
+  padding: 8px 18px 14px;
+  background: color-mix(in srgb, var(--perf-navy) 3.5%, transparent);
+}
+
+#performanceOpsPane .performance-section-title {
+  min-height: 34px;
+  border: 0;
+  padding: 8px 4px 5px;
+  background: transparent;
+  color: var(--perf-navy-deep);
+  font-size: 11px;
+}
+
+#performanceOpsPane .performance-section-title small {
+  color: var(--perf-muted);
+  font-weight: 500;
+}
+
+#performanceOpsPane .performance-primary-inputs,
+#performanceOpsPane .performance-input-grid {
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+}
+
+#performanceOpsPane .performance-rows,
+#performanceOpsPane .performance-control-column .performance-rows {
+  gap: 10px;
+  padding: 5px 0;
+}
+
+#performanceOpsPane .performance-item,
+#performanceOpsPane .performance-item:nth-child(2n),
+#performanceOpsPane .performance-control-column .performance-item:nth-child(odd) {
+  min-height: 58px;
+  border: 0;
+  border-radius: 0;
+  padding: 5px 4px;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-label { color: var(--perf-muted); }
+#performanceOpsPane .performance-value { color: var(--perf-ink); }
+#performanceOpsPane .performance-value.live { color: var(--perf-navy); }
+
+#performanceOpsPane .performance-derived {
+  border: 0;
+  padding: 8px 4px 4px;
+  background: transparent;
+  color: var(--perf-muted);
+}
+
+#performanceOpsPane .performance-derived strong { color: var(--perf-navy); }
+
+#performanceOpsPane .performance-actions {
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 0 0;
+  border: 0;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-actions button {
+  width: auto;
+  min-width: 150px;
+  border-color: var(--perf-line-strong);
+  background: var(--perf-solid);
+  color: var(--perf-navy);
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-actions button.primary {
+  border-color: var(--perf-navy-deep);
+  background: var(--perf-navy-deep);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(8, 38, 64, .15);
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-actions button.primary {
+  border-color: #d6e9f6;
+  background: #d6e9f6;
+  color: #071522;
+}
+
+#performanceOpsPane .performance-output-column {
+  padding: 8px 18px 18px;
+}
+
+#performanceOpsPane .performance-primary-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+#performanceOpsPane .performance-visual-wrap {
+  padding: 5px 0 14px;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-visual-title {
+  margin: 0 0 10px;
+  color: var(--perf-copy);
+}
+
+#performanceOpsPane .runway-visual {
+  height: clamp(330px, 34vw, 480px);
+  min-height: 330px;
+  overflow: hidden;
+  border: 1px solid var(--perf-line);
+  border-radius: 18px;
+  background-color: var(--perf-ice);
+}
+
+#performanceOpsPane .runway-legend {
+  gap: 0;
+  margin-top: 6px;
+  border: 1px solid var(--perf-line);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--perf-navy) 3.5%, transparent);
+}
+
+#performanceOpsPane .runway-legend div {
+  border: 0;
+  border-radius: 0;
+  padding: 9px 10px;
+  background: transparent;
+}
+
+#performanceOpsPane .runway-legend div + div { border-left: 1px solid var(--perf-line); }
+#performanceOpsPane .runway-legend span { color: var(--perf-muted); }
+#performanceOpsPane .runway-legend strong { color: var(--perf-ink); }
+
+#performanceOpsPane .performance-messages {
+  min-height: 44px;
+  margin: 5px 0 9px;
+  border: 0;
+  border-left: 3px solid var(--efb-caution);
+  border-radius: 0 10px 10px 0;
+  background: color-mix(in srgb, var(--efb-caution) 7%, transparent);
+}
+
+#performanceOpsPane .performance-note {
+  padding: 0 2px 12px;
+  color: var(--perf-muted);
+}
+
+/* Detail disclosures behave like an inspector list, not additional cards. */
+#performanceOpsPane .performance-detail-stack {
+  margin-top: 8px;
+  border-top: 1px solid var(--perf-line);
+}
+
+#performanceOpsPane .performance-advanced,
+#performanceOpsPane .performance-output-details,
+#performanceOpsPane .performance-document-preview {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--perf-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-advanced > summary,
+#performanceOpsPane .performance-output-details > summary,
+#performanceOpsPane .performance-document-preview > summary {
+  min-height: 50px;
+  padding: 9px 4px;
+  background: transparent;
+  color: var(--perf-copy);
+}
+
+#performanceOpsPane .performance-advanced > summary strong,
+#performanceOpsPane .performance-output-details > summary strong { color: var(--perf-navy-deep); }
+
+#performanceOpsPane .performance-advanced[open],
+#performanceOpsPane .performance-output-details[open] {
+  background: color-mix(in srgb, var(--perf-navy) 2.8%, transparent);
+}
+
+#performanceOpsPane .performance-advanced[open] > summary,
+#performanceOpsPane .performance-output-details[open] > summary {
+  padding-inline: 10px;
+}
+
+#performanceOpsPane .performance-advanced .performance-rows,
+#performanceOpsPane .performance-output-details .performance-rows {
+  grid-template-columns: repeat(5, minmax(115px, 1fr));
+  gap: 0;
+  padding: 0 10px 12px;
+}
+
+#performanceOpsPane .performance-advanced .performance-item,
+#performanceOpsPane .performance-output-details .performance-item {
+  min-height: 60px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--perf-line);
+}
+
+#performanceOpsPane .performance-acars-block {
+  border-top-color: var(--perf-line);
+  background: var(--perf-ice);
+  color: var(--perf-ink);
+}
+
+#performanceOpsPane .performance-footer-actions {
+  grid-template-columns: repeat(2, minmax(160px, 210px));
+  gap: 8px;
+  padding: 0 2px 2px;
+}
+
+/* Release the fixed desktop split pane so PERF reads like an open EFB page. */
+@media (min-width: 960px) {
+  body.pilot-ops-v2 .ops-tool-workspace[data-active-tool="performance"] {
+    height: 100%;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  body.pilot-ops-v2 .ops-tool-workspace[data-active-tool="performance"] #performanceOpsPane {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-console {
+    display: grid;
+    grid-template-rows: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-desktop-workbench {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    gap: 18px;
+    height: auto;
+    overflow: visible;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-reference-scene {
+    display: block;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero {
+    grid-column: auto;
+    grid-row: auto;
+    grid-template-columns: minmax(240px, .72fr) minmax(420px, 1.55fr) minmax(300px, .9fr);
+    gap: 18px;
+    width: auto;
+    height: auto;
+    min-height: 244px;
+    padding: 26px 30px 18px;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity {
+    padding: 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title h2 {
+    font-size: clamp(36px, 3.2vw, 48px);
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity > strong { display: block; }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-profile-state {
+    min-height: 30px;
+    margin-top: 13px;
+    padding: 6px 10px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual {
+    width: auto;
+    height: auto;
+    margin: -18px -8% -16px -14%;
+    overflow: visible;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual > img {
+    width: min(132%, 730px);
+    max-width: none;
+    height: 250px;
+    max-height: none;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards {
+    align-self: end;
+    margin: 0 0 5px;
+    padding: 5px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards > div {
+    min-height: 68px;
+    padding: 11px 12px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-flight-setup {
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-context {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 15px 20px 12px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-context-actions {
+    display: flex;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-context .performance-source-chip {
+    display: inline-flex;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-run {
+    width: auto;
+    min-width: 164px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-readiness-flow {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-readiness-step small { display: block; }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-leg-setup-grid {
+    grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr);
+    gap: 0;
+    padding: 0 20px 16px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-route-arrow { display: block; }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-source-drawer { margin: 0 20px; }
+
+  body.pilot-ops-v2 #performanceOpsPane #performanceStatus {
+    width: auto;
+    min-height: 45px;
+    max-height: none;
+    margin: 0;
+    padding: 12px 20px 12px 42px !important;
+    border-radius: 0;
+    background: color-mix(in srgb, var(--perf-navy) 4%, transparent);
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs {
+    position: sticky;
+    top: 10px;
+    width: min(100%, 420px);
+    height: auto;
+    margin: 0 auto -6px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-results {
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-block.active {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-result-header {
+    grid-template-columns: minmax(230px, 1.3fr) repeat(5, minmax(100px, .7fr));
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-workspace-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-control-column,
+  body.pilot-ops-v2 #performanceOpsPane .performance-output-column { position: static; }
+
+  body.pilot-ops-v2 #performanceOpsPane .runway-visual {
+    height: clamp(330px, 34vw, 480px);
+    min-height: 330px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-footer-actions {
+    grid-template-columns: repeat(2, minmax(160px, 210px));
+    min-height: 48px;
+  }
+}
+
+/* Snapshot actions only become relevant after both leg calculations exist. */
+#performanceConsole:is([data-state="empty"], [data-state="loading"], [data-state="active"]) > .performance-footer-actions {
+  display: none;
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero {
+    grid-template-columns: minmax(215px, .7fr) minmax(330px, 1.25fr);
+    min-height: 286px;
+    padding: 22px 24px 16px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards {
+    grid-column: 1 / -1;
+    width: min(100%, 520px);
+    justify-self: end;
+    margin-top: -46px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-result-header {
+    grid-template-columns: minmax(220px, 1.25fr) repeat(5, minmax(96px, .7fr));
+  }
+}
+
+@media (max-width: 959px) {
+  #performanceOpsPane .performance-console,
+  #performanceOpsPane .performance-desktop-workbench { gap: 14px; }
+
+  #performanceOpsPane .performance-aircraft-hero {
+    grid-template-columns: minmax(210px, .7fr) minmax(300px, 1.3fr);
+    min-height: 300px;
+    padding: 22px 22px 16px;
+  }
+
+  #performanceOpsPane .performance-limit-cards {
+    grid-column: 1 / -1;
+    width: min(100%, 520px);
+    justify-self: end;
+    margin-top: -42px;
+  }
+
+  #performanceOpsPane .performance-result-header {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-inline: 10px;
+    overflow: hidden;
+  }
+
+  #performanceOpsPane .performance-result-status { grid-column: 1 / -1; }
+
+  #performanceOpsPane .performance-result-header > :nth-child(4) { border-left: 0; }
+
+  #performanceOpsPane .performance-primary-inputs,
+  #performanceOpsPane .performance-input-grid { grid-template-columns: repeat(3, minmax(110px, 1fr)); }
+
+  #performanceOpsPane .performance-advanced .performance-rows,
+  #performanceOpsPane .performance-output-details .performance-rows {
+    grid-template-columns: repeat(3, minmax(110px, 1fr));
+  }
+
+  #performanceOpsPane .performance-block.active .performance-actions {
+    position: static;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (max-width: 760px) {
+  #performanceOpsPane .performance-reference-scene,
+  #performanceOpsPane .performance-block { border-radius: 23px; }
+
+  #performanceOpsPane .performance-aircraft-hero {
+    min-height: 356px;
+    padding: 18px 16px 12px;
+  }
+
+  #performanceOpsPane .performance-aircraft-identity { max-width: 68%; }
+
+  #performanceOpsPane .performance-aircraft-visual {
+    top: 78px;
+    right: -10%;
+    left: 20%;
+  }
+
+  #performanceOpsPane .performance-aircraft-visual > img { height: 178px; }
+
+  #performanceOpsPane .performance-limit-cards {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  #performanceOpsPane .performance-context { padding: 14px 14px 10px; }
+
+  #performanceOpsPane .performance-leg-setup-grid { padding: 0 14px 12px; }
+
+  #performanceOpsPane .performance-leg-setup,
+  #performanceOpsPane .performance-leg-setup.arrival {
+    padding: 10px 0;
+  }
+
+  #performanceOpsPane .performance-leg-setup.arrival { border-top: 1px solid var(--perf-line); }
+
+  #performanceOpsPane .performance-source-drawer,
+  #performanceOpsPane .performance-readiness-drawer { margin-inline: 14px; }
+
+  #performanceOpsPane .performance-smart-status {
+    padding-right: 14px !important;
+    padding-left: 37px !important;
+  }
+
+  #performanceOpsPane .performance-smart-status::before { left: 16px; }
+
+  #performanceOpsPane .performance-stage-tabs { top: 66px; }
+
+  #performanceOpsPane .performance-block-header { padding-inline: 16px; }
+
+  #performanceOpsPane .performance-result-header {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin-inline: 8px;
+  }
+
+  #performanceOpsPane .performance-result-status { grid-column: 1 / -1; }
+  #performanceOpsPane .performance-result-header > :nth-child(2n) { border-left: 0; }
+  #performanceOpsPane .performance-result-header > :nth-child(2) { border-left: 0; }
+  #performanceOpsPane .performance-result-header > :nth-child(n + 2) { border-top: 1px solid rgba(255, 255, 255, .15); }
+  #performanceOpsPane .performance-result-header > :nth-child(3),
+  #performanceOpsPane .performance-result-header > :nth-child(5) { border-left: 1px solid rgba(255, 255, 255, .15); }
+
+  #performanceOpsPane .performance-control-column,
+  #performanceOpsPane .performance-output-column { padding-inline: 12px; }
+
+  #performanceOpsPane .performance-primary-inputs,
+  #performanceOpsPane .performance-input-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  #performanceOpsPane .performance-advanced .performance-rows,
+  #performanceOpsPane .performance-output-details .performance-rows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #performanceOpsPane .performance-actions { grid-template-columns: 1fr 1fr; }
+
+  #performanceOpsPane .performance-actions button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #performanceOpsPane .runway-visual {
+    height: 360px;
+    min-height: 360px;
+  }
+
+  #performanceOpsPane .runway-legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+  }
+
+  #performanceOpsPane .runway-legend div:nth-child(3) { border-left: 0; }
+  #performanceOpsPane .runway-legend div:nth-child(n + 3) { border-top: 1px solid var(--perf-line); }
+}
+
+@media (max-width: 480px) {
+  #performanceOpsPane .performance-aircraft-identity { max-width: 78%; }
+
+  #performanceOpsPane .performance-aircraft-visual {
+    top: 128px;
+    right: -14%;
+    left: -10%;
+  }
+
+  #performanceOpsPane .performance-limit-cards span { font-size: 8px; }
+  #performanceOpsPane .performance-limit-cards strong { font-size: 13px; }
+
+  #performanceOpsPane .performance-setup-fields,
+  #performanceOpsPane .performance-primary-inputs,
+  #performanceOpsPane .performance-input-grid { grid-template-columns: 1fr; }
+
+  #performanceOpsPane .performance-advanced .performance-rows,
+  #performanceOpsPane .performance-output-details .performance-rows {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #performanceOpsPane .performance-readiness-flow { grid-template-columns: 1fr 1fr; }
+  #performanceOpsPane .performance-readiness-step:nth-child(3) { border-left: 0; }
+  #performanceOpsPane .performance-readiness-step:nth-child(n + 3) { border-top: 1px solid var(--perf-line); }
+
+  #performanceOpsPane .performance-result-header {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #performanceOpsPane .runway-visual {
+    height: 330px;
+    min-height: 330px;
+  }
+
+  #performanceOpsPane .performance-footer-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
   #performanceOpsPane .performance-aircraft-identity { max-width: 66%; }
   #performanceOpsPane .performance-aircraft-visual { top: 168px; right: -12%; left: -12%; }
@@ -1671,345 +2753,6 @@
 @media (prefers-reduced-motion: reduce) {
   #performanceOpsPane *,
   #aircraftOpsPane * { scroll-behavior: auto !important; }
-}
-
-/* -------------------------------------------------------------------------
-   Desktop performance workbench
-
-   PC uses the available application pane as a true two-column workbench.
-   Setup stays visible at left, the active takeoff/landing analysis owns the
-   right pane, and each side scrolls independently without growing the shell.
-   ------------------------------------------------------------------------- */
-
-@media (min-width: 960px) {
-  body.pilot-ops-v2 .ops-tool-workspace[data-active-tool="performance"] {
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  body.pilot-ops-v2 .ops-tool-workspace[data-active-tool="performance"] #performanceOpsPane {
-    height: calc(100% - 58px);
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-console {
-    grid-template-rows: minmax(0, 1fr) auto;
-    height: 100%;
-    min-height: 0;
-    gap: 7px;
-    overflow: hidden;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-desktop-workbench {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(360px, .72fr) minmax(0, 1.28fr);
-    grid-template-rows: 112px 64px minmax(0, 1fr);
-    gap: 7px;
-    height: 100%;
-    min-height: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-reference-scene {
-    display: contents;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    grid-template-columns: minmax(245px, .72fr) minmax(300px, 1.15fr) minmax(315px, .9fr);
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    height: 112px;
-    min-height: 0;
-    padding: 8px 12px;
-    overflow: hidden;
-    box-sizing: border-box;
-    border: 1px solid var(--tool-line);
-    border-radius: 17px;
-    background: var(--tool-scene);
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity {
-    position: relative;
-    align-self: center;
-    padding: 0 0 0 5px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title {
-    display: flex;
-    align-items: center;
-    flex-flow: row nowrap;
-    gap: 8px;
-    margin: 3px 0 5px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title h2 {
-    width: auto;
-    margin: 0;
-    font-size: 30px;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title em {
-    flex: 0 0 auto;
-    padding: 5px 8px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity > strong {
-    display: none;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-profile-state {
-    min-height: 25px;
-    margin-top: 0;
-    padding: 4px 8px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual {
-    position: relative;
-    align-self: stretch;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual > img {
-    width: 100%;
-    max-width: 500px;
-    height: 100%;
-    max-height: 104px;
-    margin: 0 auto;
-    object-fit: contain;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards {
-    position: static;
-    grid-column: auto;
-    align-self: center;
-    justify-self: stretch;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards > div {
-    min-height: 64px;
-    padding: 8px 9px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards strong {
-    margin-top: 5px;
-    font-size: 14px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-flight-setup {
-    grid-column: 1;
-    grid-row: 2 / 4;
-    align-self: stretch;
-    width: auto;
-    height: auto;
-    min-height: 0;
-    margin: 0;
-    padding-bottom: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-context {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    min-height: 0;
-    padding: 11px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-context > div:first-child > small {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-context-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-context .performance-source-chip {
-    display: none;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-run {
-    width: 100%;
-    min-width: 0;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-readiness-flow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin: 8px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-readiness-step {
-    min-height: 48px;
-    padding: 7px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-readiness-step small {
-    display: none;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-leg-setup-grid {
-    grid-template-columns: 1fr;
-    gap: 7px;
-    padding: 0 8px 8px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-route-arrow {
-    display: none;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-source-drawer {
-    margin: 0 8px 8px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane #performanceStatus {
-    position: static;
-    z-index: auto;
-    grid-column: 2;
-    grid-row: 2;
-    align-self: stretch;
-    width: auto;
-    min-height: 0;
-    max-height: none;
-    margin: 0 0 0 337px;
-    overflow: hidden;
-    border-radius: 11px;
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-    background: color-mix(in srgb, var(--efb-glass-solid) 92%, transparent);
-    box-shadow: none;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs {
-    position: static;
-    grid-column: 2;
-    grid-row: 2;
-    justify-self: start;
-    align-self: stretch;
-    width: 330px;
-    height: 64px;
-    margin: 0;
-    box-sizing: border-box;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs button {
-    min-height: 52px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-results {
-    grid-column: 2;
-    grid-row: 3;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    padding: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-block.active {
-    min-height: 100%;
-    overflow: visible;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-result-header {
-    grid-template-columns: minmax(190px, 1.25fr) repeat(5, minmax(96px, .7fr));
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-workspace-grid {
-    grid-template-columns: minmax(275px, .72fr) minmax(0, 1.28fr);
-    gap: 8px;
-    padding: 8px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-control-column,
-  body.pilot-ops-v2 #performanceOpsPane .performance-output-column {
-    position: static;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .runway-visual {
-    height: 230px;
-    min-height: 230px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-footer-actions {
-    position: static;
-    grid-template-columns: repeat(2, minmax(150px, 205px));
-    min-height: 48px;
-    margin: 0;
-    padding: 0;
-  }
-}
-
-@media (min-width: 960px) and (max-width: 1279px) {
-  body.pilot-ops-v2 #performanceOpsPane .performance-desktop-workbench {
-    grid-template-columns: minmax(330px, .76fr) minmax(0, 1.24fr);
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero {
-    grid-template-columns: minmax(205px, .7fr) minmax(235px, 1fr) minmax(270px, .92fr);
-    gap: 7px;
-    padding-inline: 9px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity {
-    padding-left: 2px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title h2 {
-    font-size: 27px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual > img {
-    max-width: 330px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards {
-    gap: 5px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards > div {
-    padding-inline: 7px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs {
-    width: 270px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane #performanceStatus {
-    margin-left: 277px;
-    font-size: 9px;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-workspace-grid {
-    grid-template-columns: 1fr;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-result-header {
-    grid-template-columns: minmax(185px, 1.35fr) repeat(3, minmax(92px, .8fr));
-    overflow: hidden;
-  }
-
-  body.pilot-ops-v2 #performanceOpsPane .performance-result-header > .performance-result-metric:nth-last-child(-n + 2) {
-    display: none;
-  }
 }
 
 /* -------------------------------------------------------------------------
@@ -2227,5 +2970,276 @@
   #performanceOpsPane .performance-aircraft-hero,
   #aircraftOpsPane .aircraft-reference-scene {
     border-radius: 22px;
+  }
+}
+
+/* Keep PERF's open hierarchy authoritative after the shared tool refinement. */
+#performanceOpsPane .performance-reference-scene {
+  border-color: var(--perf-line);
+  background:
+    radial-gradient(ellipse at 63% 20%, rgba(255, 255, 255, .94) 0, rgba(255, 255, 255, .54) 24%, transparent 51%),
+    linear-gradient(138deg, #f8fbfd 0%, #edf3f8 57%, #dce8f1 100%);
+  box-shadow: var(--perf-shadow);
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-reference-scene {
+  background:
+    radial-gradient(ellipse at 63% 18%, rgba(131, 182, 220, .12), transparent 48%),
+    linear-gradient(138deg, #10283d 0%, #0b1d2e 60%, #071522 100%);
+}
+
+#performanceOpsPane .performance-flight-setup {
+  border: 0;
+  border-top: 1px solid var(--perf-line);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--perf-surface) 94%, transparent);
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-block {
+  border-color: var(--perf-line);
+  background: var(--perf-surface);
+  box-shadow: var(--perf-shadow);
+}
+
+#performanceOpsPane .performance-limit-cards > div,
+#performanceOpsPane .performance-readiness-step,
+#performanceOpsPane .performance-leg-setup,
+#performanceOpsPane .performance-result-status,
+#performanceOpsPane .performance-result-metric,
+#performanceOpsPane .performance-control-column,
+#performanceOpsPane .performance-output-column,
+#performanceOpsPane .performance-item {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+#performanceOpsPane .performance-limit-cards > div + div,
+#performanceOpsPane .performance-readiness-step + .performance-readiness-step {
+  border-left-color: var(--perf-line);
+}
+
+#performanceOpsPane .performance-leg-setup.arrival { border-left-color: transparent; }
+
+#performanceOpsPane .performance-result-header {
+  border: 0;
+  background: var(--perf-navy-deep);
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-result-header { background: #061726; }
+
+#performanceOpsPane .performance-result-header > * + * {
+  border-left-color: rgba(255, 255, 255, .15);
+}
+
+#performanceOpsPane .performance-stage-tabs {
+  border-color: var(--perf-line);
+  background: color-mix(in srgb, var(--perf-solid) 92%, transparent);
+  box-shadow: 0 8px 24px rgba(14, 42, 66, .08);
+}
+
+#performanceOpsPane .performance-stage-tabs button.active {
+  background: var(--perf-navy-deep);
+  color: #fff;
+  box-shadow: none;
+}
+
+[data-efb-theme="night"] #performanceOpsPane .performance-stage-tabs button.active {
+  background: #d6e9f6;
+  color: #071522;
+}
+
+#performanceOpsPane :is(.performance-run, .performance-actions button.primary) {
+  border-color: var(--perf-navy-deep);
+  background: var(--perf-navy-deep);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(8, 38, 64, .15);
+}
+
+[data-efb-theme="night"] #performanceOpsPane :is(.performance-run, .performance-actions button.primary) {
+  border-color: #d6e9f6;
+  background: #d6e9f6;
+  color: #071522;
+}
+
+#performanceOpsPane :is(.performance-setup-fields, .performance-value) :is(input, select) {
+  border-color: var(--perf-line-strong);
+  background: var(--perf-solid);
+  box-shadow: 0 1px 2px rgba(14, 42, 66, .035);
+}
+
+#performanceOpsPane :is(
+  .performance-source-drawer,
+  .performance-readiness-drawer,
+  .performance-advanced,
+  .performance-output-details,
+  .performance-document-preview
+) {
+  border: 0;
+  border-top: 1px solid var(--perf-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+#performanceOpsPane .performance-control-column {
+  border-bottom: 1px solid var(--perf-line);
+  background: color-mix(in srgb, var(--perf-navy) 3.5%, transparent);
+}
+
+#performanceOpsPane .performance-output-column { background: transparent; }
+
+#performanceOpsPane .performance-actions,
+#performanceOpsPane .performance-section-title,
+#performanceOpsPane .performance-visual-wrap {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  #performanceOpsPane .performance-leg-setup.arrival {
+    border-top-color: var(--perf-line);
+  }
+}
+
+/* Final PERF composition details: keep the primary setup compact and never
+   let a disabled action dock cover flight-critical runway controls. */
+body.pilot-ops-v2 #performanceOpsPane .performance-input-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  padding: 6px 0 2px !important;
+}
+
+body.pilot-ops-v2 #performanceOpsPane .performance-input-grid > .performance-item {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-content: start;
+  gap: 7px;
+  min-height: 0;
+  padding: 0 !important;
+}
+
+body.pilot-ops-v2 #performanceOpsPane .performance-input-grid .performance-label,
+body.pilot-ops-v2 #performanceOpsPane .performance-input-grid .performance-value {
+  width: 100%;
+  text-align: left;
+}
+
+body.pilot-ops-v2 #performanceOpsPane .performance-footer-actions {
+  position: static !important;
+  width: min(100%, 430px);
+  margin: 10px 0 10px auto;
+}
+
+body.pilot-ops-v2 #performanceConsole:is([data-state="empty"], [data-state="loading"]) .performance-footer-actions {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  body.pilot-ops-v2 #performanceOpsPane .performance-input-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-footer-actions {
+    width: 100%;
+    margin: 8px 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero {
+    display: block !important;
+    grid-template-columns: none !important;
+    min-height: 430px;
+    padding: 20px 18px 112px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity {
+    width: 100% !important;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title {
+    flex-wrap: nowrap;
+    padding-right: 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title h2 {
+    font-size: 36px;
+    white-space: nowrap;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity > strong {
+    display: none;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-profile-state {
+    position: static !important;
+    inset: auto !important;
+    display: inline-flex;
+    width: auto;
+    max-width: none;
+    min-height: 30px;
+    margin: 7px 0 0;
+    padding: 5px 9px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual {
+    inset: 142px -7% auto 4%;
+    height: 174px;
+    margin: 0;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual > img {
+    width: 108%;
+    max-width: none;
+    height: 174px;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards {
+    grid-area: auto !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    margin: 0;
+  }
+}
+
+/* The app composition sheet also defines the former split workbench. These
+   explicit resets keep the new single-column PERF canvas intact on PC. */
+@media (min-width: 960px) {
+  body.pilot-ops-v2 #performanceOpsPane .performance-desktop-workbench,
+  body.pilot-ops-v2 #performanceOpsPane .performance-open-workbench {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-reference-scene {
+    display: block !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 0 18px !important;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero,
+  body.pilot-ops-v2 #performanceOpsPane .performance-flight-setup,
+  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs,
+  body.pilot-ops-v2 #performanceOpsPane .performance-results {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+
+  body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs {
+    margin: 0 auto 12px !important;
   }
 }

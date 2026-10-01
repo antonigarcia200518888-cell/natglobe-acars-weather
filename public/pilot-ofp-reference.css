@@ -169,10 +169,7 @@ html.embedded .ofp-flight-hero {
   overflow: hidden;
   border: 1px solid var(--efb-border);
   border-radius: 25px;
-  background:
-    radial-gradient(circle at 54% 28%, color-mix(in srgb, var(--efb-glass-solid) 82%, transparent), transparent 19rem),
-    radial-gradient(circle at 78% 8%, var(--efb-cyan-soft), transparent 18rem),
-    linear-gradient(128deg, var(--efb-glass-solid), color-mix(in srgb, var(--efb-mint) 18%, var(--efb-glass-solid)) 58%, color-mix(in srgb, var(--efb-cyan) 16%, var(--efb-glass-solid)));
+  background: color-mix(in srgb, var(--efb-glass-solid) 94%, var(--efb-blue-soft));
   box-shadow: var(--efb-shadow);
 }
 
@@ -574,8 +571,8 @@ html.embedded .ofp-task-rail {
 
 .ofp-task-tab[aria-selected="true"],
 .ofp-workspace-button.ofp-task-tab[aria-selected="true"] {
-  border-color: color-mix(in srgb, var(--efb-mint) 32%, var(--efb-border));
-  background: var(--efb-mint-soft);
+  border-color: color-mix(in srgb, var(--efb-blue) 32%, var(--efb-border));
+  background: color-mix(in srgb, var(--efb-blue-soft) 76%, var(--efb-glass-solid));
 }
 
 .ofp-task-tab[aria-selected="true"]::before,
@@ -659,9 +656,7 @@ html.embedded body.ofp-inspector-collapsed .ofp-app-workspace {
   margin: 0 -20px 18px;
   padding: 18px 20px 15px;
   border-bottom: 1px solid var(--efb-divider);
-  background:
-    radial-gradient(circle at 92% 12%, var(--efb-cyan-soft), transparent 13rem),
-    var(--efb-glass-tint);
+  background: color-mix(in srgb, var(--efb-glass-tint) 92%, var(--efb-blue-soft));
 }
 
 .ofp-card-head span {
@@ -713,7 +708,7 @@ html.embedded body.ofp-inspector-collapsed .ofp-app-workspace {
   min-height: 84px;
   border: 1px solid var(--efb-border);
   border-radius: 17px 17px 0 0;
-  background: linear-gradient(120deg, var(--efb-glass-solid), var(--efb-mint-soft));
+  background: color-mix(in srgb, var(--efb-glass-solid) 91%, var(--efb-blue-soft));
 }
 
 .flight-info-head > div:first-child strong { font-size: 18px; }
@@ -1450,12 +1445,7 @@ html.embedded .ofp-app-header {
 html.embedded .ofp-flight-hero {
   border-color: var(--ofp-hairline);
   border-radius: 27px;
-  background:
-    radial-gradient(circle at 54% 22%, color-mix(in srgb, var(--efb-glass-solid) 88%, transparent), transparent 20rem),
-    radial-gradient(circle at 82% 6%, color-mix(in srgb, var(--efb-blue-soft) 72%, transparent), transparent 19rem),
-    linear-gradient(132deg,
-      color-mix(in srgb, var(--efb-glass-solid) 96%, var(--efb-canvas)),
-      color-mix(in srgb, var(--efb-canvas) 86%, var(--efb-glass-solid)));
+  background: color-mix(in srgb, var(--efb-glass-solid) 94%, var(--efb-blue-soft));
   box-shadow: var(--ofp-sheet-shadow);
 }
 
@@ -1502,21 +1492,22 @@ html.embedded .ofp-task-rail {
 
 .ofp-task-tab[aria-selected="true"],
 .ofp-workspace-button.ofp-task-tab[aria-selected="true"] {
-  border-color: color-mix(in srgb, var(--efb-blue) 24%, var(--ofp-hairline));
-  background: color-mix(in srgb, var(--efb-blue-soft) 68%, var(--efb-glass-solid));
-  box-shadow: 0 3px 10px color-mix(in srgb, var(--efb-blue) 10%, transparent);
+  border-color: var(--efb-blue);
+  background: var(--efb-blue);
+  color: var(--efb-active-text);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--efb-blue) 20%, transparent);
 }
 
 .ofp-task-tab[aria-selected="true"]::before,
 .ofp-workspace-button.ofp-task-tab[aria-selected="true"]::before {
-  border-color: var(--efb-blue);
-  background: var(--efb-blue);
-  color: var(--efb-active-text);
-  box-shadow: 0 5px 13px color-mix(in srgb, var(--efb-blue) 24%, transparent);
+  border-color: color-mix(in srgb, var(--efb-active-text) 48%, transparent);
+  background: var(--efb-active-text);
+  color: var(--efb-blue);
+  box-shadow: 0 3px 9px color-mix(in srgb, var(--efb-text) 12%, transparent);
 }
 
 .ofp-task-tab[aria-selected="true"] .task-title {
-  color: var(--efb-blue-strong);
+  color: var(--efb-active-text);
 }
 
 .ofp-task-content,
@@ -1527,9 +1518,7 @@ html.embedded .ofp-task-rail {
 .ofp-card-head,
 .section-heading.ofp-card-head {
   border-bottom-color: var(--ofp-hairline);
-  background:
-    radial-gradient(circle at 92% 10%, color-mix(in srgb, var(--efb-blue-soft) 72%, transparent), transparent 14rem),
-    color-mix(in srgb, var(--ofp-material-soft) 88%, transparent);
+  background: color-mix(in srgb, var(--ofp-material-soft) 92%, var(--efb-blue-soft));
 }
 
 .ofp-smart-card,
@@ -1550,9 +1539,7 @@ html.embedded .ofp-task-rail {
 .flight-info-head {
   border-color: var(--ofp-hairline);
   border-radius: 19px 19px 0 0;
-  background: linear-gradient(124deg,
-    var(--efb-glass-solid),
-    color-mix(in srgb, var(--efb-blue-soft) 66%, var(--efb-glass-solid)));
+  background: color-mix(in srgb, var(--efb-glass-solid) 91%, var(--efb-blue-soft));
 }
 
 .flight-identity-grid,
@@ -1589,10 +1576,9 @@ html.embedded .ofp-task-rail {
 
 .ofp-inspector-tabs button[aria-selected="true"] {
   border: 0;
-  background: var(--efb-glass-solid);
-  color: var(--efb-blue-strong);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--efb-text) 10%, transparent),
-    0 0 0 .5px var(--ofp-hairline-strong);
+  background: var(--efb-blue);
+  color: var(--efb-active-text);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--efb-blue) 20%, transparent);
 }
 
 .ofp-command-bar,
