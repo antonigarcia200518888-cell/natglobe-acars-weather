@@ -45,6 +45,10 @@ app.get('/vendor/simplewebauthn-browser.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'node_modules', '@simplewebauthn', 'browser', 'dist', 'bundle', 'index.umd.min.js'));
 });
 
+app.use('/vendor/leaflet', express.static(path.join(__dirname, 'node_modules', 'leaflet', 'dist'), {
+  maxAge: '1d'
+}));
+
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders(res, filePath) {
     if (filePath.endsWith('.woff2')) res.setHeader('Access-Control-Allow-Origin', '*');
@@ -54,7 +58,9 @@ app.use(express.json());
 
 const AIRPORT_DB_TTL_MS = 24 * 60 * 60 * 1000;
 const WEATHER_CACHE_TTL_MS = 90 * 1000;
+const WEATHER_RADAR_CACHE_TTL_MS = 4 * 60 * 1000;
 const NEGATIVE_CACHE_TTL_MS = 15 * 1000;
+let weatherRadarCache = { expiresAt:0, data:null };
 
 const FETCH_TIMEOUT_RAW_MS = 4500;
 const FETCH_TIMEOUT_AIRPORT_DB_MS = 10000;
@@ -1040,29 +1046,42 @@ function nextManualFlightReference() {
   return `${prefix}${String(highest + 1).padStart(3, '0')}`;
 }
 
-function createManualFlightFile(req) {
-  const { date, time } = helsinkiFlightDateTime();
+function createManualFlightFile(req, input = {}) {
+  input = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
+  const now = helsinkiFlightDateTime();
   const commander = normalizeBookingText(req.pilotSession?.name || 'PILOT COMMANDER', 60).toUpperCase();
   const id = nextManualFlightReference();
+  const dep = normalizeIcao(input.dep);
+  const arr = normalizeIcao(input.arr);
+  const depAirport = bookingAirports.find(airport => airport.icao === dep);
+  const arrAirport = bookingAirports.find(airport => airport.icao === arr);
+  const requestDate = /^\d{4}-\d{2}-\d{2}$/.test(String(input.requestDate || '')) ? String(input.requestDate) : now.date;
+  const requestTime = /^\d{2}:\d{2}$/.test(String(input.requestTime || '')) ? String(input.requestTime) : now.time;
+  const flightRules = String(input.flightRules || '').toUpperCase() === 'IFR' ? 'IFR' : 'VFR';
+  const estimatedFlightMinutes = Math.max(0, Math.min(1440, Math.round(Number(input.estimatedFlightMinutes) || 0)));
+  const defaultRoute = dep && arr ? `${dep} DCT ${arr}` : 'MANUAL OFP';
+  const route = normalizeBookingText(input.route || defaultRoute, 240).toUpperCase();
+  const title = normalizeBookingText(input.title, 80) || (dep && arr ? `${dep} TO ${arr}` : 'PILOT MANUAL FLIGHT FILE');
+  const notes = normalizeBookingText(input.notes, 240);
   return {
     id,
-    flightId: `NGA-MNL-${id.slice(-3)}`,
-    flightTitle: 'PILOT MANUAL FLIGHT FILE',
-    route: 'MANUAL OFP',
-    dep: '',
-    arr: '',
-    depName: 'MANUAL DEPARTURE',
-    arrName: 'MANUAL DESTINATION',
+    flightId: `NGA-MNL-${id.slice(4)}`,
+    flightTitle: title.toUpperCase(),
+    route,
+    dep,
+    arr,
+    depName: depAirport?.name || dep || 'MANUAL DEPARTURE',
+    arrName: arrAirport?.name || arr || 'MANUAL DESTINATION',
     aircraft: AIRCRAFT_PROFILE.type,
     costPerSeatEur: 0,
     estimatedTotalEur: 0,
     priceNote: 'PILOT-ONLY OPERATIONAL FILE',
-    requestDate: date,
-    requestTime: time,
+    requestDate,
+    requestTime,
     tripType: 'ONE_WAY',
     flightExperience: '',
     scenicVariant: '',
-    estimatedFlightMinutes: 0,
+    estimatedFlightMinutes,
     returnDate: '',
     returnTime: '',
     returnPlan: '',
@@ -1093,7 +1112,8 @@ function createManualFlightFile(req) {
     status: 'MANUAL',
     manualFlight: true,
     crew: { commander, secondary: 'NONE' },
-    message: 'Created from Pilot Ops. This manual flight file has no passenger notification workflow.',
+    message: notes || 'Created from Pilot Ops. This manual flight file has no passenger notification workflow.',
+    flightRules,
     createdAt: new Date().toISOString()
   };
 }
@@ -5733,19 +5753,86 @@ app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
 });
 
 app.post('/api/booking-ops/manual-flight', requirePilotAccess, async (req, res) => {
-  await bookingStoreReady;
-  if (!requireFlightCrew(req, res)) return;
-  const request = createManualFlightFile(req);
-  request.operationalFlightPlan = normalizeOperationalFlightPlan(operationalFlightPlanDefaults(request), request);
-  bookingRequests.push(request);
-  await persistBookingRequest(request);
-  await addBookingTimelineEvent(request.id, 'MANUAL OFP CREATED', 'Pilot-only empty flight file created from Pilot Ops.', pilotActor(req));
-  res.status(201).json({
-    request: {
-      ...request,
-      bookingMessage: formatBookingMessage(request)
+  let reservedRequest = null;
+  try {
+    await bookingStoreReady;
+    if (!requireFlightCrew(req, res)) return;
+    const input = req.body;
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      return res.status(400).json({ error:'FLIGHT DETAILS MUST BE PROVIDED AS JSON' });
     }
-  });
+    const dep = String(input.dep || '').trim().toUpperCase();
+    const arr = String(input.arr || '').trim().toUpperCase();
+    const requestDate = String(input.requestDate || '').trim();
+    const requestTime = String(input.requestTime || '').trim();
+    const flightRules = String(input.flightRules || '').trim().toUpperCase();
+    const estimatedFlightMinutes = input.estimatedFlightMinutes === '' || input.estimatedFlightMinutes === null || input.estimatedFlightMinutes === undefined
+      ? 0
+      : Number(input.estimatedFlightMinutes);
+    const textFieldsValid = ['title', 'route', 'notes'].every(key => (
+      input[key] === undefined || input[key] === null || typeof input[key] === 'string'
+    ));
+    if (!/^[A-Z]{4}$/.test(dep) || !/^[A-Z]{4}$/.test(arr)) {
+      return res.status(400).json({ error:'USE EXACTLY FOUR LETTERS FOR DEPARTURE AND DESTINATION ICAO CODES' });
+    }
+    if (!validCrewLogbookDate(requestDate)) {
+      return res.status(400).json({ error:'DEPARTURE DATE MUST BE A VALID YYYY-MM-DD DATE' });
+    }
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(requestTime)) {
+      return res.status(400).json({ error:'DEPARTURE TIME MUST BE A VALID 24-HOUR LOCAL TIME' });
+    }
+    if (!['VFR', 'IFR'].includes(flightRules)) {
+      return res.status(400).json({ error:'FLIGHT RULES MUST BE VFR OR IFR' });
+    }
+    if (!Number.isFinite(estimatedFlightMinutes) || estimatedFlightMinutes < 0 || estimatedFlightMinutes > 1440 || !Number.isInteger(estimatedFlightMinutes)) {
+      return res.status(400).json({ error:'PLANNED EET MUST BE A WHOLE NUMBER FROM 0 TO 1440 MINUTES' });
+    }
+    if (!textFieldsValid) {
+      return res.status(400).json({ error:'TITLE, ROUTE, AND NOTES MUST BE TEXT' });
+    }
+    const request = createManualFlightFile(req, { ...input, dep, arr, requestDate, requestTime, flightRules, estimatedFlightMinutes });
+    const defaults = operationalFlightPlanDefaults(request);
+    defaults.flightRules = request.flightRules;
+    defaults.routeMode = request.flightRules;
+    defaults.cruiseFlightLevel = request.flightRules === 'IFR' ? '' : 'VFR';
+    if (request.route && request.route !== 'MANUAL OFP') {
+      defaults.route = request.route;
+      defaults.routeLegs = request.route.split(/\s+/).filter(Boolean).slice(0, 80).map(ident => ({
+        type:ident === request.dep || ident === request.arr
+          ? 'AIRPORT'
+          : ident === 'DCT'
+            ? 'DCT'
+            : request.flightRules === 'IFR' ? 'IFR WAYPOINT' : 'VFR POINT',
+        ident,
+        name:'',
+        source:'PILOT FLIGHT CREATOR'
+      }));
+    }
+    request.operationalFlightPlan = normalizeOperationalFlightPlan(defaults, request);
+    bookingRequests.push(request);
+    reservedRequest = request;
+    await persistBookingRequest(request);
+    reservedRequest = null;
+    addBookingTimelineEvent(
+      request.id,
+      'PILOT FLIGHT CREATED',
+      `${request.dep}-${request.arr} / ${request.requestDate} ${request.requestTime} / ${request.flightRules}`,
+      pilotActor(req)
+    ).catch(error => console.error('MANUAL FLIGHT TIMELINE:', error.message));
+    return res.status(201).json({
+      request: {
+        ...request,
+        bookingMessage: formatBookingMessage(request)
+      }
+    });
+  } catch (error) {
+    if (reservedRequest) {
+      const reservedIndex = bookingRequests.indexOf(reservedRequest);
+      if (reservedIndex !== -1) bookingRequests.splice(reservedIndex, 1);
+    }
+    console.error('MANUAL FLIGHT CREATE:', error.message);
+    return res.status(500).json({ error:'UNABLE TO CREATE PILOT FLIGHT' });
+  }
 });
 
 function reimbursementPdfText(value, limit = 70) {
@@ -6612,6 +6699,20 @@ async function createOperationalFlightPlanPdf(request) {
   const registration = plan.aircraftRegistration || 'REG TBD';
   const model = plan.aircraftModel || 'PA28-200R';
   const flightReference = plan.flightReference || request.id || 'INTERNAL-FLIGHT';
+  const rawCruiseLevel = String(plan.cruiseFlightLevel || '').trim().toUpperCase();
+  const compactCruiseLevel = rawCruiseLevel.replace(/\s+/g, '');
+  const flightLevelMatch = compactCruiseLevel.match(/^(?:FL)?(\d{2,3})$/);
+  const cruiseLevel = flightLevelMatch
+    ? {
+        prefix:'FL',
+        value:flightLevelMatch[1].padStart(3, '0'),
+        combined:`FL${flightLevelMatch[1].padStart(3, '0')}`
+      }
+    : {
+        prefix:'',
+        value:rawCruiseLevel || (String(plan.flightRules || '').toUpperCase() === 'IFR' ? 'TBD' : 'VFR'),
+        combined:rawCruiseLevel || (String(plan.flightRules || '').toUpperCase() === 'IFR' ? 'TBD' : 'VFR')
+      };
   const headerDate = `${formatDate(plan.dateUtc)}/${utcPart(plan.estimatedOff || plan.scheduledOff)}`;
   const pageFooter = (page, pageNumber, top = 785.7) => {
     drawTop(page, `${registration}  - ${model}`, pageNumber === 3 ? 242.2 : 253.3, top, 11, { maxWidth: 160 });
@@ -6643,8 +6744,8 @@ async function createOperationalFlightPlanPdf(request) {
   drawTop(page1, ofpPdfDuration(plan.estimatedEnrouteMinutes + 15), 147.6, 300.2, 10.5, { maxWidth: 42 });
   drawTop(page1, '......', 378.7, 300.2, 10.5, { maxWidth: 42 });
   drawTop(page1, 'BRIEF', 189.1, 393.2, 10.5, { fallback: '' });
-  drawTop(page1, 'FL', 237.2, 393.2, 10.5, { fallback: '' });
-  drawTop(page1, String(plan.cruiseFlightLevel || 'VFR').replace(/^FL/, ''), 275.1, 393.2, 10.5, { maxWidth: 28 });
+  drawTop(page1, cruiseLevel.prefix, 237.2, 393.2, 10.5, { fallback: '' });
+  drawTop(page1, cruiseLevel.value, 275.1, 393.2, 10.5, { maxWidth: 42 });
   drawTop(page1, 'SPD', 313.7, 393.2, 10.5, { fallback: '' });
   drawTop(page1, plan.cruiseSpeedKt, 340.2, 393.2, 10.5, { maxWidth: 30 });
   drawTop(page1, 'EET', 382.4, 393.2, 10.5, { fallback: '' });
@@ -6660,7 +6761,7 @@ async function createOperationalFlightPlanPdf(request) {
   drawTop(page1, `ARR ${plan.destination} RWY ${plan.arrRunway || 'TBD'} STAR ${plan.arrivalProcedure || 'PILOT'} APCH ${plan.approachProcedure || 'PILOT'}`, 49.5, 471.1, 10.2, { maxWidth: 475, maxChars: 82 });
   if (plan.clearance) drawTop(page1, plan.clearance, 49.5, 526, 10.2, { maxWidth: 475, maxChars: 76 });
   drawTop(page1, '---------------------', 207, 588.1, 10.5, { fallback: '' });
-  drawTop(page1, `ALTN     ${airportDisplay(plan.alternate || 'TBD')}     FL${String(plan.cruiseFlightLevel || 'VFR').replace(/^FL/, '')}   DIS ${plan.alternateDistanceNm}NM  EET ${plan.alternateEetMinutes}MIN  BURN ${plan.alternateFuelGal}`, 48.6, 601.2, 10.2, { maxWidth: 470 });
+  drawTop(page1, `ALTN     ${airportDisplay(plan.alternate || 'TBD')}     ${cruiseLevel.combined}   DIS ${plan.alternateDistanceNm}NM  EET ${plan.alternateEetMinutes}MIN  BURN ${plan.alternateFuelGal}`, 48.6, 601.2, 10.2, { maxWidth: 470 });
   drawTop(page1, `ROUTE ${plan.alternateRoute || 'PILOT ALTERNATE REVIEW REQUIRED'}`, 41.4, 619, 10.2, { maxWidth: 490, maxChars: 78 });
   pageFooter(page1, 1);
 
@@ -7741,6 +7842,45 @@ app.get('/api/booking-ops/navigation-search', requirePilotAccess, async (req, re
   } catch (err) {
     console.error('NAVIGATION SEARCH:', err.message);
     res.status(500).json({ error: 'NAVIGATION REFERENCE SEARCH UNAVAILABLE', results: [] });
+  }
+});
+
+app.get('/api/booking-ops/weather-radar', requirePilotAccess, async (req, res) => {
+  try {
+    if (weatherRadarCache.data && weatherRadarCache.expiresAt > Date.now()) {
+      res.setHeader('Cache-Control', 'private, max-age=120');
+      return res.json(weatherRadarCache.data);
+    }
+    const response = await fetchWithTimeout('https://api.rainviewer.com/public/weather-maps.json', {
+      headers: { 'User-Agent':'NatGlobeAviation-PilotEFB/1.0' }
+    }, 7000);
+    if (!response.ok) throw new Error(`RADAR SOURCE ${response.status}`);
+    const source = await response.json();
+    const host = String(source?.host || '');
+    if (!/^https:\/\/tilecache\.rainviewer\.com$/i.test(host)) throw new Error('UNEXPECTED RADAR TILE HOST');
+    const normalizeFrames = frames => (Array.isArray(frames) ? frames : [])
+      .slice(-6)
+      .map(frame => ({
+        time:Number(frame?.time) || 0,
+        path:String(frame?.path || '').startsWith('/v2/radar/') ? String(frame.path) : ''
+      }))
+      .filter(frame => frame.time > 0 && frame.path);
+    const data = {
+      provider:'RainViewer',
+      generatedAt:new Date().toISOString(),
+      host,
+      frames:[
+        ...normalizeFrames(source?.radar?.past).map(frame => ({ ...frame, kind:'observed' })),
+        ...normalizeFrames(source?.radar?.nowcast).map(frame => ({ ...frame, kind:'nowcast' }))
+      ]
+    };
+    if (!data.frames.length) throw new Error('NO RADAR FRAMES AVAILABLE');
+    weatherRadarCache = { expiresAt:Date.now() + WEATHER_RADAR_CACHE_TTL_MS, data };
+    res.setHeader('Cache-Control', 'private, max-age=120');
+    res.json(data);
+  } catch (error) {
+    console.error('WEATHER RADAR:', error.message);
+    res.status(503).json({ error:'LIVE WEATHER RADAR TEMPORARILY UNAVAILABLE' });
   }
 });
 

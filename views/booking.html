@@ -5,12 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Private Flight Booking</title>
   <link rel="preload" as="image" href="/nga-coastal-flight-hero.jpg" fetchpriority="high" />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
   <style>
     @font-face {
       font-family: "Computer Says No";
@@ -9186,8 +9181,8 @@
     .luxury-booking .route-map-shell .leaflet-control-zoom a {
       display: grid;
       place-items: center;
-      width: 36px;
-      height: 36px;
+      width: 44px;
+      height: 44px;
       border: 0;
       border-bottom: 1px solid rgba(255,255,255,0.18);
       background: rgba(6,26,64,0.92);
@@ -9207,6 +9202,10 @@
       background: #fff;
       color: var(--nga-navy);
       outline: none;
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .luxury-booking .route-map-shell .leaflet-container { touch-action: pan-y; }
     }
 
     @media (max-width: 900px) {
@@ -9245,8 +9244,8 @@
       }
 
       .luxury-booking .route-map-shell .leaflet-control-zoom a {
-        width: 34px;
-        height: 34px;
+        width: 44px;
+        height: 44px;
       }
 
       .luxury-booking .luxury-hero-nav {
@@ -10933,7 +10932,7 @@
           <div id="routeMapMeta" class="route-map-meta">Choose departure and destination to draw route.</div>
         </div>
         <div id="routeMapShell" class="route-map-shell">
-          <div id="routeMap" aria-label="Interactive route map"></div>
+          <div id="routeMap" role="region" aria-label="Route map. On touch screens, use the zoom controls while the page remains vertically scrollable."></div>
           <div id="routeMapFallback" class="route-map-fallback">Choose departure and destination to draw route.</div>
           <button id="locateMeBtn" class="locate-me-btn" type="button" aria-label="Locate me" title="Locate me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m21 3-7.8 18-3.5-7.7L3 9.8 21 3Z"/><path d="m9.5 13.5 4-4"/></svg><span class="sr-only">Locate me</span></button>
           <div id="routeRange" class="route-range">FLIGHT TIME: --H --M</div>
@@ -11295,11 +11294,7 @@
     </div>
   </div>
 
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+  <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
     const FALLBACK_AIRPORTS = [
       { icao: 'EFHK', short: 'HEL', name: 'Helsinki-Vantaa', city: 'Helsinki-Vantaa', country: 'Finland', network: 'Finavia', lat: 60.3172, lon: 24.9633 },
@@ -11437,6 +11432,8 @@
     let routeMap = null;
     let routeTileLayer = null;
     let routeMapTheme = '';
+    let routeTileFailureCount = 0;
+    let routeTileFallbackActive = false;
     let renderedRouteKey = '';
     let routeLayer = null;
     let depMarker = null;
@@ -11625,11 +11622,25 @@
       routeMapShell.classList.toggle('is-night-map', nextTheme === 'night');
       if (nextTheme === routeMapTheme && routeTileLayer) return;
       if (routeTileLayer) routeMap.removeLayer(routeTileLayer);
+      routeTileFailureCount = 0;
+      routeTileFallbackActive = false;
       const tileStyle = nextTheme === 'night' ? 'dark_all' : 'light_all';
       routeTileLayer = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${tileStyle}/{z}/{x}/{y}{r}.png`, {
         maxZoom: 19,
+        attribution:'&copy; OpenStreetMap contributors &copy; CARTO',
         crossOrigin: true
       }).addTo(routeMap);
+      routeTileLayer.on('tileerror', () => {
+        routeTileFailureCount += 1;
+        if (routeTileFailureCount < 3 || routeTileFallbackActive) return;
+        routeTileFallbackActive = true;
+        routeMap.removeLayer(routeTileLayer);
+        routeTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom:19,
+          attribution:'&copy; OpenStreetMap contributors',
+          crossOrigin:true
+        }).addTo(routeMap);
+      });
       routeMapTheme = nextTheme;
     }
 
@@ -11642,16 +11653,17 @@
 
       routeMapShell.classList.remove('map-fallback');
       try {
+        const coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
         routeMap = L.map('routeMap', {
           attributionControl: false,
           zoomControl: false,
-          dragging: true,
-          touchZoom: true,
+          dragging: !coarsePointer,
+          touchZoom: !coarsePointer,
           scrollWheelZoom: false,
           doubleClickZoom: true,
           boxZoom: false,
           keyboard: false,
-          tap: true
+          tap: !coarsePointer
         }).setView([60.35, 24.95], 7);
 
         L.control.zoom({

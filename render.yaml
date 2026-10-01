@@ -3,7 +3,7 @@ services:
     name: natglobe-acars-weather
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
     startCommand: npm start
     envVars:
       - key: NODE_VERSION

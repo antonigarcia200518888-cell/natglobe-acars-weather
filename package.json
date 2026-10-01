@@ -1,6 +1,7 @@
 {
   "name": "natglobe-acars-weather",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.12.1",
   "description": "NatGlobe Aviation ACARS weather tool",
   "type": "module",
   "main": "server.js",
@@ -15,6 +16,7 @@
     "@simplewebauthn/browser": "^13.3.0",
     "@simplewebauthn/server": "^13.3.2",
     "express": "^4.21.2",
+    "leaflet": "1.9.4",
     "passkit-generator": "^3.1.9",
     "pdf-lib": "^1.17.1",
     "pg": "^8.13.1",

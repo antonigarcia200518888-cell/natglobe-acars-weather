@@ -2939,11 +2939,13 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-01-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-01-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-01-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-01-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-01-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-01-2" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-01-2" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-01-2" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-01-2" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-01-2" />
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-01-2" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3018,6 +3020,11 @@
           <div><span>Preflight</span><strong id="efbHeroWeather">Not briefed</strong></div>
         </div>
       </section>
+      <section class="ops-globe-card" aria-labelledby="opsGlobeTitle">
+        <header class="ops-globe-head"><div><span>Global operations picture</span><h2 id="opsGlobeTitle">360° Flight Globe</h2><p>Drag horizontally or use the arrow keys to rotate. The selected flight is plotted automatically when airport coordinates are available.</p></div><div class="ops-globe-actions"><button id="opsGlobeRotateBtn" type="button" aria-pressed="true">Pause rotation</button><button id="opsGlobeResetBtn" type="button">Reset view</button></div></header>
+        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Interactive rotating operations globe. Use left and right arrows to rotate, up and down arrows to tilt, and Space to pause or resume rotation."></canvas><div class="ops-globe-scan" aria-hidden="true"></div></div>
+        <footer class="ops-globe-footer"><div><span>Active route</span><strong id="opsGlobeRoute">NO FLIGHT SELECTED</strong></div><div><span>View</span><strong id="opsGlobeView">AUTO ROTATE / GLOBAL</strong></div></footer>
+      </section>
       <aside class="dashboard-deck" aria-label="Pilot quick deck">
       <header class="dashboard-deck-head"><div><span>Pilot quick deck</span><strong id="quickDeckTitle">Workspaces</strong></div><small>Open a task without losing the active flight.</small></header>
       <nav class="dashboard-actions" aria-labelledby="quickDeckTitle">
@@ -3071,6 +3078,12 @@
             <div class="weather-option-group"><strong>ALTERNATE</strong><label><input id="wxAltnMetar" type="checkbox" checked /> METAR</label><label><input id="wxAltnTaf" type="checkbox" checked /> TAF</label></div>
             <input id="wxWinds" type="hidden" value="false" />
           </div>
+          <section class="weather-radar-card" aria-labelledby="weatherRadarTitle">
+            <header class="weather-radar-head"><div><span>Live precipitation mosaic</span><h2 id="weatherRadarTitle">Weather Radar</h2><p>Animated observed radar for situational awareness. Use approved aviation weather sources for flight decisions.</p></div><strong id="weatherRadarTime" aria-live="polite" aria-atomic="true">RADAR STANDBY</strong></header>
+            <div class="weather-radar-map-wrap"><div id="weatherRadarMap" role="region" aria-label="Interactive weather radar map"></div><div id="weatherRadarUnavailable" class="weather-radar-unavailable" role="status" aria-live="polite" hidden>Live radar is temporarily unavailable. METAR and TAF briefing remain available below.</div></div>
+            <div class="weather-radar-controls"><button id="weatherRadarBackBtn" type="button" aria-label="Previous radar frame">&#8592;</button><button id="weatherRadarPlayBtn" class="primary" type="button" aria-pressed="false">Play</button><button id="weatherRadarNextBtn" type="button" aria-label="Next radar frame">&#8594;</button><input id="weatherRadarTimeline" type="range" min="0" max="0" value="0" aria-label="Radar timeline" /><button id="weatherRadarRouteBtn" type="button">Fit route</button><button id="weatherRadarRefreshBtn" type="button">Refresh</button></div>
+            <div class="weather-radar-legend" aria-label="Radar intensity legend"><span>Light</span><i></i><i></i><i></i><i></i><i></i><span>Heavy</span><em>RainViewer composite / not for tactical avoidance</em></div>
+          </section>
           <div id="weatherStatus" class="weather-status">Enter departure and arrival ICAO codes, or open a flight to preload its route.</div>
           <div class="weather-output-layout">
             <section class="acars-preview"><header class="acars-preview-head"><span>Raw aviation weather report</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
@@ -3453,7 +3466,7 @@ LOAD DATA TO CALCULATE.</pre></details>
     <div id="bookingsWorkspace" data-detail-tab="overview" hidden>
     <div class="layout">
       <aside class="panel queue-panel">
-        <div class="panel-title">Flights <span>Operations queue</span></div>
+        <div class="panel-title queue-panel-title"><div>Flights <span>Operations queue</span></div><button id="createPilotFlightBtn" class="create-pilot-flight-btn" type="button">+ Create flight</button></div>
         <details class="queue-filter-drawer" open>
           <summary><span>Search &amp; filters</span><strong>Refine queue</strong></summary>
         <div id="queueFilters" class="queue-filters">
@@ -3782,7 +3795,33 @@ END OF MESSAGE</pre>
     </div>
   </dialog>
 
+  <dialog id="manualFlightDialog" class="shell-dialog manual-flight-dialog" aria-labelledby="manualFlightDialogTitle">
+    <form id="manualFlightForm" class="manual-flight-form">
+      <header class="shell-dialog-head"><div><span>Pilot-created operation</span><strong id="manualFlightDialogTitle">Create a flight</strong></div><button class="shell-icon-button" type="button" data-close-manual-flight>Close</button></header>
+      <div class="manual-flight-form-body">
+        <p class="manual-flight-intro">Create a pilot-only flight file directly in the Flights queue. No passenger booking, payment request, or passenger email is generated.</p>
+        <div class="manual-flight-route-grid">
+          <label>Departure ICAO<input id="manualFlightDep" list="weatherAirportOptions" maxlength="4" pattern="[A-Za-z]{4}" placeholder="EFHV" autocomplete="off" required /></label>
+          <span aria-hidden="true">&#8594;</span>
+          <label>Destination ICAO<input id="manualFlightArr" list="weatherAirportOptions" maxlength="4" pattern="[A-Za-z]{4}" placeholder="EFHN" autocomplete="off" required /></label>
+        </div>
+        <div class="manual-flight-fields">
+          <label>Departure date<input id="manualFlightDate" type="date" required /></label>
+          <label>Departure time (local)<input id="manualFlightTime" type="time" required /></label>
+          <label>Flight rules<select id="manualFlightRules"><option value="VFR">VFR</option><option value="IFR">IFR</option></select></label>
+          <label>Planned EET (minutes)<input id="manualFlightEet" type="number" min="0" max="1440" step="1" placeholder="60" /></label>
+        </div>
+        <label>Flight title <span>optional</span><input id="manualFlightTitle" maxlength="80" placeholder="Training flight, repositioning, private operation…" /></label>
+        <label>Planned route <span>optional</span><textarea id="manualFlightRoute" maxlength="240" placeholder="Leave empty for DEP DCT ARR"></textarea></label>
+        <label>Operational notes <span>optional</span><textarea id="manualFlightNotes" maxlength="240" placeholder="Pilot-only note for the flight file"></textarea></label>
+        <div id="manualFlightFormStatus" class="manual-flight-form-status" role="status" aria-live="polite">Ready to create a pilot-only flight.</div>
+      </div>
+      <footer class="manual-flight-form-actions"><button type="button" data-close-manual-flight>Cancel</button><button id="manualFlightCreateBtn" type="submit" value="save">Create flight</button><button id="manualFlightOpenBtn" class="primary" type="submit" value="open">Create &amp; open OFP</button></footer>
+    </form>
+  </dialog>
+
   <script src="/vendor/simplewebauthn-browser.js"></script>
+  <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
     const el = (id) => document.getElementById(id);
     const clock = el('clock');
@@ -3972,10 +4011,39 @@ END OF MESSAGE</pre>
     const weatherAcarsReport = el('weatherAcarsReport');
     const weatherReportMode = el('weatherReportMode');
     const weatherOptionInputs = ['wxDepMetar','wxDepTaf','wxArrMetar','wxArrTaf','wxAltnMetar','wxAltnTaf','wxWinds'].map(el);
+    const weatherRadarTime = el('weatherRadarTime');
+    const weatherRadarMapElement = el('weatherRadarMap');
+    const weatherRadarUnavailable = el('weatherRadarUnavailable');
+    const weatherRadarBackBtn = el('weatherRadarBackBtn');
+    const weatherRadarPlayBtn = el('weatherRadarPlayBtn');
+    const weatherRadarNextBtn = el('weatherRadarNextBtn');
+    const weatherRadarTimeline = el('weatherRadarTimeline');
+    const weatherRadarRouteBtn = el('weatherRadarRouteBtn');
+    const weatherRadarRefreshBtn = el('weatherRadarRefreshBtn');
+    const opsGlobeCanvas = el('opsGlobeCanvas');
+    const opsGlobeRoute = el('opsGlobeRoute');
+    const opsGlobeView = el('opsGlobeView');
+    const opsGlobeRotateBtn = el('opsGlobeRotateBtn');
+    const opsGlobeResetBtn = el('opsGlobeResetBtn');
     const ofpOpsFrame = el('ofpOpsFrame');
     const ofpEmptyState = el('ofpEmptyState');
     const createManualOfpBtn = el('createManualOfpBtn');
     const createManualOfpFromPlanBtn = el('createManualOfpFromPlanBtn');
+    const createPilotFlightBtn = el('createPilotFlightBtn');
+    const manualFlightDialog = el('manualFlightDialog');
+    const manualFlightForm = el('manualFlightForm');
+    const manualFlightDep = el('manualFlightDep');
+    const manualFlightArr = el('manualFlightArr');
+    const manualFlightDate = el('manualFlightDate');
+    const manualFlightTime = el('manualFlightTime');
+    const manualFlightRules = el('manualFlightRules');
+    const manualFlightEet = el('manualFlightEet');
+    const manualFlightTitle = el('manualFlightTitle');
+    const manualFlightRoute = el('manualFlightRoute');
+    const manualFlightNotes = el('manualFlightNotes');
+    const manualFlightFormStatus = el('manualFlightFormStatus');
+    const manualFlightCreateBtn = el('manualFlightCreateBtn');
+    const manualFlightOpenBtn = el('manualFlightOpenBtn');
     const toolWorkspaceKicker = el('toolWorkspaceKicker');
     const toolWorkspaceTitle = el('toolWorkspaceTitle');
     const toolFlightContext = el('toolFlightContext');
@@ -4079,6 +4147,22 @@ END OF MESSAGE</pre>
     let latestWeatherData = null;
     let weatherDataKey = '';
     let weatherAirportCatalog = [];
+    let weatherRadarMap = null;
+    let weatherRadarBaseLayer = null;
+    let weatherRadarLayer = null;
+    let weatherRadarRouteLayer = null;
+    let weatherRadarFrames = [];
+    let weatherRadarFrameIndex = -1;
+    let weatherRadarHost = '';
+    let weatherRadarPlaybackTimer = null;
+    let weatherRadarLoadedAt = 0;
+    let weatherRadarTileErrors = 0;
+    let weatherRadarTileLoads = 0;
+    let globeAutoRotate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let globeRotation = { lon:-18, lat:24 };
+    let globeDrag = null;
+    let globeAnimationFrame = 0;
+    let globeLastFrameAt = 0;
     let activeWorkspace = location.hash.replace('#', '') || storedOpsWorkspace() || 'dashboard';
     let pilotSession = null;
     let pilotCapabilities = {};
@@ -4272,7 +4356,9 @@ END OF MESSAGE</pre>
         const unavailableForManual = selected?.manualFlight && [approveBtn, needsInfoBtn, declineBtn, paymentStatus].includes(control);
         control.disabled = !canManage || unavailableForManual;
       });
-      [createManualOfpBtn, createManualOfpFromPlanBtn].filter(Boolean).forEach(control => { control.disabled = !canFly || !navigator.onLine; });
+      [createManualOfpBtn, createManualOfpFromPlanBtn, createPilotFlightBtn, manualFlightCreateBtn, manualFlightOpenBtn]
+        .filter(Boolean)
+        .forEach(control => { control.disabled = !canFly || !navigator.onLine; });
       [recordOutBtn, recordOffBtn, recordOnBtn, recordInBtn].filter(Boolean).forEach(control => { control.disabled = !canRecord || !selected || !navigator.onLine; });
       [saveAircraftStatusBtn, recordFluidLogBtn].filter(Boolean).forEach(control => { control.disabled = !canEditAircraft || !navigator.onLine; });
       [logbookNewEntryBtn, logbookImportFlightBtn, logbookSaveBtn, logbookConfirmBtn].filter(Boolean).forEach(control => { control.disabled = !canEditLogbook || !navigator.onLine; });
@@ -4642,7 +4728,7 @@ END OF MESSAGE</pre>
       networkStatus.className = `offline-indicator ${online ? 'online' : 'offline'}`;
       networkStatus.textContent = online ? 'ONLINE / SYNC READY' : 'OFFLINE / SAFE SNAPSHOT';
       if (!online) {
-        [createManualOfpBtn, createManualOfpFromPlanBtn, saveAircraftStatusBtn, recordFluidLogBtn, approveBtn, needsInfoBtn, declineBtn, saveCrewBtn, sendProposalBtn, deleteBtn, addTimelineNoteBtn]
+        [createManualOfpBtn, createManualOfpFromPlanBtn, createPilotFlightBtn, manualFlightCreateBtn, manualFlightOpenBtn, saveAircraftStatusBtn, recordFluidLogBtn, approveBtn, needsInfoBtn, declineBtn, saveCrewBtn, sendProposalBtn, deleteBtn, addTimelineNoteBtn]
           .filter(Boolean)
           .forEach(button => { button.disabled = true; });
       }
@@ -4785,6 +4871,7 @@ END OF MESSAGE</pre>
         step.classList.toggle('complete', heroPhaseIndex >= index);
         step.classList.toggle('active', heroPhaseIndex === index);
       });
+      updateOpsGlobeContext(req);
       renderFlightContextPanel(req);
     }
 
@@ -4905,6 +4992,7 @@ END OF MESSAGE</pre>
         weatherDataKey = '';
       }
       updateWeatherRouteLabel();
+      updateWeatherRadarRoute(false);
       el('suiteDocFlight').textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`}` : 'NO FLIGHT SELECTED';
       el('suiteDocOfp').textContent = req && releaseClientState(req).released ? 'RELEASED' : req?.operationalFlightPlan ? 'DRAFT SAVED' : 'NOT STARTED';
       el('suiteDocStatement').textContent = req?.reimbursementStatement ? 'SAVED' : 'NOT SAVED';
@@ -5027,6 +5115,313 @@ END OF MESSAGE</pre>
           .join('');
       } catch (_) {
         weatherAirportCatalog = [];
+      }
+      updateOpsGlobeContext();
+      updateWeatherRadarRoute(false);
+    }
+
+    function airportCoordinates(icao) {
+      const code = weatherIcao(icao);
+      const airport = weatherAirportCatalog.find(item => weatherIcao(item.icao) === code);
+      const lat = Number(airport?.lat);
+      const lon = Number(airport?.lon);
+      return Number.isFinite(lat) && Number.isFinite(lon) ? { icao:code, lat, lon } : null;
+    }
+
+    const OPS_GLOBE_LAND = [
+      [[-168,70],[-145,71],[-126,56],[-124,48],[-117,32],[-101,19],[-84,10],[-79,8],[-82,24],[-66,45],[-58,54],[-80,62],[-105,72],[-135,70],[-168,70]],
+      [[-81,12],[-70,9],[-57,2],[-50,-10],[-54,-25],[-67,-55],[-76,-45],[-78,-18],[-81,12]],
+      [[-73,82],[-20,83],[-12,70],[-26,59],[-48,60],[-60,72],[-73,82]],
+      [[-11,36],[-17,15],[-8,4],[10,-35],[33,-35],[51,-12],[43,12],[33,31],[14,37],[-11,36]],
+      [[-10,36],[5,44],[29,41],[41,55],[70,70],[110,72],[151,59],[178,51],[161,38],[130,32],[121,19],[105,2],[78,8],[56,25],[39,30],[24,39],[-10,36]],
+      [[112,-11],[153,-10],[154,-39],[130,-44],[114,-28],[112,-11]],
+      [[43,-12],[51,-15],[50,-26],[44,-25],[43,-12]],
+      [[-180,-66],[-120,-72],[-60,-70],[0,-75],[60,-70],[120,-73],[180,-66]]
+    ];
+
+    function projectGlobePoint(lon, lat, width, height) {
+      const rad = Math.PI / 180;
+      const lambda = (Number(lon) - globeRotation.lon) * rad;
+      const phi = Number(lat) * rad;
+      const phi0 = globeRotation.lat * rad;
+      const visibility = Math.sin(phi0) * Math.sin(phi) + Math.cos(phi0) * Math.cos(phi) * Math.cos(lambda);
+      const radius = Math.max(40, Math.min(width, height) * 0.42);
+      return {
+        visible:visibility >= -0.01,
+        x:width / 2 + radius * Math.cos(phi) * Math.sin(lambda),
+        y:height / 2 - radius * (Math.cos(phi0) * Math.sin(phi) - Math.sin(phi0) * Math.cos(phi) * Math.cos(lambda))
+      };
+    }
+
+    function drawGlobePath(context, points, width, height, close = false) {
+      let drawing = false;
+      context.beginPath();
+      points.forEach(([lon, lat]) => {
+        const projected = projectGlobePoint(lon, lat, width, height);
+        if (!projected.visible) {
+          drawing = false;
+          return;
+        }
+        if (!drawing) context.moveTo(projected.x, projected.y);
+        else context.lineTo(projected.x, projected.y);
+        drawing = true;
+      });
+      if (close && drawing) context.closePath();
+      context.stroke();
+    }
+
+    function opsGlobeRoutePoints() {
+      const departure = airportCoordinates(selected?.dep);
+      const arrival = airportCoordinates(selected?.arr);
+      if (!departure || !arrival) return [];
+      let lonDelta = arrival.lon - departure.lon;
+      if (lonDelta > 180) lonDelta -= 360;
+      if (lonDelta < -180) lonDelta += 360;
+      return Array.from({ length:41 }, (_, index) => {
+        const ratio = index / 40;
+        return [departure.lon + lonDelta * ratio, departure.lat + (arrival.lat - departure.lat) * ratio];
+      });
+    }
+
+    function drawOpsGlobe() {
+      if (!opsGlobeCanvas) return;
+      const bounds = opsGlobeCanvas.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const width = Math.max(320, Math.round(bounds.width || 640));
+      const height = Math.max(260, Math.round(bounds.height || 420));
+      if (opsGlobeCanvas.width !== Math.round(width * ratio) || opsGlobeCanvas.height !== Math.round(height * ratio)) {
+        opsGlobeCanvas.width = Math.round(width * ratio);
+        opsGlobeCanvas.height = Math.round(height * ratio);
+      }
+      const context = opsGlobeCanvas.getContext('2d');
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.clearRect(0, 0, width, height);
+      const radius = Math.max(40, Math.min(width, height) * 0.42);
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const gradient = context.createRadialGradient(centerX - radius * .35, centerY - radius * .35, radius * .1, centerX, centerY, radius);
+      gradient.addColorStop(0, '#245879');
+      gradient.addColorStop(.58, '#0b304c');
+      gradient.addColorStop(1, '#041421');
+      context.beginPath();
+      context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      context.fillStyle = gradient;
+      context.fill();
+      context.save();
+      context.beginPath();
+      context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      context.clip();
+      context.strokeStyle = 'rgba(124, 206, 235, .14)';
+      context.lineWidth = 1;
+      for (let lat = -60; lat <= 60; lat += 30) drawGlobePath(context, Array.from({ length:73 }, (_, i) => [-180 + i * 5, lat]), width, height);
+      for (let lon = -180; lon < 180; lon += 30) drawGlobePath(context, Array.from({ length:37 }, (_, i) => [lon, -90 + i * 5]), width, height);
+      context.strokeStyle = 'rgba(145, 198, 153, .78)';
+      context.fillStyle = 'rgba(67, 126, 89, .72)';
+      context.lineWidth = 1.3;
+      OPS_GLOBE_LAND.forEach(polygon => {
+        drawGlobePath(context, polygon, width, height, true);
+        const visible = polygon.map(point => projectGlobePoint(point[0], point[1], width, height)).filter(point => point.visible);
+        if (visible.length === polygon.length) {
+          context.beginPath();
+          visible.forEach((point, index) => index ? context.lineTo(point.x, point.y) : context.moveTo(point.x, point.y));
+          context.closePath();
+          context.fill();
+        }
+      });
+      const route = opsGlobeRoutePoints();
+      if (route.length) {
+        context.strokeStyle = '#ffcc55';
+        context.lineWidth = 3;
+        context.shadowColor = 'rgba(255, 204, 85, .7)';
+        context.shadowBlur = 8;
+        drawGlobePath(context, route, width, height);
+        context.shadowBlur = 0;
+        [route[0], route[route.length - 1]].forEach((point, index) => {
+          const projected = projectGlobePoint(point[0], point[1], width, height);
+          if (!projected.visible) return;
+          context.beginPath();
+          context.arc(projected.x, projected.y, index ? 5 : 4, 0, Math.PI * 2);
+          context.fillStyle = index ? '#55e59d' : '#ffffff';
+          context.fill();
+        });
+      }
+      context.restore();
+      context.beginPath();
+      context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      context.strokeStyle = 'rgba(142, 220, 244, .48)';
+      context.lineWidth = 2;
+      context.stroke();
+    }
+
+    function updateOpsGlobeContext(req = selected, options = {}) {
+      if (!opsGlobeRoute) return;
+      const recenter = options.recenter !== false;
+      const departure = airportCoordinates(req?.dep);
+      const arrival = airportCoordinates(req?.arr);
+      opsGlobeRoute.textContent = req ? `${req.dep || 'DEP'} → ${req.arr || 'ARR'} / ${req.id || 'PILOT FLIGHT'}` : 'NO FLIGHT SELECTED';
+      if (departure && arrival && recenter) {
+        globeRotation.lon = (departure.lon + arrival.lon) / 2;
+        globeRotation.lat = Math.max(-45, Math.min(65, (departure.lat + arrival.lat) / 2));
+      }
+      if (options.viewLabel) {
+        opsGlobeView.textContent = options.viewLabel;
+      } else if (departure && arrival && recenter) {
+        opsGlobeView.textContent = globeAutoRotate ? 'AUTO ROTATE / ROUTE CENTERED' : 'MANUAL / ROUTE CENTERED';
+      } else {
+        opsGlobeView.textContent = globeAutoRotate ? 'AUTO ROTATE / GLOBAL' : 'MANUAL / GLOBAL';
+      }
+      drawOpsGlobe();
+    }
+
+    function animateOpsGlobe(timestamp) {
+      globeAnimationFrame = 0;
+      if (activeWorkspace !== 'dashboard' || document.hidden) return;
+      if (globeAutoRotate && !globeDrag && (!globeLastFrameAt || timestamp - globeLastFrameAt > 30)) {
+        globeRotation.lon = ((globeRotation.lon + .07 + 540) % 360) - 180;
+        globeLastFrameAt = timestamp;
+        drawOpsGlobe();
+      }
+      globeAnimationFrame = window.requestAnimationFrame(animateOpsGlobe);
+    }
+
+    function syncOpsGlobeAnimation() {
+      const shouldAnimate = activeWorkspace === 'dashboard' && !document.hidden;
+      if (!shouldAnimate && globeAnimationFrame) {
+        window.cancelAnimationFrame(globeAnimationFrame);
+        globeAnimationFrame = 0;
+      } else if (shouldAnimate && !globeAnimationFrame) {
+        globeAnimationFrame = window.requestAnimationFrame(animateOpsGlobe);
+      }
+    }
+
+    function ensureWeatherRadarMap() {
+      if (weatherRadarMap) return true;
+      if (!window.L || !weatherRadarMapElement) {
+        weatherRadarUnavailable.hidden = false;
+        weatherRadarUnavailable.textContent = 'The interactive radar map could not start. METAR and TAF briefing remain available below.';
+        return false;
+      }
+      const coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+      weatherRadarMap = L.map(weatherRadarMapElement, {
+        zoomControl:true,
+        attributionControl:true,
+        scrollWheelZoom:false,
+        dragging:!coarsePointer,
+        touchZoom:!coarsePointer,
+        tap:!coarsePointer,
+        minZoom:2,
+        maxZoom:12,
+        worldCopyJump:true
+      }).setView([61.5, 25.5], 5);
+      weatherRadarBaseLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom:19,
+        attribution:'&copy; OpenStreetMap contributors',
+        crossOrigin:true
+      }).addTo(weatherRadarMap);
+      weatherRadarBaseLayer.on('tileerror', () => { weatherRadarMapElement.dataset.baseMap = 'limited'; });
+      window.setTimeout(() => weatherRadarMap?.invalidateSize(false), 100);
+      return true;
+    }
+
+    function updateWeatherRadarRoute(fit = false) {
+      if (!ensureWeatherRadarMap()) return;
+      if (weatherRadarRouteLayer) weatherRadarMap.removeLayer(weatherRadarRouteLayer);
+      weatherRadarRouteLayer = L.layerGroup().addTo(weatherRadarMap);
+      const departure = airportCoordinates(weatherDep.value || selected?.dep);
+      const arrival = airportCoordinates(weatherArr.value || selected?.arr);
+      if (!departure || !arrival) return;
+      const route = [[departure.lat, departure.lon], [arrival.lat, arrival.lon]];
+      L.polyline(route, { color:'#ffcc55', weight:3, opacity:.95, dashArray:'8 7' }).addTo(weatherRadarRouteLayer);
+      [departure, arrival].forEach((airport, index) => {
+        L.circleMarker([airport.lat, airport.lon], {
+          radius:6, color:'#ffffff', weight:2, fillColor:index ? '#33d47f' : '#1a7dd6', fillOpacity:1
+        }).bindTooltip(airport.icao, { permanent:true, direction:'top', offset:[0, -6] }).addTo(weatherRadarRouteLayer);
+      });
+      if (fit) weatherRadarMap.fitBounds(L.latLngBounds(route).pad(.45), { maxZoom:7, animate:true });
+    }
+
+    function setWeatherRadarPlayback(playing) {
+      if (weatherRadarPlaybackTimer) window.clearInterval(weatherRadarPlaybackTimer);
+      weatherRadarPlaybackTimer = null;
+      weatherRadarPlayBtn.setAttribute('aria-pressed', String(Boolean(playing)));
+      weatherRadarPlayBtn.textContent = playing ? 'Pause' : 'Play';
+      if (playing && weatherRadarFrames.length > 1) {
+        weatherRadarPlaybackTimer = window.setInterval(() => {
+          applyWeatherRadarFrame((weatherRadarFrameIndex + 1) % weatherRadarFrames.length);
+        }, 750);
+      }
+    }
+
+    function applyWeatherRadarFrame(index) {
+      if (!ensureWeatherRadarMap() || !weatherRadarFrames.length || !weatherRadarHost) return;
+      weatherRadarFrameIndex = Math.max(0, Math.min(weatherRadarFrames.length - 1, Number(index) || 0));
+      const frame = weatherRadarFrames[weatherRadarFrameIndex];
+      if (weatherRadarLayer) weatherRadarMap.removeLayer(weatherRadarLayer);
+      weatherRadarTileErrors = 0;
+      weatherRadarTileLoads = 0;
+      const radarLayer = L.tileLayer(`${weatherRadarHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`, {
+        tileSize:256,
+        opacity:.72,
+        zIndex:350,
+        maxNativeZoom:7,
+        maxZoom:12,
+        crossOrigin:true,
+        attribution:'Radar &copy; <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a>'
+      });
+      weatherRadarLayer = radarLayer.addTo(weatherRadarMap);
+      weatherRadarTimeline.max = String(Math.max(0, weatherRadarFrames.length - 1));
+      weatherRadarTimeline.value = String(weatherRadarFrameIndex);
+      const frameTime = new Date(frame.time * 1000).toLocaleString('en-GB', {
+        timeZone:'UTC', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', hour12:false
+      });
+      const frameLabel = `${frame.kind === 'nowcast' ? 'NOWCAST' : 'OBSERVED'} / ${frameTime} UTC`;
+      weatherRadarTime.textContent = frameLabel;
+      radarLayer.on('tileerror', () => {
+        if (weatherRadarLayer !== radarLayer) return;
+        weatherRadarTileErrors += 1;
+        if (weatherRadarTileErrors >= 4 && weatherRadarTileLoads === 0) {
+          weatherRadarMapElement.dataset.radarState = 'limited';
+          weatherRadarTime.textContent = 'RADAR TILES LIMITED / RETRY';
+        }
+      });
+      radarLayer.on('tileload', () => {
+        if (weatherRadarLayer !== radarLayer) return;
+        weatherRadarTileLoads += 1;
+        weatherRadarTileErrors = 0;
+        delete weatherRadarMapElement.dataset.radarState;
+        weatherRadarTime.textContent = frameLabel;
+      });
+    }
+
+    async function loadWeatherRadar(force = false) {
+      if (!ensureWeatherRadarMap()) return;
+      window.setTimeout(() => weatherRadarMap?.invalidateSize(false), 60);
+      if (!force && weatherRadarFrames.length && Date.now() - weatherRadarLoadedAt < 3 * 60 * 1000) {
+        updateWeatherRadarRoute(false);
+        return;
+      }
+      setWeatherRadarPlayback(false);
+      weatherRadarRefreshBtn.disabled = true;
+      weatherRadarTime.textContent = 'LOADING RADAR…';
+      weatherRadarUnavailable.hidden = true;
+      try {
+        const response = await fetch('/api/booking-ops/weather-radar', { cache:'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'LIVE RADAR UNAVAILABLE');
+        weatherRadarHost = String(data.host || '');
+        weatherRadarFrames = Array.isArray(data.frames) ? data.frames.filter(frame => frame.path && frame.time) : [];
+        if (!weatherRadarFrames.length || !/^https:\/\/tilecache\.rainviewer\.com$/i.test(weatherRadarHost)) throw new Error('NO RADAR FRAMES AVAILABLE');
+        weatherRadarLoadedAt = Date.now();
+        const latestObserved = weatherRadarFrames.reduce((last, frame, index) => frame.kind === 'observed' ? index : last, weatherRadarFrames.length - 1);
+        applyWeatherRadarFrame(latestObserved);
+        updateWeatherRadarRoute(true);
+      } catch (error) {
+        weatherRadarFrames = [];
+        weatherRadarTime.textContent = 'RADAR UNAVAILABLE';
+        weatherRadarUnavailable.textContent = `${error.message || 'Live radar is temporarily unavailable'}. METAR and TAF briefing remain available below.`;
+        weatherRadarUnavailable.hidden = false;
+      } finally {
+        weatherRadarRefreshBtn.disabled = false;
       }
     }
 
@@ -5272,25 +5667,66 @@ END OF MESSAGE</pre>
       el('perfArrRunwayHint').textContent = arrivalRunways.length ? 'Runway data loaded / live wind guidance pending.' : 'No runway data available for this airport.';
     }
 
-    async function createManualFlightPlan() {
-      if (!window.confirm('Create a new empty operational flight plan? It will be a pilot-only file and will not notify passengers.')) return;
-      [createManualOfpBtn, createManualOfpFromPlanBtn].forEach(button => { if (button) button.disabled = true; });
-      mode.textContent = 'MODE: CREATING PILOT-ONLY OFP';
+    function manualFlightHelsinkiNow() {
+      const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+        timeZone:'Europe/Helsinki', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false
+      }).formatToParts(new Date()).filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+      return { date:`${parts.year}-${parts.month}-${parts.day}`, time:`${parts.hour === '24' ? '00' : parts.hour}:${parts.minute}` };
+    }
+
+    function openManualFlightComposer() {
+      const now = manualFlightHelsinkiNow();
+      manualFlightForm.reset();
+      manualFlightDate.value = now.date;
+      manualFlightTime.value = now.time;
+      manualFlightRules.value = selected?.flightRules === 'IFR' ? 'IFR' : 'VFR';
+      manualFlightDep.value = weatherIcao(selected?.dep || weatherDep.value);
+      manualFlightArr.value = weatherIcao(selected?.arr || weatherArr.value);
+      manualFlightFormStatus.textContent = 'Ready to create a pilot-only flight.';
+      manualFlightFormStatus.dataset.tone = '';
+      if (typeof manualFlightDialog.showModal === 'function') manualFlightDialog.showModal();
+      else manualFlightDialog.setAttribute('open', '');
+      window.requestAnimationFrame(() => (manualFlightDep.value ? manualFlightArr : manualFlightDep).focus());
+    }
+
+    function closeManualFlightComposer() {
+      if (typeof manualFlightDialog.close === 'function') manualFlightDialog.close();
+      else manualFlightDialog.removeAttribute('open');
+    }
+
+    async function createManualFlightPlan(payload, openOfp = true) {
+      const controls = [createManualOfpBtn, createManualOfpFromPlanBtn, createPilotFlightBtn, manualFlightCreateBtn, manualFlightOpenBtn].filter(Boolean);
+      controls.forEach(button => { button.disabled = true; });
+      manualFlightFormStatus.textContent = 'Creating the flight file and initial OFP…';
+      manualFlightFormStatus.dataset.tone = 'working';
+      mode.textContent = 'MODE: CREATING PILOT FLIGHT';
       try {
-        const response = await fetch('/api/booking-ops/manual-flight', { method:'POST' });
+        const response = await fetch('/api/booking-ops/manual-flight', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body:JSON.stringify(payload)
+        });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error || 'UNABLE TO CREATE MANUAL OFP');
+        if (!response.ok) throw new Error(data.error || 'UNABLE TO CREATE PILOT FLIGHT');
         requests = [data.request, ...requests.filter(item => item.id !== data.request.id)];
+        renderCrewFilterOptions();
         renderOpsTotals();
         renderCalendar();
         selectRequest(data.request);
         ofpOpsFrame.dataset.context = '';
-        mode.textContent = `MODE: MANUAL OFP ${data.request.id} READY`;
-        switchOpsWorkspace('flight-plan');
+        manualFlightFormStatus.textContent = `${data.request.id} created and added to Flights.`;
+        manualFlightFormStatus.dataset.tone = 'ready';
+        mode.textContent = `MODE: PILOT FLIGHT ${data.request.id} READY`;
+        closeManualFlightComposer();
+        switchOpsWorkspace(openOfp ? 'flight-plan' : 'flights');
       } catch (error) {
-        mode.textContent = `MODE: ${error.message || 'UNABLE TO CREATE MANUAL OFP'}`;
+        const message = error.message || 'UNABLE TO CREATE PILOT FLIGHT';
+        manualFlightFormStatus.textContent = message;
+        manualFlightFormStatus.dataset.tone = 'error';
+        mode.textContent = `MODE: ${message}`;
       } finally {
-        [createManualOfpBtn, createManualOfpFromPlanBtn].forEach(button => { if (button) button.disabled = false; });
+        controls.forEach(button => { button.disabled = false; });
+        enforceCapabilityControls();
       }
     }
 
@@ -5336,7 +5772,9 @@ END OF MESSAGE</pre>
     function switchOpsWorkspace(view) {
       const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'aircraft', 'logbook', 'documents']);
       if (!allowedViews.has(view)) view = 'dashboard';
+      if (view !== 'weather') setWeatherRadarPlayback(false);
       activeWorkspace = view;
+      syncOpsGlobeAnimation();
       rememberOpsWorkspace(view);
       suiteTabs.forEach(button => {
         const isActive = button.dataset.suiteView === view;
@@ -5356,6 +5794,7 @@ END OF MESSAGE</pre>
       aircraftOpsPane.hidden = view !== 'aircraft';
       logbookOpsPane.hidden = view !== 'logbook';
       documentsOpsPane.hidden = view !== 'documents';
+      if (dashboardActive) window.requestAnimationFrame(drawOpsGlobe);
       flightTaskDock.querySelectorAll('[data-flight-dock-view]').forEach(button => {
         button.classList.toggle('active', button.dataset.flightDockView === view);
       });
@@ -5379,6 +5818,7 @@ END OF MESSAGE</pre>
       } else if (view === 'weather') {
         toolWorkspaceKicker.textContent = '04 / Preflight dispatch';
         toolWorkspaceTitle.textContent = 'Weather Dispatch';
+        loadWeatherRadar(false).catch(() => {});
       } else if (view === 'performance') {
         toolWorkspaceKicker.textContent = '05 / Performance';
         toolWorkspaceTitle.textContent = 'Aircraft Performance';
@@ -7895,8 +8335,40 @@ END OF MESSAGE</pre>
       renderCommandResults('');
       openShellDialog(commandDialog, commandInput);
     });
-    createManualOfpBtn.addEventListener('click', createManualFlightPlan);
-    createManualOfpFromPlanBtn.addEventListener('click', createManualFlightPlan);
+    [createManualOfpBtn, createManualOfpFromPlanBtn, createPilotFlightBtn].filter(Boolean).forEach(button => {
+      button.addEventListener('click', openManualFlightComposer);
+    });
+    manualFlightForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const dep = weatherIcao(manualFlightDep.value);
+      const arr = weatherIcao(manualFlightArr.value);
+      manualFlightDep.value = dep;
+      manualFlightArr.value = arr;
+      if (!/^[A-Z]{4}$/.test(dep) || !/^[A-Z]{4}$/.test(arr)) {
+        manualFlightFormStatus.textContent = 'Enter valid four-letter ICAO codes for departure and destination.';
+        manualFlightFormStatus.dataset.tone = 'error';
+        (dep.length !== 4 ? manualFlightDep : manualFlightArr).focus();
+        return;
+      }
+      createManualFlightPlan({
+        dep,
+        arr,
+        requestDate:manualFlightDate.value,
+        requestTime:manualFlightTime.value,
+        flightRules:manualFlightRules.value,
+        estimatedFlightMinutes:manualFlightEet.value,
+        title:manualFlightTitle.value.trim(),
+        route:manualFlightRoute.value.trim(),
+        notes:manualFlightNotes.value.trim()
+      }, event.submitter?.value === 'open').catch(() => {});
+    });
+    [manualFlightDep, manualFlightArr].forEach(input => input.addEventListener('input', () => {
+      input.value = weatherIcao(input.value);
+    }));
+    document.querySelectorAll('[data-close-manual-flight]').forEach(button => button.addEventListener('click', closeManualFlightComposer));
+    manualFlightDialog.addEventListener('click', event => {
+      if (event.target === manualFlightDialog) closeManualFlightComposer();
+    });
     refreshWeatherBtn.addEventListener('click', () => loadWeatherWorkspace(true).catch(() => {}));
     openWeatherPdfBtn.addEventListener('click', openWeatherPdf);
     [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('input', () => {
@@ -7904,6 +8376,7 @@ END OF MESSAGE</pre>
       latestWeatherData = null;
       weatherDataKey = '';
       updateWeatherRouteLabel();
+      updateWeatherRadarRoute(false);
     }));
     [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('change', () => loadWeatherWorkspace(true).catch(() => {})));
     [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('keydown', event => {
@@ -7917,6 +8390,70 @@ END OF MESSAGE</pre>
       weatherDataKey = '';
       loadWeatherWorkspace(true).catch(() => {});
     }));
+    weatherRadarBackBtn.addEventListener('click', () => applyWeatherRadarFrame(weatherRadarFrameIndex - 1));
+    weatherRadarNextBtn.addEventListener('click', () => applyWeatherRadarFrame(weatherRadarFrameIndex + 1));
+    weatherRadarPlayBtn.addEventListener('click', () => setWeatherRadarPlayback(weatherRadarPlayBtn.getAttribute('aria-pressed') !== 'true'));
+    weatherRadarTimeline.addEventListener('input', () => {
+      setWeatherRadarPlayback(false);
+      applyWeatherRadarFrame(Number(weatherRadarTimeline.value));
+    });
+    weatherRadarRouteBtn.addEventListener('click', () => updateWeatherRadarRoute(true));
+    weatherRadarRefreshBtn.addEventListener('click', () => loadWeatherRadar(true).catch(() => {}));
+    opsGlobeRotateBtn.addEventListener('click', () => {
+      globeAutoRotate = !globeAutoRotate;
+      opsGlobeRotateBtn.setAttribute('aria-pressed', String(globeAutoRotate));
+      opsGlobeRotateBtn.textContent = globeAutoRotate ? 'Pause rotation' : 'Resume rotation';
+      updateOpsGlobeContext(selected, {
+        recenter:false,
+        viewLabel:globeAutoRotate ? 'AUTO ROTATE / CURRENT VIEW' : 'MANUAL / CURRENT VIEW'
+      });
+    });
+    opsGlobeResetBtn.addEventListener('click', () => {
+      globeRotation = { lon:-18, lat:24 };
+      updateOpsGlobeContext(selected, {
+        recenter:false,
+        viewLabel:globeAutoRotate ? 'AUTO ROTATE / GLOBAL' : 'MANUAL / GLOBAL'
+      });
+    });
+    opsGlobeCanvas.addEventListener('pointerdown', event => {
+      globeDrag = { pointerId:event.pointerId, x:event.clientX, y:event.clientY, lon:globeRotation.lon, lat:globeRotation.lat };
+      opsGlobeCanvas.setPointerCapture(event.pointerId);
+      opsGlobeView.textContent = 'MANUAL / DRAG TO ROTATE';
+    });
+    opsGlobeCanvas.addEventListener('pointermove', event => {
+      if (!globeDrag || event.pointerId !== globeDrag.pointerId) return;
+      globeRotation.lon = globeDrag.lon - (event.clientX - globeDrag.x) * .35;
+      if (event.pointerType !== 'touch') globeRotation.lat = Math.max(-75, Math.min(75, globeDrag.lat + (event.clientY - globeDrag.y) * .25));
+      drawOpsGlobe();
+    });
+    const stopGlobeDrag = event => {
+      if (!globeDrag || (event.pointerId !== undefined && event.pointerId !== globeDrag.pointerId)) return;
+      globeDrag = null;
+      opsGlobeView.textContent = globeAutoRotate ? 'AUTO ROTATE / GLOBAL' : 'MANUAL / GLOBAL';
+    };
+    opsGlobeCanvas.addEventListener('pointerup', stopGlobeDrag);
+    opsGlobeCanvas.addEventListener('pointercancel', stopGlobeDrag);
+    opsGlobeCanvas.addEventListener('keydown', event => {
+      const movement = event.shiftKey ? 18 : 8;
+      if (event.key === 'ArrowLeft') globeRotation.lon -= movement;
+      else if (event.key === 'ArrowRight') globeRotation.lon += movement;
+      else if (event.key === 'ArrowUp') globeRotation.lat = Math.min(75, globeRotation.lat + movement);
+      else if (event.key === 'ArrowDown') globeRotation.lat = Math.max(-75, globeRotation.lat - movement);
+      else if (event.key === ' ' || event.key === 'Spacebar') {
+        globeAutoRotate = !globeAutoRotate;
+        opsGlobeRotateBtn.setAttribute('aria-pressed', String(globeAutoRotate));
+        opsGlobeRotateBtn.textContent = globeAutoRotate ? 'Pause rotation' : 'Resume rotation';
+      } else return;
+      event.preventDefault();
+      opsGlobeView.textContent = globeAutoRotate ? 'AUTO ROTATE / KEYBOARD VIEW' : 'MANUAL / KEYBOARD VIEW';
+      drawOpsGlobe();
+    });
+    if ('ResizeObserver' in window) new ResizeObserver(drawOpsGlobe).observe(opsGlobeCanvas);
+    else window.addEventListener('resize', drawOpsGlobe, { passive:true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) setWeatherRadarPlayback(false);
+      syncOpsGlobeAnimation();
+    });
     new MutationObserver(syncPerformanceStatusTone).observe(performanceStatus, { childList:true, characterData:true, subtree:true });
     syncPerformanceStatusTone();
     performanceStageTabs.forEach((button, index) => {
@@ -8037,9 +8574,20 @@ END OF MESSAGE</pre>
     applyPerformanceToOfpBtn.addEventListener('click', () => applyPerformanceToOfp().catch(error => { performanceStatus.textContent = error.message; }));
     openPerformanceOfpBtn.addEventListener('click', () => switchOpsWorkspace('flight-plan'));
     window.addEventListener('message', async event => {
-      if (event.origin !== location.origin || event.data?.type !== 'nga-ofp-saved' || event.data.requestId !== selected?.id) return;
-      const refreshed = await refreshSelectedRequest();
-      if (refreshed) replaceRequest(refreshed);
+      if (event.origin !== location.origin || event.source !== ofpOpsFrame.contentWindow) return;
+      if (event.data?.type === 'nga-open-workspace') {
+        const view = String(event.data.view || 'dashboard');
+        if (['dashboard', 'flights', 'weather', 'performance', 'aircraft', 'logbook', 'documents'].includes(view)) switchOpsWorkspace(view);
+        return;
+      }
+      if (event.data?.type === 'nga-open-ofp-pdf' && event.data.requestId === selected?.id) {
+        window.open(`/api/booking-ops/requests/${encodeURIComponent(selected.id)}/operational-flight-plan/pdf`, '_blank', 'noopener');
+        return;
+      }
+      if (event.data?.type === 'nga-ofp-saved' && event.data.requestId === selected?.id) {
+        const refreshed = await refreshSelectedRequest();
+        if (refreshed) replaceRequest(refreshed);
+      }
     });
     suiteOpenOfpBtn.addEventListener('click', () => openOfpBtn.click());
     suiteOpenOfpPdfBtn.addEventListener('click', () => {
@@ -8389,6 +8937,10 @@ END OF MESSAGE</pre>
     renderActiveFlightStrip();
     renderReleasePanel();
     updateNetworkState();
+    opsGlobeRotateBtn.setAttribute('aria-pressed', String(globeAutoRotate));
+    opsGlobeRotateBtn.textContent = globeAutoRotate ? 'Pause rotation' : 'Resume rotation';
+    drawOpsGlobe();
+    syncOpsGlobeAnimation();
     const savedSnapshot = readOperationalSnapshot();
     if (savedSnapshot?.cachedAt) offlineSnapshotState.textContent = `LATEST SAFE SNAPSHOT / ${savedSnapshot.id} / ${new Date(savedSnapshot.cachedAt).toLocaleString('en-GB', { hour12:false })}`;
     if ('serviceWorker' in navigator) {

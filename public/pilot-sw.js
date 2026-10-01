@@ -1,17 +1,25 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-10-v19';
-const PILOT_STYLESHEET_VERSION = '2026-10-01-1';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-10-v20';
+const PILOT_STYLESHEET_VERSION = '2026-10-01-2';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-tools-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-secondary-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-ofp-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
-  `/pilot-logbook.css?v=${PILOT_STYLESHEET_VERSION}`
+  `/pilot-logbook.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-rebuild.css?v=${PILOT_STYLESHEET_VERSION}`
 ];
 const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
   '/pilot-manifest.webmanifest',
   ...PILOT_EFB_STYLESHEETS,
+  '/vendor/leaflet/leaflet.css',
+  '/vendor/leaflet/leaflet.js',
+  '/vendor/leaflet/images/layers.png',
+  '/vendor/leaflet/images/layers-2x.png',
+  '/vendor/leaflet/images/marker-icon.png',
+  '/vendor/leaflet/images/marker-icon-2x.png',
+  '/vendor/leaflet/images/marker-shadow.png',
   '/icon-192.png',
   '/icon-512.png',
   '/piper-render-transparent.png',

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#edf3f6" />
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
-  <title>Operational Flight Plan</title>
+  <title>OFP Builder | NGA Pilot EFB</title>
   <script>
     (() => {
       const themeKey = 'nga-efb-theme';
@@ -1903,15 +1903,16 @@
       .movement-grid { grid-template-columns:1fr; }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-01-1" />
-  <link rel="stylesheet" href="/pilot-ofp-reference.css?v=2026-10-01-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-01-2" />
+  <link rel="stylesheet" href="/pilot-ofp-reference.css?v=2026-10-01-2" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-01-2" />
 </head>
 <body>
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
     <header class="topbar ofp-app-header">
       <div class="topbar-title ofp-header-context">
         <span class="ofp-brand-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span>
-        <div><div class="eyebrow">NGA Pilot EFB</div><h1>Flight plan</h1><div class="sub">Plan, brief, release, and record the flight in one controlled workspace.</div></div>
+        <div><div class="eyebrow">NGA Pilot EFB</div><h1>OFP Builder</h1><div class="sub">Build, validate, release, and record the flight in one clean pilot workflow.</div></div>
       </div>
       <div class="top-actions ofp-header-actions">
         <div class="ofp-header-nav-actions"><button id="backBtn" class="btn" type="button" aria-label="Return to Pilot Operations">Pilot Ops</button><button id="weatherBtn" class="btn" type="button">Weather</button><button id="efbThemeToggleOFP" class="btn efb-theme-toggle" type="button" aria-label="Switch to night mode" aria-pressed="false" title="Switch to night mode"><span class="efb-theme-icon" aria-hidden="true"><svg class="efb-theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg><svg class="efb-theme-icon-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></span></button></div>
@@ -2365,6 +2366,7 @@
     let routeLegs = [];
     let inspectorMode = 'SUMMARY';
     let previewLoadToken = 0;
+    let previewLoadTimeout = 0;
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
     const workspaceSections = {
       SETUP:['flightSetupSection'],
@@ -2522,35 +2524,71 @@
       return `/api/booking-ops/requests/${encodeURIComponent(requestId)}/operational-flight-plan/pdf${suffix}`;
     }
 
+    function setPdfPreviewBusy(busy) {
+      ['refreshPdfPreviewBtn', 'previewBtn', 'generateOfpBtn', 'dockPreviewBtn'].forEach(id => {
+        const button = el(id);
+        if (button) button.disabled = busy;
+      });
+    }
+
     async function refreshPdfPreview() {
       setInspector('PDF');
       const token = ++previewLoadToken;
-      el('refreshPdfPreviewBtn').disabled = true;
-      el('previewBtn').disabled = true;
+      if (previewLoadTimeout) window.clearTimeout(previewLoadTimeout);
+      previewLoadTimeout = 0;
+      setPdfPreviewBusy(true);
       el('pdfPreviewState').textContent = 'Saving the current draft and regenerating the approved PDF...';
       try {
         await save();
+        if (token !== previewLoadToken) return;
         const frame = el('pdfPreviewFrame');
-        frame.onload = () => {
-          if (token !== previewLoadToken) return;
-          el('pdfPreviewState').textContent = `Current PDF / regenerated ${new Date().toLocaleTimeString('en-GB', { hour12:false })}`;
-          el('refreshPdfPreviewBtn').disabled = false;
-          el('previewBtn').disabled = false;
+        let settled = false;
+        const finishPreviewLoad = (message, failed = false) => {
+          if (settled || token !== previewLoadToken) return;
+          settled = true;
+          if (previewLoadTimeout) window.clearTimeout(previewLoadTimeout);
+          previewLoadTimeout = 0;
+          el('pdfPreviewState').textContent = message;
+          if (failed) setSaveState('failed', message);
+          setPdfPreviewBusy(false);
         };
+        frame.onload = () => finishPreviewLoad(`Current PDF / regenerated ${new Date().toLocaleTimeString('en-GB', { hour12:false })}`);
+        frame.onerror = () => finishPreviewLoad('The OFP PDF preview could not be loaded. Retry or open the PDF directly.', true);
+        previewLoadTimeout = window.setTimeout(() => {
+          finishPreviewLoad('The OFP PDF preview is taking longer than expected. Controls restored; retry or open the PDF directly.');
+        }, 20000);
         frame.src = `${ofpPdfUrl(Date.now())}#toolbar=0&navpanes=0&view=FitH`;
       } catch (error) {
+        if (token !== previewLoadToken) return;
+        if (previewLoadTimeout) window.clearTimeout(previewLoadTimeout);
+        previewLoadTimeout = 0;
         el('pdfPreviewState').textContent = error.message || 'Unable to regenerate the OFP preview.';
-        el('refreshPdfPreviewBtn').disabled = false;
-        el('previewBtn').disabled = false;
         setSaveState('failed', error.message || 'Unable to regenerate the OFP preview.');
+        setPdfPreviewBusy(false);
       }
     }
 
     async function openCurrentPdf() {
+      const popup = window.open('', '_blank');
       try {
         await save();
-        window.open(ofpPdfUrl(), '_blank', 'noopener');
+        if (popup) {
+          popup.opener = null;
+          popup.location.replace(ofpPdfUrl());
+        } else {
+          const pdfUrl = ofpPdfUrl();
+          if (embedded && window.top !== window) {
+            try {
+              window.top.location.assign(pdfUrl);
+            } catch (_) {
+              window.location.assign(pdfUrl);
+            }
+          } else {
+            window.location.assign(pdfUrl);
+          }
+        }
       } catch (error) {
+        if (popup && !popup.closed) popup.close();
         setSaveState('failed', error.message || 'Unable to open the OFP PDF.');
       }
     }
@@ -3924,6 +3962,13 @@
       render();
     });
     const saveDraft = () => save().catch(error => setSaveState('failed', error.message || 'Unable to save OFP.'));
+    function openPilotWorkspace(view) {
+      if (embedded && window.parent !== window) {
+        window.parent.postMessage({ type:'nga-open-workspace', view }, location.origin);
+        return;
+      }
+      window.top.location.href = view === 'dashboard' ? '/booking-ops' : `/booking-ops#${view}`;
+    }
     el('saveBtn').addEventListener('click', saveDraft);
     el('previewBtn').addEventListener('click', refreshPdfPreview);
     el('generateOfpBtn').addEventListener('click', refreshPdfPreview);
@@ -3943,10 +3988,10 @@
       const nextTheme = document.documentElement.dataset.efbTheme === 'night' ? 'day' : 'night';
       window.applyOFPTheme(nextTheme, true);
     });
-    el('backBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops'; });
-    el('weatherBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
-    el('openWeatherWorkspaceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#weather'; });
-    el('openPerformanceWorkspaceBtn').addEventListener('click', () => { window.top.location.href = '/booking-ops#performance'; });
+    el('backBtn').addEventListener('click', () => openPilotWorkspace('dashboard'));
+    el('weatherBtn').addEventListener('click', () => openPilotWorkspace('weather'));
+    el('openWeatherWorkspaceBtn').addEventListener('click', () => openPilotWorkspace('weather'));
+    el('openPerformanceWorkspaceBtn').addEventListener('click', () => openPilotWorkspace('performance'));
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && compactInspectorMedia.matches && el('ofpInspector').dataset.collapsed !== 'true') {
         setInspectorCollapsed(true);
