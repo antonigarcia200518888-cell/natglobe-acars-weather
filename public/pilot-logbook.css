@@ -43,9 +43,7 @@
   padding: 22px 24px;
   overflow: hidden;
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 78% 34%, color-mix(in srgb, var(--app-mint) 28%, transparent), transparent 19rem),
-    linear-gradient(132deg, color-mix(in srgb, var(--app-card-solid) 95%, transparent), color-mix(in srgb, var(--app-cyan) 28%, var(--app-card-solid)));
+  background: color-mix(in srgb, var(--app-card-solid) 94%, var(--efb-blue-soft));
 }
 
 .logbook-hero::after {
@@ -56,7 +54,7 @@
   right: 9%;
   width: 320px;
   height: 320px;
-  border: 1px solid color-mix(in srgb, var(--app-mint) 34%, transparent);
+  border: 1px solid color-mix(in srgb, var(--app-blue) 22%, transparent);
   border-radius: 50%;
   opacity: .54;
 }
@@ -165,8 +163,8 @@
 }
 
 .logbook-summary-card.primary {
-  border-color: color-mix(in srgb, var(--app-mint) 42%, var(--app-line));
-  background: linear-gradient(135deg, color-mix(in srgb, var(--app-mint) 24%, var(--app-card-solid)), var(--app-card-solid));
+  border-color: color-mix(in srgb, var(--app-blue) 28%, var(--app-line));
+  background: color-mix(in srgb, var(--efb-blue-soft) 76%, var(--app-card-solid));
 }
 
 .logbook-summary-card span,
@@ -729,7 +727,7 @@
   padding: 10px;
   border: 1px solid var(--app-line);
   border-radius: 11px;
-  background: color-mix(in srgb, var(--app-mint) 9%, var(--app-card-solid));
+  background: color-mix(in srgb, var(--efb-blue-soft) 62%, var(--app-card-solid));
 }
 
 .logbook-derived-times span,
@@ -1153,11 +1151,8 @@
 .logbook-hero {
   min-height: 172px;
   border-radius: 24px;
-  background-image:
-    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--efb-blue-soft) 82%, transparent), transparent 20rem),
-    linear-gradient(132deg,
-      color-mix(in srgb, var(--app-card-solid) 96%, transparent),
-      color-mix(in srgb, var(--app-cyan) 18%, var(--app-card-solid)));
+  background-color: color-mix(in srgb, var(--app-card-solid) 94%, var(--efb-blue-soft));
+  background-image: none;
 }
 
 .logbook-hero::after {
@@ -1202,9 +1197,7 @@
 
 .logbook-summary-card.primary {
   border-color: color-mix(in srgb, var(--app-blue) 26%, var(--logbook-hairline));
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--efb-blue-soft) 82%, var(--app-card-solid)),
-    var(--app-card-solid));
+  background: color-mix(in srgb, var(--efb-blue-soft) 76%, var(--app-card-solid));
 }
 
 .logbook-summary-card strong,

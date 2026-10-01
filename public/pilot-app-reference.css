@@ -7,34 +7,34 @@
  */
 
 :root {
-  --app-canvas: #eef1f5;
-  --app-scene: #e7ebef;
-  --app-card: rgba(255, 255, 255, .72);
-  --app-card-solid: rgba(255, 255, 255, .94);
-  --app-card-muted: rgba(246, 248, 251, .8);
-  --app-field: rgba(255, 255, 255, .9);
-  --app-ink: #1d1d1f;
-  --app-muted: #62676d;
-  --app-faint: #858b92;
-  --app-line: rgba(28, 34, 42, .085);
-  --app-line-strong: rgba(28, 34, 42, .16);
-  --app-mint: #61d59a;
-  --app-mint-soft: rgba(97, 213, 154, .18);
-  --app-cyan: #dce9f4;
-  --app-blue: #087bf0;
-  --app-active: #087bf0;
+  --app-canvas: #edf3f8;
+  --app-scene: #e8f0f6;
+  --app-card: rgba(255, 255, 255, .8);
+  --app-card-solid: #fff;
+  --app-card-muted: rgba(244, 248, 252, .92);
+  --app-field: rgba(255, 255, 255, .96);
+  --app-ink: #10263e;
+  --app-muted: #607387;
+  --app-faint: #8797a7;
+  --app-line: rgba(16, 38, 62, .09);
+  --app-line-strong: rgba(16, 38, 62, .18);
+  --app-mint: #6ed8aa;
+  --app-mint-soft: rgba(110, 216, 170, .18);
+  --app-cyan: #dbeaf5;
+  --app-blue: #174d78;
+  --app-active: #0e3558;
   --app-active-ink: #fff;
   --app-safe: #17734f;
   --app-warn: #9a620f;
   --app-danger: #b73743;
-  --app-shadow: 0 1px 2px rgba(18, 24, 32, .035), 0 12px 32px rgba(28, 39, 50, .07);
-  --app-shadow-float: 0 2px 5px rgba(18, 24, 32, .045), 0 20px 48px rgba(28, 39, 50, .105);
+  --app-shadow: 0 1px 2px rgba(14, 42, 66, .035), 0 12px 32px rgba(14, 42, 66, .065);
+  --app-shadow-float: 0 2px 5px rgba(14, 42, 66, .045), 0 20px 48px rgba(14, 42, 66, .1);
   --app-radius-xl: 26px;
   --app-radius-lg: 20px;
   --app-radius: 15px;
 
   --efb-canvas: var(--app-canvas);
-  --efb-canvas-deep: #dfe4e7;
+  --efb-canvas-deep: #dfe9f1;
   --efb-surface: var(--app-card);
   --efb-surface-raised: var(--app-card-solid);
   --efb-surface-strong: #fff;
@@ -46,8 +46,8 @@
   --efb-secondary: var(--app-muted);
   --efb-tertiary: var(--app-faint);
   --efb-blue: var(--app-blue);
-  --efb-blue-strong: #155f9f;
-  --efb-blue-soft: rgba(35, 121, 210, .1);
+  --efb-blue-strong: #0e3558;
+  --efb-blue-soft: rgba(23, 77, 120, .1);
   --efb-safe: var(--app-safe);
   --efb-safe-soft: rgba(23, 115, 79, .1);
   --efb-caution: var(--app-warn);
@@ -62,22 +62,22 @@
 }
 
 [data-efb-theme="night"] {
-  --app-canvas: #0b0e12;
-  --app-scene: #14191f;
-  --app-card: rgba(29, 33, 39, .76);
-  --app-card-solid: rgba(32, 36, 42, .96);
-  --app-card-muted: rgba(25, 29, 35, .88);
-  --app-field: rgba(17, 21, 26, .9);
-  --app-ink: #f5f5f7;
-  --app-muted: #aeb4bb;
-  --app-faint: #7e8790;
-  --app-line: rgba(235, 242, 248, .1);
-  --app-line-strong: rgba(235, 242, 248, .18);
+  --app-canvas: #08121d;
+  --app-scene: #101d2b;
+  --app-card: rgba(16, 29, 43, .84);
+  --app-card-solid: #152638;
+  --app-card-muted: rgba(14, 31, 47, .92);
+  --app-field: rgba(11, 26, 40, .94);
+  --app-ink: #f5f8fb;
+  --app-muted: #a6b7c7;
+  --app-faint: #768b9d;
+  --app-line: rgba(226, 238, 248, .11);
+  --app-line-strong: rgba(226, 238, 248, .2);
   --app-mint: #68dca6;
   --app-mint-soft: rgba(104, 220, 166, .14);
-  --app-cyan: #223c43;
-  --app-blue: #2495ff;
-  --app-active: #2495ff;
+  --app-cyan: #193248;
+  --app-blue: #83b6dc;
+  --app-active: #2d668f;
   --app-active-ink: #fff;
   --app-safe: #6bd6a4;
   --app-warn: #efbd6b;
@@ -85,9 +85,9 @@
   --app-shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 16px 42px rgba(0, 0, 0, .3);
   --app-shadow-float: 0 2px 5px rgba(0, 0, 0, .3), 0 24px 58px rgba(0, 0, 0, .42);
 
-  --efb-canvas-deep: #080d10;
-  --efb-surface-strong: #202a30;
-  --efb-blue-strong: #92d2ff;
+  --efb-canvas-deep: #050d15;
+  --efb-surface-strong: #183047;
+  --efb-blue-strong: #b3d7ef;
 }
 
 html,
@@ -110,9 +110,7 @@ body::before {
   z-index: -1;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 6% -10%, color-mix(in srgb, var(--app-blue) 10%, transparent), transparent 29rem),
-    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--app-cyan) 55%, transparent), transparent 34rem);
+  background: transparent;
 }
 
 [hidden] { display: none !important; }
@@ -338,8 +336,9 @@ body::before {
   height: 35px;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--app-blue) 72%, #fff), color-mix(in srgb, var(--app-cyan) 78%, #fff));
-  color: #0b3157;
+  border: 1px solid color-mix(in srgb, var(--app-blue) 18%, var(--app-line));
+  background: color-mix(in srgb, var(--app-blue) 12%, var(--app-card-solid));
+  color: var(--app-active);
   font-size: 10px;
   font-weight: 700;
 }
@@ -400,7 +399,7 @@ body::before {
   -webkit-backdrop-filter: blur(22px) saturate(1.16);
 }
 .flight-strip-route {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--app-blue) 8%, var(--app-card-solid)), var(--app-card));
+  background: color-mix(in srgb, var(--app-blue) 5%, var(--app-card-solid));
 }
 .flight-strip-item span,
 .flight-strip-item small {
@@ -589,10 +588,7 @@ body.sidebar-collapsed .suite-tab strong { display: block; margin: 0; font-size:
   border: 1px solid color-mix(in srgb, var(--app-line) 78%, transparent);
   border-radius: var(--app-radius-xl);
   padding: 28px 30px;
-  background:
-    radial-gradient(ellipse at 72% 44%, color-mix(in srgb, var(--app-card-solid) 78%, transparent), transparent 35rem),
-    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--app-blue) 7%, transparent), transparent 27rem),
-    linear-gradient(145deg, color-mix(in srgb, var(--app-scene) 96%, #fff), var(--app-scene));
+  background: var(--app-scene);
   box-shadow: inset 0 1px rgba(255, 255, 255, .5), var(--app-shadow);
 }
 .efb-flight-hero::before {
@@ -1050,7 +1046,7 @@ body.sidebar-collapsed .suite-tab strong { display: block; margin: 0; font-size:
   padding: 14px;
   border: 1px solid var(--app-line);
   border-radius: 15px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--app-blue) 8%, var(--app-card-solid)), var(--app-card));
+  background: color-mix(in srgb, var(--app-blue) 6%, var(--app-card-solid));
 }
 .flight-context-route strong {
   margin-top: 7px;
@@ -1414,13 +1410,13 @@ label { color: var(--app-muted); }
    -------------------------------------------------------------------------- */
 
 :root {
-  --app-muted: #62676d;
-  --app-faint: #858b92;
+  --app-muted: #607387;
+  --app-faint: #8797a7;
 }
 
 [data-efb-theme="night"] {
-  --app-muted: #aeb4bb;
-  --app-faint: #7e8790;
+  --app-muted: #a6b7c7;
+  --app-faint: #768b9d;
 }
 
 .pilot-ops-v2 .dashboard-cockpit,
