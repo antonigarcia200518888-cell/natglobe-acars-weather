@@ -1,309 +1,297 @@
-/* Flight planner: one presentation layer, shared by standalone and embedded EFB. */
-:root { color-scheme:light; --bg:#dde3e8; --surface:#fff; --soft:#eef2f5; --ink:#152c3e; --muted:#465b6c; --line:#becbd5; --blue:#006b9c; --green:#126448; --green-soft:#e3f3eb; --amber:#86520b; --red:#b42332; --shadow:0 12px 44px #182c4320; --flight-mono:"Courier New",Courier,monospace; --flight-nav:#182d3d; --flight-nav-muted:#aec4d4; }
-:root[data-efb-theme="night"] { color-scheme:dark; --bg:#101923; --surface:#192634; --soft:#223343; --ink:#edf3fa; --muted:#b2c2d3; --line:#3b5064; --blue:#8fc8ff; --green:#8ce0b5; --green-soft:#163d32; --amber:#ffd18a; --red:#ffadad; --shadow:0 12px 44px #0008; }
-* { box-sizing:border-box; }
+/* NGA flight folder — one app layout, shared by embedded and standalone views. */
+:root { color-scheme:light; --bg:#e8edf1; --surface:#fff; --soft:#f1f4f6; --ink:#182b3b; --muted:#526576; --line:#cbd5de; --blue:#006b9e; --green:#126449; --green-soft:#e2f1e9; --amber:#885b10; --red:#ad293b; --shadow:0 16px 60px #0006; --mono:"Courier New",Courier,monospace; --chrome:#18232e; --chrome-line:#344350; }
+:root[data-efb-theme="night"] { color-scheme:dark; --bg:#0b1117; --surface:#111a22; --soft:#1b2833; --ink:#ebf1f5; --muted:#a8b8c5; --line:#33424e; --blue:#66c7ef; --green:#92ddba; --green-soft:#183a30; --amber:#f3cc83; --red:#ff9dad; }
+*,*::before,*::after { box-sizing:border-box; }
 [hidden] { display:none !important; }
-html, body { margin:0; min-height:100%; background:var(--bg); color:var(--ink); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-body { padding:16px; }
-button, input, select, textarea { font:inherit; }
-button, .btn { min-height:46px; padding:10px 16px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--blue); font-weight:650; cursor:pointer; touch-action:manipulation; }
-button:hover { border-color:var(--blue); background:var(--soft); }
+html,body { height:100%; margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+body,html.embedded body { padding:0; overflow:hidden; }
+button,input,select,textarea { font:inherit; }
+button,.btn { min-height:44px; padding:9px 14px; background:var(--soft); border:1px solid var(--line); border-radius:4px; color:var(--blue); font-weight:600; cursor:pointer; touch-action:manipulation; }
+button:hover { background:color-mix(in srgb,var(--blue) 10%,var(--surface)); border-color:var(--blue); }
 button:disabled { opacity:.5; cursor:not-allowed; }
-button.primary, .btn.primary { background:#175ca6; color:#fff; border-color:#175ca6; }
-button.primary-soft { background:var(--soft); }
-:focus-visible { outline:3px solid var(--blue); outline-offset:3px; }
-input, select, textarea { display:block; width:100%; min-width:0; min-height:48px; margin-top:6px; padding:10px 12px; border:1px solid var(--line); border-radius:7px; background:var(--surface); color:var(--ink); font-size:16px; }
-input[readonly], input:disabled, select:disabled { background:var(--soft); color:var(--muted); opacity:1; }
-input::placeholder, textarea::placeholder { color:var(--muted); opacity:.8; }
-textarea { min-height:90px; resize:vertical; }
-label { display:block; min-width:0; color:var(--muted); font-size:13px; font-weight:550; }
-small, p { color:var(--muted); }
-small { display:block; font-size:12px; line-height:1.45; }
-p { margin:6px 0 14px; }
+button.primary,.btn.primary { background:#00749e; color:#fff; border-color:#158eb8; }
+:focus-visible { outline:3px solid var(--blue); outline-offset:2px; }
+input,select,textarea { display:block; width:100%; min-width:0; min-height:44px; margin-top:5px; padding:9px 10px; border:1px solid var(--line); border-bottom-color:var(--muted); border-radius:3px; background:var(--surface); color:var(--ink); font:700 16px/1.35 var(--mono); }
+input[readonly],input:disabled,select:disabled { color:var(--muted); background:var(--soft); opacity:1; }
+input::placeholder,textarea::placeholder { color:var(--muted); font-weight:400; opacity:1; }
+textarea { min-height:84px; resize:vertical; }
+label { display:block; min-width:0; color:var(--muted); font-size:12px; }
+small { display:block; font-size:11px; color:var(--muted); }
 strong { color:var(--ink); }
+p { color:var(--muted); margin:6px 0 14px; }
 em { font-style:normal; }
-svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.7; }
-.shell { max-width:1200px; margin:auto; padding-bottom:88px; }
-.topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:16px; }
-.topbar-title { display:flex; align-items:center; gap:12px; }
-.ofp-brand-mark img { width:42px; height:42px; object-fit:contain; }
-.eyebrow { color:var(--muted); font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
-h1 { font-size:22px; margin:0; letter-spacing:-.03em; }
-.sub { font-size:12px; color:var(--muted); }
-.ofp-header-nav-actions { display:flex; gap:8px; }
-.ofp-header-document-actions, .ofp-flight-aircraft, .ofp-flight-hero-label, .ofp-flight-hero-readiness, .statusbox[data-flight-fact="route"], .ofp-task-panel-summary { display:none; }
-.efb-theme-toggle { width:46px; padding:10px; }
-.efb-theme-icon-moon, [data-efb-theme="night"] .efb-theme-icon-sun { display:none; }
+svg { width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.7; }
+.shell { display:grid; grid-template-columns:176px minmax(0,1fr); grid-template-rows:auto auto minmax(0,1fr) auto auto; grid-template-areas:"app app" "flight flight" "index sheet" "status status" "commands commands"; height:100dvh; width:100%; overflow:hidden; }
+.topbar { grid-area:app; display:flex; align-items:center; justify-content:space-between; padding:5px 12px; gap:12px; background:var(--chrome); border-bottom:1px solid var(--chrome-line); }
+.topbar h1 { margin:0; color:#fff; font-size:17px; }
+.topbar :is(.eyebrow,.sub,.ofp-brand-mark) { display:none; }
+.ofp-header-nav-actions { display:flex; gap:6px; }
+.topbar button { background:transparent; color:#bde6f7; border-color:var(--chrome-line); }
+.efb-theme-toggle { width:44px; padding:10px; }
+.efb-theme-icon-moon,[data-efb-theme="night"] .efb-theme-icon-sun { display:none; }
 [data-efb-theme="night"] .efb-theme-icon-moon { display:block; }
-.ofp-flight-hero { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:12px 18px; background:var(--surface); border:1px solid var(--line); border-radius:12px 12px 0 0; }
-.ofp-flight-route { display:flex; align-items:center; gap:24px; }
+.ofp-header-document-actions,.ofp-flight-aircraft,.ofp-flight-hero-label,.ofp-flight-hero-readiness,.ofp-task-panel-summary { display:none; }
+.ofp-flight-hero { grid-area:flight; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 16px; background:var(--chrome); border-bottom:1px solid var(--chrome-line); }
+.ofp-flight-route { display:flex; align-items:center; gap:14px; }
 .ofp-flight-endpoint span { display:none; }
-.ofp-flight-endpoint strong { font-size:30px; line-height:1.2; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
-.ofp-flight-path { color:var(--muted); }
-.ofp-flight-badges { display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; }
-.ofp-flight-badges b { font-weight:500; }
-.ofp-flight-badges em { color:var(--muted); }
-.ofp-flight-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
-.statusbox { min-width:0; }
-.statusbox span { display:block; color:var(--muted); font-size:11px; }
-.statusbox strong { display:block; font-size:13px; overflow-wrap:anywhere; }
-.ofp-context-strip { display:flex; justify-content:space-between; gap:12px; padding:8px 16px; background:var(--soft); border:1px solid var(--line); border-top:0; border-radius:0 0 12px 12px; font-size:12px; }
-.flight-source { display:flex; gap:10px; align-items:center; color:var(--muted); }
-.flight-source strong, .flight-source span { display:none; }
-.save-state { color:var(--muted); text-align:right; overflow-wrap:anywhere; }
+.ofp-flight-endpoint strong { color:#fff; font:700 22px/1 var(--mono); }
+.ofp-flight-path { color:#aabcc8; }
+.ofp-flight-badges { display:flex; gap:12px; margin-top:5px; font:11px var(--mono); color:#b6c9d6; }
+.ofp-flight-badges b { font-weight:400; }
+.ofp-flight-facts { display:flex; gap:22px; }
+.statusbox span { display:block; font-size:10px; color:#b6c9d6; }
+.statusbox strong { font:700 12px var(--mono); color:#fff; }
+.statusbox[data-flight-fact="route"] { display:none; }
+.statusbox[data-flight-fact="document"] strong { color:#f3cc83 !important; }
+.statusbox[data-state="released"] strong { color:#92ddba !important; }
+html.embedded :is(.topbar,.ofp-flight-hero) { display:none; }
+.ofp-context-strip { grid-area:status; display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:25px; padding:4px 12px; color:var(--muted); background:var(--soft); border-top:1px solid var(--line); font-size:10px; }
+.flight-source strong,.flight-source span { display:none; }
+.save-state { text-align:right; }
 .save-state.failed { color:var(--red); }
 .save-state.saved { color:var(--green); }
-.ofp-task-rail { position:sticky; top:0; z-index:15; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; margin:0 0 12px; padding:8px 0; background:var(--bg); }
-.ofp-workspace-button { display:grid; grid-template-columns:28px minmax(0,1fr); gap:2px 8px; align-items:center; min-width:0; min-height:54px; padding:8px 10px; text-align:left; border-color:transparent; background:transparent; }
-.ofp-workspace-button::before { content:attr(data-step); grid-row:1/3; display:grid; place-items:center; width:28px; height:28px; border:1px solid var(--line); border-radius:50%; color:var(--muted); font-size:12px; }
-.task-title { font-size:14px; }
-.workspace-state { font-size:11px; font-weight:400; color:var(--muted); }
-.ofp-workspace-button[aria-selected="true"] { border-color:var(--green); background:var(--green-soft); }
-.ofp-workspace-button[aria-selected="true"]::before { background:var(--green); color:var(--surface); border-color:var(--green); }
-.ofp-workspace-button[aria-selected="true"] strong { color:var(--green); }
-.ofp-app-workspace { display:block; }
-.editor { display:grid; gap:20px; }
-.ofp-task-panel { min-width:0; margin:0; padding:22px; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
-.section-heading { display:flex; align-items:start; justify-content:space-between; gap:24px; margin-bottom:20px; }
-.section-heading strong { display:block; font-size:20px; letter-spacing:-.02em; }
-.section-heading span { display:none; }
-.section-heading p { max-width:440px; margin:2px 0 0; font-size:12px; }
-.ofp-card-head p { display:none; }
-.grid, .route-procedures, .time-support { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.ofp-task-rail { grid-area:index; display:flex; flex-direction:column; padding:0; min-height:0; overflow:auto; background:var(--chrome); border-right:1px solid var(--chrome-line); }
+.ofp-task-rail::before { content:"FLIGHT FOLDER"; display:block; padding:19px 14px; height:60px; color:#9eafb9; font:600 10px/22px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:.12em; border-bottom:1px solid var(--chrome-line); }
+.ofp-workspace-button { flex:none; position:relative; display:block; min-height:61px; padding:12px 12px 12px 24px; background:transparent; border:0; border-bottom:1px solid #ffffff0d; border-radius:0; text-align:left; }
+.ofp-workspace-button::before { content:""; position:absolute; left:10px; top:20px; width:5px; height:5px; border-radius:50%; background:#6a8799; }
+.ofp-workspace-button[data-state="complete"]::before { background:#70d5aa; }
+.ofp-workspace-button .task-title { display:block; color:#e4ecf1; font-size:13px; font-weight:500; }
+.workspace-state { display:block; color:#9eafb9; font-size:10px; margin-top:4px; }
+.ofp-workspace-button:hover { background:#223441; }
+.ofp-workspace-button[aria-selected="true"] { background:#254239; box-shadow:inset 3px 0 #76d4a9; }
+.ofp-workspace-button[aria-selected="true"] .task-title { color:#c6f6e0; }
+.ofp-app-workspace { grid-area:sheet; min-width:0; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; background:var(--surface); }
+.folder-toolbar { position:sticky; z-index:10; top:0; display:flex; align-items:center; justify-content:space-between; min-height:60px; padding:8px 22px; background:var(--soft); border-bottom:1px solid var(--line); }
+.folder-toolbar span { display:block; color:var(--muted); font-size:9px; letter-spacing:.12em; }
+.folder-toolbar h2 { margin:2px 0 0; font-size:20px; font-weight:500; letter-spacing:-.02em; }
+.folder-toolbar button { min-height:40px; padding:8px 12px; border:0; background:transparent; }
+.editor { display:block; padding:20px 24px 28px; max-width:1400px; margin:auto; }
+.ofp-task-panel { margin:0 0 24px; padding:0; min-width:0; border:0; background:transparent; }
+.ofp-card-head { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 0 18px; padding:0 0 12px; border-bottom:1px solid var(--line); }
+.ofp-card-head strong { font-size:16px; font-weight:600; }
+.ofp-card-head span,.ofp-card-head p { display:none; }
+.grid,.grid.two,.route-procedures,.time-support { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
 .grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
-.wide, .load-source, .advanced-profile { grid-column:1/-1; }
-.flight-route-strip { display:grid; grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr) minmax(0,.8fr); gap:12px; align-items:start; }
-.flight-route-point { display:grid; grid-template-columns:minmax(0,1fr) 90px; gap:10px; min-width:0; padding:14px; border:1px solid var(--line); background:var(--soft); border-radius:9px; }
-.flight-route-point > span { grid-column:1/-1; color:var(--blue); font-size:12px; font-weight:700; }
-.runway-help { grid-column:1/-1; font-size:11px; }
-.fuel-policy-note { margin-top:12px; }
-.flight-route-point input[data-field="departure"], .flight-route-point input[data-field="destination"], .flight-route-point input[data-field="alternate"] { font-size:21px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
-.alternate-point { grid-template-columns:minmax(0,1fr); }
-.alternate-point > small { display:none; }
-.route-swap-large { align-self:center; padding:4px; font-size:22px; }
+.wide,.load-source,.advanced-profile { grid-column:1/-1; }
+.flight-route-strip { display:grid; grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr); gap:12px; align-items:center; }
+.flight-route-point { display:grid; grid-template-columns:minmax(0,1fr) 88px; gap:8px 12px; padding:0 0 12px; min-width:0; border-bottom:1px solid var(--line); }
+.flight-route-point > span { grid-column:1/-1; color:var(--blue); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+.flight-route-point input[data-field="departure"],.flight-route-point input[data-field="destination"] { font-size:22px; }
+.runway-help { grid-column:1/-1; font-size:10px; }
+.route-swap-large { padding:4px; font-size:22px; border:0; background:transparent; }
 .route-swap-large span { display:block; font-size:10px; }
-.alternate-input-row { display:flex; flex-wrap:wrap; gap:6px; }
-.alternate-input-row input { flex:1 1 80px; }
-.alternate-input-row button { flex:1 1 100%; min-height:36px; padding:5px; font-size:11px; }
-.flight-identity-grid { display:grid; grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr)); gap:16px; margin-top:20px; }
+.alternate-point { grid-column:1/-1; grid-template-columns:100px minmax(0,1fr); align-items:center; }
+.alternate-point > span { grid-column:auto; }
+.alternate-point > label { font-size:0; }
+.alternate-point > small { display:none; }
+.alternate-input-row { display:flex; gap:8px; }
+.alternate-input-row input { flex:1; margin:0; }
+.alternate-input-row button { font-size:12px; }
+.flight-identity-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:20px; }
 .aircraft-profile-select { display:none; }
-.aircraft-profile-caption { display:block; margin-bottom:6px; color:var(--muted); font-size:13px; }
-.aircraft-profile-button { display:flex; width:100%; padding:8px; gap:10px; align-items:center; text-align:left; min-height:48px; }
-.aircraft-profile-code { color:var(--blue); font-size:12px; }
-.aircraft-profile-copy strong { display:block; font-size:12px; }
-.aircraft-profile-copy small { font-size:11px; }
+.aircraft-profile-caption { display:block; color:var(--muted); font-size:12px; margin-bottom:5px; }
+.aircraft-profile-button { display:flex; align-items:center; width:100%; min-height:44px; padding:8px 10px; gap:10px; text-align:left; background:var(--surface); }
+.aircraft-profile-code { color:var(--blue); font:700 13px var(--mono); }
+.aircraft-profile-copy strong { display:block; font-size:11px; }
+.aircraft-profile-copy small { font:11px var(--mono); }
 .aircraft-profile-copy b { display:none; }
 .aircraft-profile-chevron { margin-left:auto; }
 .field-help { margin-top:5px; }
 details:not(.ofp-task-panel) { margin-top:16px; border-top:1px solid var(--line); }
-summary { padding:14px 0; color:var(--blue); cursor:pointer; font-size:13px; font-weight:600; min-height:46px; }
+summary { padding:12px 0; min-height:44px; color:var(--blue); cursor:pointer; font-size:13px; font-weight:500; }
 details:not(.ofp-task-panel) > .detail-body { padding:8px 0 16px; }
-.flight-info-head, .time-conversion-panel { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:18px; }
-.flight-info-head strong, .time-conversion-panel strong, .eobt-summary span { display:block; }
-.flight-info-head span, .time-conversion-panel span { font-size:12px; color:var(--muted); }
+.flight-info-head,.time-conversion-panel { display:flex; gap:18px; flex-wrap:wrap; margin:0 0 16px; }
+.flight-info-head span,.time-conversion-panel span { color:var(--muted); font-size:12px; }
+.flight-info-head strong,.time-conversion-panel strong,.eobt-summary span { display:block; }
 .time-conversion-panel { margin-top:16px; }
-.time-zone-chip { flex:1; min-width:220px; }
-.schedule-workbench { margin-top:20px; padding:16px; background:var(--soft); border-radius:9px; }
-.schedule-workbench-head { display:flex; justify-content:space-between; margin-bottom:12px; }
-.schedule-workbench-head span, .schedule-workbench-head > small { display:none; }
-.schedule-primary-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:center; }
-.schedule-estimate span { display:block; color:var(--muted); font-size:12px; }
-.schedule-estimate strong { font-size:14px; }
-.schedule-estimate:last-child { display:none; }
+.time-zone-chip { flex:1; min-width:180px; }
+.schedule-workbench { margin-top:12px; border-top:1px solid var(--line); padding-top:12px; }
+.schedule-workbench-head { margin-bottom:10px; }
+.schedule-workbench-head span,.schedule-workbench-head > small,.schedule-estimate:last-child { display:none; }
+.schedule-primary-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:center; }
+.schedule-estimate span { display:block; font-size:12px; color:var(--muted); }
+.schedule-estimate strong { font:700 16px var(--mono); }
 .route-workbench-head { display:none; }
-.route-composer { display:grid; grid-template-columns:minmax(0,1fr) auto auto auto; gap:8px; align-items:end; }
-.route-tokens { display:flex; flex-wrap:wrap; gap:8px; padding:16px 0; }
-.route-token { display:flex; align-items:center; gap:8px; padding:2px 4px 2px 12px; border:1px solid var(--line); border-radius:7px; background:var(--soft); font-weight:650; }
-.route-token em { color:var(--muted); font-size:10px; }
-.route-token button { min-width:40px; min-height:40px; padding:4px; border:0; background:transparent; font-size:20px; }
-.route-command-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-.route-preview { flex:1 1 200px; padding:10px; color:var(--muted); font-size:13px; }
-.route-cruise-grid { margin-top:20px; }
-.import-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; }
-.import-actions { display:grid; gap:8px; }
-pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; color:var(--muted); }
-.nav-results, .alternate-suggestions { display:grid; gap:8px; margin:12px 0; }
-.nav-result, .alternate-option { text-align:left; }
-.nav-result span, .nav-result small { display:block; }
-.fuel-ladder, .load-margin-strip { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:1px; margin:0 0 20px; background:var(--line); border:1px solid var(--line); border-radius:9px; overflow:hidden; }
-.fuel-ladder > div, .load-margin-strip > div { padding:14px; background:var(--soft); }
-.fuel-ladder span, .load-margin-strip span { display:block; color:var(--muted); font-size:11px; }
-.fuel-ladder strong, .load-margin-strip strong { display:block; font-size:22px; font-variant-numeric:tabular-nums; }
+.route-composer { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.route-composer label { grid-column:1/-1; }
+.route-tokens { display:flex; flex-wrap:wrap; gap:6px; padding:16px 0; }
+.route-token { display:flex; align-items:center; gap:8px; padding:0 2px 0 12px; border:1px solid var(--line); border-radius:3px; background:var(--soft); font:700 14px var(--mono); }
+.route-token em { font:9px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--muted); }
+.route-token button { min-width:44px; padding:4px; background:transparent; border:0; font-size:20px; }
+.route-command-row { display:flex; flex-wrap:wrap; gap:8px; }
+.route-preview { flex-basis:100%; padding:10px 0; font:12px/1.5 var(--mono); color:var(--muted); }
+.route-cruise-grid { margin-top:14px; }
+.import-grid,.briefing-modules { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.import-actions,.nav-results,.alternate-suggestions { display:grid; gap:8px; }
+pre { white-space:pre-wrap; overflow-wrap:anywhere; font:12px var(--mono); color:var(--muted); }
+.nav-result,.alternate-candidate { text-align:left; }
+.nav-result span,.nav-result small { display:block; }
+.fuel-ladder,.load-margin-strip { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); margin-bottom:20px; border:1px solid var(--line); background:var(--soft); }
+.fuel-ladder > div,.load-margin-strip > div { padding:10px; border-right:1px solid var(--line); }
+.fuel-ladder > div:last-child,.load-margin-strip > div:last-child { border-right:0; }
+.fuel-ladder span,.load-margin-strip span { display:block; font-size:10px; color:var(--muted); }
+.fuel-ladder strong,.load-margin-strip strong { display:block; font:700 20px var(--mono); margin:6px 0; }
 .fuel-total strong { color:var(--blue); }
-.inline-action { margin-top:16px; }
 .load-margin-strip { grid-template-columns:repeat(4,minmax(0,1fr)); }
-.load-margin-strip strong { font-size:17px; }
-.locked-profile { display:flex; gap:12px; justify-content:space-between; margin-bottom:16px; padding:12px; background:var(--soft); border-radius:8px; }
+.load-margin-strip strong { font-size:15px; }
+.inline-action { margin-top:16px; }
+.fuel-policy-note { margin-top:12px; }
+.locked-profile { display:flex; justify-content:space-between; gap:12px; padding:12px; background:var(--soft); margin-bottom:16px; }
 .locked-profile strong { font-size:13px; }
-.lock-badge { font-size:10px; color:var(--muted); }
-.load-mode-control { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:16px; margin-bottom:20px; }
-.load-mode-state, .load-help { color:var(--muted); font-size:12px; }
-.load-source { display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:12px; background:var(--soft); border-radius:8px; }
-.source-item span { display:block; color:var(--muted); font-size:11px; }
+.lock-badge { color:var(--muted); font-size:10px; }
+.load-mode-control { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; align-items:center; }
+.load-mode-state,.load-help { color:var(--muted); font-size:12px; }
+.load-source { display:flex; flex-wrap:wrap; gap:14px; padding:12px 0; border-block:1px solid var(--line); }
+.source-item span { display:block; font-size:10px; color:var(--muted); }
 .source-item strong { font-size:12px; }
 .load-help { flex-basis:100%; }
 .envelope { grid-column:1/-1; }
-.envelope-grid, .profile-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.envelope-grid,.profile-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .envelope-point { padding:8px; background:var(--soft); font-size:12px; }
 .envelope-point span { margin-right:8px; color:var(--muted); }
-.briefing-modules { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
-.briefing-modules button { text-align:left; padding:18px; }
+.briefing-modules { margin-bottom:18px; }
+.briefing-modules button { text-align:left; padding:16px; }
 .briefing-modules span { display:none; }
-.briefing-modules strong { display:block; margin-bottom:4px; }
-.briefing-modules em { display:block; margin-top:12px; color:var(--amber); font-size:11px; }
-.checkline { display:flex; gap:14px; padding:16px; border:1px solid var(--line); border-radius:8px; margin:12px 0; align-items:start; }
+.briefing-modules strong,.briefing-modules small { display:block; }
+.briefing-modules em { display:block; color:var(--amber); font-size:10px; margin-top:10px; }
+.checkline { display:flex; gap:12px; padding:14px 0; margin:10px 0; align-items:start; border-bottom:1px solid var(--line); font-size:13px; line-height:1.6; }
 .checkline input { flex:0 0 24px; width:24px; height:24px; min-height:24px; margin:0; accent-color:var(--green); }
-.checkline strong { display:block; margin-bottom:4px; }
-.notice, .release-snapshot { padding:16px; border:1px solid var(--line); background:var(--soft); border-radius:8px; margin-top:16px; color:var(--muted); font-size:13px; }
+.checkline strong { display:block; }
+.notice,.release-snapshot { padding:14px; background:var(--soft); border-left:3px solid var(--line); margin-top:16px; color:var(--muted); font-size:12px; }
 .release-snapshot strong { display:block; margin-bottom:6px; }
-.release-snapshot[data-release-state="blocked"] { border-left:4px solid var(--amber); }
-.release-snapshot[data-release-state="released"], .release-snapshot[data-release-state="ready"] { border-left:4px solid var(--green); }
-.ofp-release-card { margin-bottom:20px; }
-.ofp-release-card-head { display:flex; justify-content:space-between; margin-bottom:12px; }
-.ofp-release-card-head span, .ofp-release-card-head em { display:none; }
+.release-snapshot[data-release-state="blocked"] { border-left-color:var(--amber); }
+.release-snapshot[data-release-state="released"] { border-left-color:var(--green); }
+.ofp-release-card { margin-bottom:18px; }
+.ofp-release-card-head { margin-bottom:12px; }
+.ofp-release-card-head span,.ofp-release-card-head em { display:none; }
 .movement-sequence { display:none; }
-.movement-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
-.movement-card { padding:18px; border:1px solid var(--line); border-radius:9px; }
-.movement-card > span { display:block; color:var(--muted); font-size:12px; }
-.movement-code { color:var(--blue); }
-.movement-time { margin:14px 0; font-size:20px; font-variant-numeric:tabular-nums; }
+.movement-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.movement-card { padding:16px; border:1px solid var(--line); background:var(--soft); }
+.movement-card.done { border-top:3px solid var(--green); }
+.movement-code { font:700 20px var(--mono); color:var(--blue); }
+.movement-card > span { display:block; font-size:12px; color:var(--muted); }
+.movement-time { font:700 17px var(--mono); margin:18px 0; }
 .movement-actions { display:flex; gap:8px; align-items:end; }
-.movement-actions input { width:60%; }
-.movement-button { width:100%; margin-top:8px; }
-.ofp-command-bar { position:fixed; z-index:25; bottom:0; left:0; right:0; display:flex; justify-content:center; gap:10px; padding:12px max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)); background:var(--surface); border-top:1px solid var(--line); }
-.ofp-command-bar .btn { min-width:90px; }
-.ofp-command-bar .primary { min-width:200px; }
-.ofp-inspector { position:fixed; z-index:40; inset:24px 24px 90px auto; width:min(500px,calc(100vw - 48px)); display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
+.movement-actions input { width:55%; }
+.movement-actions button { padding:8px; font-size:12px; }
+.movement-button { width:100%; margin-top:10px; }
+.ofp-command-bar { grid-area:commands; display:flex; justify-content:flex-end; gap:8px; min-height:58px; padding:7px 12px max(7px,env(safe-area-inset-bottom)); background:var(--chrome); border-top:1px solid var(--chrome-line); }
+.ofp-command-bar .btn { min-height:44px; min-width:80px; padding:8px 16px; border-color:#40515e; color:#d6e9f3; background:#233440; font-size:13px; }
+.ofp-command-bar .btn.primary { background:#00749e; color:#fff; border-color:#158eb8; }
+.ofp-command-bar #dockPreviousBtn { margin-right:auto; }
+.ofp-inspector { position:fixed; z-index:40; inset:14px 14px 90px auto; width:min(500px,calc(100vw - 28px)); display:flex; flex-direction:column; border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow); overflow:hidden; }
 .ofp-inspector[data-collapsed="true"] { display:none; }
-.ofp-inspector[data-collapsed="true"] .ofp-inspector-body { display:none; }
-.ofp-inspector-toggle { display:flex; justify-content:space-between; align-items:center; width:100%; gap:30px; border:0; border-bottom:1px solid var(--line); border-radius:0; }
+.ofp-inspector-toggle { display:flex; align-items:center; justify-content:space-between; flex:none; width:100%; border:0; border-bottom:1px solid var(--line); border-radius:0; }
 .ofp-inspector-toggle small { display:none; }
 .ofp-inspector-toggle i { font-style:normal; transform:rotate(180deg); }
-.ofp-inspector[data-collapsed="true"] .ofp-inspector-toggle i { transform:rotate(-90deg); }
-.ofp-inspector-body { min-height:0; overflow:auto; padding:16px; }
+.ofp-inspector-body { padding:16px; overflow:auto; min-height:0; }
 .ofp-inspector-tabs { display:flex; gap:8px; margin-bottom:16px; }
 .ofp-inspector-tabs button { flex:1; }
-.ofp-inspector-tabs [aria-selected="true"] { color:var(--green); border-color:var(--green); background:var(--green-soft); }
-.dispatch-brief-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.dispatch-brief-head span, .brief-next-action > span { display:block; color:var(--muted); font-size:11px; }
+.ofp-inspector-tabs [aria-selected="true"] { color:var(--green); background:var(--green-soft); }
+.dispatch-brief-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.dispatch-brief-head span,.brief-next-action > span { display:block; color:var(--muted); font-size:10px; }
 .dispatch-brief-head b { font-size:11px; color:var(--amber); }
-.brief-next-action { padding:16px; background:var(--soft); border-radius:8px; }
-.brief-next-action strong { display:block; margin-top:6px; }
-.brief-next-action p { font-size:13px; }
-.brief-actions, .dispatch-generate { display:none; }
+.brief-next-action { padding:14px; background:var(--soft); }
+.brief-next-action strong { display:block; }
+.brief-next-action p { font-size:12px; }
+.brief-actions,.dispatch-generate { display:none; }
 .brief-progress { margin:16px 0; font-size:12px; }
 .brief-progress > div:first-child { display:flex; justify-content:space-between; }
-.readiness-track { height:5px; margin-top:8px; background:var(--line); border-radius:5px; overflow:hidden; }
+.readiness-track { height:4px; background:var(--line); margin-top:8px; }
 .readiness-track > span { display:block; height:100%; background:var(--green); }
 .console-card { margin-top:16px; }
-.console-title { display:flex; justify-content:space-between; font-size:13px; font-weight:650; margin-bottom:10px; }
-.metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.metric { padding:12px; border:1px solid var(--line); border-radius:8px; }
-.metric span { display:block; color:var(--muted); font-size:11px; }
-.metric strong { font-size:18px; }
-.metric.danger strong, .metric.warn strong { color:var(--red); }
+.console-title { display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:10px; }
+.metric-grid,.utility-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.metric { padding:12px; border:1px solid var(--line); }
+.metric span { display:block; font-size:10px; color:var(--muted); }
+.metric strong { font:700 17px var(--mono); }
+.metric.danger strong,.metric.warn strong { color:var(--red); }
 .warning-list { display:grid; gap:8px; }
 .warning { text-align:left; color:var(--amber); font-size:12px; }
-.utility-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .utility-output { grid-column:1/-1; padding:10px; background:var(--soft); }
-.pdf-preview-head strong, .pdf-preview-head span { display:block; }
-.pdf-preview-head span, .pdf-preview-state { color:var(--muted); font-size:12px; }
-.pdf-preview-head { display:flex; gap:12px; margin-bottom:12px; }
-.pdf-preview-frame { width:100%; height:55dvh; border:1px solid var(--line); margin:12px 0; background:white; }
-.pdf-preview-actions { display:flex; flex-wrap:wrap; gap:8px; }
-.pdf-preview-active .ofp-inspector { width:min(900px,calc(100vw - 48px)); }
-.aircraft-profile-dialog { width:min(620px,calc(100vw - 32px)); max-height:85dvh; border:1px solid var(--line); border-radius:14px; padding:24px; color:var(--ink); background:var(--surface); box-shadow:var(--shadow); }
-dialog::backdrop { background:#0e203966; }
+.pdf-preview-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.pdf-preview-head strong,.pdf-preview-head span { display:block; }
+.pdf-preview-head span,.pdf-preview-state { color:var(--muted); font-size:12px; }
+.pdf-preview-frame { width:100%; height:55dvh; border:1px solid var(--line); margin:12px 0; background:#fff; }
+.pdf-preview-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.pdf-preview-active .ofp-inspector { width:min(900px,calc(100vw - 28px)); }
+.aircraft-profile-dialog { width:min(620px,calc(100vw - 32px)); max-height:85dvh; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); padding:24px; box-shadow:var(--shadow); }
+dialog::backdrop { background:#0008; }
 .profile-sheet-head { display:flex; justify-content:space-between; gap:12px; }
 .profile-sheet-head h2 { margin:4px 0 20px; }
-.profile-sheet-head span { font-size:12px; color:var(--muted); }
-.profile-sheet-hero { display:flex; align-items:center; gap:16px; padding:16px; background:var(--soft); margin-bottom:20px; }
-.profile-sheet-hero strong, .profile-sheet-hero span { display:block; }
-.profile-facts span { display:block; font-size:12px; color:var(--muted); }
+.profile-sheet-head span,.profile-facts span { display:block; color:var(--muted); font-size:12px; }
+.profile-sheet-hero { display:flex; gap:16px; align-items:center; background:var(--soft); padding:16px; margin-bottom:20px; }
+.profile-sheet-hero strong,.profile-sheet-hero span { display:block; }
 .profile-locked-note { display:flex; gap:12px; margin:20px 0; font-size:13px; color:var(--muted); }
 .profile-sheet-actions { text-align:right; }
-html.embedded body { padding:16px; }
-html.embedded .topbar { display:none; }
-@media(min-width:1000px) { .editor { grid-template-columns:1fr 1fr; align-items:start; } .ofp-task-panel { grid-column:1/-1; } #fuelSection, #loadSection { grid-column:auto; } #fuelSection .grid, #loadSection .grid { grid-template-columns:1fr 1fr; } #fuelSection .fuel-ladder { grid-template-columns:repeat(3,minmax(0,1fr)); } #loadSection .load-margin-strip { grid-template-columns:1fr 1fr; } }
-@media(max-width:900px) { .flight-route-strip { grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr); } .alternate-point { grid-column:1/-1; grid-template-columns:100px minmax(0,1fr); align-items:center; } .alternate-point > span { grid-column:auto; } .alternate-point label > span, .alternate-point label { font-size:0; } .alternate-input-row { flex-wrap:nowrap; } .alternate-input-row button { flex:0 0 auto; font-size:12px; padding:8px; } .alternate-input-row input { margin:0; } .flight-identity-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .section-heading { display:block; } .section-heading p { max-width:none; } .ofp-flight-facts { gap:12px; } .statusbox[data-flight-fact="commander"] { display:none; } .ofp-flight-facts { grid-template-columns:1fr 1fr; } .ofp-task-panel { padding:18px; } .route-composer { grid-template-columns:1fr 1fr 1fr; } .route-composer label { grid-column:1/-1; } }
-@media(max-width:600px) { body, html.embedded body { padding:10px; } .topbar .sub, .ofp-brand-mark, .flight-source { display:none; } .topbar { flex-wrap:wrap; } .ofp-flight-hero { padding:14px; gap:12px; flex-wrap:wrap; } .ofp-flight-endpoint strong { font-size:26px; } .ofp-flight-facts { width:100%; } .ofp-context-strip { display:block; } .ofp-task-rail { gap:3px; } .ofp-workspace-button { display:block; text-align:center; padding:8px 3px; } .ofp-workspace-button::before, .workspace-state { display:none; } .task-title { font-size:12px; } .ofp-task-panel { padding:14px; } .flight-route-point { grid-template-columns:1fr; padding:10px; } .alternate-point { grid-template-columns:1fr; } .alternate-point label { font-size:12px; } .grid, .grid.two, .route-procedures, .import-grid, .briefing-modules, .movement-grid { grid-template-columns:1fr; } .route-cruise-grid { grid-template-columns:1fr 1fr; } .fuel-ladder { grid-template-columns:repeat(3,minmax(0,1fr)); } .load-margin-strip { grid-template-columns:1fr 1fr; } .load-mode-control { grid-template-columns:1fr; } .ofp-command-bar { gap:6px; padding:10px; } .ofp-command-bar .btn { min-width:0; flex:1; padding:8px; font-size:12px; } .ofp-command-bar .primary { min-width:0; flex:1.7; } .ofp-inspector { inset:12px 12px 82px; width:auto; } .ofp-inspector[data-collapsed="true"] { inset:auto 10px 78px auto; } .pdf-preview-active .ofp-inspector { width:auto; } .profile-facts { grid-template-columns:1fr 1fr; } }
+.profile-sheet-actions button + button { margin-left:8px; }
+.movement-confirm-dialog { max-width:480px; }
+/* Read-first briefing pages. Values always come from the current flight model. */
+.folder-summary { min-width:0; }
+.folder-flight-title { display:flex; justify-content:space-between; align-items:center; gap:12px; padding-bottom:16px; }
+.folder-flight-title > div > span { display:block; color:var(--muted); font:11px var(--mono); margin-bottom:5px; }
+.folder-flight-title strong { font-size:14px; font-weight:500; }
+.folder-status { color:var(--amber); padding:5px 8px; font-size:10px; border:1px solid var(--line); border-radius:3px; white-space:nowrap; }
+.folder-status[data-released="true"] { color:var(--green); border-color:var(--green); }
+.folder-route-diagram { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; align-items:center; padding:24px 0; border-block:1px solid var(--line); }
+.folder-route-diagram > div > span { display:block; font-size:10px; letter-spacing:.08em; color:var(--muted); }
+.folder-route-diagram > div > strong { display:block; font:700 38px/1.3 var(--mono); letter-spacing:.01em; }
+.folder-route-diagram > div:last-child { text-align:right; }
+.folder-route-line { text-align:center; }
+.folder-route-line i { display:block; position:relative; margin:3px 0; font-size:23px; color:var(--blue); font-style:normal; }
+.folder-route-line i::before,.folder-route-line i::after { content:""; position:absolute; top:50%; width:36%; border-top:1px solid var(--line); }
+.folder-route-line i::before { left:0; }.folder-route-line i::after { right:0; }
+.folder-route-line small { font:11px var(--mono); }
+.folder-schedule { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:16px; align-items:center; padding:16px 0; border-bottom:1px solid var(--line); }
+.folder-schedule span { display:block; font-size:9px; color:var(--muted); margin-bottom:6px; }
+.folder-schedule strong { font:700 12px/1.5 var(--mono); }
+.folder-schedule button { border:0; background:transparent; font-size:12px; padding:8px; }
+.folder-two-column { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:12px; }
+.folder-sheet { margin-top:14px; min-width:0; }
+.folder-sheet > header { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; border-bottom:1px solid var(--line); }
+.folder-sheet h3 { font-size:14px; margin:0; font-weight:600; }
+.folder-sheet > header > span { color:var(--muted); font-size:10px; text-align:right; }
+.folder-sheet > header > button { min-height:40px; padding:6px 0 6px 10px; background:transparent; border:0; font-size:12px; }
+.folder-data-list { margin:0; }
+.folder-data-list > div { display:flex; justify-content:space-between; gap:14px; padding:9px 0; border-bottom:1px solid color-mix(in srgb,var(--line) 50%,transparent); }
+.folder-data-list dt { font-size:12px; color:var(--muted); }
+.folder-data-list dd { margin:0; text-align:right; font:700 13px var(--mono); overflow-wrap:anywhere; }
+.folder-route-text { padding:12px 0; }
+.folder-route-text > span { color:var(--muted); font-size:9px; letter-spacing:.08em; }
+.folder-route-text p { color:var(--ink); font:13px/1.6 var(--mono); overflow-wrap:anywhere; margin-bottom:0; }
+.folder-footnote,.folder-note { font-size:11px; color:var(--muted); line-height:1.6; margin:12px 0; }
+.folder-gates { display:grid; grid-template-columns:1fr; }
+.folder-gates button { display:flex; align-items:center; gap:10px; min-height:46px; padding:10px 0; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; text-align:left; font-size:12px; color:var(--ink); }
+.folder-gates i { color:var(--amber); font-style:normal; }
+.folder-gates strong { margin-left:auto; color:var(--amber); font-size:11px; font-weight:500; }
+.folder-gates b { color:var(--muted); }
+.folder-gates [data-ready="true"] :is(i,strong) { color:var(--green); }
+.folder-page-intro { margin-bottom:22px; }
+.folder-page-intro h3 { display:none; }
+.folder-page-intro p { max-width:520px; font-size:13px; }
+.folder-table-wrap { overflow:auto; }
+.folder-table { width:100%; border-collapse:collapse; text-align:left; }
+.folder-table th,.folder-table td { padding:18px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+.folder-table th:first-child,.folder-table td:first-child { padding-left:0; }
+.folder-table thead th { font-size:11px; font-weight:500; color:var(--muted); }
+.folder-table tbody th { font-weight:500; }
+.folder-table tbody th b { display:block; font:700 18px var(--mono); }
+.folder-table tbody th span { display:block; font-size:11px; color:var(--muted); }
+.folder-table td { font:700 15px var(--mono); }
+.folder-table td small { margin-top:5px; font:11px var(--mono); }
+.folder-duration-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; padding:24px 0; border-bottom:1px solid var(--line); }
+@media(max-width:520px) { .folder-duration-grid { grid-template-columns:1fr 1fr; } }
+.folder-duration-grid span { display:block; font-size:11px; color:var(--muted); }
+.folder-duration-grid strong { display:block; font:700 22px var(--mono); margin-top:6px; }
+.folder-document-list article { display:flex; align-items:center; flex-wrap:wrap; gap:16px; padding:24px 0; border-block:1px solid var(--line); }
+.folder-document-list article + article { border-top:0; }
+.folder-document-list article > div { flex:1; min-width:180px; }
+.folder-document-list h3 { margin:0 0 5px; font-size:15px; }
+.folder-document-list p,.folder-document-note { font-size:12px; margin:0; }
+.folder-document-note { padding:18px 0; }
+.folder-file-icon { display:grid; place-items:center; width:44px; height:54px; border:1px solid var(--line); border-radius:3px; font:700 11px var(--mono); color:var(--blue); background:var(--soft); }
+@media(min-width:1100px) { .flight-identity-grid { grid-template-columns:1.4fr 1fr 1fr 1fr; } .route-composer { grid-template-columns:1fr auto auto auto; align-items:end; } .route-composer label { grid-column:auto; } }
+@media(max-width:950px) { .shell { grid-template-columns:150px minmax(0,1fr); } .editor { padding:18px; } .ofp-workspace-button { padding-left:22px; } .ofp-workspace-button .task-title { font-size:12px; } .folder-schedule { grid-template-columns:1fr 1fr; } .folder-two-column { gap:20px; } .folder-route-diagram { gap:12px; } .folder-route-diagram > div > strong { font-size:32px; } .statusbox[data-flight-fact="commander"] { display:none; } .load-margin-strip { grid-template-columns:1fr 1fr; } .load-mode-control { grid-template-columns:1fr; } }
+@media(max-width:740px) { .shell { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto auto minmax(0,1fr) auto auto; grid-template-areas:"app" "flight" "index" "sheet" "status" "commands"; } .ofp-task-rail { flex-direction:row; overflow-x:auto; overflow-y:hidden; border:0; } .ofp-task-rail::before { display:none; } .ofp-workspace-button { min-width:130px; min-height:48px; padding:12px; text-align:center; } .ofp-workspace-button::before,.workspace-state { display:none; } .ofp-workspace-button[aria-selected="true"] { box-shadow:inset 0 -3px #76d4a9; } .folder-toolbar { padding-inline:16px; min-height:52px; } .folder-toolbar h2 { font-size:18px; } .editor { padding:16px; } .ofp-flight-facts { display:none; } .ofp-command-bar { gap:5px; padding-inline:8px; } .ofp-command-bar .btn { min-width:0; flex:1; padding:7px 5px; font-size:11px; } .ofp-command-bar .primary { flex:1.5; } .ofp-context-strip { font-size:9px; } .flight-source { display:none; } .folder-two-column { grid-template-columns:1fr; } .folder-table th,.folder-table td { padding:14px 7px; font-size:12px; } .folder-table tbody th b { font-size:15px; } .folder-duration-grid strong { font-size:18px; } .folder-route-diagram > div > strong { font-size:29px; } .folder-route-diagram small { font-size:10px; } .folder-status { font-size:9px; } .folder-flight-title strong { font-size:12px; } }
+@media(max-width:520px) { .flight-route-strip { grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr); gap:8px; } .flight-route-point { grid-template-columns:1fr; } .alternate-point { grid-template-columns:1fr; } .alternate-point > label { font-size:12px; } .grid,.grid.two,.route-procedures,.import-grid,.briefing-modules,.movement-grid { grid-template-columns:1fr; } .fuel-ladder { grid-template-columns:repeat(3,minmax(0,1fr)); } .flight-identity-grid { grid-template-columns:1fr; } .schedule-primary-grid { grid-template-columns:1fr; } .topbar h1 { font-size:14px; } .topbar { gap:8px; } .topbar button { padding:8px; font-size:12px; } .profile-facts { grid-template-columns:1fr 1fr; } .folder-table-wrap { margin-inline:-8px; } }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto !important; } }
-
-/* Flight-folder presentation: persistent section index and ruled data sheets. */
-html, body { height:100%; }
-body, html.embedded body { padding:0; overflow:hidden; }
-.shell { display:grid; grid-template-columns:164px minmax(0,1fr); grid-template-rows:auto auto auto minmax(0,1fr); grid-template-areas:"app app" "flight flight" "status status" "index sheet"; width:100%; max-width:none; height:100dvh; margin:0; padding:0 0 70px; }
-.topbar { grid-area:app; min-height:48px; padding:6px 14px; margin:0; background:var(--flight-nav); color:#fff; border-bottom:1px solid #3a5265; }
-.topbar h1 { color:#fff; font-size:17px; letter-spacing:0; }
-.topbar :is(.eyebrow,.sub,.ofp-brand-mark) { display:none; }
-.topbar button { min-height:38px; padding:7px 12px; border:1px solid #496172; border-radius:3px; color:#e2eff7; background:transparent; }
-.ofp-flight-hero { grid-area:flight; min-height:72px; padding:10px 16px; gap:12px; border:0; border-radius:0; background:var(--flight-nav); }
-.ofp-flight-hero strong { color:#fff; }
-.ofp-flight-endpoint strong { font:700 27px/1 var(--flight-mono); letter-spacing:0; }
-.ofp-flight-hero :is(.ofp-flight-path,.ofp-flight-badges,.ofp-flight-badges em,.statusbox span) { color:var(--flight-nav-muted); }
-.ofp-flight-badges { gap:12px; font:12px/1.4 var(--flight-mono); }
-.ofp-flight-facts { gap:18px; }
-.statusbox strong { font:700 13px/1.4 var(--flight-mono); }
-.statusbox[data-flight-fact="document"] strong { color:#ffe1a1 !important; }
-.statusbox[data-state="released"] strong { color:#a3ebc1 !important; }
-.ofp-context-strip { grid-area:status; min-height:28px; align-items:center; padding:4px 12px; border:0; border-bottom:1px solid var(--line); border-radius:0; font:11px/1.4 var(--flight-mono); }
-.ofp-task-rail { grid-area:index; position:static; display:flex; flex-direction:column; gap:0; min-height:0; margin:0; padding:12px 0; overflow:auto; background:var(--flight-nav); border-right:1px solid #496172; }
-.ofp-task-rail::before { content:"FLIGHT FOLDER"; padding:4px 12px 12px; color:var(--flight-nav-muted); font:11px/1.3 var(--flight-mono); letter-spacing:.08em; }
-.ofp-workspace-button { display:block; flex:none; width:100%; min-height:76px; padding:12px; border:0; border-left:3px solid transparent; border-bottom:1px solid #304657; border-radius:0; background:transparent; text-align:left; }
-.ofp-workspace-button::before { display:none; }
-.ofp-workspace-button .task-title { display:block; color:#f0f5f8; font-size:14px; font-weight:550; }
-.ofp-workspace-button .workspace-state { display:block; margin-top:6px; color:var(--flight-nav-muted); font:11px/1.4 var(--flight-mono); }
-.ofp-workspace-button:hover { background:#263f52; }
-.ofp-workspace-button[aria-selected="true"] { border-left-color:#84dfb0; border-bottom-color:#426658; background:#234d40; }
-.ofp-workspace-button[aria-selected="true"] .task-title { color:#c4f7da; }
-.ofp-workspace-button[aria-selected="true"] .workspace-state { color:#c4e8d8; }
-.ofp-app-workspace { grid-area:sheet; min-height:0; min-width:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
-.editor { display:block; padding:14px; }
-.ofp-task-panel { padding:0 16px 16px; margin:0 0 14px; border:1px solid var(--line); border-radius:2px; background:var(--surface); }
-.ofp-card-head { min-height:43px; align-items:center; margin:0 -16px 14px; padding:10px 16px; background:var(--soft); border-bottom:1px solid var(--line); }
-.ofp-card-head strong { font-size:15px; font-weight:650; letter-spacing:.01em; }
-.flight-route-strip { grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr); gap:10px; }
-.flight-route-point { grid-template-columns:minmax(0,1fr) 88px; padding:10px; gap:8px; border-radius:2px; background:transparent; }
-.flight-route-point > span { font:700 11px/1.3 var(--flight-mono); letter-spacing:.06em; text-transform:uppercase; }
-.flight-route-strip .alternate-point { grid-column:1/-1; grid-template-columns:90px minmax(0,1fr); align-items:center; }
-.alternate-point > span { grid-column:auto; }
-.alternate-point > label { font-size:0; }
-.alternate-input-row { display:grid; grid-template-columns:minmax(80px,1fr) auto; }
-.alternate-input-row input { margin:0; }
-.alternate-input-row button { min-height:44px; padding:8px 14px; font-size:12px; }
-.runway-help { font-size:10px; }
-input,select,textarea { min-height:44px; border-radius:2px; padding:8px 10px; font:700 16px/1.3 var(--flight-mono); font-variant-numeric:tabular-nums; }
-label,.aircraft-profile-caption { font:12px/1.4 var(--flight-mono); color:var(--muted); }
-.flight-identity-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
-.aircraft-profile-button { min-height:44px; border-radius:2px; }
-.aircraft-profile-copy strong { font:700 12px/1.3 var(--flight-mono); }
-.aircraft-profile-copy small { font:11px/1.3 var(--flight-mono); }
-.aircraft-profile-code { font:700 14px/1.3 var(--flight-mono); }
-.schedule-workbench { margin-top:10px; padding:10px 0 0; border:0; border-top:1px solid var(--line); border-radius:0; background:transparent; }
-.schedule-workbench-head { margin-bottom:8px; font-size:13px; }
-.schedule-estimate strong { font:700 14px/1.4 var(--flight-mono); }
-button,.btn { border-radius:3px; }
-.route-swap-large { font-size:20px; }
-.route-composer { grid-template-columns:1fr 1fr 1fr; }
-.route-composer label { grid-column:1/-1; }
-.route-tokens { padding:12px 0; gap:6px; }
-.route-token { border-radius:2px; font:700 14px/1.3 var(--flight-mono); }
-.route-preview,pre { font-family:var(--flight-mono); }
-.grid,.grid.two,.route-procedures { gap:12px; }
-.route-cruise-grid { grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:14px; }
-.fuel-ladder,.load-margin-strip { border-radius:2px; }
-.fuel-ladder strong,.load-margin-strip strong,.metric strong,.movement-time,.profile-facts strong { font-family:var(--flight-mono); }
-.fuel-ladder > div,.load-margin-strip > div { padding:10px; }
-.checkline,.locked-profile,.load-source,.movement-card,.metric,.notice,.release-snapshot,.brief-next-action { border-radius:2px; }
-.ofp-command-bar { min-height:70px; padding:10px 12px max(10px,env(safe-area-inset-bottom)); gap:8px; background:var(--flight-nav); border-top:1px solid #3a5265; }
-.shell { padding-bottom:calc(70px + env(safe-area-inset-bottom)); }
-.schedule-drawer { margin-top:8px !important; }
-.schedule-drawer summary { padding:10px 0; }
-.ofp-command-bar .btn { min-height:46px; color:#edf5fa; background:#263f52; border-color:#496172; border-radius:3px; }
-.ofp-command-bar .btn.primary { background:#006b9c; border-color:#2497bd; color:#fff; }
-.ofp-command-bar .btn:disabled { color:#aec4d4; opacity:.65; }
-.ofp-inspector { border-radius:4px; }
-@media(min-width:1000px) { .flight-route-strip { grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) minmax(0,.8fr); } .flight-route-strip .alternate-point { grid-column:auto; grid-template-columns:1fr; } .alternate-point > label { font-size:12px; } .alternate-input-row { grid-template-columns:minmax(0,1fr); } .flight-identity-grid { grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr)); } }
-@media(min-width:1280px) { .shell { grid-template-columns:190px minmax(0,1fr); } .editor { max-width:1400px; margin:auto; } }
-@media(max-width:900px) and (min-width:741px) { .shell { grid-template-columns:138px minmax(0,1fr); } .editor { padding:10px; } .ofp-task-panel { padding-inline:12px; } .ofp-card-head { margin-inline:-12px; padding-inline:12px; } .ofp-workspace-button { padding:12px 9px; } .task-title { font-size:13px; } .ofp-flight-facts { gap:12px; } }
-@media(max-width:740px) { .shell { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto auto auto minmax(0,1fr); grid-template-areas:"app" "flight" "status" "index" "sheet"; } .ofp-task-rail { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); padding:0; border:0; } .ofp-task-rail::before { display:none; } .ofp-workspace-button { min-height:48px; padding:8px 4px; border-left:0; border-bottom:3px solid transparent; text-align:center; } .ofp-workspace-button[aria-selected="true"] { border-bottom-color:#84dfb0; } .ofp-workspace-button .task-title { font-size:12px; } .ofp-workspace-button .workspace-state { display:none; } .ofp-flight-hero { min-height:66px; padding:8px 12px; } .ofp-flight-facts { width:auto; } .ofp-flight-facts .statusbox[data-flight-fact="schedule"] { display:none; } .ofp-flight-facts { grid-template-columns:1fr; } .ofp-flight-endpoint strong { font-size:23px; } .ofp-flight-badges { font-size:10px; } .editor { padding:8px; } .ofp-task-panel { padding:0 12px 12px; } .ofp-card-head { margin:0 -12px 12px; padding:8px 12px; } .flight-route-point { grid-template-columns:1fr; } .flight-route-strip .alternate-point { grid-template-columns:1fr; } .ofp-command-bar .btn { font-size:11px; padding:6px; } .route-cruise-grid { grid-template-columns:1fr 1fr; } }

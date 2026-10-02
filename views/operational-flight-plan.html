@@ -30,8 +30,8 @@
         }
         return theme;
       };
-      let savedTheme = 'day';
-      try { savedTheme = localStorage.getItem(themeKey) || 'day'; } catch (_) {}
+      let savedTheme = 'night';
+      try { savedTheme = localStorage.getItem(themeKey) || 'night'; } catch (_) {}
       applyTheme(savedTheme);
       window.applyOFPTheme = applyTheme;
       window.addEventListener('message', event => {
@@ -46,7 +46,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-02-3" />
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-02-4" />
 </head>
 <body>
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -90,14 +90,41 @@
       <section id="flightSource" class="flight-source"><div id="flightSourceBadge" class="flight-source-badge">BOOKING PRELOAD</div><div><strong id="flightSourceTitle">Selected flight loaded</strong><span id="flightSourceDetail">Schedule and declared load are prefilled. Pilot planning fields remain editable.</span></div></section>
       <div id="saveState" class="save-state loading" role="status" aria-live="polite">Loading flight file...</div>
     </div>
-    <nav class="ofp-workspaces ofp-task-rail" aria-label="Flight plan stages" role="tablist">
-      <button id="taskTabSetup" class="ofp-workspace-button" type="button" role="tab" data-workspace="SETUP" data-step="1" aria-controls="flightSetupSection routeSection" aria-selected="true"><strong class="task-title">Flight</strong><em class="workspace-state">Airports &amp; route</em></button>
+    <nav class="ofp-workspaces ofp-task-rail" aria-label="Flight folder sections" role="tablist">
+      <button id="taskTabSummary" class="ofp-workspace-button" type="button" role="tab" data-workspace="SUMMARY" aria-controls="flightSummarySection" aria-selected="false"><strong class="task-title">Flight summary</strong><em class="workspace-state">Overview</em></button>
+      <button id="taskTabSetup" class="ofp-workspace-button" type="button" role="tab" data-workspace="SETUP" data-step="1" aria-controls="flightSetupSection" aria-selected="true"><strong class="task-title">Flight setup</strong><em class="workspace-state">Aircraft &amp; airports</em></button>
+      <button id="taskTabRoute" class="ofp-workspace-button" type="button" role="tab" data-workspace="ROUTE" aria-controls="routeSection" aria-selected="false"><strong class="task-title">Route &amp; alternates</strong><em class="workspace-state">Navigation plan</em></button>
+      <button id="taskTabTime" class="ofp-workspace-button" type="button" role="tab" data-workspace="TIME" aria-controls="timeSummarySection" aria-selected="false"><strong class="task-title">Time summary</strong><em class="workspace-state">Planned / actual</em></button>
       <button id="taskTabLoad" class="ofp-workspace-button" type="button" role="tab" data-workspace="LOAD" data-step="2" aria-controls="fuelSection loadSection" aria-selected="false" tabindex="-1"><strong class="task-title">Fuel &amp; load</strong><em class="workspace-state">Fuel &amp; balance</em></button>
       <button id="taskTabBrief" class="ofp-workspace-button" type="button" role="tab" data-workspace="BRIEF" data-step="3" aria-controls="dispatchSection releaseSection" aria-selected="false" tabindex="-1"><strong class="task-title">Review &amp; release</strong><em class="workspace-state">Pilot verification</em></button>
-      <button id="taskTabFly" class="ofp-workspace-button" type="button" role="tab" data-workspace="FLY" data-step="4" aria-controls="movementSection" aria-selected="false" tabindex="-1"><strong class="task-title">Flight log</strong><em class="workspace-state">OUT · OFF · ON · IN</em></button>
+      <button id="taskTabFly" class="ofp-workspace-button" type="button" role="tab" data-workspace="FLY" data-step="4" aria-controls="movementSection" aria-selected="false" tabindex="-1"><strong class="task-title">Journey log</strong><em class="workspace-state">OUT · OFF · ON · IN</em></button>
+      <button id="taskTabFiles" class="ofp-workspace-button" type="button" role="tab" data-workspace="FILES" aria-controls="folderDocumentsSection" aria-selected="false"><strong class="task-title">Documents</strong><em class="workspace-state">OFP &amp; flight files</em></button>
     </nav>
     <div class="workspace ofp-app-workspace">
+      <header class="folder-toolbar"><div><span>FLIGHT BRIEFING</span><h2 id="folderSectionTitle">Flight summary</h2></div><button type="button" id="folderOverviewBtn" aria-label="Return to flight summary">Overview</button></header>
       <section class="editor ofp-task-content" aria-label="Selected flight plan stage">
+        <section id="flightSummarySection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabSummary" hidden>
+          <div class="folder-flight-title"><div><span id="folderReference">FLIGHT FILE</span><strong id="folderAircraft">Aircraft not loaded</strong></div><span id="folderReleaseState" class="folder-status">DRAFT</span></div>
+          <div class="folder-route-diagram"><div><span>DEPARTURE</span><strong id="folderDeparture">----</strong><small id="folderDepartureName">Departure airport</small></div><div class="folder-route-line"><span id="folderEet">— MIN</span><i aria-hidden="true">✈</i><small id="folderDistance">— NM</small></div><div><span>DESTINATION</span><strong id="folderDestination">----</strong><small id="folderDestinationName">Arrival airport</small></div></div>
+          <div class="folder-schedule"><div><span>OFF BLOCK / LOCAL</span><strong id="folderLocalTime">NOT SET</strong></div><div><span>OFF BLOCK / UTC</span><strong id="folderUtcTime">NOT SET</strong></div><div><span>PLANNED TOUCHDOWN / UTC</span><strong id="folderArrivalTime">NOT SET</strong></div><button type="button" data-folder-open="SETUP">Edit flight</button></div>
+          <div class="folder-two-column">
+            <section class="folder-sheet"><header><h3>Flight plan</h3><button type="button" data-folder-open="ROUTE">Edit route</button></header><dl id="folderPlanRows" class="folder-data-list"></dl><div class="folder-route-text"><span>ROUTE DESCRIPTION</span><p id="folderRouteText">No route entered</p></div></section>
+            <section class="folder-sheet"><header><h3>Fuel &amp; weights</h3><button type="button" data-folder-open="LOAD">Edit load</button></header><dl id="folderLoadRows" class="folder-data-list"></dl><p class="folder-footnote">Calculated planning values · Verify actual loading and current aircraft limits.</p></section>
+          </div>
+          <section class="folder-sheet"><header><h3>Preflight status</h3><span id="folderGateCount">Planning checks</span></header><div id="folderGates" class="folder-gates"></div></section>
+          <div class="folder-note">Planning aid only. Current approved weather, NOTAMs, charts and aircraft documentation remain required.</div>
+        </section>
+        <section id="timeSummarySection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabTime" hidden>
+          <div class="folder-page-intro"><h3>Time summary</h3><p>One timeline for the planned schedule and recorded flight events.</p><button type="button" data-folder-open="SETUP">Edit departure &amp; EET</button></div>
+          <section class="folder-sheet"><header><h3>Movement timeline</h3><span>UTC / LOCAL</span></header><div class="folder-table-wrap"><table class="folder-table"><thead><tr><th scope="col">Event</th><th scope="col">Planned UTC</th><th scope="col">Actual UTC / local</th><th scope="col">Difference</th></tr></thead><tbody id="folderTimeRows"></tbody></table></div></section>
+          <div id="folderDurationRows" class="folder-duration-grid"></div><p class="folder-note">Actual durations and differences use dated server records only; legacy clock-only values are not inferred. Positive difference = later than planned. The planned schedule includes 10 minutes taxi out and 5 minutes taxi in.</p><button type="button" data-folder-open="FLY">Open journey log</button>
+        </section>
+        <section id="folderDocumentsSection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabFiles" hidden>
+          <div class="folder-page-intro"><h3>Flight documents</h3><p>Generate the current flight plan or open the selected flight’s document workspace.</p></div>
+          <div class="folder-document-list"><article><span class="folder-file-icon" aria-hidden="true">PDF</span><div><h3>Operational flight plan</h3><p id="folderDocumentState">Save a draft to generate the current OFP.</p></div><button id="folderPreviewBtn" type="button">Preview OFP</button><button id="folderPdfBtn" type="button">Open PDF</button></article><article><span class="folder-file-icon" aria-hidden="true">DOC</span><div><h3>Supporting flight files</h3><p>Aircraft documents, passenger files and operational records available in Pilot Ops.</p></div><button id="folderFilesBtn" type="button">Open flight files</button></article></div>
+          <section class="folder-sheet"><header><h3>Release record</h3><button type="button" data-folder-open="BRIEF">Review release</button></header><p id="folderReleaseRecord" class="folder-document-note">No authoritative release recorded.</p></section>
+          <p class="folder-note">Charts and third-party briefing packs are not supplied by this app. Consult your current approved sources.</p>
+        </section>
         <details id="flightSetupSection" class="ofp-task-panel" data-task="SETUP" role="tabpanel" aria-labelledby="taskTabSetup" open>
           <summary class="ofp-task-panel-summary"><span>01</span><strong>Flight &amp; schedule</strong><em>Identity, aircraft, airports and EOBT</em></summary>
           <div class="detail-body">
@@ -192,7 +219,7 @@
           </div>
         </details>
 
-        <details id="routeSection" class="ofp-task-panel" data-task="ROUTE" role="tabpanel" aria-labelledby="taskTabSetup" open>
+        <details id="routeSection" class="ofp-task-panel" data-task="ROUTE" role="tabpanel" aria-labelledby="taskTabRoute" open>
           <summary class="ofp-task-panel-summary"><span>02</span><strong>Route</strong><em>Build, verify and brief the navigation plan</em></summary>
           <div class="detail-body">
             <div class="section-heading ofp-card-head"><div><span>Navigation</span><strong>Route & cruise</strong></div><p>Use smart route entry for speed, then verify every leg, runway, procedure and alternate against current approved sources.</p></div>
@@ -457,6 +484,7 @@
           </div>
           <div id="pdfPreviewState" class="pdf-preview-state" role="status" aria-live="polite">Save the flight plan to render the current OFP PDF.</div>
           <iframe id="pdfPreviewFrame" class="pdf-preview-frame" title="Current Operational Flight Plan PDF preview" loading="lazy"></iframe>
+          <p class="folder-note">If your browser cannot display the embedded PDF, use Open full screen below.</p>
           <div class="pdf-preview-actions">
             <button id="openPdfFullBtn" class="btn" type="button">Open full screen</button>
             <button id="returnSummaryBtn" class="btn" type="button">Flight status</button>
@@ -473,6 +501,9 @@
       <button id="dockReadinessBtn" class="btn" type="button" aria-controls="ofpInspector" aria-expanded="false">Checks</button>
       <button id="dockPdfBtn" class="btn" type="button" hidden>PDF</button>
     </nav>
+    <dialog id="movementConfirmDialog" class="aircraft-profile-dialog movement-confirm-dialog" aria-labelledby="movementConfirmTitle" aria-describedby="movementConfirmDetail">
+      <form method="dialog"><header class="profile-sheet-head"><div><span>JOURNEY LOG</span><h2 id="movementConfirmTitle">Record movement</h2></div><button type="submit" value="cancel" aria-label="Cancel movement">×</button></header><p id="movementConfirmDetail"></p><p class="folder-note">This writes to the selected flight’s movement record and audit timeline.</p><div class="profile-sheet-actions"><button type="submit" value="cancel">Cancel</button><button class="btn primary" type="submit" value="record">Confirm record</button></div></form>
+    </dialog>
     <dialog id="aircraftProfileDialog" class="aircraft-profile-dialog" aria-labelledby="aircraftProfileTitle">
       <form method="dialog" class="aircraft-profile-sheet">
         <header class="profile-sheet-head">
@@ -519,22 +550,26 @@
     let previewLoadTimeout = 0;
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
     const workspaceSections = {
-      SETUP:['flightSetupSection', 'routeSection'],
+      SUMMARY:['flightSummarySection'],
+      SETUP:['flightSetupSection'],
+      ROUTE:['routeSection'],
+      TIME:['timeSummarySection'],
       LOAD:['fuelSection', 'loadSection'],
       BRIEF:['dispatchSection', 'releaseSection'],
-      FLY:['movementSection']
+      FLY:['movementSection'],
+      FILES:['folderDocumentsSection']
     };
-    const workspaceOrder = ['SETUP', 'LOAD', 'BRIEF', 'FLY'];
-    const workspaceLabels = { SETUP:'Flight', ROUTE:'Flight', LOAD:'Fuel & Load', BRIEF:'Review & Release', FLY:'Flight Log', RELEASE:'Review & Release' };
-    const ofpWorkspaceStorageKey = `nga-ofp-workspace-v3:${requestId}`;
+    const workspaceOrder = ['SUMMARY', 'SETUP', 'ROUTE', 'TIME', 'LOAD', 'BRIEF', 'FLY', 'FILES'];
+    const workspaceLabels = { SUMMARY:'Flight summary', SETUP:'Flight setup', ROUTE:'Route & alternates', TIME:'Time summary', LOAD:'Fuel & weights', BRIEF:'Briefing & release', FLY:'Journey log', FILES:'Documents', RELEASE:'Briefing & release' };
+    const ofpWorkspaceStorageKey = `nga-ofp-workspace-v4:${requestId}`;
     const ofpInspectorStorageKey = 'nga-ofp-inspector-collapsed-v1';
     const compactInspectorMedia = window.matchMedia('(max-width: 1199px)');
     const floatingInspectorMedia = window.matchMedia('(max-width: 1199px)');
-    let currentWorkspace = 'SETUP';
+    let currentWorkspace = 'SUMMARY';
 
     function storedWorkspace() {
-      try { return localStorage.getItem(ofpWorkspaceStorageKey) || 'SETUP'; }
-      catch (_) { return 'SETUP'; }
+      try { return localStorage.getItem(ofpWorkspaceStorageKey) || 'SUMMARY'; }
+      catch (_) { return 'SUMMARY'; }
     }
 
     function rememberWorkspace(workspace) {
@@ -668,7 +703,7 @@
     }
 
     function setPdfPreviewBusy(busy) {
-      ['refreshPdfPreviewBtn', 'previewBtn', 'generateOfpBtn', 'dockPreviewBtn'].forEach(id => {
+      ['refreshPdfPreviewBtn', 'previewBtn', 'generateOfpBtn', 'dockPreviewBtn', 'folderPreviewBtn', 'folderPdfBtn'].forEach(id => {
         const button = el(id);
         if (button) button.disabled = busy;
       });
@@ -737,14 +772,16 @@
     }
 
     function setWorkspace(workspace, persist = true) {
-      const migrated = ({ PLAN:'SETUP', ROUTE:'SETUP', RELEASE:'BRIEF' })[workspace] || workspace;
-      const selected = Object.prototype.hasOwnProperty.call(workspaceSections, migrated) ? migrated : 'SETUP';
+      const migrated = ({ PLAN:'SETUP', RELEASE:'BRIEF' })[workspace] || workspace;
+      const selected = Object.prototype.hasOwnProperty.call(workspaceSections, migrated) ? migrated : 'SUMMARY';
       currentWorkspace = selected;
       if (inspectorMode === 'PDF') setInspector('SUMMARY');
       if (persist) setInspectorCollapsed(true, false);
       const visible = new Set(workspaceSections[selected]);
       document.querySelector('.shell').dataset.workspace = selected;
       document.body.dataset.ofpStage = selected.toLowerCase();
+      el('folderSectionTitle').textContent = workspaceLabels[selected];
+      el('folderOverviewBtn').hidden = selected === 'SUMMARY';
       Object.values(workspaceSections).flat().forEach(id => {
         const section = el(id);
         section.hidden = !visible.has(id);
@@ -1626,7 +1663,7 @@
       const briefReady = reviewReady && performanceReady;
       const released = isAuthoritativelyReleased();
       const serverReleaseReady = Boolean(saved && releasePanel?.ready === true);
-      setWorkspaceState('SETUP', setupReady && routeReady ? 'Ready to review' : 'Planning', setupReady && routeReady);
+      setWorkspaceState('SETUP', setupReady ? 'Flight defined' : 'Planning', setupReady);
       setWorkspaceState('ROUTE', routeReady ? 'Route ready' : 'Route / runway open', routeReady);
       setWorkspaceState('LOAD', loadReady ? 'Within limits' : 'Check load', loadReady);
       setWorkspaceState('FLY', `${movementCount} / 4`, movementCount === 4);
@@ -1680,6 +1717,61 @@
       if (/NOTAM|AIRSPACE|PERFORMANCE/.test(value)) return 'BRIEF';
       if (/ROUTE|RUNWAY|ALTERNATE/.test(value)) return 'ROUTE';
       return 'SETUP';
+    }
+
+    function movementClocks(value) {
+      const match = String(value || '').match(/^(\d{2})(\d{2})Z\/(\d{2})(\d{2})L$/);
+      if (!match || Number(match[1]) > 23 || Number(match[2]) > 59 || Number(match[3]) > 23 || Number(match[4]) > 59) return { utc:'Not recorded', local:'—', recorded:false };
+      return { utc:`${match[1]}:${match[2]}Z`, local:`${match[3]}:${match[4]}L`, recorded:true };
+    }
+
+    function datedMinutesBetween(start, end, allowNegative = false) {
+      const valid = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value) && Number.isFinite(Date.parse(value));
+      if (!valid(start) || !valid(end)) return null;
+      const minutes = Math.round((Date.parse(end) - Date.parse(start)) / 60000);
+      return !allowNegative && minutes < 0 ? null : minutes;
+    }
+
+    function renderFlightFolder(calc, progress) {
+      const show = (id, value) => { el(id).textContent = value || '—'; };
+      const rows = (id, values) => { el(id).innerHTML = values.map(([label,value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value ?? '—')}</dd></div>`).join(''); };
+      const airportName = icao => airportCatalog.find(a => String(a.icao).toUpperCase() === String(icao).toUpperCase())?.name || 'Airport name unavailable';
+      show('folderReference', plan.flightReference || requestId);
+      show('folderAircraft', `${plan.aircraftRegistration || 'NOT SET'} · ${plan.aircraftModel || plan.aircraftCode || 'Aircraft'}`);
+      show('folderDeparture', plan.departure || '----');
+      show('folderDestination', plan.destination || '----');
+      show('folderDepartureName', airportName(plan.departure));
+      show('folderDestinationName', airportName(plan.destination));
+      show('folderEet', num(plan.estimatedEnrouteMinutes) > 0 ? `${Math.round(num(plan.estimatedEnrouteMinutes))} MIN` : 'EET NOT SET');
+      show('folderDistance', num(plan.distanceNm) > 0 ? `${num(plan.distanceNm)} NM` : 'DISTANCE NOT SET');
+      show('folderLocalTime', smartSchedule ? `${smartSchedule.out.localDate} / ${smartSchedule.out.local}L` : 'NOT SET');
+      show('folderUtcTime', smartSchedule ? `${smartSchedule.out.utcDate} / ${smartSchedule.out.utc}Z` : 'NOT SET');
+      show('folderArrivalTime', smartSchedule ? `${smartSchedule.on.utcDate} / ${smartSchedule.on.utc}Z` : 'NOT SET');
+      show('folderRouteText', plan.route || 'No operational route entered.');
+      rows('folderPlanRows', [['Rules',plan.flightRules || 'VFR'],['Cruise',plan.cruiseFlightLevel || 'Not set'],['True airspeed',num(plan.cruiseSpeedKt) > 0 ? `${num(plan.cruiseSpeedKt)} KT` : 'Not set'],['Runways',`${plan.depRunway || '—'} / ${plan.arrRunway || '—'}`],['Alternate',plan.alternate || 'Not selected'],['Commander',plan.releaseName || plan.commanderName || 'Not assigned']]);
+      rows('folderLoadRows', [['Block fuel',`${calc.blockFuelGal.toFixed(1)} USG`],['Trip fuel',`${num(plan.tripFuelGal).toFixed(1)} USG`],['Final reserve',`${num(plan.finalReserveFuelGal).toFixed(1)} USG`],['Takeoff mass',`${calc.tow.toFixed(1)} LB`],['Landing mass',`${calc.landing.toFixed(1)} LB`],['Takeoff CG',`${calc.cg.toFixed(2)} IN`]]);
+      const gates = [['SETUP','Flight setup',progress.setupReady],['ROUTE','Route & alternate',progress.routeReady],['LOAD','Fuel & loading',progress.loadReady],['BRIEF','Briefing review',progress.reviewReady],['BRIEF','Performance',progress.performanceReady]];
+      el('folderGates').innerHTML = gates.map(([workspace,title,ready])=>`<button type="button" data-folder-open="${workspace}" data-ready="${ready}"><i aria-hidden="true">${ready ? '✓' : '○'}</i><span>${title}</span><strong>${ready ? 'Complete' : 'Review'}</strong><b aria-hidden="true">›</b></button>`).join('');
+      show('folderGateCount', `${progress.completed} / 5 complete · PIC release separate`);
+      const state = progress.released ? 'RELEASED' : saved ? 'SAVED DRAFT' : 'UNSAVED DRAFT';
+      show('folderReleaseState', state);
+      el('folderReleaseState').dataset.released = String(progress.released);
+      show('folderDocumentState', `${state} · Generating the PDF first saves current edits. A draft is not a PIC release.`);
+      show('folderReleaseRecord', [...el('releaseSnapshotState').childNodes].map(node => node.textContent.trim()).filter(Boolean).join(' · '));
+      setWorkspaceState('SUMMARY', state.toLowerCase(), progress.released);
+      setWorkspaceState('TIME', smartSchedule ? 'Schedule available' : 'Set departure time', Boolean(smartSchedule));
+      setWorkspaceState('FILES', saved ? 'Draft saved' : 'Unsaved changes', saved);
+      const phases = [['out','OUT','Block out'],['off','OFF','Airborne'],['on','ON','Touchdown'],['in','IN','Block in']];
+      el('folderTimeRows').innerHTML = phases.map(([key,code,label]) => {
+        const field = `actual${key[0].toUpperCase()}${key.slice(1)}`;
+        const actual = movementClocks(plan[field]);
+        const scheduled = smartSchedule?.[key];
+        const variance = actual.recorded ? datedMinutesBetween(scheduled?.instant?.toISOString(), plan[field+'Iso'], true) : null;
+        return `<tr><th scope="row"><b>${code}</b><span>${label}</span></th><td>${scheduled ? `${escapeHtml(scheduled.utc)}Z<small>${escapeHtml(scheduled.utcDate)}</small>` : 'Not set'}</td><td>${actual.utc}<small>${actual.local}</small></td><td>${variance === null ? '—' : `${variance > 0 ? '+' : ''}${variance} MIN`}</td></tr>`;
+      }).join('');
+      const actualFlight = datedMinutesBetween(plan.actualOffIso, plan.actualOnIso);
+      const actualBlock = datedMinutesBetween(plan.actualOutIso, plan.actualInIso);
+      el('folderDurationRows').innerHTML = [['Planned flight',num(plan.estimatedEnrouteMinutes)>0 ? `${num(plan.estimatedEnrouteMinutes)} MIN` : 'Not set'],['Planned block',smartSchedule ? `${Math.round((smartSchedule.in.instant-smartSchedule.out.instant)/60000)} MIN` : 'Not set'],['Actual flight',actualFlight === null ? '—' : `${actualFlight} MIN`],['Actual block',actualBlock === null ? '—' : `${actualBlock} MIN`]].map(([label,value])=>`<div><span>${label}</span><strong>${value}</strong></div>`).join('');
     }
 
     function render() {
@@ -1785,6 +1877,7 @@
       document.querySelector('.ofp-smart-aircraft-card').dataset.state = String(plan.aircraftRegistration || '').trim() ? 'complete' : 'attention';
       document.querySelector('.ofp-release-workspace').dataset.releaseState = released ? 'released' : progress.serverReleaseReady ? 'ready' : 'blocked';
       renderServerReleasePanel();
+      renderFlightFolder(calc, progress);
       ['actualOut','actualOff','actualOn','actualIn'].forEach(field => {
         const value = String(inputFor(field).value || '').trim();
         const card = document.querySelector(`[data-movement-card="${field}"]`);
@@ -1957,14 +2050,31 @@
       markUnsaved('Fuel plan recalculated / verify and save the current values.');
       render();
     });
+    let movementBusy = false;
+    async function confirmMovement(action, source) {
+      const dialog = el('movementConfirmDialog');
+      el('movementConfirmTitle').textContent = action;
+      el('movementConfirmDetail').textContent = `Use ${source} for ${plan.departure || 'departure'} → ${plan.destination || 'destination'} / ${plan.flightReference || requestId}?`;
+      dialog.returnValue = 'cancel';
+      return new Promise(resolve => {
+        dialog.addEventListener('close', () => resolve(dialog.returnValue === 'record'), { once:true });
+        dialog.showModal();
+      });
+    }
     async function recordMovement(field, localTime = '') {
+      if (movementBusy) return;
+      if (!saved) {
+        setSaveState('unsaved', 'Save the current draft before recording a movement, so your planning changes are preserved.');
+        return;
+      }
       const phase = field.replace('actual', '').toLowerCase();
       const source = localTime ? `manual local time ${localTime}` : 'the server flight clock';
       const previous = String(inputFor(field).value || '').trim();
       const action = previous ? `Replace ${phase.toUpperCase()} ${previous}` : `Record ${phase.toUpperCase()}`;
-      if (!window.confirm(`${action} using ${source}?`)) return;
-      setSaveState('saving', `Recording ${phase.toUpperCase()} with ${source}...`);
+      movementBusy = true;
       try {
+        if (!await confirmMovement(action, source)) return;
+        setSaveState('saving', `Recording ${phase.toUpperCase()} with ${source}...`);
         const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/movements/${phase}`, {
           method:'POST',
           headers: localTime ? { 'Content-Type':'application/json' } : undefined,
@@ -1981,6 +2091,8 @@
       } catch (error) {
         setSaveState('failed', error.message || 'Unable to record movement time.');
         render();
+      } finally {
+        movementBusy = false;
       }
     }
     document.querySelectorAll('[data-stamp-field]').forEach(button => button.addEventListener('click', () => recordMovement(button.dataset.stampField)));
@@ -2103,6 +2215,14 @@
     el('nextWorkspaceBtn').addEventListener('click', () => moveWorkspace(1));
     el('dockPreviousBtn').addEventListener('click', () => moveWorkspace(-1));
     el('dockNextBtn').addEventListener('click', () => moveWorkspace(1));
+    el('folderOverviewBtn').addEventListener('click', () => setWorkspace('SUMMARY'));
+    document.querySelector('.editor').addEventListener('click', event => {
+      const target = event.target.closest('[data-folder-open]');
+      if (target) setWorkspace(target.dataset.folderOpen);
+    });
+    el('folderPreviewBtn').addEventListener('click', refreshPdfPreview);
+    el('folderPdfBtn').addEventListener('click', openCurrentPdf);
+    el('folderFilesBtn').addEventListener('click', () => openPilotWorkspace('documents'));
     setWorkspace(storedWorkspace(), false);
     renderConversions();
     el('loadModeSelect').addEventListener('change', () => {

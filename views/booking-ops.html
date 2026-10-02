@@ -9,8 +9,8 @@
   <script>
     (() => {
       const theme = (() => {
-        try { return localStorage.getItem('nga-efb-theme') === 'night' ? 'night' : 'day'; }
-        catch (_) { return 'day'; }
+        try { return localStorage.getItem('nga-efb-theme') === 'day' ? 'day' : 'night'; }
+        catch (_) { return 'night'; }
       })();
       document.documentElement.dataset.efbTheme = theme;
       document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
@@ -2939,13 +2939,13 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-02-3" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-02-3" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-02-3" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-02-3" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-02-3" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-02-4" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-02-4" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-02-4" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-02-4" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-02-4" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-02-3" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-02-4" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3451,7 +3451,7 @@ LOAD DATA TO CALCULATE.</pre></details>
             <section class="flight-file-group">
               <header><span>Pilot documents</span><strong>Planning and operations</strong></header>
               <article class="flight-file-row"><div class="file-type">OFP</div><div><strong>Operational Flight Plan</strong><small>Route, fuel, load, briefing, movement log, and PIC release.</small></div><button id="suiteOpenOfpBtn" type="button">Open builder</button></article>
-              <article class="flight-file-row"><div class="file-type">PDF</div><div><strong>Released OFP document</strong><small>Printable controlled output generated from the current saved plan.</small></div><button id="suiteOpenOfpPdfBtn" type="button">Open PDF</button></article>
+              <article class="flight-file-row"><div class="file-type">PDF</div><div><strong>Current OFP document</strong><small>Printable output from the saved plan. A draft is not a PIC release.</small></div><button id="suiteOpenOfpPdfBtn" type="button">Open PDF</button></article>
               <article class="flight-file-row"><div class="file-type">OPS</div><div><strong>Operations flight file</strong><small>Booking request, operational details, and internal dispatch record.</small></div><button id="suiteOpenFlightFileBtn" type="button">Open PDF</button></article>
             </section>
             <section class="flight-file-group">
@@ -4851,19 +4851,22 @@ END OF MESSAGE</pre>
         button.dataset.dashboardView = action.view;
         button.setAttribute('aria-label', `${action.label} workspace`);
       });
+      const heroReleased = Boolean(req && releaseClientState(req).released);
+      const heroCompleted = [Boolean(req), heroReleased, Boolean(ofp.actualOff), Boolean(ofp.actualOn || ofp.actualIn)];
       const heroPhaseIndex = !req ? -1
         : ofp.actualIn ? 3
           : ofp.actualOn ? 3
             : ofp.actualOff ? 2
-              : ofp.actualOut || releaseClientState(req).released ? 1
+              : heroReleased ? 1
                 : 0;
       const heroPhaseProgress = [-1, 0, 1, 2, 3].includes(heroPhaseIndex)
         ? ['0%', '12%', '42%', '72%', '100%'][heroPhaseIndex + 1]
         : '0%';
       el('efbHeroPhase').style.setProperty('--phase-progress', heroPhaseProgress);
       document.querySelectorAll('[data-hero-phase]').forEach((step, index) => {
-        step.classList.toggle('complete', heroPhaseIndex >= index);
+        step.classList.toggle('complete', heroCompleted[index]);
         step.classList.toggle('active', heroPhaseIndex === index);
+        if (step.dataset.heroPhase === 'released') step.querySelector('strong').textContent = heroReleased ? 'Released' : 'Release open';
       });
       updateOpsGlobeContext(req);
       renderFlightContextPanel(req);
