@@ -43,6 +43,14 @@ The installed Pilot EFB supports a read-only offline shell and the latest select
 
 The locked aircraft mass-and-balance values currently identified as a ForeFlight aircraft profile were transcribed from the supplied profile. They are not live-synchronized with a ForeFlight account. A future import requires an official supported ForeFlight export or integration data source and must be validated against the current aircraft records and approved flight manual before operational use.
 
+### Pilot flight planner
+
+The OFP uses four stages: Flight (airports, schedule and route), Fuel & Load, Review & Release, and Flight Log. Checks and PDF preview open on demand from the bottom action bar. The standalone and embedded planner share `public/pilot-ofp-workflow.css`; do not reintroduce the older cockpit stylesheets into this page. ForeFlight route handoff has been removed.
+
+Runway fields accept pilot-verified identifiers when catalogue suggestions are unavailable. Catalogue suggestions and calculated fuel starting values are planning aids, not operational approval. Existing server-side aircraft limits, commander permissions and release checks remain authoritative.
+
+Run planner regression checks with `node --test tests/ofp-workflow.test.mjs`. For UI verification, check embedded and standalone layouts at 834×1194, 1194×834 and desktop sizes, in day/night mode; verify save, route edits, import, PDF generation and closing the preview. Flights should use one main vertical scroller on tablets, not fixed-height clipped panels.
+
 ### Face ID / Touch ID pilot access
 
 Pilot Ops supports device passkeys. Sign in once with the pilot access code, open **Face ID / Touch ID device access** near the bottom of Pilot Ops, then choose **Set up this device**. Your phone or computer uses Face ID, Touch ID, or its device PIN; no biometric data is sent to or stored by NGA Private Aviation.

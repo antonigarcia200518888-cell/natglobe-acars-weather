@@ -179,274 +179,6 @@ html[data-efb-theme="night"] {
 .weather-radar-card .leaflet-control-attribution { background: rgba(7, 21, 34, .76); color: #b9c8d2; font-size: 9px; }
 .weather-radar-card .leaflet-control-attribution a { color: #83c5ff; }
 
-/* OFP builder: one layout owner for both the embedded and standalone page.
-   Scope these rules above the older reference selectors so a hidden aircraft
-   illustration cannot leave an empty grid column in the live workspace. */
-html body .shell.ofp-app-shell {
-  --ofp-accent: var(--nga-flight-blue);
-  --ofp-ready: var(--nga-flight-green);
-  --ofp-caution: var(--nga-flight-amber);
-  --ofp-danger: var(--nga-flight-red);
-  --ofp-command-height: 68px;
-  --ofp-flight-header-height: 100px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "header" "hero" "context" "rail" "workspace";
-  align-content: start;
-  gap: 8px;
-  width: 100%;
-  min-height: 100dvh;
-  margin: 0;
-  padding: 0 12px 16px;
-  overflow: visible;
-}
-
-html body .ofp-app-shell .ofp-app-header {
-  position: static;
-  min-height: 52px;
-  margin: 0;
-  padding: 5px 2px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-html body .ofp-app-shell .ofp-app-header h1 { margin: 0; color: var(--efb-text); font-size: 19px; letter-spacing: -.025em; }
-html body .ofp-app-shell .ofp-header-context { display: flex; }
-html body .ofp-app-shell .ofp-brand-mark { width: 34px; height: 34px; flex-basis: 34px; border-radius: 9px; box-shadow: none; }
-html body .ofp-app-shell .ofp-brand-mark img { width: 26px; height: 23px; }
-html body .ofp-app-shell .ofp-app-header :is(.eyebrow, .sub),
-html body .ofp-app-shell .ofp-header-document-actions,
-html body .ofp-app-shell .ofp-readiness-card :is(.brief-actions, .dispatch-generate) { display: none; }
-html body .ofp-app-shell .ofp-header-actions .btn { min-height: 44px; border-radius: 9px; font-size: 12px; }
-html body .ofp-app-shell .ofp-command-bar .btn.primary { border-color: var(--ofp-accent) !important; background: var(--ofp-accent) !important; color: #fff !important; }
-
-html body .ofp-app-shell .ofp-flight-hero {
-  position: sticky;
-  z-index: 60;
-  top: 0;
-  grid-template-columns: minmax(250px, .8fr) minmax(0, 1.2fr);
-  grid-template-areas: "identity facts";
-  align-items: center;
-  gap: 16px;
-  min-height: var(--ofp-flight-header-height);
-  margin: 0;
-  border: 1px solid var(--efb-border);
-  border-radius: 12px;
-  padding: 12px 16px;
-  background: var(--efb-glass-solid);
-  box-shadow: 0 4px 16px rgba(3, 17, 28, .05);
-}
-html body .ofp-app-shell .ofp-flight-hero::after { display: none; }
-html body .ofp-app-shell .ofp-flight-hero-main { grid-area: identity; min-height: 0; gap: 6px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
-html body .ofp-app-shell .ofp-flight-hero-label,
-html body .ofp-app-shell .ofp-flight-aircraft,
-html body .ofp-app-shell .ofp-flight-hero-readiness { display: none; }
-html body .ofp-app-shell .ofp-flight-route { display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin: 0; }
-html body .ofp-app-shell .ofp-flight-endpoint { flex: 0 1 auto; }
-html body .ofp-app-shell .ofp-flight-endpoint > span { display: none; }
-html body .ofp-app-shell .ofp-flight-endpoint strong { margin-top: 0; font-family: var(--efb-ui, system-ui, sans-serif); font-size: 30px; font-weight: 700; line-height: 1.1; letter-spacing: -.025em; }
-html body .ofp-app-shell .ofp-flight-path { display: grid; grid-template-columns: 1fr; place-items: center; flex: 0 0 32px; min-width: 32px; margin: 0; padding: 0; }
-html body .ofp-app-shell .ofp-flight-path i { display: none; }
-html body .ofp-app-shell .ofp-flight-badges { gap: 6px; margin: 0; }
-html body .ofp-app-shell .ofp-flight-badges :is(b, em) { padding: 3px 6px; font-size: 10px; border-radius: 5px; }
-html body .ofp-app-shell .ofp-flight-hero .ofp-flight-facts { grid-area: facts; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 0; margin: 0; overflow: visible; }
-html body .ofp-app-shell .ofp-flight-hero .ofp-flight-facts .statusbox { min-height: 0; padding: 4px 0 4px 12px; border: 0; border-left: 1px solid var(--efb-divider); border-radius: 0; background: transparent; box-shadow: none; }
-html body .ofp-app-shell .ofp-flight-facts .statusbox[data-flight-fact="route"] { display: none; }
-html body .ofp-app-shell .ofp-flight-facts .statusbox span { font-size: 10px; }
-html body .ofp-app-shell .ofp-flight-facts .statusbox strong { margin-top: 7px; font-family: var(--efb-ui, system-ui, sans-serif); font-size: 13px; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; }
-
-html body .ofp-app-shell .ofp-context-strip { min-height: 30px; gap: 10px; margin: 0 2px; padding: 0; border: 0; border-radius: 0; background: transparent; }
-html body .ofp-app-shell .ofp-context-strip .flight-source { flex: 1 1 40%; min-height: 30px; margin: 0; padding: 3px 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-html body .ofp-app-shell .ofp-context-strip .flight-source-badge { display: none; }
-html body .ofp-app-shell .ofp-context-strip .flight-source strong { font-size: 11px; }
-html body .ofp-app-shell .ofp-context-strip .save-state { flex: 1 1 60%; min-height: 30px; margin: 0; padding: 5px 8px; border: 0; border-radius: 6px; font-size: 11px; text-transform: none; white-space: normal; }
-
-html body .ofp-app-shell .ofp-task-rail {
-  grid-area: rail;
-  position: sticky;
-  z-index: 55;
-  top: calc(var(--ofp-flight-header-height) + 8px);
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 4px;
-  width: auto;
-  min-width: 0;
-  min-height: 64px;
-  height: auto;
-  margin: 0;
-  overflow: visible;
-  border: 1px solid var(--efb-border, var(--nga-flight-line));
-  border-radius: 12px;
-  padding: 5px;
-  background: var(--efb-glass-solid);
-  box-shadow: 0 4px 16px rgba(3, 17, 28, .04);
-}
-html body .ofp-app-shell .ofp-task-tab {
-  display: grid;
-  grid-template-columns: 26px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-content: center;
-  justify-items: start;
-  column-gap: 8px;
-  row-gap: 3px;
-  width: 100%;
-  height: auto;
-  min-height: 52px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 7px 10px;
-  background: transparent;
-  text-align: left;
-}
-html body .ofp-app-shell .ofp-task-tab::before { position: static; grid-column: 1; grid-row: 1 / 3; align-self: center; width: 26px; height: 26px; transform: none; border-radius: 7px; font-size: 11px; box-shadow: none; }
-html body .ofp-app-shell .ofp-task-tab .task-kicker { display: none; }
-html body .ofp-app-shell .ofp-task-tab .task-title { grid-column: 2; margin: 0; color: var(--efb-text); font-family: var(--efb-ui, system-ui, sans-serif); font-size: 13px; line-height: 1.2; white-space: normal; }
-html body .ofp-app-shell .ofp-task-tab .workspace-state { display: block; grid-column: 2; margin: 0; color: var(--efb-secondary); font: 500 10px/1.2 var(--efb-ui, system-ui); text-transform: none; letter-spacing: 0; }
-html body .ofp-app-shell .ofp-task-tab[aria-selected="true"] { border-color: var(--ofp-ready); background: color-mix(in srgb, var(--ofp-ready) 13%, var(--efb-glass-solid)); box-shadow: inset 0 -3px 0 var(--ofp-ready); }
-html body .ofp-app-shell .ofp-task-tab[aria-selected="true"]::before { border-color: var(--ofp-ready); background: var(--ofp-ready); color: #04150d; }
-html body .ofp-app-shell .ofp-task-tab[aria-selected="true"] .task-title { color: var(--efb-safe); }
-html body .ofp-app-shell .ofp-task-tab[data-state="complete"]:not([aria-selected="true"])::before { border-color: var(--ofp-ready); background: var(--efb-glass-solid); color: var(--efb-safe); }
-
-html body .ofp-app-shell .ofp-app-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 12px; align-items: start; margin: 0; padding: 0; }
-html body.ofp-inspector-collapsed .ofp-app-shell .ofp-app-workspace { grid-template-columns: minmax(0, 1fr) 58px; }
-html body.pdf-preview-active:not(.ofp-inspector-collapsed) .ofp-app-shell .ofp-app-workspace { grid-template-columns: minmax(0, 1fr) minmax(390px, .65fr); }
-html body .ofp-app-shell .ofp-task-content { min-width: 0; border-radius: 12px; background: var(--efb-glass-solid); box-shadow: none; }
-html body .ofp-app-shell .ofp-task-panel { overflow: hidden; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-html body .ofp-app-shell .ofp-task-panel > .detail-body { padding: 0 14px 14px; }
-html body .ofp-app-shell .ofp-card-head { min-height: 52px; margin: 0 -14px 10px; padding: 10px 14px; background: transparent; }
-html body .ofp-app-shell .ofp-card-head strong { margin: 0; font-size: 21px; }
-html body .ofp-app-shell .ofp-card-head > div > span { display: none; }
-html body .ofp-app-shell .ofp-card-head p { display: none; }
-html body .ofp-app-shell :is(.ofp-smart-card, .fuel-panel, .load-panel, .movement-card, .ofp-release-card) { border-radius: 10px !important; box-shadow: none !important; }
-html body .ofp-app-shell .ofp-task-panel :is(input, select, textarea) { min-height: 44px; border-radius: 8px; font-size: 14px; }
-html body .ofp-app-shell .ofp-task-panel textarea { min-height: 92px; }
-html body .ofp-app-shell .ofp-task-panel button { min-height: 44px; border-radius: 8px; }
-html body .ofp-app-shell .ofp-task-panel label { color: var(--efb-secondary); font-size: 12px; text-transform: none; letter-spacing: 0; }
-html body .ofp-app-shell .route-composer.smart { gap: 8px; }
-html body .ofp-app-shell .route-token { border-radius: 8px; }
-
-/* The opening form follows the pilot's choices: airports, aircraft, time.
-   Reference and time-zone details remain available in a quiet disclosure. */
-html body .ofp-app-shell .ofp-flight-setup-card { margin-top: 0; }
-html body .ofp-app-shell .flight-route-strip { grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin: 0 0 12px; padding: 0; border: 0; }
-html body .ofp-app-shell .flight-route-strip .alternate-point { grid-column: auto; grid-template-columns: minmax(0, 1fr); }
-html body .ofp-app-shell .flight-route-point { grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); align-content: start; min-width: 0; min-height: 0; gap: 6px; padding: 10px; border-radius: 8px; background: var(--efb-field); }
-html body .ofp-app-shell .flight-route-point > span { color: var(--efb-blue-strong); font-size: 12px; }
-html body .ofp-app-shell .flight-route-point small { font-size: 11px; line-height: 1.4; text-transform: none; }
-html body .ofp-app-shell .route-swap-large { width: 44px; min-width: 44px; flex-direction: column; padding: 4px; border-radius: 8px; box-shadow: none; }
-html body .ofp-app-shell .alternate-input-row { grid-template-columns: minmax(0, 1fr) auto; gap: 5px; }
-html body .ofp-app-shell .alternate-input-row .btn { min-height: 44px; padding-inline: 6px; font-size: 10px; }
-html body .ofp-app-shell .flight-identity-grid { display: grid; grid-template-columns: minmax(220px, 1.5fr) minmax(132px, 1fr) minmax(132px, 1fr) minmax(86px, .65fr); align-items: start; gap: 12px; padding: 0; border: 0; background: transparent; }
-html body .ofp-app-shell .flight-identity-grid > :is(label, .aircraft-profile-field) { grid-column: auto; min-width: 0; }
-html body .ofp-app-shell .aircraft-profile-field { margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
-html body .ofp-app-shell .aircraft-profile-caption { display: block; margin: 0 0 6px; color: var(--efb-secondary); font-size: 12px; text-transform: none; }
-html body .ofp-app-shell .aircraft-profile-button { min-height: 48px; gap: 8px; padding: 8px; border-radius: 8px; }
-html body .ofp-app-shell .aircraft-profile-code { min-width: 40px; min-height: 40px; padding: 5px; border-radius: 6px; font-size: 13px; }
-html body .ofp-app-shell .aircraft-profile-copy strong { font-size: 12px; white-space: normal; }
-html body .ofp-app-shell .aircraft-profile-copy small { flex-wrap: wrap; gap: 3px; font-size: 10px; }
-html body .ofp-app-shell .aircraft-profile-copy small b { display: none; }
-html body .ofp-app-shell .field-help { margin-top: 5px; font-size: 11px; line-height: 1.4; text-transform: none; }
-html body .ofp-app-shell .setup-details-drawer { margin-top: 14px; border: 1px solid var(--efb-border); border-radius: 8px; background: transparent; }
-html body .ofp-app-shell .setup-details-drawer > summary { padding: 12px; color: var(--efb-secondary); font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0; }
-html body .ofp-app-shell .setup-details-drawer > .detail-body { padding: 12px; }
-html body .ofp-app-shell .setup-details-drawer .flight-info-head { min-height: 0; margin-bottom: 12px; padding: 12px; border-radius: 8px; }
-html body .ofp-app-shell .setup-details-drawer .flight-info-head strong { font-size: 14px; }
-html body .ofp-app-shell .setup-details-drawer .time-conversion-panel { margin-top: 12px; border-radius: 8px; }
-html body .ofp-app-shell .route-cruise-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 12px; padding: 12px 0; border-block: 1px solid var(--efb-divider); }
-html body .ofp-app-shell .foreflight-handoff { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; margin: 12px; padding: 14px; border: 1px solid var(--efb-border); border-radius: 8px; background: var(--efb-blue-soft); }
-html body .ofp-app-shell .foreflight-handoff strong { color: var(--efb-text); font-size: 14px; }
-html body .ofp-app-shell .foreflight-handoff p { max-width: 520px; margin: 5px 0 0; color: var(--efb-secondary); font-size: 12px; line-height: 1.5; text-transform: none; }
-html body .ofp-app-shell .foreflight-handoff-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-html body .ofp-app-shell .foreflight-handoff-actions .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 9px 12px; font-size: 12px; text-decoration: none; }
-html body .ofp-app-shell .foreflight-handoff-actions a[aria-disabled="true"] { opacity: .5; cursor: default; }
-html body .ofp-app-shell .foreflight-handoff > details { grid-column: 1 / -1; border: 1px solid var(--efb-border); border-radius: 6px; background: var(--efb-glass-solid); }
-html body .ofp-app-shell .foreflight-handoff summary { padding: 10px; font-size: 12px; text-transform: none; letter-spacing: 0; }
-html body .ofp-app-shell .foreflight-handoff pre { margin: 0; padding: 0 10px 12px; color: var(--efb-text); font: 12px/1.5 var(--efb-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
-html body .ofp-app-shell .foreflight-handoff > small { grid-column: 1 / -1; color: var(--efb-secondary); font-size: 11px; line-height: 1.4; text-transform: none; }
-
-html body .ofp-app-shell .ofp-inspector { position: sticky; top: calc(var(--ofp-flight-header-height) + 80px); width: 100%; max-height: calc(100dvh - var(--ofp-flight-header-height) - 170px); overflow: auto; border-radius: 12px; background: var(--efb-glass-solid); box-shadow: none; }
-html body .ofp-app-shell .ofp-inspector[data-collapsed="true"] { width: 58px; height: 58px; overflow: hidden; }
-html body .ofp-app-shell .ofp-inspector-toggle { border-radius: 0; }
-html body .ofp-app-shell .ofp-inspector-tabs { padding: 4px; border-radius: 8px; }
-html body .ofp-app-shell .ofp-inspector-tabs button { min-height: 44px; border-radius: 6px; font-size: 12px; }
-html body .ofp-app-shell :is(.ofp-readiness-card, .ofp-flight-totals-card, .ofp-release-checks-card, .utility-card) { border-radius: 8px; }
-html body .ofp-app-shell .ofp-next-action { border-left: 3px solid var(--ofp-accent); }
-html body .ofp-app-shell .ofp-next-action p { font-size: 12px; line-height: 1.5; text-transform: none; }
-html body .ofp-app-shell .warning-list .warning { min-height: 44px; border-radius: 6px; text-align: left; font-size: 11px; }
-
-html body .ofp-app-shell .ofp-command-bar {
-  position: fixed;
-  z-index: 90;
-  right: 12px;
-  bottom: max(8px, env(safe-area-inset-bottom));
-  left: 12px;
-  display: grid;
-  grid-template-columns: minmax(76px, .6fr) minmax(76px, .7fr) minmax(150px, 1.5fr) minmax(132px, 1fr) minmax(70px, .6fr);
-  gap: 8px;
-  min-height: var(--ofp-command-height);
-  padding: 8px;
-  border: 1px solid var(--efb-border, var(--nga-flight-line));
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--efb-glass-solid, #fff) 94%, transparent);
-  box-shadow: 0 -4px 22px rgba(3, 17, 28, .1);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-}
-html body .ofp-app-shell .ofp-command-bar .btn { min-width: 0; min-height: 48px; padding: 8px; border-radius: 8px; font-size: 12px; white-space: normal; }
-
-@media (max-width: 1199px) {
-  html body .ofp-app-shell .ofp-app-workspace,
-  html body.ofp-inspector-collapsed .ofp-app-shell .ofp-app-workspace,
-  html body.pdf-preview-active:not(.ofp-inspector-collapsed) .ofp-app-shell .ofp-app-workspace { grid-template-columns: minmax(0, 1fr); }
-  html body .ofp-app-shell .ofp-inspector { position: fixed; z-index: 85; top: auto; right: 12px; bottom: calc(var(--ofp-command-height) + 20px + env(safe-area-inset-bottom)); width: min(410px, calc(100vw - 24px)); max-height: min(65dvh, 660px); box-shadow: var(--efb-shadow-float); }
-  html body .ofp-app-shell .ofp-inspector[data-collapsed="true"] { width: 158px; height: 48px; }
-  html body .ofp-app-shell .ofp-inspector[data-collapsed="true"] .ofp-inspector-toggle { justify-content: space-between; width: 100%; height: 46px; min-height: 46px; padding: 6px 10px; }
-  html body .ofp-app-shell .ofp-inspector[data-collapsed="true"] .ofp-inspector-toggle > span { display: block; }
-  html body .ofp-app-shell .ofp-inspector-toggle small { display: none; }
-  html body .ofp-app-shell .ofp-inspector-toggle strong { margin: 0; font-size: 12px; }
-  html body .ofp-app-shell .ofp-task-tab { grid-template-columns: 22px minmax(0, 1fr); column-gap: 6px; padding-inline: 6px; }
-  html body .ofp-app-shell .ofp-task-tab::before { width: 22px; height: 24px; }
-  html body .ofp-app-shell .ofp-task-tab .task-title { font-size: 12px; }
-  html body .ofp-app-shell .ofp-task-tab .workspace-state { font-size: 9px; }
-  html body .ofp-app-shell .foreflight-handoff { grid-template-columns: minmax(0, 1fr); }
-}
-
-@media (max-width: 740px) {
-  html body .shell.ofp-app-shell { --ofp-flight-header-height: 136px; padding-inline: 8px; }
-  html body .ofp-app-shell .ofp-flight-hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "identity" "facts"; gap: 10px; padding: 10px 12px; }
-  html body .ofp-app-shell .ofp-flight-hero-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-  html body .ofp-app-shell .ofp-flight-endpoint strong { font-size: 25px; }
-  html body .ofp-app-shell .ofp-flight-badges { justify-content: flex-end; flex-wrap: wrap; max-width: 190px; }
-  html body .ofp-app-shell .ofp-flight-hero .ofp-flight-facts { gap: 8px; }
-  html body .ofp-app-shell .ofp-flight-hero .ofp-flight-facts .statusbox { padding: 0 8px 0 0; border-left: 0; border-right: 1px solid var(--efb-divider); }
-  html body .ofp-app-shell .ofp-flight-facts .statusbox strong { margin-top: 4px; font-size: 12px; }
-  html body .ofp-app-shell .ofp-context-strip .flight-source { display: none; }
-  html body .ofp-app-shell .ofp-task-rail { display: flex; overflow-x: auto; scroll-snap-type: x proximity; }
-  html body .ofp-app-shell .ofp-task-tab { flex: 0 0 128px; scroll-snap-align: center; }
-  html body .ofp-app-shell .ofp-card-head { min-height: 60px; }
-  html body .ofp-app-shell .ofp-card-head p { display: none; }
-  html body .ofp-app-shell .flight-route-strip { grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr); }
-  html body .ofp-app-shell .flight-route-strip .alternate-point { grid-column: 1 / -1; }
-  html body .ofp-app-shell .alternate-input-row { grid-template-columns: minmax(0, 1fr) auto; }
-  html body .ofp-app-shell .flight-identity-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  html body .ofp-app-shell .flight-identity-grid > :is(label, .aircraft-profile-field) { grid-column: auto !important; }
-  html body .ofp-app-shell .flight-identity-grid > .aircraft-profile-field { grid-column: 1 / -1 !important; }
-  html body .ofp-app-shell .setup-details-drawer .flight-info-head { display: grid; grid-template-columns: 1fr; gap: 12px; }
-  html body .ofp-app-shell .setup-details-drawer .eobt-summary { min-width: 0; }
-  html body .ofp-app-shell .ofp-command-bar { left: 8px; right: 8px; gap: 4px; grid-template-columns: .6fr .7fr 1.35fr 1fr .6fr; padding: 6px; }
-  html body .ofp-app-shell .ofp-command-bar .btn { padding-inline: 3px; font-size: 11px; }
-}
-
-@media (max-width: 420px) {
-  html body .ofp-app-shell .ofp-flight-hero-main { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-  html body .ofp-app-shell .ofp-flight-badges { justify-content: flex-start; max-width: none; }
-  html body .ofp-app-shell .flight-route-strip { grid-template-columns: minmax(0, 1fr); }
-  html body .ofp-app-shell .flight-route-strip .route-swap-large { width: 100%; }
-  html body .ofp-app-shell .route-cruise-grid { grid-template-columns: minmax(0, 1fr); }
-}
-
 /* The legacy desktop cockpit fixes the first grid row to the viewport and
    clips anything added below it. The rebuilt dashboard is intentionally a
    scrollable two-row surface: aircraft overview first, globe + quick deck next. */
@@ -577,4 +309,58 @@ html body .ofp-app-shell .ofp-command-bar .btn { min-width: 0; min-height: 48px;
 
 @media (prefers-reduced-motion: reduce) {
   .ops-globe-scan { display: none; }
+}
+
+/* EFB workspaces: a single scroll surface prevents tablet content clipping. */
+html body.pilot-ops-v2 { --app-radius-xl:14px; --app-radius-lg:12px; --app-radius:8px; }
+html body.pilot-ops-v2 #bookingsWorkspace { height:auto; min-height:100%; overflow:visible; padding-bottom:24px; }
+html body.pilot-ops-v2 #bookingsWorkspace > .layout { display:grid; grid-template-columns:minmax(240px,.65fr) minmax(0,1.7fr); gap:16px; height:auto; min-height:0; align-items:start; }
+html body.pilot-ops-v2 #bookingsWorkspace .queue-panel { display:block; height:auto; min-width:0; overflow:visible; }
+html body.pilot-ops-v2 #bookingsWorkspace .request-list { height:auto; max-height:65dvh; overflow:auto; }
+html body.pilot-ops-v2 #bookingsWorkspace > .layout > section > .panel { height:auto; max-height:none; min-width:0; overflow:visible; padding-bottom:24px; }
+html body.pilot-ops-v2 #bookingsWorkspace .panel { border-radius:12px; background:var(--app-card-solid); box-shadow:none; }
+html body.pilot-ops-v2 #bookingsWorkspace :is(.dispatch-board,.meta-grid,.flight-control-sequence,.movement-phase-strip,.release-check-grid,.crew-grid,.ops-form-grid) { min-width:0; }
+html body.pilot-ops-v2 #bookingsWorkspace :is(strong,em,small,span) { overflow-wrap:anywhere; }
+html body.pilot-ops-v2 #bookingsWorkspace :is(.dispatch-route strong,.dispatch-metric strong,.meta strong,.panel-title,.flight-control-head strong,.control-phase strong,.movement-phase strong,.release-console-head strong) { color:var(--app-ink); }
+html body.pilot-ops-v2 #bookingsWorkspace :is(.dispatch-route em,.dispatch-metric span,.meta span,.flight-control-head span,.movement-phase span) { color:var(--app-muted); }
+html body.pilot-ops-v2 #bookingsWorkspace .flight-detail-tabs { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); overflow:visible; gap:4px; padding:8px 0; }
+html body.pilot-ops-v2 #bookingsWorkspace .flight-detail-tabs button { min-width:0; min-height:46px; padding:8px 4px; font-size:12px; background:var(--app-card-muted); color:var(--app-ink); }
+html body.pilot-ops-v2 #bookingsWorkspace .flight-detail-tabs button.active { background:var(--efb-safe-soft); color:var(--app-safe); border-color:var(--app-safe); }
+html body.pilot-ops-v2 :is(.ops-tool-workspace,.dashboard-action,.aircraft-panel,.flight-file-group,.weather-console) { border-radius:12px; box-shadow:none; }
+html body.pilot-ops-v2 :is(.tool-workspace-head strong,.dashboard-action strong,.flight-file-row strong,.weather-route strong) { color:var(--app-ink); }
+html body.pilot-ops-v2 :is(input,select,textarea) { font-size:16px; min-width:0; }
+html body.pilot-ops-v2 :is(button,summary) { touch-action:manipulation; }
+@media(max-width:1100px) {
+  html body.pilot-ops-v2 #bookingsWorkspace > .layout { grid-template-columns:minmax(0,1fr); }
+  html body.pilot-ops-v2 #bookingsWorkspace .request-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; max-height:280px; padding:8px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filters { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-board { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-route { grid-column:1/-1; }
+}
+@media(min-width:641px) and (max-width:1279px), (min-width:641px) and (hover:none) and (pointer:coarse) {
+  html body.pilot-ops-v2 .efb-layout { display:block; height:100%; min-height:0; }
+  html body.pilot-ops-v2 .efb-content { height:100%; padding-bottom:0; overflow-y:auto; }
+  html body.pilot-ops-v2 .ops-suite-nav { position:fixed; top:auto; bottom:7px; left:8px; right:8px; display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); width:auto; height:auto; padding:6px; border-radius:12px; z-index:100; }
+  html body.pilot-ops-v2 .ops-suite-nav .suite-tab { display:grid; width:100%; min-width:0; min-height:58px; padding:4px; }
+  html body.pilot-ops-v2 .ops-suite-nav :is(.suite-nav-tools,.mobile-more-tab) { display:none !important; }
+  html body.pilot-ops-v2 .ops-tool-workspace[data-active-tool="flight-plan"] { height:100%; min-height:0; }
+  html body.pilot-ops-v2 #flightPlanOpsPane { height:100%; }
+  html body.pilot-ops-v2 #ofpOpsFrame { display:block; width:100%; height:100% !important; min-height:0 !important; }
+}
+@media(max-width:640px) {
+  html body.pilot-ops-v2 #bookingsWorkspace .request-list { grid-template-columns:1fr; }
+  html body.pilot-ops-v2 #bookingsWorkspace .flight-detail-tabs { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  html body.pilot-ops-v2 #bookingsWorkspace :is(.dispatch-board,.meta-grid,.movement-phase-strip,.flight-control-sequence,.release-check-grid) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+
+/* Use one legible instrument-style type family across the operations shell. */
+html body.pilot-ops-v2 { --efb-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-family:var(--efb-ui); }
+html body.pilot-ops-v2 :is(button,label,input,select,textarea,h1,h2,h3,.panel-title,.request-card,.dispatch-board,.meta-grid,.movement-phase-strip,.flight-control-sequence,.release-console) { font-family:var(--efb-ui); letter-spacing:normal; }
+html body.pilot-ops-v2 #bookingsWorkspace :is(strong,span,em,small) { font-family:var(--efb-ui); }
+html body.pilot-ops-v2 #bookingsWorkspace .ops-alerts { display:flex; flex-wrap:wrap; gap:6px; }
+html body.pilot-ops-v2 #bookingsWorkspace .ops-alerts > * { width:auto; flex:0 1 auto; }
+@media(min-width:641px) {
+  html body.pilot-ops-v2 { padding:0; height:100dvh; overflow:hidden; }
+  html body.pilot-ops-v2 > .frame { height:100%; min-height:0; }
 }
