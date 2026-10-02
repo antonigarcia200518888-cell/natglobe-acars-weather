@@ -49,7 +49,7 @@ The OFP uses four stages: Flight (airports, schedule and route), Fuel & Load, Re
 
 Runway fields accept pilot-verified identifiers when catalogue suggestions are unavailable. Catalogue suggestions and calculated fuel starting values are planning aids, not operational approval. Existing server-side aircraft limits, commander permissions and release checks remain authoritative.
 
-Run planner regression checks with `node --test tests/ofp-workflow.test.mjs`. For UI verification, check embedded and standalone layouts at 834×1194, 1194×834 and desktop sizes, in day/night mode; verify save, route edits, import, PDF generation and closing the preview. Flights should use one main vertical scroller on tablets, not fixed-height clipped panels.
+Run planner regression checks with `node --test tests/ofp-workflow.test.mjs`. For UI verification, check embedded and standalone layouts at 834×1194, 1194×834 and desktop sizes, in day/night mode; verify save, route edits, import, PDF generation and closing the preview. From 741px, Flights uses aligned, full-height master/detail panes with independently scrollable lists and a sticky flight-file section bar; smaller phones retain the stacked layout. Queue filters start closed and keep the pilot's choice on rotation. The OFP uses a vertical flight-folder index above 740px, a horizontal stage bar below it, and Courier New for operational data. Changing stages resets the sheet scroll, while navigation and save actions remain visible. The presentation is inspired by integrated airline EFBs, but includes no Jeppesen charts, services or affiliation.
 
 ### Face ID / Touch ID pilot access
 

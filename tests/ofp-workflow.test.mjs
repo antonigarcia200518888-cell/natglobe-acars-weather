@@ -5,7 +5,10 @@ import vm from 'node:vm';
 
 const source = fs.readFileSync(new URL('../views/operational-flight-plan.html', import.meta.url), 'utf8');
 const markup = source.replace(/<script[\s\S]*?<\/script>/g, '');
-const functionSource = (name, nextName) => source.slice(source.indexOf(`    function ${name}(`), source.indexOf(`    ${nextName}`));
+const functionSource = (name, nextName) => {
+  const start = source.indexOf(`    function ${name}(`);
+  return source.slice(start, source.indexOf(`    ${nextName}`, start + 1));
+};
 
 test('all EFB inline scripts parse', () => {
   for (const file of ['operational-flight-plan.html', 'booking-ops.html']) {
@@ -88,4 +91,26 @@ test('service worker ships the new planner stylesheet, not the removed handoff',
   assert.doesNotMatch(sw,/foreflight/i);
   const version=sw.match(/PILOT_STYLESHEET_VERSION = '([^']+)'/)[1];
   assert.ok(source.includes(`pilot-ofp-workflow.css?v=${version}`));
+  const ops=fs.readFileSync(new URL('../views/booking-ops.html',import.meta.url),'utf8');
+  for (const match of ops.matchAll(/href="\/(pilot-[^"?]+\.css)\?v=([^"]+)"/g)) assert.equal(match[2],version,match[1]);
+});
+
+test('flight-folder tab semantics follow the responsive navigation orientation', () => {
+  const attributes={};
+  const media={matches:true};
+  const ctx=vm.createContext({verticalTaskRailMedia:media,document:{querySelector:()=>({setAttribute:(name,value)=>{attributes[name]=value;}})}});
+  vm.runInContext(functionSource('syncTaskRailOrientation','function setInspector'),ctx);
+  vm.runInContext('syncTaskRailOrientation()',ctx);
+  assert.equal(attributes['aria-orientation'],'vertical');
+  media.matches=false;
+  vm.runInContext('syncTaskRailOrientation()',ctx);
+  assert.equal(attributes['aria-orientation'],'horizontal');
+  assert.match(source,/verticalTaskRailMedia\.addEventListener\('change', syncTaskRailOrientation\)/);
+});
+
+test('stage changes reset the data sheet, and rotation does not force queue filters open', () => {
+  assert.match(functionSource('setWorkspace','function moveWorkspace'),/ofp-app-workspace'\)\?\.scrollTo\(\{ top:0, behavior:'auto' \}\)/);
+  const ops=fs.readFileSync(new URL('../views/booking-ops.html',import.meta.url),'utf8');
+  assert.match(ops,/<details class="queue-filter-drawer">/);
+  assert.doesNotMatch(ops,/queueFilterDrawer\.open\s*=/);
 });

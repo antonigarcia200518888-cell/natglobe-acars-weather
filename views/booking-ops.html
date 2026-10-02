@@ -2939,13 +2939,13 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-02-2" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-02-2" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-02-2" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-02-2" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-02-2" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-02-3" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-02-3" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-02-3" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-02-3" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-02-3" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-02-2" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-02-3" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3855,13 +3855,7 @@ END OF MESSAGE</pre>
     const filterPilot = el('filterPilot');
     const filterPayment = el('filterPayment');
     const filterSort = el('filterSort');
-    const queueFilterDrawer = document.querySelector('.queue-filter-drawer');
-    const queueFilterBreakpoint = window.matchMedia('(max-width: 1020px)');
-    const syncQueueFilterDrawer = () => {
-      if (queueFilterDrawer) queueFilterDrawer.open = !queueFilterBreakpoint.matches;
-    };
-    syncQueueFilterDrawer();
-    queueFilterBreakpoint.addEventListener?.('change', syncQueueFilterDrawer);
+    // The filter drawer starts closed; rotation must not override the pilot's choice.
     const commander = el('commander');
     const secondary = el('secondary');
     const saveCrewBtn = el('saveCrewBtn');
@@ -7199,9 +7193,9 @@ END OF MESSAGE</pre>
       dispatchRoute.textContent = req.route || '.....';
       dispatchSchedule.textContent = `${req.depName || req.dep || 'DEP'} to ${req.arrName || req.arr || 'ARR'} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}`;
       dispatchFlightTime.textContent = opsFlightTime(req);
-      dispatchPax.textContent = req.manualFlight ? 'PILOT ENTRY IN OFP' : `${req.seats || passengers.length || 1} PAX / ${passengers[0]?.name || req.name || 'PASSENGER'}`;
-      dispatchLuggage.textContent = req.manualFlight ? 'ENTER ACTUAL CARGO IN OFP' : req.carryOnBags === 'YES' ? `${req.baggageWeightKg || '0'} KG / ${req.bagType || 'BAG TYPE NIL'}` : 'NO DECLARED LUGGAGE';
-      dispatchCost.textContent = req.manualFlight ? 'PILOT-ONLY FILE' : req.estimatedTotalEur ? `${money(req.estimatedTotalEur)} TOTAL` : 'PILOT CONFIRMS';
+      dispatchPax.textContent = req.manualFlight ? 'SET IN OFP' : `${req.seats || passengers.length || 1} PAX / ${passengers[0]?.name || req.name || 'PASSENGER'}`;
+      dispatchLuggage.textContent = req.manualFlight ? 'SET IN OFP' : req.carryOnBags === 'YES' ? `${req.baggageWeightKg || '0'} KG / ${req.bagType || 'BAG TYPE NIL'}` : 'NONE DECLARED';
+      dispatchCost.textContent = req.manualFlight ? 'N/A' : req.estimatedTotalEur ? `${money(req.estimatedTotalEur)} TOTAL` : 'UNCONFIRMED';
     }
 
     function setIntelligenceValue(node, value, tone = '') {

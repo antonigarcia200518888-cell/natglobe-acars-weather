@@ -46,7 +46,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-02-2" />
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-02-3" />
 </head>
 <body>
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -641,8 +641,9 @@
 
     function initialInspectorCollapsed() { return true; }
 
+    const verticalTaskRailMedia = window.matchMedia('(min-width: 741px)');
     function syncTaskRailOrientation() {
-      document.querySelector('.ofp-task-rail')?.setAttribute('aria-orientation', 'horizontal');
+      document.querySelector('.ofp-task-rail')?.setAttribute('aria-orientation', verticalTaskRailMedia.matches ? 'vertical' : 'horizontal');
     }
 
     function setInspector(mode) {
@@ -757,6 +758,7 @@
         button.tabIndex = active ? 0 : -1;
       });
       const activeTask = document.querySelector(`.ofp-workspace-button[data-workspace="${selected}"]`);
+      document.querySelector('.ofp-app-workspace')?.scrollTo({ top:0, behavior:'auto' });
       window.requestAnimationFrame(() => activeTask?.scrollIntoView({
         behavior:persist && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto',
         block:'nearest',
@@ -780,7 +782,6 @@
       const next = workspaceOrder[Math.max(0, Math.min(workspaceOrder.length - 1, index + direction))];
       if (!next || next === currentWorkspace) return;
       setWorkspace(next);
-      document.querySelector('.ofp-task-rail').scrollIntoView({ behavior:'smooth', block:'nearest' });
     }
 
     function inputFor(name) { return document.querySelector(`[data-field="${name}"]`); }
@@ -2178,6 +2179,7 @@
       event.returnValue = '';
     });
     syncTaskRailOrientation();
+    verticalTaskRailMedia.addEventListener('change', syncTaskRailOrientation);
     setInspectorCollapsed(initialInspectorCollapsed(), false);
     setInspector('SUMMARY');
     load().catch(error => setSaveState('failed', error.message || 'Unable to load OFP.'));

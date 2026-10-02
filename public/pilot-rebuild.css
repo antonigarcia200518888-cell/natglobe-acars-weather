@@ -364,3 +364,78 @@ html body.pilot-ops-v2 #bookingsWorkspace .ops-alerts > * { width:auto; flex:0 1
   html body.pilot-ops-v2 { padding:0; height:100dvh; overflow:hidden; }
   html body.pilot-ops-v2 > .frame { height:100%; min-height:0; }
 }
+
+/* Tablet flight folder: aligned master/detail panes, not a tall stacked queue. */
+@media(min-width:741px) {
+  html body.pilot-ops-v2 #bookingsWorkspace { height:100%; min-height:0; padding:0; overflow:hidden; }
+  html body.pilot-ops-v2 #bookingsWorkspace > .layout { height:100%; grid-template-columns:220px minmax(0,1fr); gap:10px; align-items:stretch; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-panel { position:static; display:flex; flex-direction:column; height:100%; max-height:none; min-height:0; padding:12px 8px; overflow:hidden; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-panel-title { flex-direction:column; align-items:stretch; gap:10px; margin-bottom:10px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-panel-title > div { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-panel-title span { font-size:10px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .create-pilot-flight-btn { min-height:44px; width:100%; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer { flex:0 0 auto; max-height:50%; overflow:auto; margin:0 0 8px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer::before,
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer::after { display:none; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer summary { display:flex; min-height:44px; padding:8px; align-items:center; cursor:pointer; color:var(--app-ink); border:1px solid var(--app-line-strong); border-radius:3px; font-size:13px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer summary::after { content:'+'; margin-left:auto; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer[open] summary::after { content:'−'; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer:not([open]) > .queue-filters { display:none !important; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer summary strong { display:none; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filters { grid-template-columns:minmax(0,1fr); }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filters > * { grid-column:1/-1; min-width:0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .quick-filters { display:flex; flex-wrap:wrap; overflow:visible; }
+  html body.pilot-ops-v2 #bookingsWorkspace .request-list { flex:1 1 0; display:flex; flex-direction:column; gap:8px; height:auto; max-height:none; min-height:0; overflow:auto; padding:0 2px 8px; overscroll-behavior:contain; }
+  html body.pilot-ops-v2 #bookingsWorkspace .request-card { flex:0 0 auto; min-height:0; padding:12px 10px; border-radius:4px; }
+  html body.pilot-ops-v2 #bookingsWorkspace > .layout > section { height:100%; min-height:0; min-width:0; }
+  html body.pilot-ops-v2 #bookingsWorkspace > .layout > section > .panel { height:100%; min-height:0; overflow:auto; padding:14px; overscroll-behavior:contain; scrollbar-gutter:stable; }
+  html body.pilot-ops-v2 #bookingsWorkspace .panel { border-radius:4px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .meta-grid { gap:0; margin:0 0 10px; border:1px solid var(--app-line); border-radius:3px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .meta { min-height:0; padding:8px; border:0; border-right:1px solid var(--app-line); border-radius:0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .meta:last-child { border-right:0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .meta strong { font-size:12px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-board { grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; margin:10px 0; border:1px solid var(--app-line); border-radius:3px; overflow:hidden; }
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-route { grid-column:1/-1; min-height:0; padding:10px; border:0; border-bottom:1px solid var(--app-line); border-radius:0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-route strong { font-family:"Courier New",Courier,monospace; font-size:23px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-metric { min-height:0; padding:8px; border:0; border-right:1px solid var(--app-line); border-radius:0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-metric:last-child { border-right:0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-metric strong { font-family:"Courier New",Courier,monospace; font-size:17px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .movement-phase-strip { grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; margin:10px 0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .movement-phase { min-height:0; padding:8px; border-radius:0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .movement-phase strong { font-family:"Courier New",Courier,monospace; font-size:11px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .flight-detail-tabs { position:sticky; top:-14px; z-index:3; background:var(--app-card-solid); grid-template-columns:repeat(3,minmax(0,1fr)); margin:0; padding:8px 0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .flight-detail-tabs button { border-radius:3px; min-height:44px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .flight-control-head { margin:10px 0; }
+  html body.pilot-ops-v2 #bookingsWorkspace .flight-control-sequence { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .control-phase { min-height:0; padding:9px; border-radius:3px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .brief-card { border-radius:3px; padding:12px; }
+}
+@media(min-width:1100px) {
+  html body.pilot-ops-v2 #bookingsWorkspace > .layout { grid-template-columns:260px minmax(0,1fr); }
+  html body.pilot-ops-v2 #bookingsWorkspace .flight-detail-tabs { grid-template-columns:repeat(6,minmax(0,1fr)); }
+  html body.pilot-ops-v2 #bookingsWorkspace .flight-control-sequence { grid-template-columns:repeat(5,minmax(0,1fr)); }
+}
+
+/* Consistent instrument-frame chrome in both day and night modes. */
+html body.pilot-ops-v2 .efb-masthead { background:#182d3d; border:1px solid #334c60; border-radius:5px; box-shadow:none; backdrop-filter:none; }
+html body.pilot-ops-v2 .efb-masthead :is(.title,.masthead-crew-copy strong,.shell-search-label) { color:#f0f5f8; }
+html body.pilot-ops-v2 .efb-masthead :is(.intro,.masthead-crew-copy small,.clock) { color:#b7ccd9; }
+html body.pilot-ops-v2 .efb-masthead kbd { color:#182d3d; background:#dbe7ef; }
+html body.pilot-ops-v2 .efb-masthead .shell-icon-button { background:#263f52; border:1px solid #496172; border-radius:4px; color:#edf5fa; box-shadow:none; }
+html body.pilot-ops-v2 .efb-masthead .efb-logo-mark { border-radius:3px; background:#fff; }
+html body.pilot-ops-v2 .efb-masthead .efb-logo-mark img { filter:none; }
+html body.pilot-ops-v2 .efb-masthead .app-avatar { background:#dbe7ef; color:#182d3d; border-color:#a9c1d2; }
+html body.pilot-ops-v2 .active-flight-strip { border-radius:3px; box-shadow:none; }
+html body.pilot-ops-v2 .active-flight-strip strong { font-family:"Courier New",Courier,monospace; }
+html body.pilot-ops-v2 .ops-suite-nav { background:#182d3d; border:1px solid #334c60; box-shadow:none; backdrop-filter:none; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab { border-radius:3px; color:#b7ccd9; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab :is(.suite-icon,strong,span) { color:inherit; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab .suite-icon { background:#263f52; border-color:#496172; border-radius:4px; box-shadow:none; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab.active { color:#c4f7da; background:#234d40; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab.active .suite-icon { background:#27634d; color:#c4f7da; }
+@media(min-width:741px) and (max-width:1099px) {
+  html body.pilot-ops-v2 #bookingsWorkspace .dispatch-metric strong { font-size:14px; }
+}
+@media(min-width:641px) and (max-width:1279px), (min-width:641px) and (hover:none) and (pointer:coarse) {
+  html body.pilot-ops-v2 > .frame { padding-bottom:calc(84px + env(safe-area-inset-bottom)); }
+}

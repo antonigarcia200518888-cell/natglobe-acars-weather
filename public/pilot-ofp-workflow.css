@@ -1,5 +1,5 @@
 /* Flight planner: one presentation layer, shared by standalone and embedded EFB. */
-:root { color-scheme:light; --bg:#edf1f5; --surface:#fff; --soft:#f5f7fa; --ink:#172b43; --muted:#52657b; --line:#d4dde7; --blue:#175ca6; --green:#126448; --green-soft:#e3f3eb; --amber:#86520b; --red:#b42332; --shadow:0 12px 44px #182c4320; }
+:root { color-scheme:light; --bg:#dde3e8; --surface:#fff; --soft:#eef2f5; --ink:#152c3e; --muted:#465b6c; --line:#becbd5; --blue:#006b9c; --green:#126448; --green-soft:#e3f3eb; --amber:#86520b; --red:#b42332; --shadow:0 12px 44px #182c4320; --flight-mono:"Courier New",Courier,monospace; --flight-nav:#182d3d; --flight-nav-muted:#aec4d4; }
 :root[data-efb-theme="night"] { color-scheme:dark; --bg:#101923; --surface:#192634; --soft:#223343; --ink:#edf3fa; --muted:#b2c2d3; --line:#3b5064; --blue:#8fc8ff; --green:#8ce0b5; --green-soft:#163d32; --amber:#ffd18a; --red:#ffadad; --shadow:0 12px 44px #0008; }
 * { box-sizing:border-box; }
 [hidden] { display:none !important; }
@@ -228,3 +228,82 @@ html.embedded .topbar { display:none; }
 @media(max-width:900px) { .flight-route-strip { grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr); } .alternate-point { grid-column:1/-1; grid-template-columns:100px minmax(0,1fr); align-items:center; } .alternate-point > span { grid-column:auto; } .alternate-point label > span, .alternate-point label { font-size:0; } .alternate-input-row { flex-wrap:nowrap; } .alternate-input-row button { flex:0 0 auto; font-size:12px; padding:8px; } .alternate-input-row input { margin:0; } .flight-identity-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .section-heading { display:block; } .section-heading p { max-width:none; } .ofp-flight-facts { gap:12px; } .statusbox[data-flight-fact="commander"] { display:none; } .ofp-flight-facts { grid-template-columns:1fr 1fr; } .ofp-task-panel { padding:18px; } .route-composer { grid-template-columns:1fr 1fr 1fr; } .route-composer label { grid-column:1/-1; } }
 @media(max-width:600px) { body, html.embedded body { padding:10px; } .topbar .sub, .ofp-brand-mark, .flight-source { display:none; } .topbar { flex-wrap:wrap; } .ofp-flight-hero { padding:14px; gap:12px; flex-wrap:wrap; } .ofp-flight-endpoint strong { font-size:26px; } .ofp-flight-facts { width:100%; } .ofp-context-strip { display:block; } .ofp-task-rail { gap:3px; } .ofp-workspace-button { display:block; text-align:center; padding:8px 3px; } .ofp-workspace-button::before, .workspace-state { display:none; } .task-title { font-size:12px; } .ofp-task-panel { padding:14px; } .flight-route-point { grid-template-columns:1fr; padding:10px; } .alternate-point { grid-template-columns:1fr; } .alternate-point label { font-size:12px; } .grid, .grid.two, .route-procedures, .import-grid, .briefing-modules, .movement-grid { grid-template-columns:1fr; } .route-cruise-grid { grid-template-columns:1fr 1fr; } .fuel-ladder { grid-template-columns:repeat(3,minmax(0,1fr)); } .load-margin-strip { grid-template-columns:1fr 1fr; } .load-mode-control { grid-template-columns:1fr; } .ofp-command-bar { gap:6px; padding:10px; } .ofp-command-bar .btn { min-width:0; flex:1; padding:8px; font-size:12px; } .ofp-command-bar .primary { min-width:0; flex:1.7; } .ofp-inspector { inset:12px 12px 82px; width:auto; } .ofp-inspector[data-collapsed="true"] { inset:auto 10px 78px auto; } .pdf-preview-active .ofp-inspector { width:auto; } .profile-facts { grid-template-columns:1fr 1fr; } }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto !important; } }
+
+/* Flight-folder presentation: persistent section index and ruled data sheets. */
+html, body { height:100%; }
+body, html.embedded body { padding:0; overflow:hidden; }
+.shell { display:grid; grid-template-columns:164px minmax(0,1fr); grid-template-rows:auto auto auto minmax(0,1fr); grid-template-areas:"app app" "flight flight" "status status" "index sheet"; width:100%; max-width:none; height:100dvh; margin:0; padding:0 0 70px; }
+.topbar { grid-area:app; min-height:48px; padding:6px 14px; margin:0; background:var(--flight-nav); color:#fff; border-bottom:1px solid #3a5265; }
+.topbar h1 { color:#fff; font-size:17px; letter-spacing:0; }
+.topbar :is(.eyebrow,.sub,.ofp-brand-mark) { display:none; }
+.topbar button { min-height:38px; padding:7px 12px; border:1px solid #496172; border-radius:3px; color:#e2eff7; background:transparent; }
+.ofp-flight-hero { grid-area:flight; min-height:72px; padding:10px 16px; gap:12px; border:0; border-radius:0; background:var(--flight-nav); }
+.ofp-flight-hero strong { color:#fff; }
+.ofp-flight-endpoint strong { font:700 27px/1 var(--flight-mono); letter-spacing:0; }
+.ofp-flight-hero :is(.ofp-flight-path,.ofp-flight-badges,.ofp-flight-badges em,.statusbox span) { color:var(--flight-nav-muted); }
+.ofp-flight-badges { gap:12px; font:12px/1.4 var(--flight-mono); }
+.ofp-flight-facts { gap:18px; }
+.statusbox strong { font:700 13px/1.4 var(--flight-mono); }
+.statusbox[data-flight-fact="document"] strong { color:#ffe1a1 !important; }
+.statusbox[data-state="released"] strong { color:#a3ebc1 !important; }
+.ofp-context-strip { grid-area:status; min-height:28px; align-items:center; padding:4px 12px; border:0; border-bottom:1px solid var(--line); border-radius:0; font:11px/1.4 var(--flight-mono); }
+.ofp-task-rail { grid-area:index; position:static; display:flex; flex-direction:column; gap:0; min-height:0; margin:0; padding:12px 0; overflow:auto; background:var(--flight-nav); border-right:1px solid #496172; }
+.ofp-task-rail::before { content:"FLIGHT FOLDER"; padding:4px 12px 12px; color:var(--flight-nav-muted); font:11px/1.3 var(--flight-mono); letter-spacing:.08em; }
+.ofp-workspace-button { display:block; flex:none; width:100%; min-height:76px; padding:12px; border:0; border-left:3px solid transparent; border-bottom:1px solid #304657; border-radius:0; background:transparent; text-align:left; }
+.ofp-workspace-button::before { display:none; }
+.ofp-workspace-button .task-title { display:block; color:#f0f5f8; font-size:14px; font-weight:550; }
+.ofp-workspace-button .workspace-state { display:block; margin-top:6px; color:var(--flight-nav-muted); font:11px/1.4 var(--flight-mono); }
+.ofp-workspace-button:hover { background:#263f52; }
+.ofp-workspace-button[aria-selected="true"] { border-left-color:#84dfb0; border-bottom-color:#426658; background:#234d40; }
+.ofp-workspace-button[aria-selected="true"] .task-title { color:#c4f7da; }
+.ofp-workspace-button[aria-selected="true"] .workspace-state { color:#c4e8d8; }
+.ofp-app-workspace { grid-area:sheet; min-height:0; min-width:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+.editor { display:block; padding:14px; }
+.ofp-task-panel { padding:0 16px 16px; margin:0 0 14px; border:1px solid var(--line); border-radius:2px; background:var(--surface); }
+.ofp-card-head { min-height:43px; align-items:center; margin:0 -16px 14px; padding:10px 16px; background:var(--soft); border-bottom:1px solid var(--line); }
+.ofp-card-head strong { font-size:15px; font-weight:650; letter-spacing:.01em; }
+.flight-route-strip { grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr); gap:10px; }
+.flight-route-point { grid-template-columns:minmax(0,1fr) 88px; padding:10px; gap:8px; border-radius:2px; background:transparent; }
+.flight-route-point > span { font:700 11px/1.3 var(--flight-mono); letter-spacing:.06em; text-transform:uppercase; }
+.flight-route-strip .alternate-point { grid-column:1/-1; grid-template-columns:90px minmax(0,1fr); align-items:center; }
+.alternate-point > span { grid-column:auto; }
+.alternate-point > label { font-size:0; }
+.alternate-input-row { display:grid; grid-template-columns:minmax(80px,1fr) auto; }
+.alternate-input-row input { margin:0; }
+.alternate-input-row button { min-height:44px; padding:8px 14px; font-size:12px; }
+.runway-help { font-size:10px; }
+input,select,textarea { min-height:44px; border-radius:2px; padding:8px 10px; font:700 16px/1.3 var(--flight-mono); font-variant-numeric:tabular-nums; }
+label,.aircraft-profile-caption { font:12px/1.4 var(--flight-mono); color:var(--muted); }
+.flight-identity-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
+.aircraft-profile-button { min-height:44px; border-radius:2px; }
+.aircraft-profile-copy strong { font:700 12px/1.3 var(--flight-mono); }
+.aircraft-profile-copy small { font:11px/1.3 var(--flight-mono); }
+.aircraft-profile-code { font:700 14px/1.3 var(--flight-mono); }
+.schedule-workbench { margin-top:10px; padding:10px 0 0; border:0; border-top:1px solid var(--line); border-radius:0; background:transparent; }
+.schedule-workbench-head { margin-bottom:8px; font-size:13px; }
+.schedule-estimate strong { font:700 14px/1.4 var(--flight-mono); }
+button,.btn { border-radius:3px; }
+.route-swap-large { font-size:20px; }
+.route-composer { grid-template-columns:1fr 1fr 1fr; }
+.route-composer label { grid-column:1/-1; }
+.route-tokens { padding:12px 0; gap:6px; }
+.route-token { border-radius:2px; font:700 14px/1.3 var(--flight-mono); }
+.route-preview,pre { font-family:var(--flight-mono); }
+.grid,.grid.two,.route-procedures { gap:12px; }
+.route-cruise-grid { grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:14px; }
+.fuel-ladder,.load-margin-strip { border-radius:2px; }
+.fuel-ladder strong,.load-margin-strip strong,.metric strong,.movement-time,.profile-facts strong { font-family:var(--flight-mono); }
+.fuel-ladder > div,.load-margin-strip > div { padding:10px; }
+.checkline,.locked-profile,.load-source,.movement-card,.metric,.notice,.release-snapshot,.brief-next-action { border-radius:2px; }
+.ofp-command-bar { min-height:70px; padding:10px 12px max(10px,env(safe-area-inset-bottom)); gap:8px; background:var(--flight-nav); border-top:1px solid #3a5265; }
+.shell { padding-bottom:calc(70px + env(safe-area-inset-bottom)); }
+.schedule-drawer { margin-top:8px !important; }
+.schedule-drawer summary { padding:10px 0; }
+.ofp-command-bar .btn { min-height:46px; color:#edf5fa; background:#263f52; border-color:#496172; border-radius:3px; }
+.ofp-command-bar .btn.primary { background:#006b9c; border-color:#2497bd; color:#fff; }
+.ofp-command-bar .btn:disabled { color:#aec4d4; opacity:.65; }
+.ofp-inspector { border-radius:4px; }
+@media(min-width:1000px) { .flight-route-strip { grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) minmax(0,.8fr); } .flight-route-strip .alternate-point { grid-column:auto; grid-template-columns:1fr; } .alternate-point > label { font-size:12px; } .alternate-input-row { grid-template-columns:minmax(0,1fr); } .flight-identity-grid { grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr)); } }
+@media(min-width:1280px) { .shell { grid-template-columns:190px minmax(0,1fr); } .editor { max-width:1400px; margin:auto; } }
+@media(max-width:900px) and (min-width:741px) { .shell { grid-template-columns:138px minmax(0,1fr); } .editor { padding:10px; } .ofp-task-panel { padding-inline:12px; } .ofp-card-head { margin-inline:-12px; padding-inline:12px; } .ofp-workspace-button { padding:12px 9px; } .task-title { font-size:13px; } .ofp-flight-facts { gap:12px; } }
+@media(max-width:740px) { .shell { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto auto auto minmax(0,1fr); grid-template-areas:"app" "flight" "status" "index" "sheet"; } .ofp-task-rail { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); padding:0; border:0; } .ofp-task-rail::before { display:none; } .ofp-workspace-button { min-height:48px; padding:8px 4px; border-left:0; border-bottom:3px solid transparent; text-align:center; } .ofp-workspace-button[aria-selected="true"] { border-bottom-color:#84dfb0; } .ofp-workspace-button .task-title { font-size:12px; } .ofp-workspace-button .workspace-state { display:none; } .ofp-flight-hero { min-height:66px; padding:8px 12px; } .ofp-flight-facts { width:auto; } .ofp-flight-facts .statusbox[data-flight-fact="schedule"] { display:none; } .ofp-flight-facts { grid-template-columns:1fr; } .ofp-flight-endpoint strong { font-size:23px; } .ofp-flight-badges { font-size:10px; } .editor { padding:8px; } .ofp-task-panel { padding:0 12px 12px; } .ofp-card-head { margin:0 -12px 12px; padding:8px 12px; } .flight-route-point { grid-template-columns:1fr; } .flight-route-strip .alternate-point { grid-template-columns:1fr; } .ofp-command-bar .btn { font-size:11px; padding:6px; } .route-cruise-grid { grid-template-columns:1fr 1fr; } }
