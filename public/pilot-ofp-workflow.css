@@ -60,7 +60,9 @@ html.embedded :is(.topbar,.ofp-flight-hero) { display:none; }
 .ofp-workspace-button:hover { background:#223441; }
 .ofp-workspace-button[aria-selected="true"] { background:#254239; box-shadow:inset 3px 0 #76d4a9; }
 .ofp-workspace-button[aria-selected="true"] .task-title { color:#c6f6e0; }
-.ofp-app-workspace { grid-area:sheet; min-width:0; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; background:var(--surface); }
+.ofp-app-workspace { grid-area:sheet; min-width:0; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; scrollbar-width:thin; scrollbar-color:#647b8a66 transparent; background:var(--surface); }
+.ofp-task-rail { scrollbar-width:none; }
+.ofp-task-rail::-webkit-scrollbar { display:none; }
 .folder-toolbar { position:sticky; z-index:10; top:0; display:flex; align-items:center; justify-content:space-between; min-height:60px; padding:8px 22px; background:var(--soft); border-bottom:1px solid var(--line); }
 .folder-toolbar span { display:block; color:var(--muted); font-size:9px; letter-spacing:.12em; }
 .folder-toolbar h2 { margin:2px 0 0; font-size:20px; font-weight:500; letter-spacing:-.02em; }

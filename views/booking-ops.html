@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#edf3f6" />
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NGA Pilot EFB" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
   <title>NGA Pilot Operations Centre</title>
   <script>
     (() => {
@@ -2939,26 +2943,31 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-02-4" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-02-4" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-02-4" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-02-4" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-02-4" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-04-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-04-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-04-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-04-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-04-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-02-4" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-04-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-04-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
     <header class="efb-masthead">
+      <div class="app-navigation-title"><button id="appBackBtn" class="shell-icon-button" type="button" aria-label="Back to previous workspace" disabled><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg></span></button><div><h1 id="appWorkspaceTitle">Pilot EFB</h1><p id="appWorkspaceSubtitle">NGA · Pilot operations</p></div></div>
       <button id="sidebarToggle" class="shell-icon-button masthead-menu-button" type="button" aria-label="Collapse navigation" title="Navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span></button>
       <div class="masthead-brand"><span class="efb-logo-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
       <div class="masthead-status">
-        <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg></span><span class="shell-search-label">Ask Pilot EFB or search</span><kbd>⌘ K</kbd></button>
+        <span id="appConnection" class="app-connection" aria-live="polite">Network</span>
+        <button id="appFocusBtn" class="shell-icon-button app-focus-button" type="button" aria-label="Focus on flight briefing" aria-pressed="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" /></svg><span id="appFocusLabel">Focus</span></button>
+        <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button" aria-label="Search tools and flights"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg></span><span class="shell-search-label">Ask Pilot EFB or search</span><kbd>⌘ K</kbd></button>
         <button id="notificationsBtn" class="shell-icon-button masthead-round-button" type="button" aria-label="Open alerts" title="Alerts"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span><span id="notificationCount" class="count">0</span></button>
         <button id="userMenuBtn" class="shell-icon-button masthead-crew-button" type="button" aria-label="Open crew menu"><span class="app-avatar" aria-hidden="true">PIC</span><span class="masthead-crew-copy"><strong>Crew</strong><small>Pilot</small></span></button>
         <button id="efbThemeToggle" class="shell-icon-button efb-theme-toggle" type="button" aria-label="Switch to night mode" aria-pressed="false" title="Switch to night mode"><span class="efb-theme-icon" aria-hidden="true"><svg class="efb-theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg><svg class="efb-theme-icon-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></span></button>
         <button id="flightContextBtn" class="shell-icon-button masthead-round-button flight-context-trigger" type="button" aria-label="Open active flight context" title="Active flight" aria-controls="flightContextPanel" aria-expanded="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 16l20-8-8 20-3-9-9-3Z"></path><path d="m11 19 4-4"></path></svg></span></button>
         <button id="appUpdateBtn" class="shell-icon-button masthead-round-button" type="button" aria-label="Refresh application" title="Update ready" hidden><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.34 5.66"></path><path d="M20 4v7h-7"></path></svg></span></button>
+        <button id="appSettingsBtn" class="shell-icon-button" type="button" aria-label="Open app settings" title="App settings"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></span></button>
         <div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div>
         <div id="networkStatus" class="offline-indicator">NETWORK CHECK</div>
         <div id="clock" class="clock">UTC --:--:--</div>
@@ -3772,7 +3781,7 @@ END OF MESSAGE</pre>
   </dialog>
 
   <dialog id="commandDialog" class="shell-dialog" aria-labelledby="commandDialogTitle">
-    <div class="shell-dialog-head"><strong id="commandDialogTitle">Pilot EFB assistant</strong><button class="shell-icon-button" type="button" data-close-dialog="commandDialog">Close</button></div>
+    <div class="shell-dialog-head"><strong id="commandDialogTitle">Search Pilot EFB</strong><button class="shell-icon-button" type="button" data-close-dialog="commandDialog">Close</button></div>
     <div class="shell-dialog-body">
       <input id="commandInput" class="command-input" type="search" autocomplete="off" aria-label="Search Pilot EFB tools and flights" aria-controls="commandResults" placeholder="Try ‘takeoff performance’, ‘METAR’, or a flight reference" />
       <div id="commandResults" class="command-results" aria-label="Search results" aria-live="polite"></div>
@@ -3820,6 +3829,18 @@ END OF MESSAGE</pre>
     </form>
   </dialog>
 
+  <dialog id="appPreferencesDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="appPreferencesTitle">
+    <header class="shell-dialog-head"><strong id="appPreferencesTitle">App settings</strong><button id="appSettingsCloseBtn" class="shell-icon-button" type="button">Done</button></header>
+    <div class="app-preferences-body">
+      <section class="app-settings-group"><h2>Appearance</h2><div class="app-theme-segment" role="group" aria-label="Display appearance"><button type="button" data-app-theme="day" aria-pressed="false">Day</button><button type="button" data-app-theme="night" aria-pressed="true">Night</button></div></section>
+      <section class="app-settings-group"><div class="app-install-heading"><h2>Pilot EFB on your device</h2><span id="appDisplayState">Browser session</span></div><div id="appInstallGuide"><p>Launch from your Home Screen for a dedicated app window without browser tabs.</p><ol class="app-install-steps"><li>Open Pilot Ops in Safari on your iPad.</li><li>Tap Share, then Add to Home Screen. It may be under More.</li><li>Enable Open as Web App if shown, then tap Add.</li></ol><p>On other devices, use your browser’s install option when available.</p></div><button id="appNativeInstallBtn" class="app-sheet-action" type="button" hidden>Install on this device</button></section>
+      <section class="app-settings-group"><h2>Session</h2><p id="appNetworkDetail"></p><button id="appCrewBtn" class="app-sheet-action" type="button">Crew session &amp; device access</button><button id="appAlertsBtn" class="app-sheet-action" type="button">Operations alerts</button><button id="appReloadBtn" class="app-sheet-action" type="button">Reload application…</button><p>Flight planning and live data require a connection. Offline snapshots are not a current briefing.</p></section>
+    </div>
+  </dialog>
+  <dialog id="appReloadDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="appReloadTitle">
+    <form method="dialog"><header class="shell-dialog-head"><strong id="appReloadTitle">Reload Pilot EFB?</strong></header><div class="app-preferences-body"><p>Unsaved entries may be lost. Save your flight plan and any other edits before reloading.</p><div class="app-reload-actions"><button class="app-sheet-action" value="cancel" autofocus>Keep working</button><button class="app-sheet-action" value="reload">Reload</button></div></div></form>
+  </dialog>
+  <script src="/pilot-app-shell.js?v=2026-10-04-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -4964,6 +4985,7 @@ END OF MESSAGE</pre>
     }
 
     function updateSuiteContext(req = selected) {
+      appShell?.updateContext();
       const passengers = req ? passengerList(req) : [];
       const signed = req ? agreementCount(req) : 0;
       const nextPerformanceFingerprint = suitePerformanceFingerprint(req);
@@ -5728,6 +5750,7 @@ END OF MESSAGE</pre>
     }
 
     const OPS_WORKSPACE_STORAGE_KEY = 'nga-pilot-ops-active-workspace';
+    let appShell = null;
 
     function storedOpsWorkspace() {
       try {
@@ -5766,9 +5789,10 @@ END OF MESSAGE</pre>
       if (contentScroller && activeWorkspace === 'flights') contentScroller.scrollTo({ top:0, behavior:'smooth' });
     }
 
-    function switchOpsWorkspace(view) {
+    function switchOpsWorkspace(view, options = {}) {
       const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'aircraft', 'logbook', 'documents']);
       if (!allowedViews.has(view)) view = 'dashboard';
+      appShell?.leave(view);
       if (view !== 'weather') setWeatherRadarPlayback(false);
       activeWorkspace = view;
       syncOpsGlobeAnimation();
@@ -5852,14 +5876,7 @@ END OF MESSAGE</pre>
       ) closeFlightContext(false);
       visibleWorkspace.classList.remove('workspace-enter');
       window.requestAnimationFrame(() => visibleWorkspace.classList.add('workspace-enter'));
-      history.replaceState(null, '', view === 'dashboard' ? location.pathname : `${location.pathname}#${view}`);
-      const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
-      const workspaceScroller = document.querySelector('.efb-content');
-      if (window.innerWidth <= 640) {
-        window.scrollTo({ top:0, behavior:scrollBehavior });
-      } else if (workspaceScroller) {
-        workspaceScroller.scrollTo({ top:0, behavior:scrollBehavior });
-      }
+      appShell?.enter(view, options);
     }
 
     const PERFORMANCE_AIRCRAFT = Object.freeze({
@@ -8760,16 +8777,16 @@ END OF MESSAGE</pre>
       event.preventDefault();
       deferredInstallPrompt = event;
       installPilotAppBtn.textContent = 'Install Pilot EFB on this device';
+      appShell?.syncDeviceState();
     });
-    installPilotAppBtn.addEventListener('click', async () => {
+    async function promptPilotAppInstall() {
       if (deferredInstallPrompt) {
         deferredInstallPrompt.prompt();
         await deferredInstallPrompt.userChoice;
         deferredInstallPrompt = null;
-        return;
       }
-      window.alert('On iPad: open this page in Safari, tap Share, then Add to Home Screen. Open the installed Pilot EFB once while online to refresh its shell and safe operational snapshot.');
-    });
+    }
+    installPilotAppBtn.addEventListener('click', () => appShell?.openSettings());
     window.addEventListener('online', () => {
       updateNetworkState();
       loadRequests().catch(() => {});
@@ -8827,7 +8844,7 @@ END OF MESSAGE</pre>
     sidebarRailToggle.addEventListener('click', toggleSidebar);
 
     globalSearchBtn.addEventListener('click', () => {
-      el('commandDialogTitle').textContent = 'Pilot EFB assistant';
+      el('commandDialogTitle').textContent = 'Search Pilot EFB';
       commandDialog.dataset.mode = 'assistant';
       commandInput.placeholder = 'Try ‘takeoff performance’, ‘METAR’, or a flight reference';
       commandInput.value = '';
@@ -8875,7 +8892,9 @@ END OF MESSAGE</pre>
       passkeySetupBtn?.scrollIntoView({ behavior:'smooth', block:'center' });
     });
     userLogoutBtn.addEventListener('click', () => logoutBtn.click());
-    appUpdateBtn.addEventListener('click', () => window.location.reload());
+    appUpdateBtn.addEventListener('click', () => appShell?.confirmReload());
+    el('appCrewBtn').addEventListener('click', () => { el('appPreferencesDialog').close(); openShellDialog(userDialog); });
+    el('appAlertsBtn').addEventListener('click', () => { el('appPreferencesDialog').close(); notificationsBtn.click(); });
 
     document.querySelectorAll('[data-close-dialog]').forEach(button => {
       button.addEventListener('click', () => el(button.dataset.closeDialog)?.close());
@@ -8892,7 +8911,7 @@ END OF MESSAGE</pre>
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        el('commandDialogTitle').textContent = 'Pilot EFB assistant';
+        el('commandDialogTitle').textContent = 'Search Pilot EFB';
         commandDialog.dataset.mode = 'assistant';
         commandInput.placeholder = 'Try ‘takeoff performance’, ‘METAR’, or a flight reference';
         commandInput.value = '';
@@ -8916,6 +8935,7 @@ END OF MESSAGE</pre>
         try { localStorage.setItem('nga-efb-theme', theme); } catch {}
       }
       if (ofpOpsFrame.contentWindow) ofpOpsFrame.contentWindow.postMessage({ type:'nga-efb-theme', theme }, location.origin);
+      appShell?.syncTheme(theme);
     }
     applyEfbTheme(document.documentElement.dataset.efbTheme, false);
     efbThemeToggle.addEventListener('click', () => applyEfbTheme(document.documentElement.dataset.efbTheme === 'night' ? 'day' : 'night'));
@@ -8930,6 +8950,7 @@ END OF MESSAGE</pre>
       if (event.data?.type === 'nga-efb-theme') applyEfbTheme(event.data.theme);
     });
 
+    appShell = window.createPilotAppShell({ navigate:switchOpsWorkspace, getFlight:() => selected, setTheme:applyEfbTheme, install:promptPilotAppInstall, canInstall:() => Boolean(deferredInstallPrompt) });
     setFlightDetailTab('overview');
     renderActiveFlightStrip();
     renderReleasePanel();

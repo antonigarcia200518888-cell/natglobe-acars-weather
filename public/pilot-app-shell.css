@@ -1,0 +1,99 @@
+/* Stable app viewport, shared navigation chrome and native-style sheets. */
+html:has(body.pilot-ops-v2), html body.pilot-ops-v2 { height:100%; overflow:hidden; overscroll-behavior:none; }
+html body.pilot-ops-v2 { --shell-header:64px; --shell-context:44px; --shell-tabs:68px; --shell-top:env(safe-area-inset-top,0px); --shell-bottom:env(safe-area-inset-bottom,0px); -webkit-tap-highlight-color:transparent; }
+html body.pilot-ops-v2 > .frame { position:relative; width:100%; max-width:none; height:100dvh; min-height:0; margin:0; padding:var(--shell-top) 0 calc(var(--shell-tabs) + var(--shell-bottom)); display:grid; grid-template-rows:var(--shell-header) var(--shell-context) minmax(0,1fr); gap:0; overflow:hidden; background:#18232e; }
+html body.pilot-ops-v2 .efb-masthead { position:relative; inset:auto; display:flex; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:0; height:var(--shell-header); margin:0; padding:8px 16px; border:0; border-bottom:1px solid #344350; border-radius:0; background:#18232e; }
+html body.pilot-ops-v2 .efb-masthead > :is(.masthead-menu-button,.masthead-brand,.mode) { display:none !important; }
+.app-navigation-title { display:flex; min-width:0; align-items:center; gap:10px; }
+.app-navigation-title > div { min-width:0; }
+.app-navigation-title h1 { color:#f0f5f8; font:600 19px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:-.02em; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.app-navigation-title p { color:#adbecb; font:11px/1.3 "Courier New",monospace; margin:3px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:44vw; }
+html body.pilot-ops-v2 .efb-masthead .masthead-status { position:static; display:flex; flex:none; align-items:center; justify-content:flex-end; gap:6px; width:auto; margin:0; transform:none; }
+html body.pilot-ops-v2 .efb-masthead .shell-icon-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; width:44px; min-width:44px; height:44px; min-height:44px; padding:10px; border:1px solid transparent; border-radius:9px; background:transparent; color:#d7e6ef; box-shadow:none; }
+html body.pilot-ops-v2 .efb-masthead .shell-icon-button:hover { background:#263b4a; }
+html body.pilot-ops-v2 .efb-masthead .shell-icon-button:disabled { opacity:.3; cursor:default; }
+html body.pilot-ops-v2 .efb-masthead #globalSearchBtn { display:inline-flex !important; flex:0 0 44px; width:44px; min-width:44px; }
+html body.pilot-ops-v2 .efb-masthead #globalSearchBtn::before { content:none; }
+html body.pilot-ops-v2 .efb-masthead :is(.shell-search-label,kbd,.masthead-crew-copy,.clock,#pilotRoleBadge,#networkStatus) { display:none !important; }
+html body.pilot-ops-v2 .efb-masthead .app-focus-button { width:auto; min-width:72px; font-size:12px; font-weight:600; }
+html body.pilot-ops-v2 .efb-masthead .app-focus-button[aria-pressed="true"] { background:#254239; color:#c6f6e0; border-color:#477966; }
+html body.pilot-ops-v2 .efb-masthead .app-focus-button svg { width:18px; height:18px; }
+.app-connection { display:flex; align-items:center; gap:6px; color:#adbecb; font:11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; padding:0 6px; }
+.app-connection::before { content:""; width:5px; height:5px; border-radius:50%; background:#75caa5; }
+.app-connection[data-offline="true"] { color:#f3cc83; }
+.app-connection[data-offline="true"]::before { background:#f3cc83; }
+html body.pilot-ops-v2 .active-flight-strip { position:static; display:grid; grid-template-columns:1.5fr 1.5fr 1fr 1fr; width:100%; height:var(--shell-context); min-height:0; margin:0; overflow:hidden; }
+html body.pilot-ops-v2 .active-flight-strip .flight-strip-item { height:44px; min-height:0; flex:initial; grid-column:auto; padding:5px 12px; }
+html body.pilot-ops-v2 .active-flight-strip .flight-strip-item:nth-child(2) { display:flex !important; flex-direction:column; justify-content:center; }
+html body.pilot-ops-v2 .active-flight-strip small { display:none; }
+html body.pilot-ops-v2 .active-flight-strip strong { margin-top:2px; font-size:11px; }
+html body.pilot-ops-v2 .efb-layout { display:block; min-height:0; height:100%; overflow:hidden; margin:0; padding:0; }
+html body.pilot-ops-v2 .efb-content { width:100%; height:100%; min-height:0; margin:0; padding:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; background:var(--app-card-muted); }
+html body.pilot-ops-v2 :is(.efb-content,.shell-dialog,.shell-dialog-body) { scrollbar-width:thin; scrollbar-color:#647b8a66 transparent; }
+html body.pilot-ops-v2 .ops-tool-workspace { border:0; border-radius:0; margin:0; }
+html body.pilot-ops-v2 :is(.tool-workspace-head,.dashboard-head) { display:none; }
+html body.pilot-ops-v2 .ops-tool-workspace[data-active-tool="flight-plan"], html body.pilot-ops-v2 #flightPlanOpsPane { height:100%; min-height:0; padding:0; overflow:hidden; }
+html body.pilot-ops-v2 #ofpOpsFrame { display:block; width:100%; height:100% !important; min-height:0 !important; border:0; border-radius:0; }
+html body.pilot-ops-v2 .ops-suite-nav, html body.pilot-ops-v2.sidebar-collapsed .ops-suite-nav { position:absolute; inset:auto 0 0; display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); width:100%; height:calc(var(--shell-tabs) + var(--shell-bottom)); padding:5px max(10px,env(safe-area-inset-left)) var(--shell-bottom); gap:4px; z-index:100; overflow:hidden; border-radius:0; background:#18232e; border-top:1px solid #344350; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab { display:flex; flex-direction:column; align-items:center; justify-content:center; width:auto; min-width:0; min-height:0; padding:3px 6px 6px; gap:2px; border-radius:8px; color:#a7bac7; background:transparent; box-shadow:none; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab.active { color:#c6f6e0; background:#254239; box-shadow:none; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab .suite-icon { width:26px; height:26px; padding:2px; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab strong { font:600 11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:inherit; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-nav-tools { display:none !important; }
+html body.pilot-ops-v2 :is(button,a,input,select,textarea) { touch-action:manipulation; }
+html body.pilot-ops-v2 :is(button,a):focus-visible { outline:2px solid #65c7ed; outline-offset:2px; }
+html body.pilot-ops-v2 button:active:not(:disabled) { filter:brightness(.88); }
+html body.pilot-ops-v2 .workspace-enter { animation:app-panel-in .14s ease-out both; }
+@keyframes app-panel-in { from { opacity:.55; transform:translateY(3px); } to { opacity:1; transform:none; } }
+html body.pilot-ops-v2.app-focus > .frame { --shell-context:0px; --shell-tabs:0px; padding-bottom:var(--shell-bottom); }
+html body.pilot-ops-v2.app-focus :is(.active-flight-strip,.ops-suite-nav) { visibility:hidden; pointer-events:none; }
+html body.pilot-ops-v2 .shell-dialog { color:var(--app-ink); background:var(--app-card-solid); border:1px solid var(--app-line); border-radius:16px; box-shadow:0 24px 80px #0007; max-height:calc(100dvh - 48px - var(--shell-top) - var(--shell-bottom)); }
+html body.pilot-ops-v2 .shell-dialog::backdrop { background:#04101bb3; backdrop-filter:blur(4px); }
+html body.pilot-ops-v2 .shell-dialog-head { background:var(--app-card-muted); border-bottom:1px solid var(--app-line); padding:16px 20px; }
+html body.pilot-ops-v2 .shell-dialog-head strong { color:var(--app-ink); font-size:19px; }
+html body.pilot-ops-v2 .shell-dialog-head button { color:var(--efb-blue-strong); min-height:44px; border-radius:8px; }
+html body.pilot-ops-v2 .app-preferences-sheet { width:min(520px,calc(100vw - 32px)); padding:0; }
+html body.pilot-ops-v2 .app-preferences-sheet .shell-dialog-head { position:sticky; top:0; z-index:2; }
+.app-preferences-body { padding:20px; display:grid; gap:22px; font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.app-preferences-body h2 { font-size:14px; margin:0 0 10px; color:var(--app-ink); }
+.app-preferences-body p { margin:6px 0; color:var(--app-muted); font-size:13px; line-height:1.5; }
+.app-settings-group { padding-bottom:20px; border-bottom:1px solid var(--app-line); }
+.app-settings-group:last-child { border:0; padding-bottom:0; }
+.app-theme-segment { display:grid; grid-template-columns:1fr 1fr; padding:4px; gap:4px; border-radius:10px; background:var(--app-card-muted); }
+.app-theme-segment button { min-height:44px; border:1px solid transparent; border-radius:7px; color:var(--app-muted); background:transparent; font:600 14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; cursor:pointer; }
+.app-theme-segment button[aria-pressed="true"] { background:var(--app-card-solid); color:var(--app-ink); border-color:var(--app-line); box-shadow:0 2px 5px #0001; }
+.app-install-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.app-install-heading span { font:11px "Courier New",monospace; color:var(--app-muted); }
+.app-install-steps { margin:12px 0; padding-left:22px; color:var(--app-ink); font-size:13px; line-height:1.6; }
+.app-install-steps li { padding:3px 0; }
+.app-sheet-action { display:block; min-height:44px; width:100%; padding:10px 14px; margin-top:12px; border:1px solid var(--app-line); border-radius:8px; color:var(--efb-blue-strong); background:var(--app-card-muted); font:600 14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; cursor:pointer; }
+.app-reload-actions { display:flex; gap:10px; margin-top:16px; }
+.app-reload-actions button { flex:1; }
+@media(min-width:741px) { html body.pilot-ops-v2 .ops-suite-nav .mobile-more-tab { display:none !important; } }
+@media(max-width:950px) {
+  html body.pilot-ops-v2 .active-flight-strip { grid-template-columns:1fr 1fr; }
+  html body.pilot-ops-v2 .active-flight-strip .flight-strip-item:nth-child(n+3) { display:none; }
+  html body.pilot-ops-v2 .efb-masthead :is(#userMenuBtn,#flightContextBtn) { display:none; }
+  .app-connection { font-size:0; padding:0 4px; }
+}
+@media(max-width:740px) {
+  html body.pilot-ops-v2 { --shell-header:60px; --shell-tabs:64px; }
+  html body.pilot-ops-v2 .efb-masthead { gap:4px; padding:6px 8px; }
+  .app-navigation-title { gap:2px; }
+  .app-navigation-title h1 { font-size:17px; }
+  .app-navigation-title p { font-size:10px; max-width:40vw; }
+  html body.pilot-ops-v2 .efb-masthead .masthead-status { gap:0; }
+  html body.pilot-ops-v2 .efb-masthead :is(#notificationsBtn,#efbThemeToggle,.app-connection) { display:none; }
+  html body.pilot-ops-v2 .efb-masthead .app-focus-button { min-width:44px; padding:8px; }
+  html body.pilot-ops-v2:not(.app-focus) #appFocusLabel { display:none; }
+  html body.pilot-ops-v2.app-focus .efb-masthead #globalSearchBtn { display:none !important; }
+  html body.pilot-ops-v2 .ops-suite-nav { grid-template-columns:repeat(5,minmax(0,1fr)); gap:2px; padding-inline:6px; }
+  html body.pilot-ops-v2 .ops-suite-nav .suite-tab:is([data-suite-view="performance"],[data-suite-view="aircraft"],[data-suite-view="logbook"],[data-suite-view="documents"]) { display:none !important; }
+  html body.pilot-ops-v2 .ops-suite-nav .mobile-more-tab { display:flex !important; }
+  html body.pilot-ops-v2 .ops-suite-nav .suite-tab { border-radius:8px; }
+  html body.pilot-ops-v2 .shell-dialog { max-width:calc(100vw - 16px); max-height:calc(100dvh - 24px - var(--shell-top) - var(--shell-bottom)); border-radius:14px; }
+  html body.pilot-ops-v2 .app-preferences-sheet { width:calc(100vw - 16px); }
+  html body.pilot-ops-v2 .active-flight-strip { padding:0; }
+  html body.pilot-ops-v2 .active-flight-strip .flight-strip-item { padding:5px 8px; }
+}
+@media(prefers-reduced-motion:reduce) { html body.pilot-ops-v2 .workspace-enter { animation:none; } }
