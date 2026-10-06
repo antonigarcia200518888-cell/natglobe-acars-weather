@@ -2943,19 +2943,19 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-04-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-04-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-04-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-04-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-04-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-06-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-06-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-06-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-06-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-06-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-04-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-04-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-06-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-06-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
     <header class="efb-masthead">
-      <div class="app-navigation-title"><button id="appBackBtn" class="shell-icon-button" type="button" aria-label="Back to previous workspace" disabled><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg></span></button><div><h1 id="appWorkspaceTitle">Pilot EFB</h1><p id="appWorkspaceSubtitle">NGA · Pilot operations</p></div></div>
+      <div class="app-navigation-title"><button id="appBackBtn" class="shell-icon-button" type="button" aria-label="Back to previous workspace" disabled><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg></span></button><div><h1 id="appWorkspaceTitle">Pilot EFB</h1><button id="flightSwitchBtn" class="flight-switch-button" type="button" aria-label="Switch active flight" aria-haspopup="dialog"><span id="appWorkspaceSubtitle">NGA · Pilot operations</span><span aria-hidden="true">⌄</span></button></div><span id="appDraftBadge" class="app-draft-badge" hidden>Unsaved OFP</span></div>
       <button id="sidebarToggle" class="shell-icon-button masthead-menu-button" type="button" aria-label="Collapse navigation" title="Navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span></button>
       <div class="masthead-brand"><span class="efb-logo-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
       <div class="masthead-status">
@@ -3476,26 +3476,27 @@ LOAD DATA TO CALCULATE.</pre></details>
     <div class="layout">
       <aside class="panel queue-panel">
         <div class="panel-title queue-panel-title"><div>Flights <span>Operations queue</span></div><button id="createPilotFlightBtn" class="create-pilot-flight-btn" type="button">+ Create flight</button></div>
+        <div class="queue-search-bar"><input id="filterQuery" type="search" aria-label="Search flight queue" placeholder="Search flights…" /></div>
+        <div class="queue-primary-filters" role="group" aria-label="Flight list scope"><button type="button" class="quick-filter active" data-quick-filter="ALL">All flights</button><button type="button" class="quick-filter" data-quick-filter="TODAY">Today</button><button type="button" class="quick-filter" data-quick-filter="MANUAL">Pilot files</button></div>
         <details class="queue-filter-drawer">
-          <summary><span>Search &amp; filters</span><strong>Refine queue</strong></summary>
+          <summary><span>More filters &amp; sorting</span><strong id="queueFilterSummary">Refine queue</strong></summary>
         <div id="queueFilters" class="queue-filters">
-          <input id="filterQuery" type="search" placeholder="Search route or passenger" />
-          <select id="filterStatus"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option><option value="CANCELLED">Cancelled</option></select>
+          <select id="filterStatus" aria-label="Filter by flight status"><option value="ALL">All statuses</option><option value="REQUESTED">Requested</option><option value="CONFIRMED">Confirmed</option><option value="NEEDS INFO">Needs info</option><option value="DECLINED">Declined</option><option value="CANCELLED">Cancelled</option></select>
           <input id="filterDate" type="date" aria-label="Departure date from" title="Departure date from" />
           <input id="filterDateTo" type="date" aria-label="Departure date to" title="Departure date to" />
           <select id="filterPilot" aria-label="Filter by assigned pilot"><option value="ALL">All assigned pilots</option></select>
           <select id="filterPayment" aria-label="Filter by payment state"><option value="ALL">All payment states</option><option value="UNPAID">Unpaid</option><option value="DEPOSIT PAID">Deposit paid</option><option value="PAID">Paid</option><option value="REFUNDED">Refunded</option></select>
           <select id="filterSort" aria-label="Sort request queue"><option value="PRIORITY">Sort: operational priority</option><option value="DEPARTURE">Sort: departure soonest</option><option value="NEWEST">Sort: newest request</option><option value="ROUTE">Sort: route</option></select>
           <div class="quick-filters" aria-label="Quick filters">
-            <button class="quick-filter active" type="button" data-quick-filter="ALL">All</button>
             <button class="quick-filter" type="button" data-quick-filter="ACTION">Needs action</button>
             <button class="quick-filter" type="button" data-quick-filter="CONFIRMED">Confirmed</button>
             <button class="quick-filter" type="button" data-quick-filter="UNPAID">Unpaid</button>
-            <button class="quick-filter" type="button" data-quick-filter="TODAY">Today</button>
             <button class="quick-filter" type="button" data-quick-filter="PROPOSAL">Time proposal</button>
           </div>
         </div>
         </details>
+        <div class="queue-result-bar"><span id="queueResultCount" role="status"></span><button id="clearQueueFiltersBtn" type="button" hidden>Reset filters</button></div>
+        <p id="queueSelectionHint" class="queue-selection-hint" hidden>Active flight is outside these filters. It remains selected.</p>
         <div id="requestList" class="request-list"></div>
       </aside>
 
@@ -3840,7 +3841,14 @@ END OF MESSAGE</pre>
   <dialog id="appReloadDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="appReloadTitle">
     <form method="dialog"><header class="shell-dialog-head"><strong id="appReloadTitle">Reload Pilot EFB?</strong></header><div class="app-preferences-body"><p>Unsaved entries may be lost. Save your flight plan and any other edits before reloading.</p><div class="app-reload-actions"><button class="app-sheet-action" value="cancel" autofocus>Keep working</button><button class="app-sheet-action" value="reload">Reload</button></div></div></form>
   </dialog>
-  <script src="/pilot-app-shell.js?v=2026-10-04-1"></script>
+  <dialog id="flightPickerDialog" class="shell-dialog flight-picker-sheet" aria-labelledby="flightPickerTitle">
+    <header class="shell-dialog-head"><div><strong id="flightPickerTitle">Your flights</strong><p>Switch the active flight across your EFB</p></div><button id="flightPickerCloseBtn" class="shell-icon-button" type="button">Done</button></header>
+    <div class="flight-picker-toolbar"><input id="flightPickerSearch" type="search" aria-label="Search your flights" placeholder="Airport, flight reference, date or aircraft" /><div class="queue-primary-filters" role="group" aria-label="Flight switcher scope"><button type="button" data-flight-scope="ALL" aria-pressed="true">All flights</button><button type="button" data-flight-scope="TODAY" aria-pressed="false">Today</button><button type="button" data-flight-scope="MANUAL" aria-pressed="false">Pilot files</button></div><span id="flightPickerCount" role="status"></span></div>
+    <div id="flightPickerResults" class="flight-picker-results"></div><footer class="flight-picker-footer"><button id="flightPickerCreateBtn" class="app-sheet-action" type="button">+ Create pilot flight</button></footer>
+  </dialog>
+  <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
+  <script src="/pilot-flight-deck.js?v=2026-10-06-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-10-06-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -4277,6 +4285,8 @@ END OF MESSAGE</pre>
         req.arr,
         req.depName,
         req.arrName,
+        req.aircraft,
+        req.crew?.commander,
         req.name,
         ...(Array.isArray(req.passengers) ? req.passengers.map(passenger => passenger.name) : [])
       ].filter(Boolean).join(' ').toUpperCase();
@@ -4371,7 +4381,7 @@ END OF MESSAGE</pre>
         const unavailableForManual = selected?.manualFlight && [approveBtn, needsInfoBtn, declineBtn, paymentStatus].includes(control);
         control.disabled = !canManage || unavailableForManual;
       });
-      [createManualOfpBtn, createManualOfpFromPlanBtn, createPilotFlightBtn, manualFlightCreateBtn, manualFlightOpenBtn]
+      [createManualOfpBtn, createManualOfpFromPlanBtn, createPilotFlightBtn, manualFlightCreateBtn, manualFlightOpenBtn, el('flightPickerCreateBtn')]
         .filter(Boolean)
         .forEach(control => { control.disabled = !canFly || !navigator.onLine; });
       [recordOutBtn, recordOffBtn, recordOnBtn, recordInBtn].filter(Boolean).forEach(control => { control.disabled = !canRecord || !selected || !navigator.onLine; });
@@ -5693,7 +5703,8 @@ END OF MESSAGE</pre>
       return { date:`${parts.year}-${parts.month}-${parts.day}`, time:`${parts.hour === '24' ? '00' : parts.hour}:${parts.minute}` };
     }
 
-    function openManualFlightComposer() {
+    async function openManualFlightComposer() {
+      if (flightDeck && !await flightDeck.ensureSaved()) { switchOpsWorkspace('flight-plan'); return; }
       const now = manualFlightHelsinkiNow();
       manualFlightForm.reset();
       manualFlightDate.value = now.date;
@@ -5751,6 +5762,23 @@ END OF MESSAGE</pre>
 
     const OPS_WORKSPACE_STORAGE_KEY = 'nga-pilot-ops-active-workspace';
     let appShell = null;
+    let flightDeck = null;
+    const ACTIVE_FLIGHT_STORAGE_KEY = 'nga-pilot-active-flight';
+
+    function activePlanner() {
+      const planner = ofpOpsFrame.contentWindow?.ngaOFP;
+      return planner?.getState().requestId === ofpOpsFrame.dataset.context ? planner : null;
+    }
+
+    async function activateFlight(req, view = '') {
+      if (req.id !== selected?.id && flightDeck && !await flightDeck.ensureSaved()) {
+        switchOpsWorkspace('flight-plan');
+        return false;
+      }
+      selectRequest(requests.find(item => item.id === req.id) || req);
+      if (view || activeWorkspace === 'flight-plan') switchOpsWorkspace(view || activeWorkspace);
+      return true;
+    }
 
     function storedOpsWorkspace() {
       try {
@@ -6647,6 +6675,7 @@ END OF MESSAGE</pre>
     }
 
     async function applyPerformanceToOfp() {
+      if (flightDeck && !await flightDeck.ensureSaved()) { switchOpsWorkspace('flight-plan'); return; }
       if (!selected?.id) throw new Error('SELECT A FLIGHT FIRST');
       if (!latestPerformanceData) throw new Error('LOAD AIRCRAFT PERFORMANCE INPUTS FIRST');
       if (!perfDepRunway.value || !perfArrRunway.value) throw new Error('SELECT BOTH RUNWAY ENDS FIRST');
@@ -6689,7 +6718,7 @@ END OF MESSAGE</pre>
     }
 
     function todayIso() {
-      return new Date().toISOString().slice(0, 10);
+      return manualFlightHelsinkiNow().date;
     }
 
     function requestSchedule(req) {
@@ -6939,6 +6968,7 @@ END OF MESSAGE</pre>
     }
 
     function matchesQuickFilter(req) {
+      if (quickFilter === 'MANUAL') return req.manualFlight === true;
       if (quickFilter === 'ACTION') return needsOpsAction(req);
       if (quickFilter === 'CONFIRMED') return req.status === 'CONFIRMED';
       if (quickFilter === 'UNPAID') return isOperationallyActive(req) && req.paymentStatus !== 'PAID';
@@ -6950,6 +6980,7 @@ END OF MESSAGE</pre>
     function renderQuickFilterState() {
       document.querySelectorAll('[data-quick-filter]').forEach(button => {
         button.classList.toggle('active', button.dataset.quickFilter === quickFilter);
+        button.setAttribute('aria-pressed', String(button.dataset.quickFilter === quickFilter));
       });
     }
 
@@ -7941,7 +7972,7 @@ END OF MESSAGE</pre>
       const query = filterQuery.value.trim().toUpperCase();
       renderQuickFilterState();
       const visible = sortQueue(requests.filter(req => {
-        const matchesQuery = !query || `${req.id} ${req.route} ${req.name}`.toUpperCase().includes(query);
+        const matchesQuery = !query || requestSearchText(req).includes(query);
         const crew = [req.crew?.commander, req.crew?.secondary];
         const dateInRange = (!filterDate.value || req.requestDate >= filterDate.value)
           && (!filterDateTo.value || req.requestDate <= filterDateTo.value);
@@ -7952,15 +7983,20 @@ END OF MESSAGE</pre>
           && (filterPilot.value === 'ALL' || crew.includes(filterPilot.value))
           && (filterPayment.value === 'ALL' || req.paymentStatus === filterPayment.value);
       }));
+      const filterCount = [query, quickFilter !== 'ALL', filterStatus.value !== 'ALL', filterDate.value, filterDateTo.value, filterPilot.value !== 'ALL', filterPayment.value !== 'ALL'].filter(Boolean).length;
+      el('queueResultCount').textContent = `${visible.length} of ${requests.length} flights`;
+      el('queueFilterSummary').textContent = filterCount ? `${filterCount} active` : 'Refine queue';
+      el('clearQueueFiltersBtn').hidden = !filterCount;
+      el('queueSelectionHint').hidden = !selected || visible.some(req => req.id === selected.id);
       requestList.innerHTML = visible.map(req => {
         if (req.manualFlight) return `
-          <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
+          <button type="button" class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}" aria-current="${selected?.id === req.id ? 'true' : 'false'}">
             <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">MANUAL OFP</span></div>
             <strong class="request-route">${escapeHtml(req.route || 'MANUAL OFP')}</strong>
             <span class="request-schedule">${escapeHtml(req.requestDate || 'DATE OPEN')} · ${escapeHtml(req.requestTime || 'TIME OPEN')}</span>
             <span class="request-detail">Pilot-only flight file · No passenger notifications</span>
             <div class="request-state-row"><span class="request-state state-info">MANUAL</span><span class="request-state state-good">READY TO PLAN</span><span class="request-state ${releaseClientState(req).released ? 'state-good' : 'state-warn'}">${releaseClientState(req).released ? 'RELEASED' : 'DRAFT'}</span></div>
-          </div>
+          </button>
         `;
         const approved = req.pilotDecision === 'APPROVED' && req.status === 'CONFIRMED';
         const paid = req.paymentStatus === 'PAID';
@@ -7969,15 +8005,15 @@ END OF MESSAGE</pre>
         const proposalClass = proposal === 'ACCEPTED' ? 'state-good' : proposal === 'DENIED' ? 'state-danger' : 'state-warn';
         const actionClass = needsOpsAction(req) ? 'state-warn' : 'state-good';
         return `
-        <div class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}">
+        <button type="button" class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}" aria-current="${selected?.id === req.id ? 'true' : 'false'}">
           <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">${escapeHtml(req.tripType === 'ROUNDTRIP' ? 'ROUNDTRIP' : 'ONE WAY')}</span></div>
           <strong class="request-route">${escapeHtml(req.route)}</strong>
           <span class="request-schedule">${escapeHtml(req.requestDate)} · ${escapeHtml(req.requestTime)}L / ${escapeHtml(requestUtcTime(req))}</span>
           <span class="request-detail">${escapeHtml(req.aircraft || 'Aircraft open')} · ${escapeHtml(req.crew?.commander || 'Commander unassigned')} · ${escapeHtml(req.seats)} passengers</span>
           <div class="request-state-row"><span class="request-state ${priority.tone === 'info' ? 'state-info' : `state-${priority.tone}`}">${escapeHtml(priority.label.replace(' PRIORITY', ''))}</span><span class="request-state ${actionClass}">${needsOpsAction(req) ? 'ACTION' : 'READY'}</span><span class="request-state ${approved ? 'state-good' : 'state-danger'}">${approved ? 'APPROVED' : 'NOT APPROVED'}</span><span class="request-state ${paid ? 'state-good' : 'state-danger'}">${paid ? 'PAID' : (req.paymentStatus || 'UNPAID')}</span>${req.timeProposal ? `<span class="request-state ${proposalClass}">TIME ${escapeHtml(proposal || 'PENDING')}</span>` : ''}</div>
-        </div>
+        </button>
       `;
-      }).join('') || '<div class="request">NO BOOKING REQUESTS YET.</div>';
+      }).join('') || `<div class="flight-picker-empty"><strong>${requests.length ? 'No matching flights' : 'Your flight list is empty'}</strong><p>${requests.length ? 'Reset the filters or try a different search.' : 'Create a pilot flight to start planning.'}</p></div>`;
     }
 
     function renderCalendar() {
@@ -7996,6 +8032,7 @@ END OF MESSAGE</pre>
       const selectionChanged = selected?.id !== req.id;
       if (selectionChanged) latestPerformanceData = null;
       selected = req;
+      try { localStorage.setItem(ACTIVE_FLIGHT_STORAGE_KEY, req.id); } catch (_) { /* Selection still works without storage. */ }
       cacheOperationalSnapshot(req);
       const manualFlight = req.manualFlight === true;
       el('ref').textContent = req.id || '.....';
@@ -8048,6 +8085,7 @@ END OF MESSAGE</pre>
       enforceCapabilityControls();
       loadTimeline(req.id).catch(() => {});
       renderList();
+      flightDeck?.updateDraftStatus();
     }
 
     function replaceRequest(req) {
@@ -8055,7 +8093,8 @@ END OF MESSAGE</pre>
       renderCrewFilterOptions();
       renderOpsTotals();
       renderCalendar();
-      selectRequest(req);
+      if (!selected || selected.id === req.id) selectRequest(req);
+      else renderList();
     }
 
     async function updateSelected(payload) {
@@ -8095,23 +8134,39 @@ END OF MESSAGE</pre>
           aircraftStatus = data.aircraftStatus;
           renderAircraftStatus();
         }
-        selected = null;
-        renderActiveFlightStrip();
+        let preferredId = selected?.id;
+        if (!preferredId) { try { preferredId = localStorage.getItem(ACTIVE_FLIGHT_STORAGE_KEY); } catch (_) {} }
         renderOpsTotals();
         renderList();
         renderCalendar();
-        const firstOperationalRequest = sortQueue(requests)[0];
-        if (firstOperationalRequest) selectRequest(firstOperationalRequest);
+        const currentDraft = activePlanner()?.getState();
+        const protectOpenDraft = currentDraft?.dirty || currentDraft?.busy;
+        const preferredRequest = requests.find(req => req.id === preferredId) || (!protectOpenDraft ? sortQueue(requests)[0] : null);
+        if (preferredRequest) {
+          const changed = selected?.id !== preferredRequest.id;
+          selectRequest(preferredRequest);
+          if (changed && activeWorkspace === 'flight-plan') switchOpsWorkspace('flight-plan');
+        }
+        else if (selected && protectOpenDraft) {
+          mode.textContent = 'MODE: ACTIVE FLIGHT NOT IN SERVER LIST / OPEN DRAFT PRESERVED';
+          return;
+        } else {
+          selected = null;
+          try { localStorage.removeItem(ACTIVE_FLIGHT_STORAGE_KEY); } catch (_) {}
+          renderActiveFlightStrip();
+          updateSuiteContext();
+          renderList();
+          if (activeWorkspace === 'flight-plan') switchOpsWorkspace('flight-plan');
+        }
         mode.textContent = 'MODE: BOOKING OPS LIVE / AUTO SYNC 30S';
       } catch (error) {
         const snapshot = readOperationalSnapshot();
         if (!snapshot) throw error;
         requests = [snapshot];
-        selected = null;
         renderOpsTotals();
         renderCalendar();
         renderList();
-        selectRequest(snapshot);
+        if (!selected || selected.id === snapshot.id) selectRequest(snapshot);
         offlineSnapshotState.textContent = `OFFLINE SNAPSHOT / ${snapshot.id} / ${snapshot.cachedAt ? new Date(snapshot.cachedAt).toLocaleString('en-GB', { hour12:false }) : 'CACHED'}`;
         mode.textContent = 'MODE: OFFLINE / READ-ONLY OPERATIONAL SNAPSHOT';
       }
@@ -8132,6 +8187,8 @@ END OF MESSAGE</pre>
       renderOpsTotals();
       renderCalendar();
       const latest = requests.find(request => request.id === selectedId) || null;
+      // A slow refresh must not reselect a flight the pilot has already left.
+      if (selected?.id !== selectedId) { renderList(); return null; }
       if (latest) selectRequest(latest);
       return latest;
     }
@@ -8155,7 +8212,7 @@ END OF MESSAGE</pre>
       const row = event.target.closest('[data-id]');
       if (!row) return;
       const req = requests.find(item => item.id === row.getAttribute('data-id'));
-      if (req) selectRequest(req);
+      if (req) activateFlight(req);
     });
     manifestList.addEventListener('click', (event) => {
       const button = event.target.closest('[data-agreement-pdf]');
@@ -8166,12 +8223,17 @@ END OF MESSAGE</pre>
     opsCalendar.addEventListener('click', (event) => {
       const row = event.target.closest('[data-calendar-id]');
       const req = requests.find(item => item.id === row?.getAttribute('data-calendar-id'));
-      if (req) selectRequest(req);
+      if (req) activateFlight(req);
     });
 
     [filterQuery, filterStatus, filterDate, filterDateTo, filterPilot, filterPayment].forEach(input => input.addEventListener('input', renderList));
     filterStatus.addEventListener('change', renderList);
     filterSort.addEventListener('change', renderList);
+    el('clearQueueFiltersBtn').addEventListener('click', () => {
+      filterQuery.value = ''; filterDate.value = ''; filterDateTo.value = '';
+      filterStatus.value = 'ALL'; filterPilot.value = 'ALL'; filterPayment.value = 'ALL'; quickFilter = 'ALL';
+      renderList();
+    });
     document.querySelectorAll('[data-quick-filter]').forEach(button => {
       button.addEventListener('click', () => {
         quickFilter = button.dataset.quickFilter || 'ALL';
@@ -8599,8 +8661,7 @@ END OF MESSAGE</pre>
         return;
       }
       if (event.data?.type === 'nga-ofp-saved' && event.data.requestId === selected?.id) {
-        const refreshed = await refreshSelectedRequest();
-        if (refreshed) replaceRequest(refreshed);
+        await refreshSelectedRequest();
       }
     });
     suiteOpenOfpBtn.addEventListener('click', () => openOfpBtn.click());
@@ -8859,8 +8920,7 @@ END OF MESSAGE</pre>
       if (button.dataset.commandRequest) {
         const request = requests.find(item => item.id === button.dataset.commandRequest);
         if (request) {
-          selectRequest(request);
-          switchOpsWorkspace('flights');
+          activateFlight(request, 'flights');
         }
       }
       commandDialog.close();
@@ -8877,8 +8937,7 @@ END OF MESSAGE</pre>
       if (!item) return;
       if (item.requestId) {
         const request = requests.find(candidate => candidate.id === item.requestId);
-        if (request) selectRequest(request);
-        switchOpsWorkspace('flights');
+        if (request) activateFlight(request, 'flights');
       } else if (item.view) {
         switchOpsWorkspace(item.view);
       }
@@ -8948,9 +9007,11 @@ END OF MESSAGE</pre>
     window.addEventListener('message', event => {
       if (event.origin !== location.origin || event.source !== ofpOpsFrame.contentWindow) return;
       if (event.data?.type === 'nga-efb-theme') applyEfbTheme(event.data.theme);
+      if (event.data?.type === 'nga-ofp-edit-state') flightDeck?.updateDraftStatus();
     });
 
     appShell = window.createPilotAppShell({ navigate:switchOpsWorkspace, getFlight:() => selected, setTheme:applyEfbTheme, install:promptPilotAppInstall, canInstall:() => Boolean(deferredInstallPrompt) });
+    flightDeck = window.createPilotFlightDeck({ getFlights:() => sortQueue(requests), getSelected:() => selected, getPlanner:activePlanner, choose:req => activateFlight(req), create:openManualFlightComposer, today:todayIso, escapeHtml });
     setFlightDetailTab('overview');
     renderActiveFlightStrip();
     renderReleasePanel();

@@ -46,7 +46,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-04-1" />
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-06-1" />
 </head>
 <body>
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -540,6 +540,9 @@
     let request = null;
     let plan = null;
     let saved = false;
+    let editRevision = 0;
+    let savedRevision = 0;
+    let saveBusy = false;
     let releasePanel = null;
     let airportCatalog = [];
     let smartSchedule = null;
@@ -581,10 +584,12 @@
       const node = el('saveState');
       node.className = `save-state ${state || ''}`.trim();
       node.textContent = message;
+      if (embedded && window.parent !== window) window.parent.postMessage({ type:'nga-ofp-edit-state', requestId }, location.origin);
     }
 
     function markUnsaved(message = 'Unsaved changes / save the draft before opening the controlled PDF.') {
       saved = false;
+      editRevision += 1;
       setSaveState('unsaved', message);
     }
 
@@ -718,6 +723,7 @@
       el('pdfPreviewState').textContent = 'Saving the current draft and regenerating the OFP PDF...';
       try {
         await save();
+        if (!saved) throw new Error('Newer edits remain unsaved. Save them before generating the current PDF.');
         if (token !== previewLoadToken) return;
         const frame = el('pdfPreviewFrame');
         let settled = false;
@@ -750,6 +756,7 @@
       const popup = window.open('', '_blank');
       try {
         await save();
+        if (!saved) throw new Error('Newer edits remain unsaved. Save them before opening the current PDF.');
         if (popup) {
           popup.opener = null;
           popup.location.replace(ofpPdfUrl());
@@ -1939,11 +1946,14 @@
     }
 
     async function save() {
+      if (saveBusy || movementBusy) throw new Error('A flight-plan update is already in progress. Please wait.');
       readPlan();
       const current = calculations();
       if (plan.releaseAccepted && current.warnings.length) {
         throw new Error('Resolve the OFP readiness warnings before acknowledging pilot release.');
       }
+      const savingRevision = editRevision;
+      saveBusy = true;
       setSaveState('saving', 'Saving operational flight plan...');
       el('saveBtn').disabled = true;
       el('dockSaveBtn').disabled = true;
@@ -1958,19 +1968,26 @@
           throw new Error(data.error || 'Unable to save OFP');
         }
         request = data.request;
-        plan = request.operationalFlightPlan;
-        saved = true;
+        savedRevision = savingRevision;
+        saved = editRevision === savingRevision;
         setReleasePanel(data.releasePanel || request?.releasePanel);
-        await populate(false);
-        setSaveState('saved', `OFP saved at ${new Date().toLocaleTimeString('en-GB', { hour12:false })}.`);
+        if (saved) {
+          plan = request.operationalFlightPlan;
+          await populate(false);
+          setSaveState('saved', `OFP saved at ${new Date().toLocaleTimeString('en-GB', { hour12:false })}.`);
+        } else {
+          setSaveState('unsaved', 'Earlier changes saved. Newer edits are still unsaved; save again before continuing.');
+        }
         if (embedded && window.parent !== window) window.parent.postMessage({ type:'nga-ofp-saved', requestId }, location.origin);
         return true;
       } catch (error) {
         setSaveState('failed', error.message || 'Unable to save OFP.');
         throw error;
       } finally {
+        saveBusy = false;
         el('saveBtn').disabled = false;
         el('dockSaveBtn').disabled = false;
+        if (embedded && window.parent !== window) window.parent.postMessage({ type:'nga-ofp-edit-state', requestId }, location.origin);
       }
     }
 
@@ -2294,9 +2311,13 @@
       }
     });
     window.addEventListener('beforeunload', event => {
-      if (saved) return;
+      if (editRevision === savedRevision && !saveBusy) return;
       event.preventDefault();
       event.returnValue = '';
+    });
+    window.ngaOFP = Object.freeze({
+      getState:() => ({ requestId, dirty:editRevision !== savedRevision, busy:saveBusy || movementBusy }),
+      save
     });
     syncTaskRailOrientation();
     verticalTaskRailMedia.addEventListener('change', syncTaskRailOrientation);

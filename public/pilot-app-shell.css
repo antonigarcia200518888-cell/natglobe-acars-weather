@@ -97,3 +97,52 @@ html body.pilot-ops-v2 .app-preferences-sheet .shell-dialog-head { position:stic
   html body.pilot-ops-v2 .active-flight-strip .flight-strip-item { padding:5px 8px; }
 }
 @media(prefers-reduced-motion:reduce) { html body.pilot-ops-v2 .workspace-enter { animation:none; } }
+
+/* A flight-first app: persistent selector, readable queue and touch-sized sheets. */
+html body.pilot-ops-v2 .efb-masthead { --shell-header:76px; }
+html body.pilot-ops-v2 { --shell-header:76px; }
+.flight-switch-button { display:flex; align-items:center; gap:8px; max-width:100%; min-height:44px; padding:0; border:0; background:transparent; color:#bfd4e2; text-align:left; cursor:pointer; }
+.flight-switch-button #appWorkspaceSubtitle { max-width:40vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:11px/1.3 "Courier New",monospace; }
+.flight-switch-button:hover { color:#fff; }
+.app-draft-badge { flex:none; border:1px solid #705b34; border-radius:5px; padding:5px 7px; color:#f3cc83; background:#352d20; font:11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+html body.pilot-ops-v2 .flight-picker-sheet { width:min(640px,calc(100vw - 24px)); padding:0; }
+.flight-picker-sheet .shell-dialog-head p { margin:5px 0 0; color:var(--app-muted); font-size:12px; }
+.flight-picker-toolbar { padding:16px 20px 10px; display:grid; gap:12px; border-bottom:1px solid var(--app-line); }
+html body.pilot-ops-v2 :is(#flightPickerSearch,#filterQuery) { width:100%; min-width:0; min-height:44px; border:1px solid var(--app-line); border-radius:8px; color:var(--app-ink); background:var(--app-card-muted); padding:10px 12px; font:14px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+html body.pilot-ops-v2 :is(#flightPickerSearch,#filterQuery)::placeholder { color:var(--app-muted); opacity:1; }
+.queue-primary-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px; padding:3px; border:1px solid var(--app-line); border-radius:8px; background:var(--app-card-muted); }
+html body.pilot-ops-v2 .queue-primary-filters button { min-height:44px; min-width:0; padding:7px 4px; border:0; border-radius:5px; color:var(--app-muted); background:transparent; font:600 12px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; cursor:pointer; }
+html body.pilot-ops-v2 .queue-primary-filters button[aria-pressed="true"] { background:var(--app-card-solid); color:var(--app-ink); box-shadow:0 1px 4px #0002; }
+html body.pilot-ops-v2 .flight-picker-results { max-height:42dvh; overflow:auto; overscroll-behavior:contain; padding:0 20px; scrollbar-width:thin; }
+html body.pilot-ops-v2 .flight-picker-row { display:grid; gap:8px; width:100%; padding:18px 10px; border:0; border-bottom:1px solid var(--app-line); color:var(--app-ink); background:transparent; text-align:left; cursor:pointer; }
+.flight-picker-route { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.flight-picker-route strong { font:700 21px/1.25 "Courier New",monospace; }
+.flight-picker-route strong span { color:var(--app-muted); font-weight:400; }
+.flight-picker-route em { font:600 10px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--app-muted); letter-spacing:.05em; }
+.flight-picker-schedule { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font:12px/1.4 "Courier New",monospace; }
+.flight-picker-row small { color:var(--app-muted); font:11px/1.3 "Courier New",monospace; }
+html body.pilot-ops-v2 .flight-picker-row[aria-current="true"] { border-left:3px solid #51b78b; background:#39a47814; padding-left:7px; }
+.flight-picker-row[aria-current="true"] em { color:var(--efb-blue-strong); }
+.flight-picker-row:hover { filter:brightness(1.1); }
+.flight-picker-footer { padding:0 20px 20px; }
+#flightPickerCount { font-size:12px; color:var(--app-muted); }
+.flight-picker-empty { padding:26px 12px; text-align:center; color:var(--app-ink); }
+.flight-picker-empty strong { font:600 15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.flight-picker-empty p { color:var(--app-muted); font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; margin:8px 0; }
+html body.pilot-ops-v2 #bookingsWorkspace .queue-search-bar { margin-bottom:10px; }
+html body.pilot-ops-v2 #bookingsWorkspace .queue-primary-filters { margin-bottom:10px; }
+html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer summary { min-height:44px; }
+.queue-result-bar { display:flex; align-items:center; justify-content:space-between; min-height:44px; gap:8px; color:var(--app-muted); font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.queue-result-bar button { border:0; background:transparent; color:var(--efb-blue-strong); min-height:44px; font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; cursor:pointer; }
+.queue-selection-hint { padding:10px; margin:0 0 10px; border-left:2px solid var(--efb-blue-strong); color:var(--app-muted); background:var(--app-card-muted); font:12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+html body.pilot-ops-v2 #bookingsWorkspace button.request { display:block; width:100%; min-width:0; text-align:left; color:var(--app-ink); font-family:inherit; cursor:pointer; }
+@media(max-width:950px) { .app-draft-badge { display:none; } }
+@media(max-width:740px) {
+  html body.pilot-ops-v2 .efb-masthead { padding-block:4px; }
+  html body.pilot-ops-v2 :is(.flight-picker-sheet,#flightChangeDialog) { margin:0 auto; inset:auto 0 0; width:100%; max-width:100%; border-radius:16px 16px 0 0; padding-bottom:env(safe-area-inset-bottom,0px); }
+  .flight-switch-button #appWorkspaceSubtitle { max-width:34vw; font-size:10px; }
+  .flight-picker-toolbar { padding:12px; }
+  html body.pilot-ops-v2 .flight-picker-results { padding:0 12px; max-height:40dvh; }
+  .flight-picker-route strong { font-size:18px; }
+  .flight-picker-footer { padding:0 12px 12px; }
+}
