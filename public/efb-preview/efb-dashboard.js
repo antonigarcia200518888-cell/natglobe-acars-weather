@@ -22,8 +22,18 @@
     return { departure, destination, speed, altitude, rules, distance, minutes:distance / speed * 60 };
   }
 
+  // Keep endpoints clear of the floating sheet, toolbar, dock and zoom controls.
+  function routePadding({ width, height, layout, sheetWidth = 0, sheetHeight = 0 }) {
+    const compact = width <= 680;
+    const split = layout === 'split';
+    const top = Math.min(compact ? 100 : 112, height * .25);
+    const bottom = Math.min(144 + (compact && split ? sheetHeight : 0), Math.max(0, height - top - 100));
+    const left = !compact && split ? sheetWidth + 54 : 54;
+    return { paddingTopLeft:[Math.min(left, width * .55), top], paddingBottomRight:[76, bottom] };
+  }
+
   // Pure model is exposed for lightweight regression tests and later adaptation.
-  window.efbPreviewModel = Object.freeze({ calculatePlan, airports });
+  window.efbPreviewModel = Object.freeze({ calculatePlan, routePadding, airports });
   const element = id => document.getElementById(id);
   const all = selector => [...document.querySelectorAll(selector)];
   const preferenceKey = 'nga-efb-design-preview-v1';
@@ -31,6 +41,7 @@
   try { preferences = JSON.parse(localStorage.getItem(preferenceKey) || '{}') || {}; } catch (_) { /* Storage is optional. */ }
   let theme = preferences.theme === 'day' ? 'day' : 'night';
   let layout = preferences.layout === 'map' ? 'map' : 'split';
+  let material = preferences.material === 'solid' ? 'solid' : 'glass';
   let draftRules = 'VFR';
   let plan = calculatePlan({ departure:'EFHV', destination:'EFTP', speed:110, altitude:4500, rules:'VFR' });
   let map, basemap, routeLine, routeHalo, airportMarkers = [];
@@ -38,15 +49,21 @@
   let mapPanel = 'map';
   let routeNeedsFit = false;
   let clockTimer;
-  const titles = { maps:'Map & flight overview', plates:'Plates & airport diagrams', documents:'Document library', 'flight-plan':'Flight planning', settings:'Profile & settings' };
+  const titles = { maps:'Maps', plates:'Plates', documents:'Documents', 'flight-plan':'Flight plan', settings:'Settings' };
 
   function rememberPreferences() {
-    try { localStorage.setItem(preferenceKey, JSON.stringify({theme,layout})); } catch (_) { /* Private mode still supports all controls. */ }
+    try { localStorage.setItem(preferenceKey, JSON.stringify({theme,layout,material})); } catch (_) { /* Private mode still supports all controls. */ }
   }
   function pressed(selector, attribute, value) {
     all(selector).forEach(button => button.setAttribute('aria-pressed', String(button.dataset[attribute] === value)));
   }
   function routeColor() { return theme === 'night' ? '#79D7E4' : '#0C6170'; }
+  function applyMaterial(value) {
+    material = value === 'solid' ? 'solid' : 'glass';
+    document.documentElement.dataset.material = material;
+    pressed('[data-material-choice]', 'materialChoice', material);
+    rememberPreferences();
+  }
   function applyTheme(value) {
     theme = value === 'day' ? 'day' : 'night';
     document.documentElement.dataset.theme = theme;
@@ -60,14 +77,15 @@
     layout = value === 'map' ? 'map' : 'split';
     element('panel-maps').dataset.layout = layout;
     element('expandMap').setAttribute('aria-pressed', String(layout === 'map'));
-    element('expandMap').setAttribute('aria-label', layout === 'map' ? 'Restore split screen' : 'Expand map workspace');
+    element('expandMap').setAttribute('aria-label', layout === 'map' ? 'Show flight panel' : 'Expand map workspace');
     pressed('[data-layout-choice]', 'layoutChoice', layout);
     rememberPreferences();
-    requestAnimationFrame(() => map?.invalidateSize({pan:false}));
+    requestAnimationFrame(() => { map?.invalidateSize({pan:false}); fitRoute(); });
   }
   function showView(value, updateHistory = true) {
     const view = Object.hasOwn(titles, value) ? value : 'maps';
     activeView = view;
+    document.documentElement.dataset.view = view;
     all('.view').forEach(panel => { panel.hidden = panel.id !== `panel-${view}`; });
     all('[data-view]').forEach(button => {
       const selected = button.dataset.view === view;
@@ -84,6 +102,7 @@
   }
   function setMapPanel(value) {
     mapPanel = value === 'checklist' ? 'checklist' : 'map';
+    element('panel-maps').dataset.mapPanel = mapPanel;
     element('mapPanel').hidden = mapPanel !== 'map';
     element('checklistPanel').hidden = mapPanel !== 'checklist';
     element('fitRoute').disabled = mapPanel !== 'map' || !map;
@@ -107,8 +126,10 @@
     if (!map) return;
     if (activeView !== 'maps' || mapPanel !== 'map') { routeNeedsFit = true; return; }
     routeNeedsFit = false;
-    // Leave room for the top map readout and bottom attribution / controls.
-    map.fitBounds(routeCoordinates(), {paddingTopLeft:[60,120],paddingBottomRight:[60,70],maxZoom:10,animate:false});
+    const canvas = element('flightMap').getBoundingClientRect();
+    const sheet = document.querySelector('.flight-pane').getBoundingClientRect();
+    const padding = routePadding({width:canvas.width,height:canvas.height,layout,sheetWidth:sheet.width,sheetHeight:sheet.height});
+    map.fitBounds(routeCoordinates(), {...padding,maxZoom:10,animate:false});
   }
   function drawRoute() {
     routeLine?.remove();
@@ -152,7 +173,9 @@
     let resizeFrame;
     new ResizeObserver(() => {
       cancelAnimationFrame(resizeFrame);
-      resizeFrame = requestAnimationFrame(() => { if (activeView === 'maps' && mapPanel === 'map') map.invalidateSize({pan:false}); });
+      resizeFrame = requestAnimationFrame(() => {
+        if (activeView === 'maps' && mapPanel === 'map') { map.invalidateSize({pan:false}); fitRoute(); }
+      });
     }).observe(element('flightMap'));
   }
   function updateClock() {
@@ -184,6 +207,7 @@
     element('workspaceTitle').focus({preventScroll:true});
   }));
   all('[data-theme-choice]').forEach(button => button.addEventListener('click', () => applyTheme(button.dataset.themeChoice)));
+  all('[data-material-choice]').forEach(button => button.addEventListener('click', () => applyMaterial(button.dataset.materialChoice)));
   all('[data-layout-choice]').forEach(button => button.addEventListener('click', () => applyLayout(button.dataset.layoutChoice)));
   all('[data-map-panel]').forEach(button => button.addEventListener('click', () => setMapPanel(button.dataset.mapPanel)));
   all('[data-flight-rules]').forEach(button => button.addEventListener('click', () => {
@@ -240,6 +264,7 @@
     }).catch(() => { /* Keep the explicit N/A / Not reported state. */ });
   }
   applyTheme(theme);
+  applyMaterial(material);
   applyLayout(layout);
   renderPlan();
   updateConnection();

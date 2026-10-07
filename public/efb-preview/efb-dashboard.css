@@ -19,13 +19,18 @@
   --caution-bg: #3A2D18;
   --normal: #8DDFB2;
   --normal-bg: #183A2C;
-  --highlight: rgba(255,255,255,.035);
+  --highlight: rgba(255,255,255,.07);
+  --glass-fill: rgba(25,32,38,.86);
+  --glass-rim: rgba(190,215,237,.24);
+  --glass-sheen: rgba(255,255,255,.09);
+  --floating-shadow: 0 12px 36px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.08);
   --map-filter: grayscale(.85) invert(1) hue-rotate(180deg) brightness(.72) contrast(1.15);
-  --font-ui: Arial, "Helvetica Neue", sans-serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   --font-data: "Courier New", Courier, monospace;
   --tap: 48px;
-  --radius: 6px;
-  --side-width: clamp(300px, 30vw, 380px);
+  --radius: 12px;
+  --side-width: 310px;
+  --dock-clearance: calc(120px + env(safe-area-inset-bottom));
 }
 
 :root[data-theme="day"] {
@@ -49,13 +54,17 @@
   --normal: #176B40;
   --normal-bg: #E2F4E9;
   --highlight: rgba(255,255,255,.8);
+  --glass-fill: rgba(245,247,250,.9);
+  --glass-rim: rgba(255,255,255,.9);
+  --glass-sheen: rgba(255,255,255,.65);
+  --floating-shadow: 0 10px 32px rgba(26,45,66,.16), inset 0 1px 0 rgba(255,255,255,.9);
   --map-filter: grayscale(.72) saturate(.5) contrast(.94);
 }
 
-/* 02 — Base. No remote fonts, heavy shadows or blurred overlays. */
+/* 02 — Base. Native fonts and solid data surfaces; glass is opt-in chrome. */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); }
-body { font: 17px/1.5 var(--font-ui); letter-spacing: .015em; -webkit-text-size-adjust: 100%; }
+body { font: 17px/1.5 var(--font-ui); letter-spacing: .005em; -webkit-text-size-adjust: 100%; }
 [hidden] { display: none !important; }
 button, input, select { font: inherit; }
 button, a, input, select { -webkit-tap-highlight-color: transparent; }
@@ -82,11 +91,21 @@ small { font-size: 13px; }
 .skip-link:focus { top: 12px; }
 .noscript-note { position: fixed; inset: auto 0 0; z-index: 9999; padding: 16px; background: var(--warning-bg); color: var(--warning); }
 
+/* No filter support means a solid surface, never unblurred transparent text. */
+.glass-surface { background: var(--surface); border: 1px solid var(--glass-rim); box-shadow: var(--floating-shadow); }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root:not([data-material="solid"]) .glass-surface {
+    background: linear-gradient(145deg, var(--glass-sheen), transparent 55%), var(--glass-fill);
+    -webkit-backdrop-filter: blur(22px) saturate(1.25);
+    backdrop-filter: blur(22px) saturate(1.25);
+  }
+}
+
 /* 03 — The app frame: only pane contents scroll; status and tabs remain fixed. */
-.efb-app { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100vh; height: 100dvh; overflow: hidden; }
-.status-bar { display: grid; grid-template-columns: auto 1fr 1fr auto 1fr auto; align-items: center; gap: clamp(12px, 2.2vw, 32px); padding: max(12px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 12px max(20px, env(safe-area-inset-left)); min-height: 88px; border-bottom: 1px solid var(--border); background: linear-gradient(var(--highlight), transparent), var(--bg); }
+.efb-app { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100vh; height: 100dvh; overflow: hidden; }
+.status-bar { display: grid; grid-template-columns: auto 1fr 1fr auto 1fr auto; align-items: center; gap: clamp(12px, 2.2vw, 32px); padding: max(10px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 10px max(20px, env(safe-area-inset-left)); min-height: 78px; border-bottom: 1px solid var(--border); background: linear-gradient(var(--highlight), transparent), var(--bg); }
 .brand { display: flex; align-items: center; gap: 10px; padding-right: 22px; border-right: 1px solid var(--border); color: var(--teal); }
-.brand > span { font-size: 24px; font-weight: 700; letter-spacing: .04em; line-height: 1.2; }
+.brand > span { font-size: 21px; font-weight: 700; letter-spacing: .04em; line-height: 1.2; }
 .brand small { display: block; margin-top: 4px; font-size: 9px; color: var(--muted); letter-spacing: .17em; }
 .brand .icon { width: 30px; height: 30px; }
 .status-label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
@@ -97,32 +116,42 @@ small { font-size: 13px; }
 [data-state="online"] .status-dot { background: var(--normal); }
 [data-state="offline"] .status-dot { background: var(--caution); }
 .zulu-clock { text-align: center; padding-inline: 20px; }
-.zulu-clock time { display: block; font-size: 36px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: .045em; white-space: nowrap; }
+.zulu-clock time { display: block; font-size: 32px; font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: .025em; white-space: nowrap; }
 .zulu-clock time span { color: var(--teal); font-size: 20px; margin-left: 5px; }
 .profile-button { display: flex; align-items: center; gap: 12px; border-color: transparent; background: transparent; padding: 4px 0 4px 10px; }
 .profile-avatar { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 50%; background: var(--surface-raised); color: var(--text); font-size: 11px; font-weight: 700; letter-spacing: .05em; }
 .main-content { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; min-width: 0; outline: none; }
-.workspace-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 22px; border-bottom: 1px solid var(--border); }
+.workspace-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 22px; min-height: 52px; border-bottom: 1px solid var(--border); background: var(--bg); }
+.workspace-title { display: flex; align-items: center; gap: 12px; }
+.workspace-title h1 { font-size: 21px; }
+.preview-label { font-size: 11px; color: var(--muted); border-left: 1px solid var(--border); padding-left: 12px; }
 .preview-badge { max-width: 250px; color: var(--caution); font-size: 10px; font-weight: 700; text-align: right; letter-spacing: .09em; }
 .view { min-width: 0; min-height: 0; }
-.map-workspace { display: grid; grid-template-columns: var(--side-width) minmax(0, 1fr); overflow: hidden; }
-.flight-pane { padding: 20px; border-right: 1px solid var(--border); overflow-y: auto; min-width: 0; overscroll-behavior: contain; scrollbar-width: thin; }
+.map-workspace { position: relative; overflow: hidden; isolation: isolate; }
+.flight-pane { position: absolute; z-index: 4; top: 18px; left: max(18px, env(safe-area-inset-left)); width: var(--side-width); max-height: calc(100% - var(--dock-clearance) - 36px); padding: 16px; border-radius: 22px; overflow-y: auto; min-width: 0; overscroll-behavior: contain; scrollbar-width: thin; }
 .pane-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
 .pane-heading h2 { font-size: 20px; }
-.map-workspace[data-layout="map"] { grid-template-columns: minmax(0, 1fr); }
+.flight-pane .pane-heading { margin: 0 2px 14px; }
+.flight-pane .pane-heading h2 { font-size: 17px; }
 .map-workspace[data-layout="map"] > .flight-pane { display: none; }
 
 /* 04 — Data modules. Flat surfaces and quiet borders keep figures in charge. */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
 .compact-card { padding: 0 16px; }
-.route-airports { display: grid; grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr); gap: 8px; align-items: center; }
+.flight-metrics { margin-top: 12px; }
+.flight-metrics .data-list > div { padding: 10px 0; }
+.flight-metrics dt { font-size: 13px; }
+.route-airports { display: grid; grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr); gap: 8px; align-items: start; }
 .route-airports > div:last-child { text-align: right; }
 .route-airports span { display: block; color: var(--muted); font-size: 11px; letter-spacing: .07em; }
-.route-airports strong { font-size: 28px; letter-spacing: .01em; }
+.route-airports strong { font: 700 27px/1.35 var(--font-data); letter-spacing: -.03em; }
 .route-airports small { display: block; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-.route-airports .icon { width: 20px; color: var(--teal); transform: rotate(90deg); }
-.route-string { margin-top: 18px; border-block: 1px solid var(--border); padding-block: 12px; color: var(--teal); font: 700 14px/1.5 var(--font-data); letter-spacing: .025em; }
-.data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.route-airports .icon { width: 20px; color: var(--teal); transform: rotate(90deg); align-self: center; }
+.route-string { margin-top: 14px; border-block: 1px solid var(--border); padding-block: 10px; color: var(--teal); font: 700 14px/1.5 var(--font-data); letter-spacing: .025em; }
+.data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+.route-card dt { font-size: 11px; }
+.route-card .button { font-size: 14px; justify-content: space-between; }
+.route-card .button .icon { width: 18px; height: 18px; }
 dt { color: var(--muted); font-size: 14px; }
 dd { margin: 0; font-variant-numeric: tabular-nums; }
 .data-grid dd { font-size: 26px; font-weight: 700; }
@@ -133,46 +162,52 @@ dd { margin: 0; font-variant-numeric: tabular-nums; }
 .data-list > div:last-child { border-bottom: 0; }
 .data-list dd { text-align: right; font-size: 15px; font-weight: 600; }
 .caution-text { color: var(--caution); }
-.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid currentColor; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: .05em; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid currentColor; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: .05em; white-space: nowrap; }
 .neutral { color: var(--muted); border-color: var(--border); }
 .warning { color: var(--warning); background: var(--warning-bg); }
 .caution { color: var(--caution); background: var(--caution-bg); }
 .normal { color: var(--normal); background: var(--normal-bg); }
-.advisory { display: flex; align-items: start; gap: 10px; margin: 20px 0 10px; color: var(--muted); font-size: 12px; }
+.advisory { display: flex; align-items: start; gap: 10px; margin: 16px 2px 0; color: var(--muted); font-size: 11px; }
 .advisory strong { display: block; color: var(--caution); margin-bottom: 4px; }
 .advisory-mark { display: grid; place-items: center; flex: none; width: 20px; height: 20px; border: 1px solid var(--caution); color: var(--caution); border-radius: 50%; font-weight: 700; }
 .text-link { display: inline-flex; align-items: center; gap: 16px; min-height: var(--tap); font-size: 13px; font-weight: 700; text-decoration: none; }
 
 /* 05 — Segmented controls: a solid pressed state, not just a color change. */
-.segmented { display: inline-flex; gap: 3px; padding: 3px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface-inset); }
+.segmented { display: inline-flex; gap: 3px; padding: 4px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface-inset); }
 .segmented button { border: 1px solid transparent; background: transparent; color: var(--muted); padding: 8px 18px; font-size: 14px; }
 .segmented [aria-pressed="true"] { border-color: var(--selected-border); background: var(--selected); color: var(--teal); }
 .icon-button { display: inline-grid; place-items: center; padding: 10px; }
 .icon-button[aria-pressed="true"] { background: var(--selected); border-color: var(--selected-border); color: var(--teal); }
 
 /* 06 — Map chrome. The geographic basemap is NOT an aviation chart. */
-.map-pane { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; min-width: 0; background: var(--surface-inset); }
-.map-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
-.map-toolbar-actions { display: flex; gap: 8px; }
-.map-content { position: relative; min-height: 0; isolation: isolate; overflow: hidden; }
+.map-pane { position: absolute; inset: 0; min-height: 0; min-width: 0; background: var(--surface-inset); }
+.map-toolbar { position: absolute; z-index: 5; top: 18px; left: calc(var(--side-width) + 36px); right: max(18px, env(safe-area-inset-right)); display: flex; justify-content: space-between; align-items: center; gap: 12px; pointer-events: none; }
+.map-toolbar > * { pointer-events: auto; }
+.map-toolbar-actions { display: flex; gap: 3px; border-radius: 15px; padding: 4px; }
+.map-toolbar-actions button { background: transparent; border-color: transparent; }
+.map-toolbar-actions button[aria-pressed="true"] { background: var(--selected); border-color: var(--selected-border); }
+.map-workspace[data-layout="map"] .map-toolbar { left: max(18px, env(safe-area-inset-left)); }
+.map-content { position: absolute; inset: 0; min-height: 0; isolation: isolate; overflow: hidden; }
 .flight-map { position: absolute; inset: 0; z-index: 0; background: var(--surface-inset); }
 .flight-map .leaflet-tile-pane { filter: var(--map-filter); }
-.map-readout { position: absolute; z-index: 2; top: 20px; left: 20px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); pointer-events: none; }
+.map-readout { position: absolute; z-index: 2; top: 94px; left: 18px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); pointer-events: none; }
+.map-workspace[data-layout="split"] .map-readout { display: none; }
 .map-readout > span { display: block; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .1em; }
 .map-readout strong { display: block; font: 700 20px/1.6 var(--font-data); }
 .map-readout small { color: var(--muted); font-size: 11px; }
-.north-indicator { position: absolute; z-index: 2; top: 20px; right: 22px; display: flex; align-items: center; flex-direction: column; gap: 5px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 42px; padding: 6px; font-size: 12px; font-weight: 700; pointer-events: none; }
+.north-indicator { position: absolute; z-index: 2; top: 94px; right: max(22px, env(safe-area-inset-right)); display: flex; align-items: center; flex-direction: column; gap: 5px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 21px; width: 42px; padding: 10px 6px; font-size: 12px; font-weight: 700; pointer-events: none; }
 .north-indicator i { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 17px solid var(--teal); }
-.map-source { position: absolute; z-index: 2; left: 16px; right: 80px; bottom: 28px; display: flex; align-items: center; gap: 12px; width: fit-content; max-width: calc(100% - 96px); padding: 6px 10px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); color: var(--muted); font-size: 11px; }
+.map-source { position: absolute; z-index: 2; left: max(18px, env(safe-area-inset-left)); bottom: 24px; display: flex; align-items: center; gap: 12px; width: fit-content; max-width: 220px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--muted); font-size: 10px; }
 .map-source[data-state="error"] { color: var(--caution); }
 .map-source button { font-size: 12px; padding: 6px 10px; }
-.flight-map .leaflet-control-zoom { border: 1px solid var(--border); border-radius: var(--radius); box-shadow: none; margin: 0 16px 54px 0; overflow: hidden; }
+.flight-map .leaflet-control-zoom { border: 1px solid var(--glass-rim); border-radius: 15px; box-shadow: var(--floating-shadow); margin: 0 max(18px, env(safe-area-inset-right)) var(--dock-clearance) 0; overflow: hidden; }
 .flight-map .leaflet-control-zoom a { display: grid; place-items: center; width: var(--tap); height: var(--tap); line-height: 1; background: var(--surface); color: var(--text); border-color: var(--border); font: 28px var(--font-ui); }
 .flight-map .leaflet-control-attribution { color: var(--muted); background: var(--surface); font: 10px/1.5 var(--font-ui); padding: 3px 7px; }
 .flight-map .leaflet-control-attribution a { color: var(--teal); }
 .flight-map .leaflet-tooltip { background: var(--surface); border: 1px solid var(--selected-border); color: var(--text); border-radius: 3px; padding: 5px 9px; font: 700 14px var(--font-data); box-shadow: none; }
 .flight-map .leaflet-tooltip::before { display: none; }
-.checklist-panel { padding: 24px; overflow-y: auto; background: var(--bg); }
+.checklist-panel { position: absolute; z-index: 3; inset: 92px 18px var(--dock-clearance) calc(var(--side-width) + 36px); padding: 24px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
+.map-workspace[data-layout="map"] .checklist-panel { left: 18px; }
 .checklist-panel > p { font-size: 14px; margin-bottom: 22px; }
 .check-row { display: flex; align-items: start; gap: 16px; padding: 20px 0; min-height: var(--tap); border-top: 1px solid var(--border); cursor: pointer; }
 .check-row input { width: 28px; height: 28px; flex: none; accent-color: var(--normal); margin: 3px 0; }
@@ -182,9 +217,9 @@ dd { margin: 0; font-variant-numeric: tabular-nums; }
 
 /* 07 — Secondary workspaces use the same master/detail construction. */
 .reading-workspace { display: grid; grid-template-columns: minmax(300px, 34%) minmax(0, 1fr); overflow: hidden; }
-.library-pane { padding: 28px; border-right: 1px solid var(--border); overflow-y: auto; }
+.library-pane { padding: 28px; padding-bottom: var(--dock-clearance); border-right: 1px solid var(--border); overflow-y: auto; scroll-padding-bottom: var(--dock-clearance); }
 .library-pane > p { color: var(--muted); font-size: 14px; margin: 16px 0 24px; }
-.document-pane { padding: clamp(24px, 4vw, 60px); overflow-y: auto; background: var(--surface); }
+.document-pane { padding: clamp(24px, 4vw, 60px); padding-bottom: var(--dock-clearance); overflow-y: auto; background: var(--surface); scroll-padding-bottom: var(--dock-clearance); }
 .document-pane > h2 { font-size: clamp(26px, 3vw, 36px); margin-bottom: 22px; }
 .document-pane > p { color: var(--muted); max-width: 65ch; margin: 22px 0; }
 .document-pane > h3 { margin-top: 30px; }
@@ -219,28 +254,31 @@ legend { color: var(--muted); font-size: 13px; margin-bottom: 9px; padding: 0; }
 .profile-summary small { display: block; color: var(--muted); margin-top: 4px; }
 .status-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
 
-/* 08 — Persistent bottom navigation; active state has position + text + color. */
-.bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; padding: 0 max(16px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); background: var(--bg); border-top: 1px solid var(--border); }
-.bottom-nav button { position: relative; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; min-height: 76px; padding: 13px 4px 6px; border: 0; border-radius: 0 0 var(--radius) var(--radius); background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; }
-.bottom-nav [aria-selected="true"] { background: var(--selected); color: var(--teal); font-weight: 700; }
-.bottom-nav [aria-selected="true"]::before { content: ""; position: absolute; inset: 0 18px auto; height: 3px; background: var(--teal); }
+/* 08 — Floating dock. Reserve its height inside every scrollable content pane. */
+.bottom-nav { position: absolute; z-index: 20; left: 50%; transform: translateX(-50%); bottom: calc(28px + env(safe-area-inset-bottom)); width: min(580px, calc(100% - 28px)); display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 4px; padding: 6px; border-radius: 25px; }
+.bottom-nav button { position: relative; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; min-height: 64px; padding: 8px 4px; border: 1px solid transparent; border-radius: 19px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 500; }
+.bottom-nav [aria-selected="true"] { background: var(--selected); border-color: var(--selected-border); color: var(--teal); font-weight: 650; }
+.bottom-nav button:hover { background: var(--surface-raised); }
+.bottom-nav [aria-selected="true"]:hover { background: var(--selected); }
 
-/* 09 — iPad portrait keeps the split. Phones stack rather than clip either pane. */
+/* 09 — iPad keeps the floating sheet; phones use a compact bottom flight panel. */
 @media (max-width: 1050px) {
   :root { --side-width: 290px; }
   .status-bar { grid-template-columns: 1fr 1fr auto 1fr auto; gap: 14px; padding-inline: 16px; }
   .brand { display: none; }
   .zulu-clock { padding-inline: 8px; }
   .zulu-clock time { font-size: 32px; }
-  .flight-pane { padding: 16px; }
+  .flight-pane { padding: 14px; }
   .card { padding: 14px; }
   .compact-card { padding: 0 14px; }
   .route-airports strong { font-size: 26px; }
   .data-list > div { gap: 10px; }
   .data-list dd { font-size: 15px; }
-  .library-pane { padding: 22px; }
-  .map-readout { top: 14px; left: 14px; padding: 10px 12px; }
+  .library-pane { padding: 22px 22px var(--dock-clearance); }
+  .map-readout { padding: 10px 12px; }
   .map-readout strong { font-size: 17px; }
+  .map-source { left: calc(var(--side-width) + 36px); bottom: var(--dock-clearance); max-width: 240px; }
+  .map-workspace[data-layout="map"] .map-source { left: 18px; }
 }
 @media (max-width: 680px) {
   .status-bar { grid-template-columns: 1fr auto 1fr; gap: 6px 10px; padding: max(10px, env(safe-area-inset-top)) 14px 10px; }
@@ -256,35 +294,55 @@ legend { color: var(--muted); font-size: 13px; margin-bottom: 9px; padding: 0; }
   .status-item .icon { width: 14px; height: 14px; }
   .zulu-clock time { font-size: 25px; }
   .zulu-clock .status-label { font-size: 8px; }
-  .workspace-bar { padding: 12px 16px; align-items: start; }
-  .workspace-bar .eyebrow { font-size: 8px; }
+  .workspace-bar { padding: 8px 14px; min-height: 46px; }
   .workspace-bar h1 { font-size: 18px; }
   .preview-badge { max-width: 105px; font-size: 8px; }
-  .map-workspace { grid-template-columns: minmax(0,1fr); grid-template-rows: auto minmax(440px, 65dvh); overflow-y: auto; }
-  .flight-pane { overflow: visible; border-right: 0; border-bottom: 1px solid var(--border); }
+  .flight-pane { top: auto; bottom: var(--dock-clearance); left: 10px; right: 10px; width: auto; max-height: 184px; padding: 8px; border-radius: 19px; }
   .flight-pane > .pane-heading, .flight-pane > .section-label, .flight-pane > .compact-card, .flight-pane > .advisory, .flight-pane > .text-link { display: none; }
-  .route-card { display: grid; grid-template-columns: 1fr auto; gap: 10px 18px; }
+  .route-card { display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; padding: 10px 12px; }
   .route-card .route-airports { grid-column: 1/-1; }
-  .route-card .route-string { grid-column: 1/-1; margin: 0; }
+  .route-card .route-string { display: none; }
+  .route-airports span { font-size: 9px; }
+  .route-airports strong { font-size: 23px; }
+  .route-airports small { font-size: 11px; }
   .route-card .data-grid { margin: 0; gap: 16px; }
   .route-card .data-grid dt { font-size: 10px; }
   .route-card .data-grid dd { font-size: 21px; }
-  .route-card button { width: auto; max-width: 120px; font-size: 12px; padding: 8px; }
-  .map-workspace[data-layout="map"] { grid-template-rows: minmax(0,1fr); overflow: hidden; }
-  .map-toolbar { padding: 8px 10px; gap: 8px; }
+  .route-card button { width: auto; max-width: 114px; font-size: 12px; padding: 8px; gap: 5px; }
+  .route-card button .icon { display: none; }
+  .map-toolbar, .map-workspace[data-layout="map"] .map-toolbar { top: 10px; left: 10px; right: 10px; gap: 8px; }
   .segmented button { padding-inline: 12px; font-size: 13px; }
-  .map-toolbar-actions { gap: 5px; }
-  .map-readout { top: 12px; left: 12px; padding: 8px 10px; }
+  .map-toolbar-actions { gap: 2px; }
+  .map-readout { top: 80px; left: 12px; padding: 8px 10px; max-width: calc(100% - 86px); }
   .map-readout strong { font-size: 15px; }
-  .north-indicator { right: 12px; top: 12px; }
-  .reading-workspace { grid-template-columns: minmax(0,1fr); overflow-y: auto; }
+  .north-indicator { right: 12px; top: 80px; flex-direction: row; justify-content: center; width: 48px; height: 44px; padding: 6px; }
+  .map-source, .map-workspace[data-layout="map"] .map-source { left: 10px; bottom: 2px; max-width: calc(100% - 20px); padding: 1px 6px; font-size: 9px; border: 0; }
+  .flight-map .leaflet-control-attribution { margin-bottom: 16px; font-size: 9px; }
+  .flight-map .leaflet-control-zoom { margin: 0 12px calc(var(--dock-clearance) + 188px) 0; }
+  .map-workspace[data-layout="map"] .leaflet-control-zoom { margin-bottom: var(--dock-clearance); }
+  .map-workspace[data-map-panel="checklist"] .flight-pane { display: none; }
+  .checklist-panel, .map-workspace[data-layout="map"] .checklist-panel { inset: 80px 10px var(--dock-clearance); padding: 18px; }
+  .checklist-panel .pane-heading { flex-wrap: wrap; }
+  .reading-workspace { grid-template-columns: minmax(0,1fr); overflow-y: auto; padding-bottom: var(--dock-clearance); scroll-padding-bottom: var(--dock-clearance); }
   .library-pane, .document-pane { overflow: visible; padding: 22px; }
   .library-pane { border-right: 0; border-bottom: 1px solid var(--border); }
   .summary-metrics { gap: 10px; }
   .document-pane .data-list > div { flex-direction: column; align-items: start; gap: 5px; }
   .document-pane .data-list dd { max-width: none; text-align: left; }
-  .bottom-nav { padding-inline: 4px; gap: 2px; }
-  .bottom-nav button { min-height: 68px; font-size: 10px; }
+  .bottom-nav { padding: 5px; gap: 2px; width: calc(100% - 20px); border-radius: 22px; }
+  .bottom-nav button { min-height: 60px; font-size: 10px; border-radius: 17px; }
   .bottom-nav .icon { width: 22px; height: 22px; }
+}
+@media (max-width: 360px) {
+  .route-card { column-gap: 8px; }
+  .route-card button { max-width: 92px; }
+  .route-card .data-grid { gap: 8px; }
+  .route-card .data-grid dt { font-size: 9px; }
+  .route-card .data-grid dd { display: flex; align-items: baseline; gap: 3px; font-size: 19px; white-space: nowrap; }
+  .route-card .data-grid small { font-size: 9px; }
+}
+/* Honor accessibility preferences even when the saved material is Glass. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root:not([data-material="solid"]) .glass-surface { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--border); box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }

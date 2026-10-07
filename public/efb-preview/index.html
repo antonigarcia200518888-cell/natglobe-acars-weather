@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en" data-theme="night">
+<html lang="en" data-theme="night" data-material="glass">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#12161A">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>NGA · EFB design preview</title>
-  <!-- Restore a saved day theme before first paint; storage may be unavailable. -->
-  <script>try { if (JSON.parse(localStorage.getItem('nga-efb-design-preview-v1') || '{}')?.theme === 'day') document.documentElement.dataset.theme = 'day'; } catch (_) {}</script>
+  <!-- Restore display preferences before first paint; storage may be unavailable. -->
+  <script>try { const p = JSON.parse(localStorage.getItem('nga-efb-design-preview-v1') || '{}') || {}; if (p.theme === 'day') document.documentElement.dataset.theme = 'day'; if (p.material === 'solid') document.documentElement.dataset.material = 'solid'; } catch (_) {}</script>
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="./efb-dashboard.css?v=2026-10-07-1">
+  <link rel="stylesheet" href="./efb-dashboard.css?v=2026-10-07-2">
   <script defer src="/vendor/leaflet/leaflet.js"></script>
-  <script defer src="./efb-dashboard.js?v=2026-10-07-1"></script>
+  <script defer src="./efb-dashboard.js?v=2026-10-07-2"></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to workspace</a>
@@ -42,34 +42,32 @@
 
     <main id="main-content" tabindex="-1" class="main-content">
       <div class="workspace-bar">
-        <div><span class="eyebrow">NGA / DESIGN STUDY 01</span><h1 id="workspaceTitle" tabindex="-1">Map &amp; flight overview</h1></div>
+        <div class="workspace-title"><h1 id="workspaceTitle" tabindex="-1">Maps</h1><span class="preview-label">Preview</span></div>
         <span class="preview-badge">SAMPLE DATA · NOT FOR NAVIGATION</span>
       </div>
 
-      <!-- Maps: independently scrollable briefing + bounded map canvas. -->
+      <!-- Map fills the workspace; floating chrome never changes the data surface. -->
       <section id="panel-maps" class="view map-workspace" role="tabpanel" aria-labelledby="tab-maps" data-layout="split">
-        <aside class="flight-pane" aria-label="Sample flight briefing">
-          <div class="pane-heading"><div><span class="eyebrow">FLIGHT BRIEFING</span><h2>Sample flight</h2></div><span class="badge neutral">DRAFT</span></div>
+        <aside class="flight-pane glass-surface" aria-label="Sample flight briefing">
+          <div class="pane-heading"><h2>Flight overview</h2><span class="badge neutral" data-rules>VFR</span></div>
           <article class="route-card card">
             <div class="route-airports"><div><span>DEPARTURE</span><strong data-departure>EFHV</strong><small data-departure-name>Hyvinkaa</small></div><svg class="icon" aria-hidden="true"><use href="#i-plane"/></svg><div><span>DESTINATION</span><strong data-destination>EFTP</strong><small data-destination-name>Tampere-Pirkkala</small></div></div>
             <div class="route-string" data-route>EFHV DCT EFTP</div>
             <dl class="data-grid"><div><dt>Direct distance</dt><dd><span data-distance>—</span> <small>NM</small></dd></div><div><dt>Still-air estimate</dt><dd><span data-eet>—</span> <small>MIN</small></dd></div></dl>
-            <button class="button full-width" type="button" data-view-link="flight-plan">Edit sample plan <span aria-hidden="true">↗</span></button>
+            <button class="button full-width" type="button" data-view-link="flight-plan">Edit sample plan <svg class="icon" aria-hidden="true"><use href="#i-route"/></svg></button>
           </article>
-          <div class="section-label"><h3>Planning overview</h3><span data-rules>VFR</span></div>
-          <article class="card compact-card"><dl class="data-list"><div><dt>Planned altitude</dt><dd><span data-altitude>4,500</span> <small>FT</small></dd></div><div><dt>Planning speed</dt><dd><span data-speed>110</span> <small>KT</small></dd></div><div><dt>Position source</dt><dd class="caution-text">Not connected</dd></div><div><dt>Weather / NOTAMs</dt><dd class="caution-text">Not loaded</dd></div></dl></article>
-          <div class="advisory"><span class="advisory-mark" aria-hidden="true">!</span><p><strong>Planning preview only</strong>No live position, airspace, terrain alerts, weather, or approved charts are connected.</p></div>
-          <a class="text-link" href="/booking-ops">Open current Pilot Ops <span aria-hidden="true">↗</span></a>
+          <article class="card compact-card flight-metrics"><dl class="data-list"><div><dt>Planned altitude</dt><dd><span data-altitude>4,500</span> <small>FT</small></dd></div><div><dt>Planning speed</dt><dd><span data-speed>110</span> <small>KT</small></dd></div></dl></article>
+          <div class="advisory"><span class="advisory-mark" aria-hidden="true">!</span><p><strong>Sample flight</strong>No live position, weather or aviation charts.</p></div>
         </aside>
 
         <section class="map-pane" aria-label="Map and checklist workspace">
           <div class="map-toolbar">
-            <div class="segmented" role="group" aria-label="Right pane content"><button type="button" data-map-panel="map" aria-pressed="true">Map</button><button type="button" data-map-panel="checklist" aria-pressed="false">Checklist</button></div>
-            <div class="map-toolbar-actions"><button id="fitRoute" class="icon-button" type="button" aria-label="Fit sample route"><svg class="icon" aria-hidden="true"><use href="#i-fit"/></svg></button><button id="expandMap" class="icon-button" type="button" aria-label="Expand map workspace" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-expand"/></svg></button></div>
+            <div class="segmented glass-surface" role="group" aria-label="Map workspace content"><button type="button" data-map-panel="map" aria-pressed="true">Map</button><button type="button" data-map-panel="checklist" aria-pressed="false">Checklist</button></div>
+            <div class="map-toolbar-actions glass-surface"><button id="fitRoute" class="icon-button" type="button" aria-label="Fit sample route"><svg class="icon" aria-hidden="true"><use href="#i-fit"/></svg></button><button id="expandMap" class="icon-button" type="button" aria-label="Expand map workspace" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-expand"/></svg></button></div>
           </div>
           <div id="mapPanel" class="map-content">
             <div id="flightMap" class="flight-map" aria-label="Interactive geographic overview; not an aviation chart"></div>
-            <div class="map-readout" aria-label="Map reference"><span>GEOGRAPHIC OVERVIEW</span><strong data-route>EFHV DCT EFTP</strong><small>Planned line · no ownship position</small></div>
+            <div class="map-readout" aria-label="Map reference"><span>PLANNED ROUTE</span><strong data-route>EFHV DCT EFTP</strong><small>Geographic reference · no live position</small></div>
             <div class="north-indicator" aria-label="North up"><span>N</span><i aria-hidden="true"></i></div>
             <div class="map-source"><span id="mapStatus" role="status">Loading geographic basemap…</span><button id="retryMap" type="button" hidden>Retry map</button></div>
           </div>
@@ -110,13 +108,13 @@
       </section>
 
       <section id="panel-settings" class="view reading-workspace" role="tabpanel" aria-labelledby="tab-settings" hidden>
-        <section class="library-pane"><span class="eyebrow">DISPLAY PREFERENCES</span><h2>Settings</h2><fieldset class="setting"><legend>Appearance</legend><div class="segmented" role="group" aria-label="Display theme"><button type="button" data-theme-choice="day" aria-pressed="false">Day</button><button type="button" data-theme-choice="night" aria-pressed="true">Night</button></div><p>Stored on this browser for this preview only.</p></fieldset><fieldset class="setting"><legend>Map workspace</legend><div class="segmented" role="group" aria-label="Map layout"><button type="button" data-layout-choice="split" aria-pressed="true">Split screen</button><button type="button" data-layout-choice="map" aria-pressed="false">Map only</button></div></fieldset><div class="profile-summary"><span class="profile-avatar">PIC</span><div><strong>Preview profile</strong><small>No authenticated crew session is used.</small></div></div></section>
-        <article class="document-pane"><span class="eyebrow">DATA INTEGRITY</span><h2>Visible state. No assumptions.</h2><dl class="data-list"><div><dt>Clock</dt><dd>Device UTC · not server-synchronized</dd></div><div><dt>Connectivity</dt><dd>Browser network hint only</dd></div><div><dt>GPS accuracy</dt><dd>No position source connected</dd></div><div><dt>Battery</dt><dd>Device API when supported; otherwise N/A</dd></div><div><dt>Basemap</dt><dd>OpenStreetMap · not an aviation chart</dd></div></dl><h3>Status language</h3><div class="status-legend"><span class="badge warning">Warning</span><span class="badge caution">Caution</span><span class="badge normal">Normal</span></div><p>Status is always written in text, never conveyed by color alone. These swatches are examples, not the aircraft’s current status.</p><p class="muted">System fonts, local icons, no chart prefetching, no backdrop blur, and no continuous visual animation.</p></article>
+        <section class="library-pane"><span class="eyebrow">DISPLAY PREFERENCES</span><h2>Settings</h2><fieldset class="setting"><legend>Appearance</legend><div class="segmented" role="group" aria-label="Display theme"><button type="button" data-theme-choice="day" aria-pressed="false">Day</button><button type="button" data-theme-choice="night" aria-pressed="true">Night</button></div><p>Stored on this browser for this preview only.</p></fieldset><fieldset class="setting"><legend>Surface style</legend><div class="segmented" role="group" aria-label="Surface style"><button type="button" data-material-choice="glass" aria-pressed="true">Glass</button><button type="button" data-material-choice="solid" aria-pressed="false">Solid</button></div><p>Solid removes transparency. System contrast and reduced-transparency preferences take priority.</p></fieldset><fieldset class="setting"><legend>Map workspace</legend><div class="segmented" role="group" aria-label="Map layout"><button type="button" data-layout-choice="split" aria-pressed="true">Flight panel</button><button type="button" data-layout-choice="map" aria-pressed="false">Map only</button></div></fieldset><div class="profile-summary"><span class="profile-avatar">PIC</span><div><strong>Preview profile</strong><small>No authenticated crew session is used.</small></div></div><a class="text-link" href="/booking-ops">Open current Pilot Ops <span aria-hidden="true">↗</span></a></section>
+        <article class="document-pane"><span class="eyebrow">DATA SOURCES</span><h2>Device &amp; data</h2><dl class="data-list"><div><dt>Clock</dt><dd>Device UTC · not server-synchronized</dd></div><div><dt>Connectivity</dt><dd>Browser network hint only</dd></div><div><dt>GPS accuracy</dt><dd>No position source connected</dd></div><div><dt>Battery</dt><dd>Device API when supported; otherwise N/A</dd></div><div><dt>Basemap</dt><dd>OpenStreetMap · not an aviation chart</dd></div></dl><h3>Status language</h3><div class="status-legend"><span class="badge warning">Warning</span><span class="badge caution">Caution</span><span class="badge normal">Normal</span></div><p>Status is always written in text, never conveyed by color alone. These swatches are examples, not the aircraft’s current status.</p><p class="muted">Glass is limited to floating controls and the flight-panel frame. Flight figures stay on solid surfaces. System fonts, local icons, no chart prefetching and no continuous visual animation.</p></article>
       </section>
     </main>
 
     <!-- Roving keyboard focus complements the 48px+ touch targets. -->
-    <nav class="bottom-nav" role="tablist" aria-label="EFB workspaces">
+    <nav class="bottom-nav glass-surface" role="tablist" aria-label="EFB workspaces">
       <button id="tab-maps" type="button" role="tab" aria-controls="panel-maps" aria-selected="true" tabindex="0" data-view="maps"><svg class="icon" aria-hidden="true"><use href="#i-map"/></svg><span>Maps</span></button>
       <button id="tab-plates" type="button" role="tab" aria-controls="panel-plates" aria-selected="false" tabindex="-1" data-view="plates"><svg class="icon" aria-hidden="true"><use href="#i-plate"/></svg><span>Plates</span></button>
       <button id="tab-documents" type="button" role="tab" aria-controls="panel-documents" aria-selected="false" tabindex="-1" data-view="documents"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span>Documents</span></button>

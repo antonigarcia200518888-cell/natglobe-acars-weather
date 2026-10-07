@@ -66,8 +66,37 @@ test('theme tokens meet requested palette, touch size and reduced-motion behavio
   assert.match(css,/height: 100dvh/);
   assert.match(css,/safe-area-inset-bottom/);
   assert.match(css,/prefers-reduced-motion: reduce/);
-  assert.doesNotMatch(css,/backdrop-filter/);
-  for (const match of css.matchAll(/box-shadow:\s*([^;]+);/g)) assert.equal(match[1].trim(),'none');
+  assert.match(css,/@supports \(\(backdrop-filter/);
+  assert.match(css,/:root:not\(\[data-material="solid"\]\) \.glass-surface/);
+  assert.match(css,/prefers-reduced-transparency: reduce/);
+  assert.match(css,/prefers-contrast: more/);
+  assert.match(css,/\.card \{ background: var\(--surface\)/);
+  assert.match(js,/JSON\.stringify\(\{theme,layout,material\}\)/);
+  assert.match(html,/data-material-choice="solid"/);
+  assert.match(html,/data-material-choice="glass"/);
+});
+
+test('floating panels leave room for route endpoints on tablet and phone', () => {
+  const tablet = model.routePadding({width:1194,height:704,layout:'split',sheetWidth:310,sheetHeight:480});
+  assert.ok(tablet.paddingTopLeft[0] > 310 + 18);
+  assert.ok(tablet.paddingTopLeft[1] > 80);
+  assert.ok(tablet.paddingBottomRight[1] >= 120);
+  const phone = model.routePadding({width:390,height:680,layout:'split',sheetWidth:370,sheetHeight:164});
+  assert.ok(phone.paddingTopLeft[0] < 60);
+  assert.ok(phone.paddingBottomRight[1] >= 164 + 120);
+  const expanded = model.routePadding({width:1194,height:704,layout:'map',sheetWidth:0,sheetHeight:0});
+  assert.ok(expanded.paddingTopLeft[0] < tablet.paddingTopLeft[0]);
+  const short = model.routePadding({width:390,height:340,layout:'split',sheetHeight:164});
+  assert.ok(340 - short.paddingTopLeft[1] - short.paddingBottomRight[1] >= 100);
+});
+
+test('display restoration handles missing, malformed and saved settings', () => {
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  for (const [stored,expected] of [[null,{}],['broken',{}],['null',{}],['{"theme":"day","material":"solid"}',{theme:'day',material:'solid'}]]) {
+    const dataset = {};
+    vm.runInNewContext(script,{localStorage:{getItem:()=>stored},document:{documentElement:{dataset}}});
+    assert.deepEqual(dataset,expected);
+  }
 });
 
 function contrast(a,b) {
