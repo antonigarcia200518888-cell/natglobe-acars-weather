@@ -101,7 +101,8 @@ test('display restoration handles missing, malformed and saved settings', () => 
 
 function contrast(a,b) {
   const luminance = hex => {
-    const rgb = hex.match(/[\da-f]{2}/gi).map(part=>parseInt(part,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+    const channels = Array.isArray(hex) ? hex : hex.match(/[\da-f]{2}/gi).map(part=>parseInt(part,16));
+    const rgb = channels.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
     return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
   };
   const [light,dark] = [luminance(a),luminance(b)].sort((x,y)=>y-x);
@@ -115,5 +116,18 @@ test('day/night text, action and status color pairs have at least 4.5:1 contrast
     for (const fg of ['text','muted','teal']) for (const bg of ['bg','surface','surface-raised']) assert.ok(contrast(tokens[fg],tokens[bg])>=4.5, `${fg}/${bg}`);
     assert.ok(contrast(tokens['accent-text']||'#FFFFFF',tokens.accent)>=4.5);
     for (const status of ['warning','caution','normal']) assert.ok(contrast(tokens[status],tokens[`${status}-bg`])>=4.5,status);
+  }
+});
+
+test('glass text remains readable over both black and white map content', () => {
+  const blocks = [...css.matchAll(/:root(?:\[data-theme="day"\])?\s*\{([^}]+)\}/g)].slice(0,2);
+  const blend = (front,back) => back.map((v,i)=>front[i]*front[3]+v*(1-front[3]));
+  for (const block of blocks) {
+    const rgba = token => block[1].match(new RegExp(`--${token}: rgba\\(([^)]+)\\)`))[1].split(',').map(Number);
+    const muted = block[1].match(/--muted: (#[\da-f]{6})/i)[1];
+    for (const underlay of [[0,0,0],[255,255,255]]) {
+      const fill = blend(rgba('glass-fill'),underlay);
+      for (const background of [fill,blend(rgba('glass-sheen'),fill)]) assert.ok(contrast(muted,background)>=4.5,'glass muted text');
+    }
   }
 });
