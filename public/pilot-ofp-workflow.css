@@ -297,3 +297,48 @@ dialog::backdrop { background:#0008; }
 @media(max-width:740px) { .shell { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto auto minmax(0,1fr) auto auto; grid-template-areas:"app" "flight" "index" "sheet" "status" "commands"; } .ofp-task-rail { flex-direction:row; overflow-x:auto; overflow-y:hidden; border:0; } .ofp-task-rail::before { display:none; } .ofp-workspace-button { min-width:130px; min-height:48px; padding:12px; text-align:center; } .ofp-workspace-button::before,.workspace-state { display:none; } .ofp-workspace-button[aria-selected="true"] { box-shadow:inset 0 -3px #76d4a9; } .folder-toolbar { padding-inline:16px; min-height:52px; } .folder-toolbar h2 { font-size:18px; } .editor { padding:16px; } .ofp-flight-facts { display:none; } .ofp-command-bar { gap:5px; padding-inline:8px; } .ofp-command-bar .btn { min-width:0; flex:1; padding:7px 5px; font-size:11px; } .ofp-command-bar .primary { flex:1.5; } .ofp-context-strip { font-size:9px; } .flight-source { display:none; } .folder-two-column { grid-template-columns:1fr; } .folder-table th,.folder-table td { padding:14px 7px; font-size:12px; } .folder-table tbody th b { font-size:15px; } .folder-duration-grid strong { font-size:18px; } .folder-route-diagram > div > strong { font-size:29px; } .folder-route-diagram small { font-size:10px; } .folder-status { font-size:9px; } .folder-flight-title strong { font-size:12px; } }
 @media(max-width:520px) { .flight-route-strip { grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr); gap:8px; } .flight-route-point { grid-template-columns:1fr; } .alternate-point { grid-template-columns:1fr; } .alternate-point > label { font-size:12px; } .grid,.grid.two,.route-procedures,.import-grid,.briefing-modules,.movement-grid { grid-template-columns:1fr; } .fuel-ladder { grid-template-columns:repeat(3,minmax(0,1fr)); } .flight-identity-grid { grid-template-columns:1fr; } .schedule-primary-grid { grid-template-columns:1fr; } .topbar h1 { font-size:14px; } .topbar { gap:8px; } .topbar button { padding:8px; font-size:12px; } .profile-facts { grid-template-columns:1fr 1fr; } .folder-table-wrap { margin-inline:-8px; } }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto !important; } }
+
+/* An actionable briefing, with a persistent path back from individual fields. */
+.folder-toolbar > div { min-width:0; }
+#folderFlightContext { font-family:var(--mono); letter-spacing:.04em; overflow-wrap:anywhere; }
+.folder-next-action { display:flex; align-items:center; gap:18px; padding:14px 16px; border:1px solid var(--line); border-left:3px solid var(--blue); background:var(--soft); border-radius:4px; }
+.folder-next-action > div { flex:1; min-width:0; }
+.folder-next-action span,.check-return-bar span,.briefing-desk > header span { display:block; margin-bottom:6px; font:10px var(--mono); color:var(--muted); letter-spacing:.06em; }
+.folder-next-action strong { display:block; font-size:13px; line-height:1.5; font-weight:500; }
+.folder-next-action button { flex-shrink:0; font-size:12px; }
+.check-return-bar { position:sticky; top:68px; z-index:4; display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:20px; padding:10px 14px; background:var(--soft); border:1px solid var(--blue); border-radius:4px; box-shadow:0 3px 12px #0001; }
+.check-return-bar strong { font-size:13px; }
+.check-return-bar button { flex-shrink:0; font-size:12px; }
+.briefing-field-focus { outline:2px solid var(--blue); outline-offset:6px; border-radius:3px; scroll-margin-block:180px 24px; }
+.briefing-desk { margin-bottom:28px; }
+.briefing-desk > header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.briefing-desk h3 { margin:0; font-size:23px; letter-spacing:-.02em; }
+.briefing-desk > p { color:var(--muted); font-size:12px; line-height:1.6; max-width:650px; margin:12px 0 18px; }
+.check-count { color:var(--amber); font:700 12px var(--mono); white-space:nowrap; }
+.briefing-check-list { border-top:1px solid var(--line); }
+.briefing-check { display:grid; grid-template-columns:26px minmax(0,1fr) auto; align-items:center; gap:12px; width:100%; min-height:70px; padding:14px 4px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; text-align:left; color:var(--ink); }
+.briefing-check:hover { background:var(--soft); border-color:var(--line); }
+.briefing-check .check-sequence { font:12px var(--mono); color:var(--amber); align-self:start; padding-top:2px; }
+.briefing-check strong { display:block; font-size:13px; font-weight:600; }
+.briefing-check small { display:block; margin-top:5px; font-size:12px; line-height:1.5; color:var(--muted); }
+.briefing-check em { font-style:normal; font-size:11px; color:var(--blue); text-align:right; }
+.briefing-check b { margin-left:5px; font-size:18px; }
+.checks-clear { color:var(--green); font-size:12px; line-height:1.6; padding:12px 0; }
+.server-checks { margin-top:20px; border:1px solid var(--line); border-radius:4px; background:var(--soft); }
+.server-checks > summary { display:flex; align-items:center; gap:14px; padding:14px; cursor:pointer; min-height:64px; }
+.server-checks > summary::before { content:'›'; color:var(--blue); font-size:22px; }
+.server-checks[open] > summary::before { transform:rotate(90deg); }
+.server-checks > summary > span { flex:1; min-width:0; }
+.server-checks strong { display:block; font-size:12px; }
+.server-checks small { display:block; color:var(--muted); font-size:11px; line-height:1.5; margin-top:5px; }
+.server-checks summary > b { font:700 11px var(--mono); color:var(--amber); white-space:nowrap; }
+.server-checks[data-state="released"] summary > b { color:var(--green); }
+.server-checks > div { padding:0 14px 10px; }
+.server-checks ul { list-style:none; padding:0; margin:0; }
+.server-checks li { display:flex; justify-content:space-between; align-items:center; gap:14px; min-height:52px; border-top:1px solid var(--line); font:11px/1.5 var(--mono); padding:6px 0; overflow-wrap:anywhere; }
+.server-checks li button { flex-shrink:0; border:0; background:transparent; color:var(--blue); font-size:11px; padding:8px 0 8px 8px; }
+.warning-list .briefing-check { grid-template-columns:22px minmax(0,1fr); padding-inline:0; }
+.warning-list .briefing-check em { grid-column:2; text-align:left; }
+@media(max-width:950px) { .briefing-check { grid-template-columns:22px minmax(0,1fr); gap:6px 10px; } .briefing-check em { grid-column:2; text-align:left; } }
+@media(max-width:740px) { .check-return-bar { top:60px; } }
+@media(max-width:520px) { .folder-next-action { align-items:stretch; flex-direction:column; gap:10px; padding:12px; } .folder-next-action button { align-self:flex-start; } .check-return-bar { gap:8px; padding:8px 10px; } .check-return-bar strong { font-size:12px; } .check-return-bar button { font-size:11px; padding:6px 8px; } .briefing-desk h3 { font-size:20px; } .server-checks > summary { gap:8px; padding:12px; } .server-checks li { flex-wrap:wrap; gap:0; } .server-checks li button { padding-left:0; } }

@@ -46,7 +46,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-06-1" />
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-07-1" />
 </head>
 <body>
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -101,10 +101,12 @@
       <button id="taskTabFiles" class="ofp-workspace-button" type="button" role="tab" data-workspace="FILES" aria-controls="folderDocumentsSection" aria-selected="false"><strong class="task-title">Documents</strong><em class="workspace-state">OFP &amp; flight files</em></button>
     </nav>
     <div class="workspace ofp-app-workspace">
-      <header class="folder-toolbar"><div><span>FLIGHT BRIEFING</span><h2 id="folderSectionTitle">Flight summary</h2></div><button type="button" id="folderOverviewBtn" aria-label="Return to flight summary">Overview</button></header>
+      <header class="folder-toolbar"><div><span id="folderFlightContext">FLIGHT BRIEFING</span><h2 id="folderSectionTitle">Flight summary</h2></div><button type="button" id="folderOverviewBtn" aria-label="Return to flight summary">Overview</button></header>
       <section class="editor ofp-task-content" aria-label="Selected flight plan stage">
+        <div id="checkReturnBar" class="check-return-bar" hidden><div><span>BRIEFING CHECK</span><strong id="checkReturnLabel"></strong></div><button type="button" id="backToReviewBtn">Back to review</button></div>
         <section id="flightSummarySection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabSummary" hidden>
           <div class="folder-flight-title"><div><span id="folderReference">FLIGHT FILE</span><strong id="folderAircraft">Aircraft not loaded</strong></div><span id="folderReleaseState" class="folder-status">DRAFT</span></div>
+          <div class="folder-next-action"><div><span id="folderNextCount">PLANNING CHECKS</span><strong id="folderNextTitle">Review the flight plan</strong></div><button type="button" id="folderNextCheckBtn">Open next check</button></div>
           <div class="folder-route-diagram"><div><span>DEPARTURE</span><strong id="folderDeparture">----</strong><small id="folderDepartureName">Departure airport</small></div><div class="folder-route-line"><span id="folderEet">— MIN</span><i aria-hidden="true">✈</i><small id="folderDistance">— NM</small></div><div><span>DESTINATION</span><strong id="folderDestination">----</strong><small id="folderDestinationName">Arrival airport</small></div></div>
           <div class="folder-schedule"><div><span>OFF BLOCK / LOCAL</span><strong id="folderLocalTime">NOT SET</strong></div><div><span>OFF BLOCK / UTC</span><strong id="folderUtcTime">NOT SET</strong></div><div><span>PLANNED TOUCHDOWN / UTC</span><strong id="folderArrivalTime">NOT SET</strong></div><button type="button" data-folder-open="SETUP">Edit flight</button></div>
           <div class="folder-two-column">
@@ -374,6 +376,12 @@
         <details id="dispatchSection" class="ofp-task-panel" data-task="BRIEF" role="tabpanel" aria-labelledby="taskTabBrief">
           <summary class="ofp-task-panel-summary"><span>04</span><strong>Preflight</strong><em>Weather, NOTAM, airspace and performance</em></summary>
           <div class="detail-body">
+            <section class="briefing-desk" aria-labelledby="briefingDeskTitle">
+              <header><div><span>CURRENT DRAFT</span><h3 id="briefingDeskTitle" tabindex="-1">Briefing desk</h3></div><strong id="briefingCheckCount" class="check-count">Checks open</strong></header>
+              <p>Work through the open planning checks. Each item opens its field; nothing is acknowledged automatically.</p>
+              <div id="briefingCheckList" class="briefing-check-list"></div>
+              <details class="server-checks"><summary><span><strong id="serverCheckTitle">Server release checks</strong><small id="serverCheckDetail">Save to refresh the authoritative checks.</small></span><b id="serverCheckCount">—</b></summary><div><p class="folder-note">Separate from the draft checks above. Items reflect the last server response, not an operational clearance.</p><ul id="serverCheckList"></ul></div></details>
+            </section>
             <div class="section-heading ofp-card-head"><div><span>Operational review</span><strong>Briefing &amp; performance</strong></div><p>Open the live modules, review approved sources, and return here to confirm the preflight gates.</p></div>
             <div class="briefing-modules">
               <button id="openWeatherWorkspaceBtn" type="button"><span>Live module</span><strong>Weather Dispatch</strong><small>Raw METAR, TAF, and category</small><em id="weatherModuleState">REVIEW OPEN</em></button>
@@ -462,7 +470,7 @@
           <div id="gearCgMetric" class="metric"><span>Gear-up CG</span><strong id="gearUpCg">0.00 IN</strong></div>
         </div></div></details></section>
         <section class="console-card readiness-card ofp-release-checks-card" data-release-checks="open">
-          <div class="console-title release-check-title"><span>Release checks</span><strong id="warningCount">0 OPEN</strong></div>
+          <div class="console-title release-check-title"><span>Draft planning checks</span><strong id="warningCount">0 OPEN</strong></div>
           <div id="warningList" class="warning-list"></div>
         </section>
         <details class="utility-card console-details">
@@ -527,6 +535,7 @@
       </form>
     </dialog>
   </main>
+  <script src="/pilot-ofp-checks.js?v=2026-10-07-1"></script>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
     if (embedded) document.documentElement.classList.add('embedded');
@@ -547,6 +556,7 @@
     let airportCatalog = [];
     let smartSchedule = null;
     let departureTimeNeedsOccurrence = false;
+    let briefingChecks = [];
     let routeLegs = [];
     let inspectorMode = 'SUMMARY';
     let previewLoadToken = 0;
@@ -779,6 +789,7 @@
     }
 
     function setWorkspace(workspace, persist = true) {
+      clearBriefingFocus();
       const migrated = ({ PLAN:'SETUP', RELEASE:'BRIEF' })[workspace] || workspace;
       const selected = Object.prototype.hasOwnProperty.call(workspaceSections, migrated) ? migrated : 'SUMMARY';
       currentWorkspace = selected;
@@ -1718,12 +1729,59 @@
       return { setupReady, routeReady, loadReady, reviewReady, performanceReady, briefReady, movementCount, released, serverReleaseReady, completed, percent, firstOpen };
     }
 
-    function warningWorkspace(message) {
-      const value = String(message || '').toUpperCase();
-      if (/CREW|BAGGAGE|FUEL|WEIGHT|CG|RAMP|LANDING POINT|TAKEOFF POINT|ZERO FUEL/.test(value)) return 'LOAD';
-      if (/NOTAM|AIRSPACE|PERFORMANCE/.test(value)) return 'BRIEF';
-      if (/ROUTE|RUNWAY|ALTERNATE/.test(value)) return 'ROUTE';
-      return 'SETUP';
+    function clearBriefingFocus() {
+      el('checkReturnBar').hidden = true;
+      document.querySelectorAll('.briefing-field-focus').forEach(node => node.classList.remove('briefing-field-focus'));
+    }
+
+    function openBriefingCheck(check) {
+      if (!check) { setWorkspace('BRIEF'); return; }
+      if (check.module) { openPilotWorkspace(check.module, check.detailTab); return; }
+      setWorkspace(check.workspace);
+      let selector = check.selector;
+      if (selector === '[data-field="depRunway"]' && /^(0[1-9]|[12][0-9]|3[0-6])[LCR]?$/.test(inputFor('depRunway').value) && !/^(0[1-9]|[12][0-9]|3[0-6])[LCR]?$/.test(inputFor('arrRunway').value)) selector = '[data-field="arrRunway"]';
+      if (selector === '[data-field="departure"]' && /^[A-Z0-9]{4}$/.test(inputFor('departure').value) && !/^[A-Z0-9]{4}$/.test(inputFor('destination').value)) selector = '[data-field="destination"]';
+      const target = document.querySelector(selector);
+      if (!target) return;
+      for (let parent = target.parentElement; parent; parent = parent.parentElement) {
+        if (parent.tagName === 'DETAILS') parent.open = true;
+      }
+      el('checkReturnLabel').textContent = check.label;
+      el('checkReturnBar').hidden = false;
+      (target.closest('label') || target).classList.add('briefing-field-focus');
+      if (!target.matches('input, select, textarea, button, [tabindex]')) target.setAttribute('tabindex', '-1');
+      window.requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior:'auto', block:'center' });
+        target.focus({ preventScroll:true });
+      });
+    }
+
+    function renderBriefingDesk(calc, progress) {
+      briefingChecks = window.pilotOFPChecks.build(calc.warnings, progress);
+      const count = briefingChecks.length;
+      const checkButton = (check, index) => `<button type="button" class="briefing-check" data-briefing-check="${index}"><span class="check-sequence" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span><span><strong>${escapeHtml(check.label)}</strong><small>${escapeHtml(check.message)}</small></span><em>${escapeHtml(workspaceLabels[check.workspace])} <b aria-hidden="true">›</b></em></button>`;
+      const list = briefingChecks.map(checkButton).join('');
+      const complete = '<p class="checks-clear">No open draft planning checks. Review the separate server checks and PIC release below.</p>';
+      el('briefingCheckList').innerHTML = list || complete;
+      el('briefingCheckCount').textContent = count ? `${count} OPEN` : 'DRAFT CHECKED';
+      el('warningCount').textContent = count ? `${count} OPEN` : 'DRAFT CHECKED';
+      el('warningCount').style.color = count ? 'var(--amber)' : 'var(--green)';
+      el('warningList').innerHTML = list || '<p class="checks-clear">No open draft planning checks. PIC release remains separate.</p>';
+      el('dockReadinessBtn').textContent = count ? `Checks (${count})` : 'Checks';
+      el('folderNextCount').textContent = count ? `${count} OPEN PLANNING CHECK${count === 1 ? '' : 'S'}` : 'DRAFT PLANNING CHECKS COMPLETE';
+      el('folderNextTitle').textContent = briefingChecks[0]?.message || 'Review the server checks and PIC release.';
+      el('folderNextCheckBtn').textContent = count ? 'Open next check' : 'Review release';
+      el('folderFlightContext').textContent = `${plan.departure || '----'} → ${plan.destination || '----'} · ${plan.aircraftRegistration || 'NO AIRCRAFT'}`;
+      const state = window.pilotOFPChecks.serverState(releasePanel, saved, progress.released);
+      const blockers = Array.isArray(releasePanel?.blockers) ? releasePanel.blockers.filter(Boolean) : [];
+      el('serverCheckTitle').textContent = state.title;
+      el('serverCheckDetail').textContent = state.detail;
+      el('serverCheckTitle').closest('.server-checks').dataset.state = state.state;
+      el('serverCheckCount').textContent = !saved ? 'STALE' : !releasePanel ? 'UNKNOWN' : progress.released ? 'RELEASED' : blockers.length ? `${blockers.length} OPEN` : releasePanel.ready === true ? 'CHECKED' : 'PENDING';
+      el('serverCheckList').innerHTML = blockers.length ? blockers.map((message, index) => {
+        const action = window.pilotOFPChecks.serverAction(message);
+        return `<li><span>${escapeHtml(message)}</span>${action ? `<button type="button" data-server-check="${index}">${escapeHtml(action.label)} <b aria-hidden="true">›</b></button>` : ''}</li>`;
+      }).join('') : `<li>${escapeHtml(!saved ? 'Save this draft to obtain current server checks.' : !releasePanel ? 'No server response available.' : releasePanel.ready === true ? 'No open server blockers returned.' : 'The server has not marked this flight ready for release.')}</li>`;
     }
 
     function movementClocks(value) {
@@ -1826,14 +1884,6 @@
       el('takeoffMarginSummary').className = takeoffMargin < 0 ? 'danger' : 'good';
       el('landingMarginSummary').className = landingMargin < 0 ? 'danger' : 'good';
       el('cgSummary').className = calc.takeoffEnvelope.valid ? 'good' : 'danger';
-      const primaryWarnings = calc.warnings.slice(0, 3);
-      const additionalWarnings = calc.warnings.slice(3);
-      el('warningCount').textContent = calc.warnings.length ? `${calc.warnings.length} OPEN` : 'READY';
-      el('warningCount').style.color = calc.warnings.length ? 'var(--amber)' : 'var(--green)';
-      el('warningList').innerHTML = calc.warnings.length
-        ? `${primaryWarnings.map(item => `<button type="button" class="warning" data-warning-workspace="${warningWorkspace(item)}">${escapeHtml(item)}</button>`).join('')}${additionalWarnings.length ? `<details class="warning-overflow"><summary>${additionalWarnings.length} more checks</summary>${additionalWarnings.map(item => `<button type="button" class="warning" data-warning-workspace="${warningWorkspace(item)}">${escapeHtml(item)}</button>`).join('')}</details>` : ''}`
-        : '<div class="warning good">Administrative calculations complete. Pilot verification remains required.</div>';
-      el('warningList').querySelectorAll('[data-warning-workspace]').forEach(button => button.addEventListener('click', () => setWorkspace(button.dataset.warningWorkspace)));
       const released = isAuthoritativelyReleased();
       const progress = renderWorkspaceProgress(calc);
       el('weatherModuleState').textContent = progress.reviewReady ? 'REVIEWED' : 'REVIEW OPEN';
@@ -1885,6 +1935,7 @@
       document.querySelector('.ofp-release-workspace').dataset.releaseState = released ? 'released' : progress.serverReleaseReady ? 'ready' : 'blocked';
       renderServerReleasePanel();
       renderFlightFolder(calc, progress);
+      renderBriefingDesk(calc, progress);
       ['actualOut','actualOff','actualOn','actualIn'].forEach(field => {
         const value = String(inputFor(field).value || '').trim();
         const card = document.querySelector(`[data-movement-card="${field}"]`);
@@ -2218,7 +2269,7 @@
       nextTab.focus({ preventScroll:true });
       nextTab.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'nearest' });
     });
-    el('openNextGateBtn').addEventListener('click', event => setWorkspace(event.currentTarget.dataset.workspace || 'SETUP'));
+    el('openNextGateBtn').addEventListener('click', () => openBriefingCheck(briefingChecks[0]));
     el('aircraftProfileBtn').addEventListener('click', () => {
       renderAircraftProfile();
       const dialog = el('aircraftProfileDialog');
@@ -2233,6 +2284,20 @@
     el('dockPreviousBtn').addEventListener('click', () => moveWorkspace(-1));
     el('dockNextBtn').addEventListener('click', () => moveWorkspace(1));
     el('folderOverviewBtn').addEventListener('click', () => setWorkspace('SUMMARY'));
+    el('folderNextCheckBtn').addEventListener('click', () => openBriefingCheck(briefingChecks[0]));
+    el('backToReviewBtn').addEventListener('click', () => {
+      setWorkspace('BRIEF');
+      el('briefingDeskTitle').focus({ preventScroll:true });
+    });
+    document.addEventListener('click', event => {
+      const check = event.target.closest('[data-briefing-check]');
+      if (check) openBriefingCheck(briefingChecks[Number(check.dataset.briefingCheck)]);
+      const serverCheck = event.target.closest('[data-server-check]');
+      if (serverCheck) {
+        const blockers = Array.isArray(releasePanel?.blockers) ? releasePanel.blockers.filter(Boolean) : [];
+        openBriefingCheck(window.pilotOFPChecks.serverAction(blockers[Number(serverCheck.dataset.serverCheck)]));
+      }
+    });
     document.querySelector('.editor').addEventListener('click', event => {
       const target = event.target.closest('[data-folder-open]');
       if (target) setWorkspace(target.dataset.folderOpen);
@@ -2266,9 +2331,9 @@
       render();
     });
     const saveDraft = () => save().catch(error => setSaveState('failed', error.message || 'Unable to save OFP.'));
-    function openPilotWorkspace(view) {
+    function openPilotWorkspace(view, detailTab = '') {
       if (embedded && window.parent !== window) {
-        window.parent.postMessage({ type:'nga-open-workspace', view }, location.origin);
+        window.parent.postMessage({ type:'nga-open-workspace', view, detailTab }, location.origin);
         return;
       }
       window.top.location.href = view === 'dashboard' ? '/booking-ops' : `/booking-ops#${view}`;

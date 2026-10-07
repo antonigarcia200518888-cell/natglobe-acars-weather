@@ -2943,14 +2943,14 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-06-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-06-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-06-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-06-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-06-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-07-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-07-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-07-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-07-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-07-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-06-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-06-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-07-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-07-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3847,8 +3847,8 @@ END OF MESSAGE</pre>
     <div id="flightPickerResults" class="flight-picker-results"></div><footer class="flight-picker-footer"><button id="flightPickerCreateBtn" class="app-sheet-action" type="button">+ Create pilot flight</button></footer>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
-  <script src="/pilot-flight-deck.js?v=2026-10-06-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-10-06-1"></script>
+  <script src="/pilot-flight-deck.js?v=2026-10-07-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-10-07-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -8654,6 +8654,7 @@ END OF MESSAGE</pre>
       if (event.data?.type === 'nga-open-workspace') {
         const view = String(event.data.view || 'dashboard');
         if (['dashboard', 'flights', 'weather', 'performance', 'aircraft', 'logbook', 'documents'].includes(view)) switchOpsWorkspace(view);
+        if (view === 'flights' && ['release', 'crew'].includes(event.data.detailTab)) setFlightDetailTab(event.data.detailTab);
         return;
       }
       if (event.data?.type === 'nga-open-ofp-pdf' && event.data.requestId === selected?.id) {
