@@ -57,6 +57,10 @@ The EFB uses an edge-to-edge app frame and a persistent module bar. New sessions
 
 Run planner regression checks with `node --test tests/ofp-workflow.test.mjs`. For UI verification, check embedded and standalone layouts at 834×1194, 1194×834 and desktop sizes, in day/night mode; verify save, route edits, import, PDF generation and closing the preview. From 741px, Flights uses aligned, full-height master/detail panes with independently scrollable lists and a sticky flight-file section bar; smaller phones retain the stacked layout. Queue filters start closed and keep the pilot's choice on rotation. The OFP uses a vertical flight-folder index above 740px, a horizontal stage bar below it, and Courier New for operational data. Changing stages resets the sheet scroll, while navigation and save actions remain visible. The presentation is inspired by integrated airline EFBs, but includes no Jeppesen charts, services or affiliation.
 
+### Map-led EFB design preview
+
+`/efb-preview/` is an isolated, interactive HTML/CSS dashboard example with theme variables, a device-status bar, a split map/briefing workspace and five tablet-sized navigation tabs. Source and integration notes are in `public/efb-preview/README.md`. It uses clearly marked sample data and does not replace Pilot Ops or change any operational records. Geographic map tiles are not aviation charts; GPS, approved plates and live briefing services are not connected. Run its checks with `node --test tests/efb-design-preview.test.mjs`.
+
 ### Face ID / Touch ID pilot access
 
 Pilot Ops supports device passkeys. Sign in once with the pilot access code, open **Face ID / Touch ID device access** near the bottom of Pilot Ops, then choose **Set up this device**. Your phone or computer uses Face ID, Touch ID, or its device PIN; no biometric data is sent to or stored by NGA Private Aviation.
