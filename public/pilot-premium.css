@@ -1,0 +1,138 @@
+/* Incremental shell finish. Flight forms and OFP retain their existing layout/state. */
+html body.pilot-ops-v2 {
+  --glass-surface:rgba(247,250,253,.88);
+  --glass-edge:rgba(120,144,165,.26);
+  --glass-highlight:rgba(255,255,255,.8);
+  --shell-ink:#192b3b;
+  --shell-muted:#516679;
+  --shell-base:#e9eff4;
+  --shell-active:#d5eee4;
+  --shell-active-ink:#125d40;
+  --shell-header:76px;
+  --shell-tabs:72px;
+  --glass-filter:blur(22px) saturate(135%);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+html[data-efb-theme="night"] body.pilot-ops-v2 {
+  --glass-surface:rgba(25,37,49,.87);
+  --glass-edge:rgba(158,184,207,.24);
+  --glass-highlight:rgba(205,228,248,.12);
+  --shell-ink:#eff6fc;
+  --shell-muted:#b2c3d2;
+  --shell-base:#101923;
+  --shell-active:#214e40;
+  --shell-active-ink:#b8f1d5;
+}
+html body.pilot-ops-v2 > .frame { background:var(--shell-base); }
+html body.pilot-ops-v2:not(.app-focus) > .frame { padding-bottom:calc(var(--shell-tabs) + 24px + var(--shell-bottom)); }
+html body.pilot-ops-v2 .efb-masthead {
+  background:var(--glass-surface); color:var(--shell-ink); border-bottom:1px solid var(--glass-edge);
+  -webkit-backdrop-filter:var(--glass-filter); backdrop-filter:var(--glass-filter);
+}
+html body.pilot-ops-v2 .app-navigation-title h1 { color:var(--shell-ink); font-weight:650; letter-spacing:-.025em; }
+html body.pilot-ops-v2 :is(.app-navigation-title p,.app-connection) { color:var(--shell-muted); }
+html body.pilot-ops-v2 .efb-masthead .shell-icon-button { color:var(--shell-ink); min-width:48px; width:48px; height:48px; min-height:48px; border-radius:14px; }
+html body.pilot-ops-v2 .efb-masthead .shell-icon-button:hover { background:var(--glass-highlight); border-color:var(--glass-edge); }
+html body.pilot-ops-v2 .flight-switch-button { color:var(--shell-ink); background:transparent; border-radius:10px; }
+html body.pilot-ops-v2 .active-flight-strip { background:var(--app-card-solid); }
+html body.pilot-ops-v2 .efb-content { background:var(--shell-base); }
+html body.pilot-ops-v2 .ops-suite-nav,html body.pilot-ops-v2.sidebar-collapsed .ops-suite-nav {
+  position:absolute; inset:auto 12px calc(12px + var(--shell-bottom)); margin-inline:auto;
+  width:calc(100% - 24px); max-width:920px; height:var(--shell-tabs); padding:6px;
+  border:1px solid var(--glass-edge); border-radius:24px; background:var(--glass-surface);
+  box-shadow:inset 0 1px var(--glass-highlight),0 10px 32px #0002;
+  -webkit-backdrop-filter:var(--glass-filter); backdrop-filter:var(--glass-filter);
+}
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab { min-height:48px; border-radius:18px; color:var(--shell-muted); transition:background-color .16s,color .16s,transform .12s; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab.active { background:var(--shell-active); color:var(--shell-active-ink); box-shadow:inset 0 1px var(--glass-highlight); }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab:active { transform:scale(.97); }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab .suite-icon,html body.pilot-ops-v2 .ops-suite-nav .suite-tab.active .suite-icon { color:inherit; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab strong { font-size:12px; font-weight:600; }
+
+/* Home is a chart workspace with a compact flight panel, not a page of banners. */
+html body.pilot-ops-v2 .dashboard-cockpit { display:grid; grid-template-columns:300px minmax(0,1fr); padding:16px; gap:16px; height:auto; }
+html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero {
+  grid-area:auto; grid-column:1; grid-row:1; display:flex; flex-direction:column; gap:18px;
+  min-height:0; height:auto; padding:22px; border:1px solid var(--glass-edge); border-radius:20px;
+  background:var(--app-card-solid); box-shadow:none; overflow:hidden;
+}
+html body.pilot-ops-v2 .efb-flight-hero::before { display:none; }
+html body.pilot-ops-v2 .efb-flight-hero-copy { position:static; width:auto; padding:0; }
+html body.pilot-ops-v2 .efb-flight-hero-title h2 { font:700 30px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:-.035em; }
+html body.pilot-ops-v2 .efb-flight-hero-copy > strong { margin-top:18px; font:700 22px/1.3 "Courier New",monospace; }
+html body.pilot-ops-v2 .efb-flight-hero-copy > small { margin-top:8px; font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+html body.pilot-ops-v2 .efb-eyebrow { font-size:10px; letter-spacing:.08em; }
+html body.pilot-ops-v2 .efb-hero-actions { display:grid; grid-template-columns:1fr; gap:8px; margin-top:18px; }
+html body.pilot-ops-v2 .efb-hero-actions .efb-action { min-height:48px; border-radius:12px; font-size:14px; }
+html body.pilot-ops-v2 .efb-flight-phase { position:relative; inset:auto; order:2; width:auto; padding:0; min-height:48px; }
+html body.pilot-ops-v2 .efb-flight-phase strong { font-size:10px; }
+html body.pilot-ops-v2 .efb-hero-metrics { position:static; order:1; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:0; }
+html body.pilot-ops-v2 .efb-hero-metrics > div { min-height:60px; padding:10px 4px; border:0; border-bottom:1px solid var(--app-line); border-radius:0; background:none; box-shadow:none; }
+html body.pilot-ops-v2 .efb-hero-metrics strong { font-size:13px; line-height:1.4; }
+html body.pilot-ops-v2 .efb-aircraft-stage { position:static; order:3; width:auto; min-height:0; height:auto; padding:0; margin:0; display:flex; align-items:center; gap:12px; overflow:visible; }
+html body.pilot-ops-v2 .efb-aircraft-stage::after { display:none; }
+html body.pilot-ops-v2 .efb-aircraft-stage img { width:105px; height:46px; max-height:46px; object-fit:contain; transform:none; }
+html body.pilot-ops-v2 .efb-aircraft-stage figcaption { position:static; min-width:0; padding:0; border:0; background:none; box-shadow:none; backdrop-filter:none; }
+html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card { grid-column:2; grid-row:1; display:flex; flex-direction:column; align-self:stretch; min-width:0; min-height:530px; border:1px solid var(--glass-edge); border-radius:20px; overflow:hidden; background:var(--app-card-solid); }
+html body.pilot-ops-v2 .ops-globe-head { padding:18px; gap:12px; align-items:center; background:var(--app-card-solid); border-bottom:1px solid var(--app-line); }
+html body.pilot-ops-v2 .ops-globe-head > div:first-child { min-width:0; }
+html body.pilot-ops-v2 .ops-globe-head h2 { margin:3px 0 0; color:var(--app-ink); font:650 20px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:-.025em; }
+html body.pilot-ops-v2 .ops-globe-head > div > span { color:var(--app-muted); font-size:10px; letter-spacing:.08em; }
+html body.pilot-ops-v2 .ops-globe-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+html body.pilot-ops-v2 .ops-globe-actions button { min-height:48px; min-width:48px; padding:10px 14px; border-radius:12px; color:var(--app-ink); border:1px solid var(--app-line); background:var(--app-card-muted); font:600 13px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.map-mode-segment { display:flex; padding:3px; border:1px solid var(--app-line); border-radius:14px; background:var(--app-card-muted); }
+html body.pilot-ops-v2 .map-mode-segment button { min-height:48px; border:0; background:transparent; border-radius:10px; }
+html body.pilot-ops-v2 .map-mode-segment button[aria-pressed="true"] { background:var(--app-card-solid); color:var(--efb-blue-strong); box-shadow:0 1px 4px #0002; }
+html body.pilot-ops-v2 .ops-globe-actions button:disabled { opacity:.45; cursor:not-allowed; }
+html body.pilot-ops-v2 .ops-globe-stage { position:relative; flex:1; height:auto; min-height:340px; background:#102232; isolation:isolate; }
+html body.pilot-ops-v2 #opsGlobeCanvas { position:absolute; inset:0; width:100%; height:100%; min-height:0; }
+#opsVectorMap { position:absolute; inset:0; width:100%; height:100%; z-index:1; }
+#opsVectorMap[hidden],html body.pilot-ops-v2 #opsGlobeCanvas[hidden] { display:none; }
+#opsVectorMap .maplibregl-canvas { outline:none; }
+#opsVectorMap .maplibregl-canvas:focus-visible { outline:3px solid #6bdaff; outline-offset:-3px; }
+#opsVectorMap .maplibregl-ctrl-group { border:1px solid #b5c5d6; border-radius:14px; overflow:hidden; box-shadow:0 3px 12px #0003; }
+#opsVectorMap .maplibregl-ctrl-group button { width:48px; height:48px; }
+#opsVectorMap .maplibregl-ctrl-attrib { color:#243743; background:rgba(255,255,255,.92); font:11px/20px Arial,sans-serif; }
+#opsVectorMap .maplibregl-ctrl-attrib a { color:#243743; }
+.ops-map-note { position:absolute; bottom:12px; left:12px; z-index:2; max-width:calc(100% - 65px); padding:8px 12px; border:1px solid rgba(207,226,244,.25); border-radius:10px; color:#e3edf7; background:rgba(17,32,47,.88); pointer-events:none; font:11px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+html body.pilot-ops-v2 .ops-globe-footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:14px 18px; background:var(--app-card-solid); border-top:1px solid var(--app-line); }
+html body.pilot-ops-v2 .ops-globe-footer strong { font:600 12px/1.4 "Courier New",monospace; overflow-wrap:anywhere; color:var(--app-ink); }
+html body.pilot-ops-v2 .ops-globe-footer > div > span { color:var(--app-muted); font:12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.ops-map-status { flex-basis:100%; color:var(--app-muted); font:12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.ops-map-status[data-state="limited"] { color:var(--efb-amber-strong,#9b6418); }
+html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck { grid-column:1/-1; grid-row:2; height:auto; border:1px solid var(--glass-edge); border-radius:20px; box-shadow:none; background:var(--app-card-solid); }
+html body.pilot-ops-v2 .dashboard-deck .dashboard-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+html body.pilot-ops-v2 .dashboard-action { min-height:112px; border-radius:12px; background:var(--app-card-muted); box-shadow:none; }
+html body.pilot-ops-v2 .dashboard-action small { display:none; }
+html body.pilot-ops-v2 .dashboard-action strong { font:600 15px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+html body.pilot-ops-v2 .weather-radar-map-wrap { touch-action:none; }
+html body.pilot-ops-v2 #bookingsWorkspace .pilot-flight-control { border-radius:14px !important; }
+html body.pilot-ops-v2 #bookingsWorkspace .request { border-radius:12px !important; }
+html body.pilot-ops-v2 .shell-dialog { border-radius:22px; }
+html body.pilot-ops-v2 .shell-dialog-head { background:var(--glass-surface); -webkit-backdrop-filter:var(--glass-filter); backdrop-filter:var(--glass-filter); }
+html body.pilot-ops-v2 .app-theme-segment button { min-height:48px; }
+
+/* Materials never determine legibility. Solid mode also avoids blur GPU cost. */
+html[data-efb-material="solid"] body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); --glass-filter:none; }
+@supports not (backdrop-filter:blur(1px)) { html body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); } }
+@media(prefers-reduced-transparency:reduce) { html body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); --glass-filter:none; } }
+@media(prefers-reduced-motion:reduce) { html body.pilot-ops-v2 .ops-suite-nav .suite-tab { transition:none; } html body.pilot-ops-v2 .ops-suite-nav .suite-tab:active { transform:none; } }
+@media(max-width:1050px) {
+  html body.pilot-ops-v2 .dashboard-cockpit { grid-template-columns:260px minmax(0,1fr); padding:12px; gap:12px; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { padding:18px; }
+  html body.pilot-ops-v2 .ops-globe-head { flex-direction:column; align-items:stretch; }
+  html body.pilot-ops-v2 .ops-globe-actions { justify-content:space-between; }
+}
+@media(max-width:740px) {
+  html body.pilot-ops-v2 { --shell-header:68px; --shell-tabs:68px; }
+  html body.pilot-ops-v2 .efb-masthead .shell-icon-button { width:44px; min-width:44px; }
+  html body.pilot-ops-v2 .dashboard-cockpit { grid-template-columns:minmax(0,1fr); padding:10px; gap:12px; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card { grid-column:1; grid-row:1; min-height:490px; border-radius:16px; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { grid-column:1; grid-row:2; border-radius:16px; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck { grid-column:1; grid-row:3; border-radius:16px; }
+  html body.pilot-ops-v2 .dashboard-deck .dashboard-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  html body.pilot-ops-v2 .ops-globe-head { padding:14px; }
+  html body.pilot-ops-v2 .ops-globe-actions { gap:6px; }
+  html body.pilot-ops-v2 .ops-globe-actions button { padding:10px; }
+  html body.pilot-ops-v2 .ops-suite-nav,html body.pilot-ops-v2.sidebar-collapsed .ops-suite-nav { grid-template-columns:repeat(5,minmax(0,1fr)); inset-inline:8px; width:calc(100% - 16px); border-radius:22px; }
+}

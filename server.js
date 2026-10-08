@@ -48,6 +48,9 @@ app.get('/vendor/simplewebauthn-browser.js', (req, res) => {
 app.use('/vendor/leaflet', express.static(path.join(__dirname, 'node_modules', 'leaflet', 'dist'), {
   maxAge: '1d'
 }));
+app.use('/vendor/maplibre-gl', express.static(path.join(__dirname, 'node_modules', 'maplibre-gl', 'dist'), {
+  maxAge: '1d'
+}));
 
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders(res, filePath) {

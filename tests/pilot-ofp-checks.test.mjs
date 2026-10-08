@@ -97,5 +97,5 @@ test('briefing helper is versioned, cached and refreshed with the EFB shell', ()
   const version=sw.match(/PILOT_STYLESHEET_VERSION = '([^']+)'/)[1];
   assert.ok(source.includes(`/pilot-ofp-checks.js?v=${version}`));
   assert.match(sw,/`\/pilot-ofp-checks\.js\?v=\$\{PILOT_STYLESHEET_VERSION\}`/);
-  assert.match(sw,/'\/pilot-ofp-checks\.js'\]\.includes\(url\.pathname\)/);
+  assert.match(sw,/if \(isEfbStylesheet \|\| \[[^\]]*'\/pilot-ofp-checks\.js'[^\]]*\]\.includes\(url\.pathname\)/);
 });

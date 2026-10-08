@@ -2943,14 +2943,16 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-07-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-07-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-07-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-07-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-07-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-08-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-07-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-07-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-10-08-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3030,9 +3032,9 @@
         </div>
       </section>
       <section class="ops-globe-card" aria-labelledby="opsGlobeTitle">
-        <header class="ops-globe-head"><div><span>Global operations picture</span><h2 id="opsGlobeTitle">360° Flight Globe</h2><p>Drag horizontally or use the arrow keys to rotate. The selected flight is plotted automatically when airport coordinates are available.</p></div><div class="ops-globe-actions"><button id="opsGlobeRotateBtn" type="button" aria-pressed="true">Pause rotation</button><button id="opsGlobeResetBtn" type="button">Reset view</button></div></header>
-        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Interactive rotating operations globe. Use left and right arrows to rotate, up and down arrows to tilt, and Space to pause or resume rotation."></canvas><div class="ops-globe-scan" aria-hidden="true"></div></div>
-        <footer class="ops-globe-footer"><div><span>Active route</span><strong id="opsGlobeRoute">NO FLIGHT SELECTED</strong></div><div><span>View</span><strong id="opsGlobeView">AUTO ROTATE / GLOBAL</strong></div></footer>
+        <header class="ops-globe-head"><div><span>Operations overview</span><h2 id="opsGlobeTitle">Flight map</h2></div><div class="ops-globe-actions"><div class="map-mode-segment" role="group" aria-label="Map projection"><button id="opsMapModeBtn" type="button" aria-pressed="false" disabled>Map</button><button id="opsGlobeModeBtn" type="button" aria-pressed="true" disabled>Globe</button></div><button id="opsGlobeRotateBtn" type="button" aria-pressed="false">Rotate</button><button id="opsGlobeResetBtn" type="button">Reset view</button></div></header>
+        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Simplified operations globe. Use arrow keys to rotate and tilt, and Space to pause or resume rotation."></canvas><div id="opsVectorMap" role="region" aria-label="Interactive flight overview map" hidden></div><span class="ops-map-note">Overview only · direct route · not for navigation</span></div>
+        <footer class="ops-globe-footer"><div><span>Active route</span><strong id="opsGlobeRoute">NO FLIGHT SELECTED</strong></div><div><span>View</span><strong id="opsGlobeView">GLOBE</strong></div><span id="opsMapStatus" class="ops-map-status" role="status">Map will load when Home opens</span></footer>
       </section>
       <aside class="dashboard-deck" aria-label="Pilot quick deck">
       <header class="dashboard-deck-head"><div><span>Pilot quick deck</span><strong id="quickDeckTitle">Workspaces</strong></div><small>Open a task without losing the active flight.</small></header>
@@ -3834,6 +3836,7 @@ END OF MESSAGE</pre>
     <header class="shell-dialog-head"><strong id="appPreferencesTitle">App settings</strong><button id="appSettingsCloseBtn" class="shell-icon-button" type="button">Done</button></header>
     <div class="app-preferences-body">
       <section class="app-settings-group"><h2>Appearance</h2><div class="app-theme-segment" role="group" aria-label="Display appearance"><button type="button" data-app-theme="day" aria-pressed="false">Day</button><button type="button" data-app-theme="night" aria-pressed="true">Night</button></div></section>
+      <section class="app-settings-group"><h2>Interface material</h2><div class="app-theme-segment" role="group" aria-label="Interface material"><button type="button" data-app-material="glass" aria-pressed="true">Glass</button><button type="button" data-app-material="solid" aria-pressed="false">Solid</button></div><p>Solid removes transparency for maximum contrast and lower graphics load.</p></section>
       <section class="app-settings-group"><div class="app-install-heading"><h2>Pilot EFB on your device</h2><span id="appDisplayState">Browser session</span></div><div id="appInstallGuide"><p>Launch from your Home Screen for a dedicated app window without browser tabs.</p><ol class="app-install-steps"><li>Open Pilot Ops in Safari on your iPad.</li><li>Tap Share, then Add to Home Screen. It may be under More.</li><li>Enable Open as Web App if shown, then tap Add.</li></ol><p>On other devices, use your browser’s install option when available.</p></div><button id="appNativeInstallBtn" class="app-sheet-action" type="button" hidden>Install on this device</button></section>
       <section class="app-settings-group"><h2>Session</h2><p id="appNetworkDetail"></p><button id="appCrewBtn" class="app-sheet-action" type="button">Crew session &amp; device access</button><button id="appAlertsBtn" class="app-sheet-action" type="button">Operations alerts</button><button id="appReloadBtn" class="app-sheet-action" type="button">Reload application…</button><p>Flight planning and live data require a connection. Offline snapshots are not a current briefing.</p></section>
     </div>
@@ -3847,8 +3850,10 @@ END OF MESSAGE</pre>
     <div id="flightPickerResults" class="flight-picker-results"></div><footer class="flight-picker-footer"><button id="flightPickerCreateBtn" class="app-sheet-action" type="button">+ Create pilot flight</button></footer>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
-  <script src="/pilot-flight-deck.js?v=2026-10-07-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-10-07-1"></script>
+  <script src="/pilot-flight-deck.js?v=2026-10-08-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-10-08-1"></script>
+  <script src="/pilot-map-view.js?v=2026-10-08-1"></script>
+  <script src="/pilot-display.js?v=2026-10-08-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -4181,7 +4186,8 @@ END OF MESSAGE</pre>
     let weatherRadarLoadedAt = 0;
     let weatherRadarTileErrors = 0;
     let weatherRadarTileLoads = 0;
-    let globeAutoRotate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let globeAutoRotate = false;
+    let opsVectorMap = null;
     let globeRotation = { lon:-18, lat:24 };
     let globeDrag = null;
     let globeAnimationFrame = 0;
@@ -5152,6 +5158,7 @@ END OF MESSAGE</pre>
     function airportCoordinates(icao) {
       const code = weatherIcao(icao);
       const airport = weatherAirportCatalog.find(item => weatherIcao(item.icao) === code);
+      if (airport?.lat == null || airport?.lon == null || airport.lat === '' || airport.lon === '') return null;
       const lat = Number(airport?.lat);
       const lon = Number(airport?.lon);
       return Number.isFinite(lat) && Number.isFinite(lon) ? { icao:code, lat, lon } : null;
@@ -5213,7 +5220,7 @@ END OF MESSAGE</pre>
     }
 
     function drawOpsGlobe() {
-      if (!opsGlobeCanvas) return;
+      if (!opsGlobeCanvas || opsVectorMap?.ready) return;
       const bounds = opsGlobeCanvas.getBoundingClientRect();
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
       const width = Math.max(320, Math.round(bounds.width || 640));
@@ -5288,6 +5295,8 @@ END OF MESSAGE</pre>
       const departure = airportCoordinates(req?.dep);
       const arrival = airportCoordinates(req?.arr);
       opsGlobeRoute.textContent = req ? `${req.dep || 'DEP'} → ${req.arr || 'ARR'} / ${req.id || 'PILOT FLIGHT'}` : 'NO FLIGHT SELECTED';
+      opsVectorMap?.setFlight({ dep:req?.dep, arr:req?.arr, departure, arrival });
+      if (opsVectorMap?.ready) return;
       if (departure && arrival && recenter) {
         globeRotation.lon = (departure.lon + arrival.lon) / 2;
         globeRotation.lat = Math.max(-45, Math.min(65, (departure.lat + arrival.lat) / 2));
@@ -5304,7 +5313,7 @@ END OF MESSAGE</pre>
 
     function animateOpsGlobe(timestamp) {
       globeAnimationFrame = 0;
-      if (activeWorkspace !== 'dashboard' || document.hidden) return;
+      if (activeWorkspace !== 'dashboard' || document.hidden || opsVectorMap?.ready || !globeAutoRotate) return;
       if (globeAutoRotate && !globeDrag && (!globeLastFrameAt || timestamp - globeLastFrameAt > 30)) {
         globeRotation.lon = ((globeRotation.lon + .07 + 540) % 360) - 180;
         globeLastFrameAt = timestamp;
@@ -5314,7 +5323,8 @@ END OF MESSAGE</pre>
     }
 
     function syncOpsGlobeAnimation() {
-      const shouldAnimate = activeWorkspace === 'dashboard' && !document.hidden;
+      opsVectorMap?.setActive(activeWorkspace === 'dashboard' && !document.hidden);
+      const shouldAnimate = activeWorkspace === 'dashboard' && !document.hidden && globeAutoRotate && !opsVectorMap?.ready;
       if (!shouldAnimate && globeAnimationFrame) {
         window.cancelAnimationFrame(globeAnimationFrame);
         globeAnimationFrame = 0;
@@ -5330,14 +5340,12 @@ END OF MESSAGE</pre>
         weatherRadarUnavailable.textContent = 'The interactive radar map could not start. METAR and TAF briefing remain available below.';
         return false;
       }
-      const coarsePointer = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
       weatherRadarMap = L.map(weatherRadarMapElement, {
         zoomControl:true,
         attributionControl:true,
         scrollWheelZoom:false,
-        dragging:!coarsePointer,
-        touchZoom:!coarsePointer,
-        tap:!coarsePointer,
+        dragging:true,
+        touchZoom:true,
         minZoom:2,
         maxZoom:12,
         worldCopyJump:true
@@ -8476,6 +8484,10 @@ END OF MESSAGE</pre>
     weatherRadarRouteBtn.addEventListener('click', () => updateWeatherRadarRoute(true));
     weatherRadarRefreshBtn.addEventListener('click', () => loadWeatherRadar(true).catch(() => {}));
     opsGlobeRotateBtn.addEventListener('click', () => {
+      if (opsVectorMap?.ready) {
+        opsVectorMap.setRotating(opsGlobeRotateBtn.getAttribute('aria-pressed') !== 'true');
+        return;
+      }
       globeAutoRotate = !globeAutoRotate;
       opsGlobeRotateBtn.setAttribute('aria-pressed', String(globeAutoRotate));
       opsGlobeRotateBtn.textContent = globeAutoRotate ? 'Pause rotation' : 'Resume rotation';
@@ -8483,8 +8495,10 @@ END OF MESSAGE</pre>
         recenter:false,
         viewLabel:globeAutoRotate ? 'AUTO ROTATE / CURRENT VIEW' : 'MANUAL / CURRENT VIEW'
       });
+      syncOpsGlobeAnimation();
     });
     opsGlobeResetBtn.addEventListener('click', () => {
+      if (opsVectorMap?.ready) { opsVectorMap.fitRoute(); return; }
       globeRotation = { lon:-18, lat:24 };
       updateOpsGlobeContext(selected, {
         recenter:false,
@@ -8523,6 +8537,7 @@ END OF MESSAGE</pre>
       event.preventDefault();
       opsGlobeView.textContent = globeAutoRotate ? 'AUTO ROTATE / KEYBOARD VIEW' : 'MANUAL / KEYBOARD VIEW';
       drawOpsGlobe();
+      syncOpsGlobeAnimation();
     });
     if ('ResizeObserver' in window) new ResizeObserver(drawOpsGlobe).observe(opsGlobeCanvas);
     else window.addEventListener('resize', drawOpsGlobe, { passive:true });
@@ -8996,6 +9011,7 @@ END OF MESSAGE</pre>
       }
       if (ofpOpsFrame.contentWindow) ofpOpsFrame.contentWindow.postMessage({ type:'nga-efb-theme', theme }, location.origin);
       appShell?.syncTheme(theme);
+      opsVectorMap?.setTheme(theme);
     }
     applyEfbTheme(document.documentElement.dataset.efbTheme, false);
     efbThemeToggle.addEventListener('click', () => applyEfbTheme(document.documentElement.dataset.efbTheme === 'night' ? 'day' : 'night'));
@@ -9017,8 +9033,27 @@ END OF MESSAGE</pre>
     renderActiveFlightStrip();
     renderReleasePanel();
     updateNetworkState();
+    if (window.createPilotMapView) opsVectorMap = window.createPilotMapView({
+      container:el('opsVectorMap'), fallback:opsGlobeCanvas, status:el('opsMapStatus'),
+      onState({ ready, mode, rotating, hasRoute }) {
+        el('opsMapModeBtn').disabled = !ready;
+        el('opsGlobeModeBtn').disabled = !ready;
+        el('opsMapModeBtn').setAttribute('aria-pressed', String(mode === 'map'));
+        el('opsGlobeModeBtn').setAttribute('aria-pressed', String(mode === 'globe'));
+        opsGlobeRotateBtn.disabled = ready && (mode === 'map' || window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        opsGlobeRotateBtn.setAttribute('aria-pressed', String(rotating));
+        opsGlobeRotateBtn.textContent = rotating ? 'Pause' : 'Rotate';
+        opsGlobeResetBtn.textContent = ready && hasRoute ? 'Fit route' : 'Reset view';
+        if (ready) {
+          opsGlobeView.textContent = `${mode === 'map' ? '2D VECTOR MAP' : '3D GLOBE'}${rotating ? ' / ROTATING' : ''}`;
+          window.cancelAnimationFrame(globeAnimationFrame); globeAnimationFrame = 0;
+        } else drawOpsGlobe();
+      }
+    });
+    el('opsMapModeBtn').addEventListener('click', () => opsVectorMap?.setMode('map'));
+    el('opsGlobeModeBtn').addEventListener('click', () => opsVectorMap?.setMode('globe'));
     opsGlobeRotateBtn.setAttribute('aria-pressed', String(globeAutoRotate));
-    opsGlobeRotateBtn.textContent = globeAutoRotate ? 'Pause rotation' : 'Resume rotation';
+    opsGlobeRotateBtn.textContent = globeAutoRotate ? 'Pause' : 'Rotate';
     drawOpsGlobe();
     syncOpsGlobeAnimation();
     const savedSnapshot = readOperationalSnapshot();

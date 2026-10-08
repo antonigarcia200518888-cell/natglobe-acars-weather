@@ -102,7 +102,10 @@ test('app resources are versioned together and Home Screen metadata is present',
   const sw=fs.readFileSync(new URL('../public/pilot-sw.js',import.meta.url),'utf8');
   const version=sw.match(/PILOT_STYLESHEET_VERSION = '([^']+)'/)[1];
   for(const ext of ['js','css']) assert.ok(html.includes(`/pilot-app-shell.${ext}?v=${version}`));
-  assert.match(sw,/\['\/pilot-app-shell\.js', '\/pilot-flight-deck\.js', '\/pilot-ofp-checks\.js'\]\.includes\(url\.pathname\)/);
+  for (const file of ['pilot-app-shell.js','pilot-flight-deck.js','pilot-ofp-checks.js','pilot-map-view.js','pilot-display.js']) {
+    const networkFirst = sw.match(/if \(isEfbStylesheet \|\| (\[[^\]]+\])\.includes\(url\.pathname\)/)?.[1];
+    assert.ok(networkFirst?.includes(`'/${file}'`), `${file} stays network-first`);
+  }
   for(const file of ['booking-ops.html','pilot-login.html']) {
     const page=fs.readFileSync(new URL('../views/'+file,import.meta.url),'utf8');
     assert.match(page,/apple-mobile-web-app-capable" content="yes/);

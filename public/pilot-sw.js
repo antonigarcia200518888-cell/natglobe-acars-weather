@@ -1,5 +1,5 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-10-v28';
-const PILOT_STYLESHEET_VERSION = '2026-10-07-1';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-10-v29';
+const PILOT_STYLESHEET_VERSION = '2026-10-08-1';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
@@ -9,7 +9,8 @@ const PILOT_EFB_STYLESHEETS = [
   `/pilot-logbook.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-rebuild.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-ofp-workflow.css?v=${PILOT_STYLESHEET_VERSION}`,
-  `/pilot-app-shell.css?v=${PILOT_STYLESHEET_VERSION}`
+  `/pilot-app-shell.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-premium.css?v=${PILOT_STYLESHEET_VERSION}`
 ];
 const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
@@ -18,6 +19,11 @@ const PILOT_SHELL_ASSETS = [
   `/pilot-app-shell.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-flight-deck.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-ofp-checks.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-map-view.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-display.js?v=${PILOT_STYLESHEET_VERSION}`,
+  '/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0',
+  '/vendor/maplibre-gl/maplibre-gl-csp.js?v=5.24.0',
+  '/vendor/maplibre-gl/maplibre-gl-csp-worker.js?v=5.24.0',
   '/vendor/leaflet/leaflet.css',
   '/vendor/leaflet/leaflet.js',
   '/vendor/leaflet/images/layers.png',
@@ -68,7 +74,7 @@ self.addEventListener('fetch', event => {
   const shellAsset = PILOT_SHELL_ASSETS.find(asset => new URL(asset, self.location.origin).pathname === url.pathname);
   if (shellAsset) {
     const isEfbStylesheet = PILOT_EFB_STYLESHEETS.some(asset => new URL(asset, self.location.origin).pathname === url.pathname);
-    if (isEfbStylesheet || ['/pilot-app-shell.js', '/pilot-flight-deck.js', '/pilot-ofp-checks.js'].includes(url.pathname)) {
+    if (isEfbStylesheet || ['/pilot-app-shell.js', '/pilot-flight-deck.js', '/pilot-ofp-checks.js', '/pilot-map-view.js', '/pilot-display.js'].includes(url.pathname)) {
       event.respondWith(
         fetch(request)
           .then(response => {
