@@ -84,22 +84,25 @@ test('server save responses do not overwrite edits entered during the request',a
   assert.equal(ctx.savedRevision,1);assert.equal(ctx.saveBusy,false);assert.equal(populated,0);
 });
 
-test('flight refresh keeps current selection, then restores the last selected reference on reload',async()=>{
+test('flight refresh retains an explicit selection but launch never loads a previous or first flight',async()=>{
   const start=ops.indexOf('    async function loadRequests() {');
   const end=ops.indexOf('    async function refreshSelectedRequest()',start);
   const flights=[{id:'A'},{id:'B'}];
   const ctx=vm.createContext({selected:flights[1],requests:[],mode:{},activeWorkspace:'flights',ACTIVE_FLIGHT_STORAGE_KEY:'active',
+    window:{PilotCockpit:{retainedFlight:(items,id)=>id ? items.find(item=>item.id===id)||null : null}},
     fetch:async()=>({ok:true,json:async()=>({requests:flights})}),localStorage:{getItem:()=> 'B'},
-    renderCrewFilterOptions:()=>{},renderOpsTotals:()=>{},renderList:()=>{},renderCalendar:()=>{},
+    renderCrewFilterOptions:()=>{},renderOpsTotals:()=>{},renderList:()=>{},renderCalendar:()=>{},renderActiveFlightStrip:()=>{},updateSuiteContext:()=>{},
     sortQueue:list=>list,selectRequest:flight=>{ctx.selected=flight;},readOperationalSnapshot:()=>null,activePlanner:()=>null});
   vm.runInContext(ops.slice(start,end),ctx);
   await vm.runInContext('loadRequests()',ctx);assert.equal(ctx.selected.id,'B');
-  ctx.selected=null;await vm.runInContext('loadRequests()',ctx);assert.equal(ctx.selected.id,'B');
+  ctx.selected=null;await vm.runInContext('loadRequests()',ctx);assert.equal(ctx.selected,null);
   ctx.localStorage.getItem=()=> 'MISSING';ctx.selected=null;
-  await vm.runInContext('loadRequests()',ctx);assert.equal(ctx.selected.id,'A');
+  await vm.runInContext('loadRequests()',ctx);assert.equal(ctx.selected,null);
   ctx.selected={id:'REMOVED'};ctx.activePlanner=()=>({getState:()=>({dirty:true})});
   await vm.runInContext('loadRequests()',ctx);assert.equal(ctx.selected.id,'REMOVED');
   assert.match(ctx.mode.textContent,/DRAFT PRESERVED/);
+  ctx.selected=null;ctx.fetch=async()=>{throw new Error('offline');};ctx.readOperationalSnapshot=()=>flights[1];ctx.offlineSnapshotState={};
+  await vm.runInContext('loadRequests()',ctx);assert.equal(ctx.selected,null,'cached flight stays available but must be explicitly selected');
 });
 
 test('flight controls have unique ids and the flight deck is versioned with its service worker',()=>{
@@ -121,6 +124,16 @@ test('a slow background refresh cannot switch back to the previous flight',async
   vm.runInContext(ops.slice(start,end),ctx);const refreshing=vm.runInContext('refreshSelectedRequest()',ctx);
   ctx.selected={id:'B'};respond({ok:true,json:async()=>({requests:[{id:'A'},{id:'B'}]})});
   assert.equal(await refreshing,null);assert.equal(ctx.selected.id,'B');
+});
+test('late timeline responses cannot replace the next flight or an unloaded file',async()=>{
+  const start=ops.indexOf('    async function loadTimeline(requestId) {');
+  const end=ops.indexOf('    function renderCrewFilterOptions()',start);
+  let respond, renders=0;
+  const ctx=vm.createContext({selected:{id:'A'},fetch:()=>new Promise(resolve=>{respond=resolve;}),renderTimeline:()=>{renders++;}});
+  vm.runInContext(ops.slice(start,end),ctx);
+  const pending=vm.runInContext('loadTimeline("A")',ctx);
+  ctx.selected=null;respond({ok:true,json:async()=>({events:[{id:'old'}]})});await pending;
+  assert.equal(renders,0);
 });
 
 test('PDF actions do not present an earlier saved revision as the current plan',async()=>{

@@ -1,4 +1,4 @@
-/* Incremental shell finish. Flight forms and OFP retain their existing layout/state. */
+/* Incremental shell finish. Flight forms and OFP retain their existing state. */
 html body.pilot-ops-v2 {
   --glass-surface:rgba(247,250,253,.88);
   --glass-edge:rgba(120,144,165,.26);
@@ -113,6 +113,40 @@ html body.pilot-ops-v2 .shell-dialog-head { background:var(--glass-surface); -we
 html body.pilot-ops-v2 .app-theme-segment button { min-height:48px; }
 
 /* Materials never determine legibility. Solid mode also avoids blur GPU cost. */
+html body.pilot-ops-v2 #cockpitFlightFile[hidden] { display:none!important; }
+.cockpit-file-empty { padding:32px; margin:0; border:1px solid var(--glass-edge); border-radius:20px; background:var(--glass-surface); color:var(--shell-ink); }
+.cockpit-file-empty > span { font-size:11px; letter-spacing:.1em; color:var(--shell-muted); }
+.cockpit-file-empty h2 { color:var(--shell-ink); font-size:26px; }
+.cockpit-file-empty p { color:var(--shell-muted); font-size:16px; line-height:1.6; max-width:480px; }
+.cockpit-file-empty button { min-height:52px; padding:12px 20px; border:0; border-radius:12px; background:#216292; color:#fff; font-size:16px; }
+html body.pilot-ops-v2 .active-flight-strip[data-active=false] .flight-strip-lamp { background:var(--shell-muted); box-shadow:none; }
+html body.pilot-ops-v2 .ops-map-note { top:12px; right:70px; bottom:auto; left:auto; max-width:calc(100% - 90px); }
+html body.pilot-ops-v2 .ops-globe-footer .ops-map-status { color:var(--shell-muted); }
+html body.pilot-ops-v2 .ops-globe-footer .ops-map-status[data-state=limited] { color:var(--efb-amber-strong,#986300); }
+html body.pilot-ops-v2 .efb-masthead .masthead-status #clock { display:block!important; order:-2; min-width:120px; margin:0; color:var(--shell-ink); font:700 19px/1.2 "Courier New",monospace; letter-spacing:.01em; white-space:nowrap; }
+html body.pilot-ops-v2 .cockpit-location { display:flex; align-items:center; gap:7px; min-height:48px; padding:8px 12px; border:1px solid var(--glass-edge); border-radius:14px; color:var(--shell-muted); background:transparent; font:600 12px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.cockpit-location > span:first-child { font-size:22px; }
+html body.pilot-ops-v2 .cockpit-location[data-tone=normal] { color:var(--shell-active-ink); }
+html body.pilot-ops-v2 .cockpit-location[data-tone=caution] { color:var(--efb-amber-strong,#986300); }
+.cockpit-location-body { padding:22px; color:var(--shell-ink); line-height:1.6; font-size:15px; }
+.cockpit-location-body button,.cockpit-location-dialog header button { min-height:48px; padding:12px; border-radius:12px; color:var(--shell-ink); background:var(--app-card-muted); border:1px solid var(--glass-edge); }
+#cockpitPositionDetail { font:700 16px/1.6 "Courier New",monospace; }
+html body.pilot-ops-v2 .cockpit-empty-flight { position:absolute; z-index:3; top:50%; left:24px; transform:translateY(-50%); width:min(360px,calc(100% - 90px)); padding:26px; border:1px solid var(--glass-edge); border-radius:24px; background:var(--glass-surface); color:var(--shell-ink); -webkit-backdrop-filter:var(--glass-filter); backdrop-filter:var(--glass-filter); box-shadow:inset 0 1px var(--glass-highlight); }
+.cockpit-empty-flight[hidden] { display:none!important; }
+.cockpit-empty-flight > span:not(.cockpit-empty-symbol) { font-size:10px; letter-spacing:.12em; color:var(--shell-muted); }
+.cockpit-empty-symbol { display:block; font:300 38px/1.2 Arial,sans-serif; margin-bottom:14px; color:var(--efb-blue-strong); }
+.cockpit-empty-flight h2 { margin:8px 0; color:var(--shell-ink); font:650 27px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:-.025em; }
+.cockpit-empty-flight p { color:var(--shell-muted); font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; margin:12px 0 20px; }
+.cockpit-empty-flight > div { display:flex; gap:10px; flex-wrap:wrap; }
+.cockpit-empty-flight button { flex:1; min-height:50px; padding:12px; border-radius:13px; background:var(--app-card-solid); color:var(--shell-ink); border:1px solid var(--glass-edge); font-size:14px; font-weight:600; }
+.cockpit-empty-flight button:first-child { color:#fff; background:#216292; border-color:#216292; }
+html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
+html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .efb-flight-hero { display:none; }
+html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .ops-globe-card { grid-column:1; grid-row:1; }
+html body.pilot-ops-v2 .ops-globe-head { align-items:flex-start; }
+html body.pilot-ops-v2 .ops-globe-actions { justify-content:flex-end; }
+@media(max-width:1050px) { html body.pilot-ops-v2 .app-connection { display:none; } html body.pilot-ops-v2 .masthead-status { gap:6px; } html body.pilot-ops-v2 .masthead-status .clock { min-width:110px; font-size:17px; } }
+@media(max-width:650px) { html body.pilot-ops-v2 .cockpit-location { padding:8px; width:48px; justify-content:center; } .cockpit-location #cockpitLocationValue { display:none; } html body.pilot-ops-v2 .masthead-status .clock { min-width:94px; font-size:15px; } html body.pilot-ops-v2 .cockpit-empty-flight { padding:18px; left:14px; } .cockpit-empty-symbol { display:none; } .cockpit-empty-flight h2 { font-size:23px; } }
 html[data-efb-material="solid"] body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); --glass-filter:none; }
 @supports not (backdrop-filter:blur(1px)) { html body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); } }
 @media(prefers-reduced-transparency:reduce) { html body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); --glass-filter:none; } }

@@ -46,7 +46,9 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-10-09-1" />
 </head>
 <body>
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -101,7 +103,8 @@
       <button id="taskTabFiles" class="ofp-workspace-button" type="button" role="tab" data-workspace="FILES" aria-controls="folderDocumentsSection" aria-selected="false"><strong class="task-title">Documents</strong><em class="workspace-state">OFP &amp; flight files</em></button>
     </nav>
     <div class="workspace ofp-app-workspace">
-      <header class="folder-toolbar"><div><span id="folderFlightContext">FLIGHT BRIEFING</span><h2 id="folderSectionTitle">Flight summary</h2></div><button type="button" id="folderOverviewBtn" aria-label="Return to flight summary">Overview</button></header>
+      <header class="folder-toolbar"><button id="ofpSectionsToggle" type="button" aria-label="Hide flight sections" aria-expanded="true">☰</button><div><span id="folderFlightContext">FLIGHT BRIEFING</span><h2 id="folderSectionTitle">Flight summary</h2></div><div class="ofp-toolbar-actions"><button id="ofpScratchpadBtn" type="button">Notes</button><button type="button" id="folderOverviewBtn" aria-label="Return to flight summary">Overview</button></div></header>
+      <nav class="ofp-planning-segments" aria-label="Planning shortcuts"><button type="button" data-planning-target="taskTabRoute">Routing</button><button type="button" data-planning-target="openPerformanceWorkspaceBtn">Performance ↗</button><button type="button" data-planning-target="taskTabLoad">Fuel</button><button type="button" data-planning-target="openWeatherWorkspaceBtn">Weather ↗</button></nav>
       <section class="editor ofp-task-content" aria-label="Selected flight plan stage">
         <div id="checkReturnBar" class="check-return-bar" hidden><div><span>BRIEFING CHECK</span><strong id="checkReturnLabel"></strong></div><button type="button" id="backToReviewBtn">Back to review</button></div>
         <section id="flightSummarySection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabSummary" hidden>
@@ -535,7 +538,10 @@
       </form>
     </dialog>
   </main>
-  <script src="/pilot-ofp-checks.js?v=2026-10-08-1"></script>
+  <script src="/pilot-ofp-checks.js?v=2026-10-09-1"></script>
+  <script src="/pilot-touch-controls.js?v=2026-10-09-1"></script>
+  <script src="/pilot-display.js?v=2026-10-09-1"></script>
+  <script src="/pilot-ofp-touch.js?v=2026-10-09-1" defer></script>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
     if (embedded) document.documentElement.classList.add('embedded');

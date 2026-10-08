@@ -1,0 +1,22 @@
+/* Shared touch controls use the host document's day/night tokens. */
+:root { --touch-surface:var(--surface,var(--app-card-solid,#f5f7fa)); --touch-ink:var(--ink,var(--app-ink,#1a1f26)); --touch-muted:var(--muted,var(--app-muted,#516679)); --touch-line:var(--line,var(--app-line,#b9c8d5)); --touch-blue:var(--blue,var(--efb-blue-strong,#2b6cb0)); }
+select.pilot-enhanced-select { position:absolute!important; width:1px!important; height:1px!important; min-height:0!important; padding:0!important; margin:0!important; opacity:0!important; pointer-events:none!important; clip-path:inset(50%); }
+button.pilot-choice-trigger { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:52px; padding:12px 14px; border:1px solid var(--touch-line); border-radius:12px; background:var(--touch-surface); color:var(--touch-ink); font:500 15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; text-align:left; white-space:normal; overflow-wrap:anywhere; }
+.pilot-choice-trigger::after { content:'›'; font-size:22px; color:var(--touch-blue); }
+.pilot-segment { display:flex; gap:4px; padding:4px; border:1px solid var(--touch-line); border-radius:14px; }
+.pilot-segment button { flex:1; min-height:48px; padding:10px; border:0; border-radius:10px; background:transparent; color:var(--touch-ink); font:600 16px Arial,sans-serif; }
+.pilot-segment button[aria-pressed=true] { background:#216292; color:#fff; }
+dialog.pilot-choice-sheet { width:min(560px,calc(100% - 32px)); max-height:min(740px,calc(100dvh - 32px)); box-sizing:border-box; border:1px solid var(--touch-line); border-radius:24px; padding:22px; color:var(--touch-ink); background:var(--touch-surface); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; }
+.pilot-choice-sheet::backdrop { background:#07152588; }
+.pilot-choice-sheet header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.pilot-choice-sheet h2 { font-size:22px; line-height:1.25; margin:4px 0; color:var(--touch-ink); }
+.pilot-choice-sheet small { font-size:10px; letter-spacing:.08em; color:var(--touch-muted); }
+.pilot-choice-sheet .pilot-choice-close { min-height:48px; padding:12px; background:transparent; border:0; color:var(--touch-blue); }
+.pilot-choice-sheet .pilot-choice-search { box-sizing:border-box; width:100%; min-height:52px; padding:12px; border-radius:12px; background:var(--touch-surface); color:var(--touch-ink); border:1px solid var(--touch-line); font:16px Arial,sans-serif; margin-bottom:12px; }
+.pilot-choice-list { display:grid; gap:6px; }
+.pilot-choice-list button { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:56px; padding:14px; border:1px solid var(--touch-line); border-radius:12px; background:var(--touch-surface); color:var(--touch-ink); text-align:left; font:500 16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; }
+.pilot-choice-list button[aria-pressed=true] { border-color:var(--touch-blue); color:var(--touch-blue); }
+.pilot-choice-list button[aria-pressed=true]::after { content:'✓'; font-size:22px; }
+.pilot-choice-sheet button:disabled,.pilot-choice-trigger:disabled { opacity:.5; }
+.pilot-choice-sheet [hidden],.pilot-choice-trigger[hidden],.pilot-segment[hidden] { display:none!important; }
+:is(.pilot-choice-trigger,.pilot-choice-list button,.pilot-segment button):focus-visible { outline:3px solid var(--touch-blue); outline-offset:3px; }

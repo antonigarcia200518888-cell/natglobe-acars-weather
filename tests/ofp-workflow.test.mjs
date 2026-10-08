@@ -17,13 +17,14 @@ test('all EFB inline scripts parse', () => {
   }
 });
 
-test('planner has one stylesheet, eight folder sections, and no duplicate IDs or fields', () => {
+test('planner has scoped touch styles, eight folder sections, and no duplicate IDs or fields', () => {
   for (const attribute of ['id', 'data-field']) {
     const values = [...markup.matchAll(new RegExp(`\\s${attribute}="([^"]+)"`, 'g'))].map(m => m[1]);
     assert.equal(values.length, new Set(values).size, `duplicate ${attribute}`);
   }
   assert.equal([...markup.matchAll(/role="tab" data-workspace=/g)].length, 8);
-  assert.equal([...markup.matchAll(/rel="stylesheet"/g)].length, 1);
+  assert.equal([...markup.matchAll(/rel="stylesheet"/g)].length, 3);
+  for (const sheet of ['pilot-ofp-workflow.css','pilot-touch.css','pilot-ofp-touch.css']) assert.ok(markup.includes(`/${sheet}?v=`));
   assert.doesNotMatch(source, /foreflight/i);
   for (const field of ['departure','destination','route','depRunway','arrRunway','estimatedEnrouteMinutes','fuelFlowGph','tripFuelGal','finalReserveFuelGal','crew1Lb','passengerWeightOverrideLb','releaseAccepted','actualOut','actualOff','actualOn','actualIn']) {
     assert.ok(markup.includes(`data-field="${field}"`), `missing ${field}`);

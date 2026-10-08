@@ -2943,16 +2943,17 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-08-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-08-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-08-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-08-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-09-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-08-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-09-1" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-10-08-1" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-10-09-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -2961,6 +2962,7 @@
       <button id="sidebarToggle" class="shell-icon-button masthead-menu-button" type="button" aria-label="Collapse navigation" title="Navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span></button>
       <div class="masthead-brand"><span class="efb-logo-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
       <div class="masthead-status">
+        <button id="cockpitLocationBtn" class="cockpit-location" type="button" aria-label="Device location status" data-tone="neutral"><span aria-hidden="true">◎</span><span id="cockpitLocationValue">Location off</span></button>
         <span id="appConnection" class="app-connection" aria-live="polite">Network</span>
         <button id="appFocusBtn" class="shell-icon-button app-focus-button" type="button" aria-label="Focus on flight briefing" aria-pressed="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" /></svg><span id="appFocusLabel">Focus</span></button>
         <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button" aria-label="Search tools and flights"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg></span><span class="shell-search-label">Ask Pilot EFB or search</span><kbd>⌘ K</kbd></button>
@@ -3011,6 +3013,7 @@
           <div class="efb-hero-actions">
             <button id="efbHeroPrimaryAction" class="efb-action primary" type="button" data-dashboard-view="flights">Choose a flight</button>
             <button id="efbHeroSecondaryAction" class="efb-action" type="button" data-dashboard-view="weather">Check weather</button>
+            <button id="cockpitUnloadFlight" class="efb-action" type="button" hidden>Unload flight</button>
           </div>
         </div>
         <div id="efbHeroPhase" class="efb-flight-phase" aria-label="Flight phase progress" style="--phase-progress:0%">
@@ -3032,8 +3035,8 @@
         </div>
       </section>
       <section class="ops-globe-card" aria-labelledby="opsGlobeTitle">
-        <header class="ops-globe-head"><div><span>Operations overview</span><h2 id="opsGlobeTitle">Flight map</h2></div><div class="ops-globe-actions"><div class="map-mode-segment" role="group" aria-label="Map projection"><button id="opsMapModeBtn" type="button" aria-pressed="false" disabled>Map</button><button id="opsGlobeModeBtn" type="button" aria-pressed="true" disabled>Globe</button></div><button id="opsGlobeRotateBtn" type="button" aria-pressed="false">Rotate</button><button id="opsGlobeResetBtn" type="button">Reset view</button></div></header>
-        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Simplified operations globe. Use arrow keys to rotate and tilt, and Space to pause or resume rotation."></canvas><div id="opsVectorMap" role="region" aria-label="Interactive flight overview map" hidden></div><span class="ops-map-note">Overview only · direct route · not for navigation</span></div>
+        <header class="ops-globe-head"><div><span>Operations overview</span><h2 id="opsGlobeTitle">Flight map</h2></div><div class="ops-globe-actions"><button id="cockpitDeckToggle" type="button" aria-expanded="true" aria-controls="efbFlightHero">Hide flight panel</button><div class="map-mode-segment" role="group" aria-label="Map projection"><button id="opsMapModeBtn" type="button" aria-pressed="false" disabled>Map</button><button id="opsGlobeModeBtn" type="button" aria-pressed="true" disabled>Globe</button></div><button id="opsGlobeRotateBtn" type="button" aria-pressed="false">Rotate</button><button id="opsGlobeResetBtn" type="button">Reset view</button></div></header>
+        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Simplified operations globe. Use arrow keys to rotate and tilt, and Space to pause or resume rotation."></canvas><div id="opsVectorMap" role="region" aria-label="Interactive flight overview map" hidden></div><section id="cockpitEmptyFlight" class="cockpit-empty-flight" aria-labelledby="cockpitEmptyTitle"><span class="cockpit-empty-symbol" aria-hidden="true">↗</span><span>YOUR FLIGHT DECK</span><h2 id="cockpitEmptyTitle">Ready when you are.</h2><p>No flight loaded. Select a saved flight or build a new plan.</p><div><button id="cockpitSelectFlight" type="button">Select flight</button><button id="cockpitBuildFlight" type="button">Build flight</button></div></section><span class="ops-map-note">Overview only · direct route · not for navigation</span></div>
         <footer class="ops-globe-footer"><div><span>Active route</span><strong id="opsGlobeRoute">NO FLIGHT SELECTED</strong></div><div><span>View</span><strong id="opsGlobeView">GLOBE</strong></div><span id="opsMapStatus" class="ops-map-status" role="status">Map will load when Home opens</span></footer>
       </section>
       <aside class="dashboard-deck" aria-label="Pilot quick deck">
@@ -3503,7 +3506,8 @@ LOAD DATA TO CALCULATE.</pre></details>
       </aside>
 
       <section>
-        <div class="panel">
+        <div id="cockpitFlightFileEmpty" class="cockpit-file-empty"><span>FLIGHT FILE</span><h2>No flight loaded</h2><p>Choose a flight from the list to view its operational file, or create a new pilot flight.</p><button type="button" id="cockpitQueueSelect">Select flight</button></div>
+        <div id="cockpitFlightFile" class="panel" hidden>
           <div class="panel-title">Active flight file</div>
           <div class="meta-grid">
             <div class="meta"><span>REF</span><strong id="ref">.....</strong></div>
@@ -3850,10 +3854,13 @@ END OF MESSAGE</pre>
     <div id="flightPickerResults" class="flight-picker-results"></div><footer class="flight-picker-footer"><button id="flightPickerCreateBtn" class="app-sheet-action" type="button">+ Create pilot flight</button></footer>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
-  <script src="/pilot-flight-deck.js?v=2026-10-08-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-10-08-1"></script>
-  <script src="/pilot-map-view.js?v=2026-10-08-1"></script>
-  <script src="/pilot-display.js?v=2026-10-08-1"></script>
+  <dialog id="cockpitLocationDialog" class="shell-dialog cockpit-location-dialog" aria-labelledby="cockpitLocationTitle"><header class="shell-dialog-head"><div><span>Device sensor</span><strong id="cockpitLocationTitle">Location &amp; precision</strong></div><button id="cockpitLocationClose" type="button">Done</button></header><div class="cockpit-location-body"><p id="cockpitPositionDetail">Location monitoring is off.</p><p>Accuracy is the device-reported uncertainty in metres, not HDOP or certified GPS integrity. A green indicator only means a recent fix with reported accuracy of 50 m or better. This overview is not for navigation.</p><p>Location is used on this device only, never saved or uploaded. Monitoring pauses while the app is hidden.</p><button id="cockpitLocationStart" type="button">Enable device location</button><button id="cockpitLocationStop" type="button" hidden>Stop location monitoring</button></div></dialog>
+  <script src="/pilot-cockpit.js?v=2026-10-09-1"></script>
+  <script src="/pilot-touch-controls.js?v=2026-10-09-1"></script>
+  <script src="/pilot-flight-deck.js?v=2026-10-09-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-10-09-1"></script>
+  <script src="/pilot-map-view.js?v=2026-10-09-1"></script>
+  <script src="/pilot-display.js?v=2026-10-09-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -4209,19 +4216,6 @@ END OF MESSAGE</pre>
     let logbookLoading = false;
     let logbookReloadPending = false;
     let logbookSearchTimer = null;
-
-    function tick() {
-      const now = new Date();
-      const helsinkiTime = new Intl.DateTimeFormat('en-GB', {
-        timeZone: 'Europe/Helsinki',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      }).format(now);
-      clock.textContent = `UTC ${now.toISOString().slice(11, 19)} / HEL ${helsinkiTime}`;
-      renderLiveTiming();
-    }
 
     function escapeHtml(value) {
       return String(value || '').replace(/[&<>"']/g, ch => ({
@@ -5001,6 +4995,10 @@ END OF MESSAGE</pre>
     }
 
     function updateSuiteContext(req = selected) {
+      el('cockpitEmptyFlight').hidden = Boolean(req);
+      el('cockpitUnloadFlight').hidden = !req;
+      el('cockpitFlightFileEmpty').hidden = Boolean(req);
+      el('cockpitFlightFile').hidden = !req;
       appShell?.updateContext();
       const passengers = req ? passengerList(req) : [];
       const signed = req ? agreementCount(req) : 0;
@@ -5771,7 +5769,6 @@ END OF MESSAGE</pre>
     const OPS_WORKSPACE_STORAGE_KEY = 'nga-pilot-ops-active-workspace';
     let appShell = null;
     let flightDeck = null;
-    const ACTIVE_FLIGHT_STORAGE_KEY = 'nga-pilot-active-flight';
 
     function activePlanner() {
       const planner = ofpOpsFrame.contentWindow?.ngaOFP;
@@ -5786,6 +5783,19 @@ END OF MESSAGE</pre>
       selectRequest(requests.find(item => item.id === req.id) || req);
       if (view || activeWorkspace === 'flight-plan') switchOpsWorkspace(view || activeWorkspace);
       return true;
+    }
+
+    async function unloadFlight() {
+      if (flightDeck && !await flightDeck.ensureSaved()) return;
+      selected = null;
+      latestPerformanceData = null;
+      ofpOpsFrame.src = 'about:blank';
+      ofpOpsFrame.dataset.context = '';
+      renderActiveFlightStrip();
+      updateSuiteContext();
+      renderList();
+      flightDeck?.updateDraftStatus();
+      switchOpsWorkspace('dashboard');
     }
 
     function storedOpsWorkspace() {
@@ -7960,7 +7970,7 @@ END OF MESSAGE</pre>
     async function loadTimeline(requestId) {
       const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/timeline`, { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) renderTimeline(data.events || []);
+      if (res.ok && selected?.id === requestId) renderTimeline(data.events || []);
     }
 
     function renderCrewFilterOptions() {
@@ -8040,7 +8050,6 @@ END OF MESSAGE</pre>
       const selectionChanged = selected?.id !== req.id;
       if (selectionChanged) latestPerformanceData = null;
       selected = req;
-      try { localStorage.setItem(ACTIVE_FLIGHT_STORAGE_KEY, req.id); } catch (_) { /* Selection still works without storage. */ }
       cacheOperationalSnapshot(req);
       const manualFlight = req.manualFlight === true;
       el('ref').textContent = req.id || '.....';
@@ -8101,7 +8110,7 @@ END OF MESSAGE</pre>
       renderCrewFilterOptions();
       renderOpsTotals();
       renderCalendar();
-      if (!selected || selected.id === req.id) selectRequest(req);
+      if (selected?.id === req.id) selectRequest(req);
       else renderList();
     }
 
@@ -8142,14 +8151,14 @@ END OF MESSAGE</pre>
           aircraftStatus = data.aircraftStatus;
           renderAircraftStatus();
         }
-        let preferredId = selected?.id;
-        if (!preferredId) { try { preferredId = localStorage.getItem(ACTIVE_FLIGHT_STORAGE_KEY); } catch (_) {} }
         renderOpsTotals();
         renderList();
         renderCalendar();
         const currentDraft = activePlanner()?.getState();
         const protectOpenDraft = currentDraft?.dirty || currentDraft?.busy;
-        const preferredRequest = requests.find(req => req.id === preferredId) || (!protectOpenDraft ? sortQueue(requests)[0] : null);
+        // Refresh only a flight explicitly opened in this session. Never restore
+        // a previous/first flight or turn a cached snapshot into an active plan.
+        const preferredRequest = window.PilotCockpit.retainedFlight(requests, selected?.id);
         if (preferredRequest) {
           const changed = selected?.id !== preferredRequest.id;
           selectRequest(preferredRequest);
@@ -8160,7 +8169,6 @@ END OF MESSAGE</pre>
           return;
         } else {
           selected = null;
-          try { localStorage.removeItem(ACTIVE_FLIGHT_STORAGE_KEY); } catch (_) {}
           renderActiveFlightStrip();
           updateSuiteContext();
           renderList();
@@ -8174,7 +8182,7 @@ END OF MESSAGE</pre>
         renderOpsTotals();
         renderCalendar();
         renderList();
-        if (!selected || selected.id === snapshot.id) selectRequest(snapshot);
+        if (selected?.id === snapshot.id) selectRequest(snapshot);
         offlineSnapshotState.textContent = `OFFLINE SNAPSHOT / ${snapshot.id} / ${snapshot.cachedAt ? new Date(snapshot.cachedAt).toLocaleString('en-GB', { hour12:false }) : 'CACHED'}`;
         mode.textContent = 'MODE: OFFLINE / READ-ONLY OPERATIONAL SNAPSHOT';
       }
@@ -9029,6 +9037,16 @@ END OF MESSAGE</pre>
 
     appShell = window.createPilotAppShell({ navigate:switchOpsWorkspace, getFlight:() => selected, setTheme:applyEfbTheme, install:promptPilotAppInstall, canInstall:() => Boolean(deferredInstallPrompt) });
     flightDeck = window.createPilotFlightDeck({ getFlights:() => sortQueue(requests), getSelected:() => selected, getPlanner:activePlanner, choose:req => activateFlight(req), create:openManualFlightComposer, today:todayIso, escapeHtml });
+    el('cockpitSelectFlight').addEventListener('click', () => flightDeck.open());
+    el('cockpitQueueSelect').addEventListener('click', () => flightDeck.open());
+    el('cockpitBuildFlight').addEventListener('click', openManualFlightComposer);
+    el('cockpitUnloadFlight').addEventListener('click', unloadFlight);
+    el('cockpitDeckToggle').addEventListener('click', () => {
+      const collapsed = document.body.classList.toggle('cockpit-deck-collapsed');
+      el('cockpitDeckToggle').setAttribute('aria-expanded', String(!collapsed));
+      el('cockpitDeckToggle').textContent = collapsed ? 'Show flight panel' : 'Hide flight panel';
+      window.dispatchEvent(new Event('resize'));
+    });
     setFlightDetailTab('overview');
     renderActiveFlightStrip();
     renderReleasePanel();
@@ -9073,8 +9091,7 @@ END OF MESSAGE</pre>
       }).catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', showAppUpdate);
     }
-    tick();
-    setInterval(tick, 1000);
+    window.createPilotCockpit({ onMinute:renderLiveTiming });
     setInterval(autoSyncOps, 30000);
     loadPilotSession().catch(() => {});
     Promise.all([

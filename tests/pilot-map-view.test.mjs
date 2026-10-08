@@ -88,6 +88,14 @@ test('theme switches keep the map and reinstate the selected route after style l
   h.adapter.setMode('map');assert.equal(h.maps[0].projection.type,'mercator');
   h.adapter.setMode('globe');assert.equal(h.maps[0].projection.type,'globe');
 });
+test('unloading a flight clears all route features without recreating the vector map',async()=>{
+  const h=harness();h.adapter.setFlight(route);await h.load();
+  h.adapter.setFlight({});
+  assert.equal(h.maps.length,1);
+  for(const source of h.maps[0].sources.values()) assert.equal(source.data.features.length,0);
+  h.adapter.setTheme('day');h.flush();
+  for(const source of h.maps[0].sources.values()) assert.equal(source.data.features.length,0);
+});
 test('rotation is opt-in, stops offscreen, on touch, and for reduced motion',async()=>{
   const h=harness();await h.load();assert.equal(h.frames.size,0);
   h.adapter.setRotating(true);assert.equal(h.frames.size,1);
