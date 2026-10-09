@@ -2943,17 +2943,17 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-09-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-09-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-09-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-09-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-09-2" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-09-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-09-2" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-10-09-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-10-09-2" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3036,7 +3036,9 @@
       </section>
       <section class="ops-globe-card" aria-labelledby="opsGlobeTitle">
         <header class="ops-globe-head"><div><span>Operations overview</span><h2 id="opsGlobeTitle">Flight map</h2></div><div class="ops-globe-actions"><button id="cockpitDeckToggle" type="button" aria-expanded="true" aria-controls="efbFlightHero">Hide flight panel</button><div class="map-mode-segment" role="group" aria-label="Map projection"><button id="opsMapModeBtn" type="button" aria-pressed="false" disabled>Map</button><button id="opsGlobeModeBtn" type="button" aria-pressed="true" disabled>Globe</button></div><button id="opsGlobeRotateBtn" type="button" aria-pressed="false">Rotate</button><button id="opsGlobeResetBtn" type="button">Reset view</button></div></header>
-        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Simplified operations globe. Use arrow keys to rotate and tilt, and Space to pause or resume rotation."></canvas><div id="opsVectorMap" role="region" aria-label="Interactive flight overview map" hidden></div><section id="cockpitEmptyFlight" class="cockpit-empty-flight" aria-labelledby="cockpitEmptyTitle"><span class="cockpit-empty-symbol" aria-hidden="true">↗</span><span>YOUR FLIGHT DECK</span><h2 id="cockpitEmptyTitle">Ready when you are.</h2><p>No flight loaded. Select a saved flight or build a new plan.</p><div><button id="cockpitSelectFlight" type="button">Select flight</button><button id="cockpitBuildFlight" type="button">Build flight</button></div></section><span class="ops-map-note">Overview only · direct route · not for navigation</span></div>
+        <section id="cockpitEmptyFlight" class="cockpit-empty-flight" aria-labelledby="cockpitEmptyTitle"><span>YOUR FLIGHT DECK</span><h2 id="cockpitEmptyTitle">Ready when you are.</h2><p>No flight loaded. Select a saved flight or build a new plan.</p><div><button id="cockpitSelectFlight" type="button">Select flight</button><button id="cockpitBuildFlight" type="button">Build flight</button></div></section>
+        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Simplified operations globe. Use arrow keys to rotate and tilt, and Space to pause or resume rotation."></canvas><div id="opsVectorMap" role="region" aria-label="Interactive flight overview map" hidden></div></div>
+        <span class="ops-map-note">Overview only · direct route · not for navigation</span>
         <footer class="ops-globe-footer"><div><span>Active route</span><strong id="opsGlobeRoute">NO FLIGHT SELECTED</strong></div><div><span>View</span><strong id="opsGlobeView">GLOBE</strong></div><span id="opsMapStatus" class="ops-map-status" role="status">Map will load when Home opens</span></footer>
       </section>
       <aside class="dashboard-deck" aria-label="Pilot quick deck">
@@ -3855,12 +3857,12 @@ END OF MESSAGE</pre>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
   <dialog id="cockpitLocationDialog" class="shell-dialog cockpit-location-dialog" aria-labelledby="cockpitLocationTitle"><header class="shell-dialog-head"><div><span>Device sensor</span><strong id="cockpitLocationTitle">Location &amp; precision</strong></div><button id="cockpitLocationClose" type="button">Done</button></header><div class="cockpit-location-body"><p id="cockpitPositionDetail">Location monitoring is off.</p><p>Accuracy is the device-reported uncertainty in metres, not HDOP or certified GPS integrity. A green indicator only means a recent fix with reported accuracy of 50 m or better. This overview is not for navigation.</p><p>Location is used on this device only, never saved or uploaded. Monitoring pauses while the app is hidden.</p><button id="cockpitLocationStart" type="button">Enable device location</button><button id="cockpitLocationStop" type="button" hidden>Stop location monitoring</button></div></dialog>
-  <script src="/pilot-cockpit.js?v=2026-10-09-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-10-09-1"></script>
-  <script src="/pilot-flight-deck.js?v=2026-10-09-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-10-09-1"></script>
-  <script src="/pilot-map-view.js?v=2026-10-09-1"></script>
-  <script src="/pilot-display.js?v=2026-10-09-1"></script>
+  <script src="/pilot-cockpit.js?v=2026-10-09-2"></script>
+  <script src="/pilot-touch-controls.js?v=2026-10-09-2"></script>
+  <script src="/pilot-flight-deck.js?v=2026-10-09-2"></script>
+  <script src="/pilot-app-shell.js?v=2026-10-09-2"></script>
+  <script src="/pilot-map-view.js?v=2026-10-09-2"></script>
+  <script src="/pilot-display.js?v=2026-10-09-2"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>

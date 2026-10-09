@@ -2,11 +2,26 @@
 (function () {
   const node = id => document.getElementById(id);
   const toggle = node('ofpSectionsToggle');
-  toggle.addEventListener('click', () => {
-    const collapsed = document.body.classList.toggle('ofp-sections-collapsed');
+  const compactEditor = window.matchMedia('(max-width:900px)');
+  let manualSections = false;
+  const setSectionsCollapsed = collapsed => {
+    document.body.classList.toggle('ofp-sections-collapsed', collapsed);
     toggle.setAttribute('aria-expanded', String(!collapsed));
     toggle.setAttribute('aria-label', collapsed ? 'Show flight sections' : 'Hide flight sections');
+  };
+  setSectionsCollapsed(compactEditor.matches);
+  compactEditor.addEventListener('change', event => {
+    if (!manualSections) setSectionsCollapsed(event.matches);
   });
+  toggle.addEventListener('click', () => {
+    manualSections = true;
+    setSectionsCollapsed(!document.body.classList.contains('ofp-sections-collapsed'));
+  });
+  // The title may wrap with larger text or Split View; never assume a fixed height.
+  const toolbar = document.querySelector('.folder-toolbar');
+  if (window.ResizeObserver) new ResizeObserver(() => {
+    document.documentElement.style.setProperty('--ofp-toolbar-height', `${toolbar.getBoundingClientRect().height}px`);
+  }).observe(toolbar);
   document.querySelectorAll('[data-planning-target]').forEach(button => button.addEventListener('click', () => node(button.dataset.planningTarget)?.click()));
   const remarks = document.querySelector('[data-field="briefingRemarks"]');
   const sheet = document.createElement('dialog');

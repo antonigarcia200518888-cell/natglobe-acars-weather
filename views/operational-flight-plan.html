@@ -46,9 +46,9 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-09-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-10-09-1" />
-  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-10-09-1" />
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-10-09-2" />
 </head>
 <body>
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -167,7 +167,8 @@
               <div class="flight-identity-grid">
                 <div class="aircraft-profile-field ofp-smart-aircraft-card" data-component="aircraft-profile">
                   <span class="aircraft-profile-caption">Aircraft</span>
-                  <select class="aircraft-select aircraft-profile-select" data-field="aircraftRegistration" aria-label="Aircraft registration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select>
+                  <!-- The existing profile button is the single aircraft control. -->
+                  <select class="aircraft-select aircraft-profile-select" data-native-select data-field="aircraftRegistration" aria-label="Aircraft registration"><option value="OH-PMK">PRIMARY / PA-28R-200 ARROW II</option></select>
                   <button id="aircraftProfileBtn" class="aircraft-profile-button" type="button" aria-haspopup="dialog" aria-controls="aircraftProfileDialog">
                     <span id="aircraftProfileButtonCode" class="aircraft-profile-code">PA28</span>
                     <span class="aircraft-profile-copy"><strong id="aircraftProfileButtonModel">Piper PA-28R-200 Arrow II</strong><small><span id="aircraftProfileButtonRegistration">PRIMARY AIRCRAFT</span><b>View aircraft profile</b></small></span>
@@ -538,10 +539,10 @@
       </form>
     </dialog>
   </main>
-  <script src="/pilot-ofp-checks.js?v=2026-10-09-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-10-09-1"></script>
-  <script src="/pilot-display.js?v=2026-10-09-1"></script>
-  <script src="/pilot-ofp-touch.js?v=2026-10-09-1" defer></script>
+  <script src="/pilot-ofp-checks.js?v=2026-10-09-2"></script>
+  <script src="/pilot-touch-controls.js?v=2026-10-09-2"></script>
+  <script src="/pilot-display.js?v=2026-10-09-2"></script>
+  <script src="/pilot-ofp-touch.js?v=2026-10-09-2" defer></script>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
     if (embedded) document.documentElement.classList.add('embedded');

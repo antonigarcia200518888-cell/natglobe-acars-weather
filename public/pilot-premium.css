@@ -26,6 +26,7 @@ html[data-efb-theme="night"] body.pilot-ops-v2 {
 html body.pilot-ops-v2 > .frame { background:var(--shell-base); }
 html body.pilot-ops-v2:not(.app-focus) > .frame { padding-bottom:calc(var(--shell-tabs) + 24px + var(--shell-bottom)); }
 html body.pilot-ops-v2 .efb-masthead {
+  padding-block:4px;
   background:var(--glass-surface); color:var(--shell-ink); border-bottom:1px solid var(--glass-edge);
   -webkit-backdrop-filter:var(--glass-filter); backdrop-filter:var(--glass-filter);
 }
@@ -94,7 +95,7 @@ html body.pilot-ops-v2 #opsGlobeCanvas { position:absolute; inset:0; width:100%;
 #opsVectorMap .maplibregl-ctrl-group button { width:48px; height:48px; }
 #opsVectorMap .maplibregl-ctrl-attrib { color:#243743; background:rgba(255,255,255,.92); font:11px/20px Arial,sans-serif; }
 #opsVectorMap .maplibregl-ctrl-attrib a { color:#243743; }
-.ops-map-note { position:absolute; bottom:12px; left:12px; z-index:2; max-width:calc(100% - 65px); padding:8px 12px; border:1px solid rgba(207,226,244,.25); border-radius:10px; color:#e3edf7; background:rgba(17,32,47,.88); pointer-events:none; font:11px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.ops-map-note { display:block; padding:10px 18px; border-top:1px solid var(--app-line); color:var(--shell-muted); background:var(--app-card-solid); font:12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
 html body.pilot-ops-v2 .ops-globe-footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:14px 18px; background:var(--app-card-solid); border-top:1px solid var(--app-line); }
 html body.pilot-ops-v2 .ops-globe-footer strong { font:600 12px/1.4 "Courier New",monospace; overflow-wrap:anywhere; color:var(--app-ink); }
 html body.pilot-ops-v2 .ops-globe-footer > div > span { color:var(--app-muted); font:12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
@@ -120,10 +121,9 @@ html body.pilot-ops-v2 #cockpitFlightFile[hidden] { display:none!important; }
 .cockpit-file-empty p { color:var(--shell-muted); font-size:16px; line-height:1.6; max-width:480px; }
 .cockpit-file-empty button { min-height:52px; padding:12px 20px; border:0; border-radius:12px; background:#216292; color:#fff; font-size:16px; }
 html body.pilot-ops-v2 .active-flight-strip[data-active=false] .flight-strip-lamp { background:var(--shell-muted); box-shadow:none; }
-html body.pilot-ops-v2 .ops-map-note { top:12px; right:70px; bottom:auto; left:auto; max-width:calc(100% - 90px); }
 html body.pilot-ops-v2 .ops-globe-footer .ops-map-status { color:var(--shell-muted); }
 html body.pilot-ops-v2 .ops-globe-footer .ops-map-status[data-state=limited] { color:var(--efb-amber-strong,#986300); }
-html body.pilot-ops-v2 .efb-masthead .masthead-status #clock { display:block!important; order:-2; min-width:120px; margin:0; color:var(--shell-ink); font:700 19px/1.2 "Courier New",monospace; letter-spacing:.01em; white-space:nowrap; }
+html body.pilot-ops-v2 .efb-masthead .masthead-status #clock { display:block!important; order:-2; min-width:104px; height:auto; min-height:0; padding:0; margin:0; color:var(--shell-ink); font:700 17px/1.2 "Courier New",monospace; letter-spacing:.01em; white-space:nowrap; }
 html body.pilot-ops-v2 .cockpit-location { display:flex; align-items:center; gap:7px; min-height:48px; padding:8px 12px; border:1px solid var(--glass-edge); border-radius:14px; color:var(--shell-muted); background:transparent; font:600 12px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
 .cockpit-location > span:first-child { font-size:22px; }
 html body.pilot-ops-v2 .cockpit-location[data-tone=normal] { color:var(--shell-active-ink); }
@@ -131,22 +131,34 @@ html body.pilot-ops-v2 .cockpit-location[data-tone=caution] { color:var(--efb-am
 .cockpit-location-body { padding:22px; color:var(--shell-ink); line-height:1.6; font-size:15px; }
 .cockpit-location-body button,.cockpit-location-dialog header button { min-height:48px; padding:12px; border-radius:12px; color:var(--shell-ink); background:var(--app-card-muted); border:1px solid var(--glass-edge); }
 #cockpitPositionDetail { font:700 16px/1.6 "Courier New",monospace; }
-html body.pilot-ops-v2 .cockpit-empty-flight { position:absolute; z-index:3; top:50%; left:24px; transform:translateY(-50%); width:min(360px,calc(100% - 90px)); padding:26px; border:1px solid var(--glass-edge); border-radius:24px; background:var(--glass-surface); color:var(--shell-ink); -webkit-backdrop-filter:var(--glass-filter); backdrop-filter:var(--glass-filter); box-shadow:inset 0 1px var(--glass-highlight); }
+/* Keep the unloaded-flight actions in flow: they must never cover map controls. */
+html body.pilot-ops-v2 .cockpit-empty-flight { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 18px; padding:18px; border-bottom:1px solid var(--glass-edge); background:var(--glass-surface); color:var(--shell-ink); }
 .cockpit-empty-flight[hidden] { display:none!important; }
+.cockpit-empty-flight > :is(span,h2,p) { grid-column:1; }
 .cockpit-empty-flight > span:not(.cockpit-empty-symbol) { font-size:10px; letter-spacing:.12em; color:var(--shell-muted); }
-.cockpit-empty-symbol { display:block; font:300 38px/1.2 Arial,sans-serif; margin-bottom:14px; color:var(--efb-blue-strong); }
-.cockpit-empty-flight h2 { margin:8px 0; color:var(--shell-ink); font:650 27px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:-.025em; }
-.cockpit-empty-flight p { color:var(--shell-muted); font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; margin:12px 0 20px; }
-.cockpit-empty-flight > div { display:flex; gap:10px; flex-wrap:wrap; }
-.cockpit-empty-flight button { flex:1; min-height:50px; padding:12px; border-radius:13px; background:var(--app-card-solid); color:var(--shell-ink); border:1px solid var(--glass-edge); font-size:14px; font-weight:600; }
+.cockpit-empty-symbol { display:none; }
+.cockpit-empty-flight h2 { margin:4px 0; color:var(--shell-ink); font:650 22px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:-.025em; }
+.cockpit-empty-flight p { grid-column:1; color:var(--shell-muted); font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; margin:4px 0; }
+.cockpit-empty-flight > div { grid-column:2; grid-row:1/4; display:flex; align-items:center; gap:10px; flex-wrap:wrap; max-width:280px; }
+.cockpit-empty-flight button { flex:1; min-width:120px; min-height:50px; padding:12px; border-radius:13px; background:var(--app-card-solid); color:var(--shell-ink); border:1px solid var(--glass-edge); font-size:14px; font-weight:600; }
 .cockpit-empty-flight button:first-child { color:#fff; background:#216292; border-color:#216292; }
 html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
 html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .efb-flight-hero { display:none; }
 html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .ops-globe-card { grid-column:1; grid-row:1; }
 html body.pilot-ops-v2 .ops-globe-head { align-items:flex-start; }
 html body.pilot-ops-v2 .ops-globe-actions { justify-content:flex-end; }
-@media(max-width:1050px) { html body.pilot-ops-v2 .app-connection { display:none; } html body.pilot-ops-v2 .masthead-status { gap:6px; } html body.pilot-ops-v2 .masthead-status .clock { min-width:110px; font-size:17px; } }
-@media(max-width:650px) { html body.pilot-ops-v2 .cockpit-location { padding:8px; width:48px; justify-content:center; } .cockpit-location #cockpitLocationValue { display:none; } html body.pilot-ops-v2 .masthead-status .clock { min-width:94px; font-size:15px; } html body.pilot-ops-v2 .cockpit-empty-flight { padding:18px; left:14px; } .cockpit-empty-symbol { display:none; } .cockpit-empty-flight h2 { font-size:23px; } }
+@media(max-width:1100px) {
+  html body.pilot-ops-v2 .app-connection,html body.pilot-ops-v2 .efb-masthead :is(#notificationsBtn,#userMenuBtn,#flightContextBtn) { display:none; }
+}
+@media(max-width:900px) {
+  html body.pilot-ops-v2 .cockpit-location { padding:8px; width:48px; justify-content:center; }
+  .cockpit-location #cockpitLocationValue { display:none; }
+}
+@media(max-width:650px) {
+  html body.pilot-ops-v2 .efb-masthead .masthead-status #clock { min-width:94px; font-size:15px; }
+  html body.pilot-ops-v2 .cockpit-empty-flight { grid-template-columns:minmax(0,1fr); padding:16px; }
+  .cockpit-empty-flight > div { grid-column:1; grid-row:auto; max-width:none; margin-top:8px; }
+}
 html[data-efb-material="solid"] body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); --glass-filter:none; }
 @supports not (backdrop-filter:blur(1px)) { html body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); } }
 @media(prefers-reduced-transparency:reduce) { html body.pilot-ops-v2 { --glass-surface:var(--app-card-solid); --glass-filter:none; } }
@@ -157,8 +169,20 @@ html[data-efb-material="solid"] body.pilot-ops-v2 { --glass-surface:var(--app-ca
   html body.pilot-ops-v2 .ops-globe-head { flex-direction:column; align-items:stretch; }
   html body.pilot-ops-v2 .ops-globe-actions { justify-content:space-between; }
 }
+@media(max-width:950px) {
+  html body.pilot-ops-v2 .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
+  html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card { grid-column:1; grid-row:1; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { grid-column:1; grid-row:2; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck { grid-column:1; grid-row:3; }
+  html body.pilot-ops-v2 #bookingsWorkspace :is(.meta-grid,.dispatch-board,.movement-phase-strip) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-height:750px) {
+  html body.pilot-ops-v2 { --shell-tabs:64px; }
+  html body.pilot-ops-v2:not(.app-focus) > .frame { padding-bottom:calc(var(--shell-tabs) + 16px + var(--shell-bottom)); }
+  html body.pilot-ops-v2 .ops-suite-nav,html body.pilot-ops-v2.sidebar-collapsed .ops-suite-nav { bottom:calc(8px + var(--shell-bottom)); }
+}
 @media(max-width:740px) {
-  html body.pilot-ops-v2 { --shell-header:68px; --shell-tabs:68px; }
+  html body.pilot-ops-v2 { --shell-header:76px; --shell-tabs:68px; }
   html body.pilot-ops-v2 .efb-masthead .shell-icon-button { width:44px; min-width:44px; }
   html body.pilot-ops-v2 .dashboard-cockpit { grid-template-columns:minmax(0,1fr); padding:10px; gap:12px; }
   html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card { grid-column:1; grid-row:1; min-height:490px; border-radius:16px; }
@@ -169,4 +193,10 @@ html[data-efb-material="solid"] body.pilot-ops-v2 { --glass-surface:var(--app-ca
   html body.pilot-ops-v2 .ops-globe-actions { gap:6px; }
   html body.pilot-ops-v2 .ops-globe-actions button { padding:10px; }
   html body.pilot-ops-v2 .ops-suite-nav,html body.pilot-ops-v2.sidebar-collapsed .ops-suite-nav { grid-template-columns:repeat(5,minmax(0,1fr)); inset-inline:8px; width:calc(100% - 16px); border-radius:22px; }
+}
+@media(max-width:520px) {
+  /* A second status row preserves the flight title in narrow Split View. */
+  html body.pilot-ops-v2 { --shell-header:88px; }
+  html body.pilot-ops-v2 .efb-masthead .masthead-status { display:grid; grid-template-columns:repeat(4,48px); gap:4px 0; align-items:center; }
+  html body.pilot-ops-v2 .efb-masthead .masthead-status #clock { grid-column:1/-1; justify-self:end; }
 }

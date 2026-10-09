@@ -163,7 +163,7 @@
 
 #bookingsWorkspace .quick-filters::-webkit-scrollbar { display: none; }
 
-#bookingsWorkspace .quick-filter {
+#bookingsWorkspace .quick-filters .quick-filter {
   flex: 1 1 auto;
   min-width: 74px;
   min-height: 38px;
@@ -1536,7 +1536,7 @@ html:not([data-efb-theme="night"]) body #bookingsWorkspace .request.selected {
     border-radius: 20px;
   }
 
-  #bookingsWorkspace .quick-filter {
+  #bookingsWorkspace .quick-filters .quick-filter {
     flex: 0 0 auto;
     min-width: 84px;
   }

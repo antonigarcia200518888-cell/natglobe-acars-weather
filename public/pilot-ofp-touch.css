@@ -10,14 +10,17 @@
 .ofp-workspace-button:hover { background:var(--soft); }
 .ofp-workspace-button[aria-selected=true] { background:var(--green-soft); box-shadow:inset 3px 0 var(--green); }
 .ofp-workspace-button[aria-selected=true] .task-title { color:var(--green); }
-.ofp-app-workspace { background:var(--bg); }
+.ofp-app-workspace { background:var(--bg); container-type:inline-size; scroll-padding-top:calc(var(--ofp-toolbar-height,70px) + 12px); }
 .folder-toolbar { gap:12px; background:var(--ofp-glass); -webkit-backdrop-filter:var(--ofp-blur); backdrop-filter:var(--ofp-blur); padding:10px 18px; }
-.folder-toolbar > div:first-of-type { flex:1; }
+.folder-toolbar > div:first-of-type { flex:1; min-width:0; }
+.folder-toolbar #folderFlightContext { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .folder-toolbar h2 { font-size:22px; font-weight:650; }
 .folder-toolbar button { min-width:48px; min-height:48px; border-radius:12px; }
-.ofp-toolbar-actions { display:flex; gap:8px; }
+.ofp-toolbar-actions { display:flex; flex:none; gap:8px; }
 .ofp-planning-segments { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; margin:14px 22px 0; padding:4px; background:var(--soft); border:1px solid var(--line); border-radius:16px; }
 .ofp-planning-segments button { min-height:48px; padding:8px; border:0; border-radius:11px; background:transparent; font-size:14px; color:var(--ink); }
+/* The section rail already provides navigation while editing. */
+.shell:not([data-workspace=SUMMARY]) .ofp-planning-segments { display:none; }
 [data-workspace=ROUTE] [data-planning-target=taskTabRoute],[data-workspace=LOAD] [data-planning-target=taskTabLoad] { background:var(--surface); color:var(--blue); }
 .editor { max-width:1200px; margin-inline:auto; padding:22px; }
 .editor > :is(section,details):not([hidden]) { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:22px; }
@@ -27,6 +30,8 @@ button,.btn { min-height:48px; border-radius:10px; }
 .ofp-command-bar { background:var(--ofp-glass); border-color:var(--line); -webkit-backdrop-filter:var(--ofp-blur); backdrop-filter:var(--ofp-blur); padding:10px 16px max(10px,env(safe-area-inset-bottom)); }
 .ofp-command-bar .btn { min-height:50px; background:var(--surface); color:var(--ink); border-color:var(--line); border-radius:12px; font-size:14px; }
 .ofp-command-bar .btn.primary { background:#216292; color:#fff; border-color:#216292; }
+.check-return-bar { position:relative; top:auto; flex-wrap:wrap; }
+.briefing-field-focus { scroll-margin-top:calc(var(--ofp-toolbar-height,70px) + 12px); }
 .route-tokens { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .route-token { display:flex; gap:10px; align-items:center; min-height:56px; padding:4px 6px 4px 12px; border-radius:12px; font:700 17px var(--mono); touch-action:pan-y; }
 .route-token button { margin-left:auto; min-width:48px; min-height:48px; color:var(--red); }
@@ -41,6 +46,31 @@ button,.btn { min-height:48px; border-radius:10px; }
 .ofp-notes-sheet footer { text-align:right; margin-top:16px; }
 @media(max-width:950px) { .shell { grid-template-columns:160px minmax(0,1fr); } .editor { padding:14px; } .editor > :is(section,details):not([hidden]) { padding:16px; } .ofp-planning-segments { margin-inline:14px; } .folder-toolbar { padding-inline:14px; } }
 @media(max-width:740px) { .shell,.ofp-sections-collapsed .shell { grid-template-columns:minmax(0,1fr); } .ofp-task-rail { margin:8px; border-radius:14px; } .folder-toolbar { gap:8px; } .folder-toolbar h2 { font-size:18px; } .ofp-toolbar-actions { gap:4px; } .ofp-toolbar-actions button { padding:8px; font-size:12px; } .ofp-planning-segments button { font-size:12px; } .editor { padding:12px; } .route-tokens { grid-template-columns:1fr; } }
+/* Size form columns to the actual editor, not the window beside its rail. */
+@container (max-width:700px) {
+  .grid,.route-procedures,.time-support { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .editor { padding:12px; }
+  .editor > :is(section,details):not([hidden]) { padding:16px; }
+  .folder-toolbar { padding-inline:12px; gap:8px; }
+  .folder-toolbar h2 { font-size:20px; }
+  .flight-route-point { grid-template-columns:minmax(0,1fr); }
+  .alternate-point { grid-template-columns:100px minmax(0,1fr); }
+}
+@container (max-width:460px) {
+  .grid,.grid.two,.route-procedures,.time-support,.flight-identity-grid,.schedule-primary-grid { grid-template-columns:minmax(0,1fr); }
+  .folder-toolbar { flex-wrap:wrap; }
+  .folder-toolbar > div:first-of-type { flex-basis:calc(100% - 64px); }
+  .ofp-toolbar-actions { margin-left:auto; }
+  .ofp-planning-segments { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .editor > :is(section,details):not([hidden]) { padding:12px; }
+}
+@media(max-height:600px) {
+  .folder-toolbar { padding-block:6px; }
+  .editor { padding-block:12px; }
+  .ofp-card-head { margin-bottom:12px; padding-bottom:8px; }
+  .ofp-command-bar { padding-block:6px; }
+  .ofp-command-bar .btn { min-height:48px; }
+}
 @media(prefers-reduced-transparency:reduce) { :root { --ofp-glass:var(--surface); --ofp-blur:none; } }
 html[data-efb-material=solid] { --ofp-glass:var(--surface); --ofp-blur:none; }
 @supports not (backdrop-filter:blur(1px)) { :root { --ofp-glass:var(--surface); --ofp-blur:none; } }
