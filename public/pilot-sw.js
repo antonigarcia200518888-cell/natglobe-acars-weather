@@ -1,5 +1,5 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-10-v31';
-const PILOT_STYLESHEET_VERSION = '2026-10-09-2';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-10-v32';
+const PILOT_STYLESHEET_VERSION = '2026-10-26-1';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
@@ -11,6 +11,7 @@ const PILOT_EFB_STYLESHEETS = [
   `/pilot-ofp-workflow.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-shell.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-premium.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-observatory.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-touch.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-ofp-touch.css?v=${PILOT_STYLESHEET_VERSION}`
 ];

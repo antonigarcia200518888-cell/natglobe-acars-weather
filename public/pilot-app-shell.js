@@ -2,7 +2,7 @@
 window.createPilotAppShell = function createPilotAppShell({ navigate, getFlight, setTheme, install, canInstall }) {
   const node = id => document.getElementById(id);
   const scroller = document.querySelector('.efb-content');
-  const titles = { dashboard:'Home', flights:'Flights', 'flight-plan':'Flight briefing', weather:'Weather', performance:'Performance', aircraft:'Aircraft', logbook:'Logbook', documents:'Flight files' };
+  const titles = { dashboard:'Flight operations', flights:'Flights', 'flight-plan':'Flight briefing', weather:'Weather', performance:'Performance', aircraft:'Aircraft', logbook:'Logbook', documents:'Flight files' };
   const positions = new Map();
   const displayMode = window.matchMedia('(display-mode: standalone)');
   const session = history.state?.ngaAppSession || `${Date.now()}-${Math.random().toString(36).slice(2)}`;

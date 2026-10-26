@@ -2943,17 +2943,18 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-09-2" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-09-2" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-09-2" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-09-2" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-26-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-10-26-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-10-26-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-10-26-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-10-26-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-09-2" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-10-26-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-10-26-1" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-10-09-2" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-10-09-2" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-10-26-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-10-26-1" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-10-26-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3005,7 +3006,7 @@
       <div class="dashboard-cockpit">
       <section id="efbFlightHero" class="efb-flight-hero" aria-label="Active aircraft and flight overview" data-active="false">
         <div class="efb-flight-hero-copy">
-          <span class="efb-eyebrow">Primary aircraft / active operation</span>
+          <span class="efb-eyebrow">Your aircraft</span>
           <div class="efb-flight-hero-title"><h2>OH-PMK</h2><span id="efbHeroState" class="efb-state-pill">Standby</span></div>
           <p>Piper PA-28R-200 Arrow II</p>
           <strong id="efbHeroRoute">Select a flight to begin</strong>
@@ -3035,7 +3036,7 @@
         </div>
       </section>
       <section class="ops-globe-card" aria-labelledby="opsGlobeTitle">
-        <header class="ops-globe-head"><div><span>Operations overview</span><h2 id="opsGlobeTitle">Flight map</h2></div><div class="ops-globe-actions"><button id="cockpitDeckToggle" type="button" aria-expanded="true" aria-controls="efbFlightHero">Hide flight panel</button><div class="map-mode-segment" role="group" aria-label="Map projection"><button id="opsMapModeBtn" type="button" aria-pressed="false" disabled>Map</button><button id="opsGlobeModeBtn" type="button" aria-pressed="true" disabled>Globe</button></div><button id="opsGlobeRotateBtn" type="button" aria-pressed="false">Rotate</button><button id="opsGlobeResetBtn" type="button">Reset view</button></div></header>
+        <header class="ops-globe-head"><div><span>Operations overview</span><h2 id="opsGlobeTitle">Flight map</h2></div><div class="ops-globe-actions"><button id="cockpitDeckToggle" type="button" aria-expanded="true" aria-controls="efbFlightHero">Hide flight panel</button><div class="map-mode-segment" role="group" aria-label="Map projection"><button id="opsMapModeBtn" type="button" aria-pressed="false" disabled>Map</button><button id="opsGlobeModeBtn" type="button" aria-pressed="true" disabled>Globe</button></div><button id="opsMapLayerBtn" type="button" aria-pressed="true" aria-label="Show NASA relief imagery" title="Historical NASA relief overview; vector detail at close zoom" disabled>Relief</button><button id="opsGlobeRotateBtn" type="button" aria-pressed="false">Rotate</button><button id="opsGlobeResetBtn" type="button">Reset view</button></div></header>
         <section id="cockpitEmptyFlight" class="cockpit-empty-flight" aria-labelledby="cockpitEmptyTitle"><span>YOUR FLIGHT DECK</span><h2 id="cockpitEmptyTitle">Ready when you are.</h2><p>No flight loaded. Select a saved flight or build a new plan.</p><div><button id="cockpitSelectFlight" type="button">Select flight</button><button id="cockpitBuildFlight" type="button">Build flight</button></div></section>
         <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Simplified operations globe. Use arrow keys to rotate and tilt, and Space to pause or resume rotation."></canvas><div id="opsVectorMap" role="region" aria-label="Interactive flight overview map" hidden></div></div>
         <span class="ops-map-note">Overview only · direct route · not for navigation</span>
@@ -3054,7 +3055,7 @@
         <button id="createManualOfpBtn" class="dashboard-action manual-flight" type="button" aria-label="Create a new manual operational flight plan"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6M12 12v6M9 15h6"></path></svg></span><span>Pilot-only file</span><strong>New manual OFP</strong><small>Start an empty operational flight plan with editable route, fuel, load, runway, and timings.</small></button>
       </nav>
       <details class="dashboard-pulse" open>
-        <summary><span>Operations pulse</span><strong>Live queue and movement watch</strong></summary>
+        <summary><span>Operations overview</span><strong>Live queue and movement watch</strong></summary>
       <section class="ops-command-strip" aria-label="Operations queue totals">
         <div class="ops-command-card"><span>Total requests</span><strong id="opsTotal">0</strong></div>
         <div class="ops-command-card"><span>Needs action</span><strong id="opsNeedsAction">0</strong></div>
@@ -3857,12 +3858,12 @@ END OF MESSAGE</pre>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
   <dialog id="cockpitLocationDialog" class="shell-dialog cockpit-location-dialog" aria-labelledby="cockpitLocationTitle"><header class="shell-dialog-head"><div><span>Device sensor</span><strong id="cockpitLocationTitle">Location &amp; precision</strong></div><button id="cockpitLocationClose" type="button">Done</button></header><div class="cockpit-location-body"><p id="cockpitPositionDetail">Location monitoring is off.</p><p>Accuracy is the device-reported uncertainty in metres, not HDOP or certified GPS integrity. A green indicator only means a recent fix with reported accuracy of 50 m or better. This overview is not for navigation.</p><p>Location is used on this device only, never saved or uploaded. Monitoring pauses while the app is hidden.</p><button id="cockpitLocationStart" type="button">Enable device location</button><button id="cockpitLocationStop" type="button" hidden>Stop location monitoring</button></div></dialog>
-  <script src="/pilot-cockpit.js?v=2026-10-09-2"></script>
-  <script src="/pilot-touch-controls.js?v=2026-10-09-2"></script>
-  <script src="/pilot-flight-deck.js?v=2026-10-09-2"></script>
-  <script src="/pilot-app-shell.js?v=2026-10-09-2"></script>
-  <script src="/pilot-map-view.js?v=2026-10-09-2"></script>
-  <script src="/pilot-display.js?v=2026-10-09-2"></script>
+  <script src="/pilot-cockpit.js?v=2026-10-26-1"></script>
+  <script src="/pilot-touch-controls.js?v=2026-10-26-1"></script>
+  <script src="/pilot-flight-deck.js?v=2026-10-26-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-10-26-1"></script>
+  <script src="/pilot-map-view.js?v=2026-10-26-1"></script>
+  <script src="/pilot-display.js?v=2026-10-26-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -9055,9 +9056,26 @@ END OF MESSAGE</pre>
     updateNetworkState();
     if (window.createPilotMapView) opsVectorMap = window.createPilotMapView({
       container:el('opsVectorMap'), fallback:opsGlobeCanvas, status:el('opsMapStatus'),
-      onState({ ready, mode, rotating, hasRoute }) {
+      getPadding() {
+        // Fit into the unobscured map, not beneath a floating card. In portrait
+        // the cards are in document flow and need no horizontal reservation.
+        const stage = el('opsVectorMap').getBoundingClientRect();
+        const controls = document.querySelector('.ops-globe-head').getBoundingClientRect();
+        const floating = getComputedStyle(document.querySelector('.ops-globe-card')).position === 'absolute';
+        const hero = el('efbFlightHero').getBoundingClientRect();
+        const pulse = document.querySelector('.dashboard-deck').getBoundingClientRect();
+        return {
+          top:Math.min(stage.height * .4, Math.max(48, controls.bottom - stage.top + 24)),
+          right:floating && hero.width ? Math.min(stage.width * .45, stage.right - hero.left + 24) : 72,
+          bottom:floating ? Math.min(stage.height * .38, stage.bottom - pulse.top + 24) : 100,
+          left:48
+        };
+      },
+      onState({ ready, mode, rotating, relief, hasRoute }) {
         el('opsMapModeBtn').disabled = !ready;
         el('opsGlobeModeBtn').disabled = !ready;
+        el('opsMapLayerBtn').disabled = !ready;
+        el('opsMapLayerBtn').setAttribute('aria-pressed', String(relief));
         el('opsMapModeBtn').setAttribute('aria-pressed', String(mode === 'map'));
         el('opsGlobeModeBtn').setAttribute('aria-pressed', String(mode === 'globe'));
         opsGlobeRotateBtn.disabled = ready && (mode === 'map' || window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -9072,6 +9090,7 @@ END OF MESSAGE</pre>
     });
     el('opsMapModeBtn').addEventListener('click', () => opsVectorMap?.setMode('map'));
     el('opsGlobeModeBtn').addEventListener('click', () => opsVectorMap?.setMode('globe'));
+    el('opsMapLayerBtn').addEventListener('click', () => opsVectorMap?.setRelief(el('opsMapLayerBtn').getAttribute('aria-pressed') !== 'true'));
     opsGlobeRotateBtn.setAttribute('aria-pressed', String(globeAutoRotate));
     opsGlobeRotateBtn.textContent = globeAutoRotate ? 'Pause' : 'Rotate';
     drawOpsGlobe();

@@ -57,14 +57,41 @@
     return enginePromise;
   }
 
-  function createPilotMapView({ container, fallback, status, onState = () => {} }) {
+  function createPilotMapView({ container, fallback, status, onState = () => {}, getPadding = () => 64 }) {
     let map, ready = false, active = false, destroyed = false, starting = false, failed = false;
     let flight = null, flightKey = '', theme = document.documentElement.dataset.efbTheme === 'day' ? 'day' : 'night';
     let mode = 'globe', rotating = false, frame = 0, previousTime = 0, timer = 0, styleFrame = 0;
     let currentStyle = theme, fitPending = true, styleReady = false, attempt = 0;
+    let relief = true, reliefFailed = false;
     const reducedMotion = root.matchMedia('(prefers-reduced-motion: reduce)');
-    const announce = () => onState({ ready, mode, rotating, hasRoute: routeCoordinates(flight?.departure, flight?.arrival).length > 0 });
+    const announce = () => onState({ ready, mode, rotating, relief, hasRoute: routeCoordinates(flight?.departure, flight?.arrival).length > 0 });
     const message = (text, state) => { status.textContent = text; status.dataset.state = state; };
+    const mapDescription = () => relief && !reliefFailed ? 'NASA relief overview · vector detail at close zoom' : 'Vector basemap · online';
+
+    function drawRelief() {
+      if (!map || !styleReady) return;
+      if (!map.getSource('pilot-relief')) {
+        // Public, historical Blue Marble composite, not live imagery or elevation data.
+        // Visible tiles only; no bulk/offline download. Vector detail replaces it above z8.
+        map.addSource('pilot-relief', {
+          type:'raster', tileSize:256, maxzoom:8,
+          tiles:['https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg'],
+          attribution:'Relief: <a href="https://earthobservatory.nasa.gov/features/BlueMarble" target="_blank" rel="noopener">NASA Blue Marble</a> / <a href="https://www.earthdata.nasa.gov/data/tools/gibs" target="_blank" rel="noopener">GIBS</a>'
+        });
+        const labels = map.getStyle().layers.find(layer => layer.type === 'symbol');
+        map.addLayer({ id:'pilot-relief', type:'raster', source:'pilot-relief',
+          layout:{ visibility:relief && !reliefFailed ? 'visible' : 'none' },
+          paint:{ 'raster-saturation':-.55, 'raster-brightness-max':currentStyle === 'night' ? .62 : .9,
+            'raster-opacity':['interpolate',['linear'],['zoom'],7.5,1,9,0], 'raster-fade-duration':200 }
+        }, labels?.id);
+      } else map.setLayoutProperty('pilot-relief', 'visibility', relief && !reliefFailed ? 'visible' : 'none');
+    }
+    function setRelief(value) {
+      relief = Boolean(value); reliefFailed = false;
+      drawRelief();
+      if (ready) message(mapDescription(), 'ready');
+      announce();
+    }
 
     function stopAnimation() {
       root.cancelAnimationFrame(frame); frame = 0; previousTime = 0;
@@ -93,10 +120,18 @@
       setRotating(false);
       const path = routeCoordinates(flight?.departure, flight?.arrival);
       const duration = reducedMotion.matches ? 0 : 650;
+      // fitBounds adds its padding to the retained camera padding. Reset it
+      // first, otherwise a previously padded globe can leave no fitting area.
+      map.setPadding(0);
       if (path.length) {
         const bounds = path.reduce((box, point) => box.extend(point), new root.maplibregl.LngLatBounds(path[0], path[0]));
-        map.fitBounds(bounds, { padding: 64, maxZoom: 8, duration, bearing: 0, pitch: 0 });
-      } else map.easeTo({ center: [24, 45], zoom: mode === 'globe' ? .8 : 3.5, bearing: 0, pitch: 0, duration });
+        try {
+          map.fitBounds(bounds, { padding: getPadding(), maxZoom: 8, duration, bearing: 0, pitch: 0 });
+        } catch {
+          // Rendering failure must never interrupt saving or loading a flight.
+          message('Route loaded · adjust map view manually', 'limited');
+        }
+      } else map.easeTo({ center: [24, 52], zoom: mode === 'globe' ? 1.8 : 3.5, bearing: 0, pitch: 0, duration });
     }
     function drawFlight() {
       if (!map || !styleReady) return;
@@ -105,8 +140,8 @@
       if (source) source.setData(data);
       else {
         map.addSource('pilot-route', { type: 'geojson', data });
-        map.addLayer({ id: 'pilot-route-casing', type: 'line', source: 'pilot-route', filter: ['==', '$type', 'LineString'], paint: { 'line-color': '#102d44', 'line-width': 7, 'line-opacity': .8 } });
-        map.addLayer({ id: 'pilot-route-line', type: 'line', source: 'pilot-route', filter: ['==', '$type', 'LineString'], paint: { 'line-color': '#60d6ff', 'line-width': 3 } });
+        map.addLayer({ id: 'pilot-route-casing', type: 'line', source: 'pilot-route', filter: ['==', '$type', 'LineString'], paint: { 'line-color': '#14211b', 'line-width': 7, 'line-opacity': .75 } });
+        map.addLayer({ id: 'pilot-route-line', type: 'line', source: 'pilot-route', filter: ['==', '$type', 'LineString'], paint: { 'line-color': '#f5f8f3', 'line-width': 3 } });
         map.addLayer({ id: 'pilot-route-airports', type: 'circle', source: 'pilot-route', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 7, 'circle-color': ['match', ['get', 'kind'], 'arrival', '#70e0b2', '#ffffff'], 'circle-stroke-width': 3, 'circle-stroke-color': '#16384a' } });
         map.addLayer({ id: 'pilot-route-labels', type: 'symbol', source: 'pilot-route', filter: ['==', '$type', 'Point'], layout: { 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Regular'], 'text-size': 15, 'text-offset': [0, -1.5] }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#132c3e', 'text-halo-width': 2 } });
       }
@@ -141,8 +176,8 @@
           if (currentStyle === 'night') {
             // Brighter coastline/labels than the stock dark basemap, without a CSS filter.
             for (const layer of map.getStyle().layers) {
-              if (layer.id === 'background') map.setPaintProperty(layer.id, 'background-color', '#233e4b');
-              if (layer.id === 'water') map.setPaintProperty(layer.id, 'fill-color', '#102535');
+              if (layer.id === 'background') map.setPaintProperty(layer.id, 'background-color', '#29332c');
+              if (layer.id === 'water') map.setPaintProperty(layer.id, 'fill-color', '#15282d');
               if (layer.id === 'landcover_glacier' || layer.id === 'landcover_ice_shelf') map.setPaintProperty(layer.id, 'fill-color', '#496373');
               if (layer.id.startsWith('boundary_country')) map.setPaintProperty(layer.id, 'line-color', '#5a7a8a');
               if (layer.type === 'symbol' && layer.id.startsWith('place_')) {
@@ -153,20 +188,24 @@
           }
           map.setProjection({ type: mode === 'globe' ? 'globe' : 'mercator' });
           // style.load permits adding sources even while source tiles are loading.
-          drawFlight();
+          drawRelief(); drawFlight();
+          if (ready) message(mapDescription(), 'ready');
         });
         map.on('load', () => {
           root.clearTimeout(timer); ready = true; starting = false;
           fallback.hidden = true;
-          message('Vector basemap · online', 'ready');
+          message(mapDescription(), 'ready');
           map.resize();
           if (fitPending) fitRoute();
           setTheme(theme); syncAnimation(); announce();
         });
-        map.on('error', () => {
-          if (ready) message('Some map detail is unavailable · check connection', 'limited');
+        map.on('error', event => {
+          if (event.sourceId === 'pilot-relief') {
+            reliefFailed = true; drawRelief();
+            if (ready) message('Relief unavailable · vector map retained', 'limited');
+          } else if (ready) message('Some map detail is unavailable · check connection', 'limited');
         });
-        map.on('idle', () => { if (ready && navigator.onLine && status.dataset.state !== 'limited') message('Vector basemap · online', 'ready'); });
+        map.on('idle', () => { if (ready && navigator.onLine && status.dataset.state !== 'limited') message(mapDescription(), 'ready'); });
         map.on('webglcontextlost', fail);
         for (const name of ['dragstart', 'zoomstart', 'rotatestart', 'pitchstart']) map.on(name, event => { if (event.originalEvent) setRotating(false); });
       } catch { if (generation === attempt) fail(); }
@@ -215,10 +254,14 @@
     const connectionChanged = () => {
       if (!navigator.onLine) message('Offline · basemap detail may be incomplete', 'limited');
       else if (failed) { failed = false; if (active) start(); }
+      else if (ready && !reliefFailed) {
+        message('Connection restored · refreshing map', 'loading');
+        map.triggerRepaint();
+      }
     };
     root.addEventListener('online', connectionChanged); root.addEventListener('offline', connectionChanged);
     return {
-      get ready() { return ready; }, setActive, setFlight, setTheme, setMode, setRotating, fitRoute,
+      get ready() { return ready; }, setActive, setFlight, setTheme, setMode, setRotating, setRelief, fitRoute,
       destroy() { destroyed = true; stopAnimation(); root.clearTimeout(timer); root.cancelAnimationFrame(styleFrame); resize.disconnect(); reducedMotion.removeEventListener('change', motionChanged); root.removeEventListener('online', connectionChanged); root.removeEventListener('offline', connectionChanged); map?.remove(); }
     };
   }

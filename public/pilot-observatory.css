@@ -1,0 +1,252 @@
+/* Map-first flight deck. Scoped to the existing shell; no flight state is owned here.
+   Surfaces use an opaque tint under the blur so labels remain readable over imagery. */
+html body.pilot-ops-v2 {
+  --deck-font:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI",Arial,sans-serif;
+  --deck-surface:rgba(247,248,247,.91);
+  --deck-solid:#f3f5f4;
+  --deck-edge:rgba(28,40,36,.16);
+  --deck-shine:rgba(255,255,255,.7);
+  --deck-ink:#19231f;
+  --deck-muted:#52605a;
+  --deck-control:rgba(230,235,232,.9);
+  --deck-selected:#263e34;
+  --deck-selected-ink:#fff;
+  --deck-caution:#80520a;
+  --deck-warning:#ad283b;
+  --deck-blur:blur(24px) saturate(115%);
+  --shell-base:#e8ece9;
+  --glass-surface:var(--deck-surface);
+  --glass-edge:var(--deck-edge);
+  --glass-highlight:var(--deck-shine);
+  --shell-ink:var(--deck-ink);
+  --shell-muted:var(--deck-muted);
+  font-family:var(--deck-font);
+}
+html[data-efb-theme="night"] body.pilot-ops-v2 {
+  --deck-surface:rgba(31,35,34,.84);
+  --deck-solid:#202423;
+  --deck-edge:rgba(230,239,233,.13);
+  --deck-shine:rgba(239,249,240,.09);
+  --deck-ink:#f3f6f3;
+  --deck-muted:#bac5be;
+  --deck-control:rgba(58,64,60,.8);
+  --deck-selected:#e5ebe5;
+  --deck-selected-ink:#18221d;
+  --deck-caution:#e9b86f;
+  --deck-warning:#ffaaaa;
+  --shell-base:#111715;
+  --glass-surface:var(--deck-surface);
+  --glass-edge:var(--deck-edge);
+  --glass-highlight:var(--deck-shine);
+  --shell-ink:var(--deck-ink);
+  --shell-muted:var(--deck-muted);
+  --app-card-solid:#202423;
+  --app-card-muted:#191e1c;
+  --app-ink:#f3f6f3;
+  --app-muted:#bac5be;
+  --app-line:rgba(230,239,233,.15);
+}
+html body.pilot-ops-v2 .efb-masthead { border-bottom-color:var(--deck-edge); }
+html body.pilot-ops-v2 .app-navigation-title h1 { font-family:var(--deck-font); font-weight:450; font-size:25px; letter-spacing:-.04em; }
+html body.pilot-ops-v2 .efb-masthead :is(.shell-icon-button,.cockpit-location) { border-radius:50%; }
+html body.pilot-ops-v2 .efb-masthead .cockpit-location { border-radius:28px; }
+html body.pilot-ops-v2 .flight-switch-button { padding:6px 11px; margin-top:4px; background:var(--deck-control); border:1px solid var(--deck-edge); border-radius:24px; font:400 13px/1.4 var(--deck-font); }
+html body.pilot-ops-v2 .ops-suite-nav { background:var(--deck-surface); -webkit-backdrop-filter:var(--deck-blur); backdrop-filter:var(--deck-blur); }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab { color:var(--deck-muted); }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab.active { background:var(--deck-selected); color:var(--deck-selected-ink); box-shadow:none; }
+html body.pilot-ops-v2 .ops-suite-nav .suite-tab strong { font-weight:500; }
+
+/* A right-side control rail at tablet sizes; narrow Split View keeps the dock.
+   The frame reserves the rail width, so it cannot cover the OFP or flight list. */
+@media(min-width:760px) and (min-height:600px) {
+  html body.pilot-ops-v2:not(.app-focus) > .frame { padding-right:88px; padding-bottom:var(--shell-bottom); }
+  html body.pilot-ops-v2:not(.app-focus) .ops-suite-nav,
+  html body.pilot-ops-v2.sidebar-collapsed:not(.app-focus) .ops-suite-nav {
+    inset:auto 12px 20px auto; width:64px; max-width:none; height:auto; max-height:calc(100% - 112px);
+    display:flex; flex-direction:column; gap:4px; padding:6px; border-radius:34px; overflow-y:auto;
+    box-shadow:inset 0 1px var(--deck-shine);
+  }
+  html body.pilot-ops-v2 .ops-suite-nav .suite-tab { flex:0 0 56px; width:50px; min-height:56px; padding:4px 0; gap:2px; border-radius:26px; }
+  html body.pilot-ops-v2 .ops-suite-nav .suite-tab strong { font-size:10px; }
+  html body.pilot-ops-v2 .ops-suite-nav .suite-tab .suite-icon { width:24px; height:24px; }
+}
+
+/* Home owns one map canvas. Panels sit in reserved regions above it. */
+html body.pilot-ops-v2[data-app-workspace="dashboard"] { --shell-header:94px; --shell-context:0px; }
+html body.pilot-ops-v2[data-app-workspace="dashboard"] .active-flight-strip { display:none; }
+html body.pilot-ops-v2[data-app-workspace="dashboard"] > .frame { grid-template-columns:minmax(0,1fr); }
+html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-masthead {
+  grid-area:1 / 1; z-index:5; padding:12px 24px; color:var(--deck-ink);
+  border:0; background:var(--deck-surface); -webkit-backdrop-filter:var(--deck-blur); backdrop-filter:var(--deck-blur);
+}
+html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-layout { grid-area:1 / 1 / -1 / -1; }
+html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-content { background:var(--shell-base); }
+html body.pilot-ops-v2 #dashboardWorkspace { margin:0; padding:0; height:100%; min-height:0; border:0; background:none; }
+html body.pilot-ops-v2 .dashboard-cockpit {
+  position:relative; isolation:isolate; display:grid; grid-template-columns:minmax(0,1fr) 304px;
+  grid-template-rows:minmax(0,1fr); gap:20px; height:100%; min-height:0;
+  padding:calc(var(--shell-header) + 20px) 24px 64px;
+}
+html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card {
+  position:absolute; inset:0; grid-area:auto; z-index:-1; display:block; min-height:0; border:0; border-radius:0; background:#111b1a;
+}
+html body.pilot-ops-v2 .ops-globe-stage { position:absolute; inset:0; width:100%; height:100%; min-height:0; background:#111b1a; }
+html body.pilot-ops-v2 .ops-globe-head {
+  position:absolute; z-index:3; top:calc(var(--shell-header) + 18px); left:24px; right:348px;
+  padding:0; border:0; background:none; display:block;
+}
+html body.pilot-ops-v2 .ops-globe-head > div:first-child { display:none; }
+html body.pilot-ops-v2 .ops-globe-actions { justify-content:flex-start; gap:8px; }
+html body.pilot-ops-v2 .ops-globe-actions > button,
+html body.pilot-ops-v2 .map-mode-segment {
+  background:var(--deck-surface); color:var(--deck-ink); border:1px solid var(--deck-edge); border-radius:28px;
+  -webkit-backdrop-filter:var(--deck-blur); backdrop-filter:var(--deck-blur); box-shadow:inset 0 1px var(--deck-shine);
+}
+html body.pilot-ops-v2 .ops-globe-actions button { font:400 13px/1.2 var(--deck-font); min-height:48px; padding:10px 16px; }
+html body.pilot-ops-v2 .map-mode-segment { gap:2px; padding:3px; }
+html body.pilot-ops-v2 .map-mode-segment button { min-height:42px; border-radius:24px; color:var(--deck-ink); }
+html body.pilot-ops-v2 .map-mode-segment button[aria-pressed="true"],
+html body.pilot-ops-v2 #opsMapLayerBtn[aria-pressed="true"] { color:var(--deck-selected-ink); background:var(--deck-selected); box-shadow:none; }
+html body.pilot-ops-v2 #cockpitDeckToggle { order:4; }
+html body.pilot-ops-v2 #opsGlobeRotateBtn { order:3; }
+html body.pilot-ops-v2 #opsGlobeRotateBtn:disabled { display:none; }
+html body.pilot-ops-v2 .ops-globe-footer {
+  position:absolute; left:24px; bottom:12px; right:348px; z-index:2; display:flex; gap:6px;
+  padding:0; border:0; background:none; pointer-events:none;
+}
+html body.pilot-ops-v2 .ops-globe-footer > div { display:none; }
+html body.pilot-ops-v2 .ops-globe-footer .ops-map-status { color:#d6e0d9; text-shadow:0 1px 3px #000; font:11px/1.3 var(--deck-font); }
+html body.pilot-ops-v2 .ops-map-note {
+  position:absolute; right:12px; bottom:36px; z-index:2; max-width:300px; padding:6px 10px;
+  border:0; border-radius:12px; background:#18231ee6; color:#e0e9e3; font:10px/1.4 var(--deck-font); pointer-events:none;
+}
+#opsVectorMap .maplibregl-ctrl-top-right { top:calc(var(--shell-header) + 144px); right:332px; }
+#opsVectorMap .maplibregl-ctrl-group { border:1px solid #d5e1d544; border-radius:26px; background:#28312cec; box-shadow:inset 0 1px #ffffff14; }
+#opsVectorMap .maplibregl-ctrl-group button { width:46px; height:48px; border-color:#ffffff20; }
+#opsVectorMap .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter:invert(1); opacity:.9; }
+#opsVectorMap .maplibregl-ctrl-attrib { max-width:100%; background:#18231ee6; color:#d6e0d9; }
+#opsVectorMap .maplibregl-ctrl-attrib a { color:#d6e0d9; }
+
+/* Shared card material. Blur is limited to the three floating card surfaces. */
+html body.pilot-ops-v2 .dashboard-cockpit > :is(.efb-flight-hero,.dashboard-deck),
+html body.pilot-ops-v2 .cockpit-empty-flight {
+  border:1px solid var(--deck-edge); border-radius:30px; background:var(--deck-surface); color:var(--deck-ink);
+  box-shadow:inset 0 1px var(--deck-shine); -webkit-backdrop-filter:var(--deck-blur); backdrop-filter:var(--deck-blur);
+}
+html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero {
+  grid-column:2; grid-row:1; align-self:start; gap:14px; padding:22px; max-height:100%; overflow-y:auto; scrollbar-width:thin;
+}
+html body.pilot-ops-v2 .efb-flight-hero-copy { color:var(--deck-ink); }
+html body.pilot-ops-v2 .efb-eyebrow { color:var(--deck-muted); font:11px/1.4 var(--deck-font); text-transform:none; letter-spacing:.02em; }
+html body.pilot-ops-v2 .efb-flight-hero-title { margin-top:12px; gap:8px; flex-wrap:wrap; }
+html body.pilot-ops-v2 .efb-flight-hero-title h2 { color:var(--deck-ink); font:350 32px/1.2 var(--deck-font); letter-spacing:-.04em; }
+html body.pilot-ops-v2 .efb-state-pill { color:var(--deck-muted); background:transparent; border:1px solid var(--deck-edge); border-radius:24px; font:11px/1.3 var(--deck-font); padding:7px 10px; box-shadow:none; }
+html body.pilot-ops-v2 .efb-flight-hero-copy > p { color:var(--deck-muted); font:13px/1.4 var(--deck-font); margin:8px 0 0; }
+html body.pilot-ops-v2 .efb-flight-hero-copy > strong { color:var(--deck-ink); font:400 22px/1.3 var(--deck-font); letter-spacing:-.025em; margin-top:20px; }
+html body.pilot-ops-v2 .efb-flight-hero-copy > small { color:var(--deck-muted); font:12px/1.5 var(--deck-font); overflow-wrap:anywhere; }
+html body.pilot-ops-v2 .efb-hero-actions { gap:8px; margin-top:18px; }
+html body.pilot-ops-v2 .efb-hero-actions .efb-action { border:1px solid var(--deck-edge); border-radius:26px; color:var(--deck-ink); background:var(--deck-control); font:500 14px/1.3 var(--deck-font); box-shadow:none; }
+html body.pilot-ops-v2 .efb-hero-actions .efb-action.primary { color:var(--deck-selected-ink); background:var(--deck-selected); }
+html body.pilot-ops-v2 .efb-hero-actions #cockpitUnloadFlight { min-height:44px; background:none; border-color:transparent; color:var(--deck-muted); }
+html body.pilot-ops-v2 .efb-hero-metrics > div { padding:12px 4px; border-color:var(--deck-edge); }
+html body.pilot-ops-v2 .efb-hero-metrics span { color:var(--deck-muted); font:11px/1.4 var(--deck-font); letter-spacing:0; text-transform:none; }
+html body.pilot-ops-v2 .efb-hero-metrics strong { color:var(--deck-ink); font:500 14px/1.5 var(--deck-font); }
+html body.pilot-ops-v2 .efb-flight-phase { margin-top:2px; }
+html body.pilot-ops-v2 .efb-flight-phase strong { color:var(--deck-muted); font:10px/1.4 var(--deck-font); letter-spacing:0; }
+html body.pilot-ops-v2 .efb-aircraft-stage { order:-1; display:flex; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--deck-edge); }
+html body.pilot-ops-v2 .efb-aircraft-stage img { width:104px; height:54px; max-height:54px; filter:grayscale(.5); }
+html body.pilot-ops-v2 .efb-aircraft-stage figcaption { max-width:124px; color:var(--deck-muted); }
+html body.pilot-ops-v2 .efb-aircraft-stage figcaption strong { color:var(--deck-ink); font:12px/1.4 var(--deck-font); overflow-wrap:anywhere; }
+html body.pilot-ops-v2 .efb-flight-hero[data-active="false"] :is(.efb-hero-metrics,.efb-flight-phase) { display:none; }
+
+/* Honest operational totals replace decorative/fabricated analytics. */
+html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck {
+  grid-column:1; grid-row:1; align-self:end; width:min(100%,460px); max-height:238px;
+  padding:20px; margin:0; overflow-y:auto; scrollbar-width:thin;
+}
+html body.pilot-ops-v2 .dashboard-deck :is(.dashboard-deck-head,.dashboard-actions) { display:none; }
+html body.pilot-ops-v2 .dashboard-pulse { display:block; padding:0; margin:0; border:0; border-radius:0; background:none; box-shadow:none; }
+html body.pilot-ops-v2 .dashboard-pulse > summary { display:flex; align-items:center; justify-content:space-between; min-height:44px; padding:0; margin:0 0 10px; color:var(--deck-ink); font:400 17px/1.4 var(--deck-font); cursor:pointer; }
+html body.pilot-ops-v2 .dashboard-pulse > summary strong { display:none; }
+html body.pilot-ops-v2 .dashboard-pulse > summary span { color:inherit; font:inherit; letter-spacing:0; text-transform:none; }
+html body.pilot-ops-v2 .ops-suite-nav::before { content:none; }
+html body.pilot-ops-v2 .dashboard-pulse > summary::after { content:'−'; color:var(--deck-muted); font-size:24px; }
+html body.pilot-ops-v2 .dashboard-pulse:not([open]) > summary { margin:0; }
+html body.pilot-ops-v2 .dashboard-pulse:not([open]) > summary::after { content:'+'; }
+html body.pilot-ops-v2 .ops-command-strip { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; padding:0; margin:0; border:0; background:none; }
+html body.pilot-ops-v2 .ops-command-card { display:flex; flex-direction:column-reverse; justify-content:flex-end; min-width:0; padding:0 0 16px; border:0; border-radius:0; background:none; box-shadow:none; }
+html body.pilot-ops-v2 .ops-command-card strong { color:var(--deck-ink); font:300 34px/1.25 var(--deck-font); letter-spacing:-.04em; }
+html body.pilot-ops-v2 .ops-command-card span { color:var(--deck-muted); font:11px/1.4 var(--deck-font); letter-spacing:0; text-transform:none; white-space:normal; }
+html body.pilot-ops-v2 .ops-watch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:16px 0 0; margin:0; border-top:1px solid var(--deck-edge); }
+html body.pilot-ops-v2 .ops-watch-card { min-height:0; padding:0; border:0; border-radius:0; background:none; box-shadow:none; }
+html body.pilot-ops-v2 .ops-watch-card:first-child { grid-column:1/-1; padding-bottom:10px; }
+html body.pilot-ops-v2 .ops-watch-card span { color:var(--deck-muted); font:11px/1.4 var(--deck-font); letter-spacing:0; }
+html body.pilot-ops-v2 .ops-watch-card strong { color:var(--deck-ink); font:400 15px/1.5 var(--deck-font); }
+html body.pilot-ops-v2 .ops-watch-card small { color:var(--deck-muted); font:11px/1.4 var(--deck-font); }
+html body.pilot-ops-v2 .ops-watch-card.warn strong { color:var(--deck-caution); }
+html body.pilot-ops-v2 .ops-watch-card.bad strong { color:var(--deck-warning); }
+html body.pilot-ops-v2 .ops-calendar { border-color:var(--deck-edge); background:none; }
+html body.pilot-ops-v2 .ops-calendar summary { color:var(--deck-ink); min-height:44px; font:13px/1.5 var(--deck-font); }
+html body.pilot-ops-v2 .cockpit-empty-flight {
+  position:absolute; z-index:3; left:24px; top:calc(var(--shell-header) + 140px); width:min(400px,calc(100% - 372px));
+  display:block; margin:0; padding:22px; pointer-events:auto;
+}
+html body.pilot-ops-v2 .cockpit-empty-flight > span { color:var(--deck-muted); font:11px/1.4 var(--deck-font); letter-spacing:.08em; }
+html body.pilot-ops-v2 .cockpit-empty-flight h2 { color:var(--deck-ink); font:350 28px/1.25 var(--deck-font); letter-spacing:-.035em; margin:8px 0; }
+html body.pilot-ops-v2 .cockpit-empty-flight p { color:var(--deck-muted); font:14px/1.5 var(--deck-font); margin:0; }
+html body.pilot-ops-v2 .cockpit-empty-flight > div { display:flex; flex-wrap:wrap; gap:8px; max-width:none; margin-top:18px; }
+html body.pilot-ops-v2 .cockpit-empty-flight button { min-height:48px; padding:12px 18px; border:1px solid var(--deck-edge); border-radius:26px; background:var(--deck-control); color:var(--deck-ink); font:500 14px/1.3 var(--deck-font); }
+html body.pilot-ops-v2 .cockpit-empty-flight #cockpitSelectFlight { background:var(--deck-selected); color:var(--deck-selected-ink); }
+html body.pilot-ops-v2 .cockpit-empty-flight[hidden] { display:none; }
+html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
+html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .ops-globe-card { grid-area:auto; }
+html body.pilot-ops-v2.cockpit-deck-collapsed :is(.ops-globe-head,.ops-globe-footer) { right:24px; }
+html body.pilot-ops-v2.cockpit-deck-collapsed #opsVectorMap .maplibregl-ctrl-top-right { right:12px; }
+
+/* Portrait and Split View: cards reflow beneath the map instead of overlapping it. */
+@media(max-width:999px), (max-height:730px) {
+  html body.pilot-ops-v2 #dashboardWorkspace { height:auto; min-height:100%; }
+  html body.pilot-ops-v2 .dashboard-cockpit { height:auto; min-height:100%; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:auto auto; padding:0 16px 20px; gap:16px; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card { position:relative; inset:auto; grid-column:1/-1; grid-row:1; min-height:620px; height:72dvh; margin:0 -16px; z-index:0; overflow:hidden; }
+  html body.pilot-ops-v2 .ops-globe-head { right:24px; }
+  html body.pilot-ops-v2 .ops-globe-footer { right:24px; bottom:64px; }
+  #opsVectorMap .maplibregl-ctrl-top-right { right:12px; top:calc(var(--shell-header) + 135px); }
+  html body.pilot-ops-v2 .cockpit-empty-flight { top:auto; bottom:112px; width:min(380px,calc(100% - 96px)); }
+  html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { grid-column:2; grid-row:2; max-height:none; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck { grid-column:1; grid-row:2; align-self:start; width:100%; max-height:560px; margin:0; }
+  html body.pilot-ops-v2 .ops-command-strip { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
+  html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .ops-globe-card { grid-area:1 / 1 / auto / -1; }
+  html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .dashboard-deck { max-width:none; }
+}
+@media(max-width:759px) {
+  html body.pilot-ops-v2[data-app-workspace="dashboard"] { --shell-header:94px; }
+  html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-masthead { padding-inline:14px; }
+  html body.pilot-ops-v2 .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
+  html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { grid-column:1; grid-row:2; }
+  html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck { grid-column:1; grid-row:3; max-height:none; }
+  html body.pilot-ops-v2 .ops-globe-head { left:16px; right:16px; }
+  html body.pilot-ops-v2 .ops-globe-actions { gap:6px; }
+  html body.pilot-ops-v2 .ops-globe-actions button { padding-inline:12px; }
+  html body.pilot-ops-v2 .app-navigation-title h1 { font-size:22px; }
+  html body.pilot-ops-v2 .cockpit-empty-flight { left:16px; }
+  html body.pilot-ops-v2 .ops-command-strip { grid-template-columns:repeat(5,minmax(0,1fr)); }
+}
+@media(max-width:520px) {
+  html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card { min-height:680px; }
+  html body.pilot-ops-v2 .app-navigation-title { gap:4px; }
+  html body.pilot-ops-v2[data-app-workspace="dashboard"] #appBackBtn { display:none; }
+  html body.pilot-ops-v2 .flight-switch-button { max-width:100%; font-size:11px; padding-inline:8px; }
+  html body.pilot-ops-v2 .cockpit-empty-flight { width:calc(100% - 32px); bottom:148px; }
+  html body.pilot-ops-v2 .ops-globe-footer { bottom:104px; }
+  html body.pilot-ops-v2 .ops-map-note { bottom:78px; }
+  #opsVectorMap .maplibregl-ctrl-top-right { top:calc(var(--shell-header) + 120px); }
+  #opsVectorMap .maplibregl-ctrl-group { display:flex; }
+  #opsVectorMap .maplibregl-ctrl-group button + button { border-top:0; border-left:1px solid #ffffff20; }
+  html body.pilot-ops-v2 .ops-command-card strong { font-size:29px; }
+  html body.pilot-ops-v2 .ops-command-strip { gap:8px; }
+}
+/* Transparent effects are optional; the same contrast works in solid mode. */
+html[data-efb-material="solid"] body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; }
+@supports not (backdrop-filter:blur(1px)) { html body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; } }
+@media(prefers-reduced-transparency:reduce) { html body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; } }

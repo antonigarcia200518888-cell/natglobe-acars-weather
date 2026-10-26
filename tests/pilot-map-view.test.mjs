@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source = fs.readFileSync(new URL('../public/pilot-map-view.js', import.meta.url), 'utf8');
-function harness() {
+function harness(options = {}) {
   const frames = new Map(), timers = new Map(), listeners = new Map(), maps = [];
   let id = 0;
   const motion = { matches:false, addEventListener(){}, removeEventListener(){} };
@@ -13,12 +13,15 @@ function harness() {
     on(name, fn) { this.events.set(name, [...(this.events.get(name)||[]), fn]); }
     emit(name, event={}) { this.events.get(name)?.forEach(fn=>fn(event)); }
     addControl() {} resize() {} setProjection(value) { this.projection=value; }
+    setPadding(value) { this.padding=value; }
+    triggerRepaint() { this.repainted=true; }
     isStyleLoaded() { return true; }
     getStyle() { return {layers:[{id:'background',type:'background'},{id:'water',type:'fill'},{id:'place_city',type:'symbol'}]}; }
     setPaintProperty() {}
     getSource(name) { return this.sources.get(name); }
     addSource(name, value) { this.sources.set(name, { data:value.data, setData(data){this.data=data;} }); }
     addLayer() {}
+    setLayoutProperty(id, property, value) { this.layout = {id, property, value}; }
     setStyle(value) { this.styles.push(value); this.sources.clear(); this.emit('style.load'); }
     fitBounds(bounds, options) { this.fits++; this.fit={bounds,options}; }
     easeTo(value) { this.camera=value; }
@@ -40,7 +43,7 @@ function harness() {
   const navigator={onLine:true};
   vm.runInNewContext(source,{window,document,navigator,ResizeObserver:class {observe(){}disconnect(){}}});
   const container={hidden:true},fallback={hidden:false},status={dataset:{}},states=[];
-  const adapter=window.createPilotMapView({container,fallback,status,onState:state=>states.push(state)});
+  const adapter=window.createPilotMapView({container,fallback,status,onState:state=>states.push(state),...options});
   const flush=()=>{const queued=[...frames.values()];frames.clear();queued.forEach(fn=>fn(50));};
   const load=async()=>{adapter.setActive(true);await Promise.resolve();maps[0].emit('style.load');maps[0].emit('load');flush();};
   return {adapter,geometry:window.PilotMapGeometry,maps,frames,timers,document,navigator,motion,listeners,container,fallback,status,states,flush,load};
@@ -92,9 +95,9 @@ test('unloading a flight clears all route features without recreating the vector
   const h=harness();h.adapter.setFlight(route);await h.load();
   h.adapter.setFlight({});
   assert.equal(h.maps.length,1);
-  for(const source of h.maps[0].sources.values()) assert.equal(source.data.features.length,0);
+  assert.equal(h.maps[0].getSource('pilot-route').data.features.length,0);
   h.adapter.setTheme('day');h.flush();
-  for(const source of h.maps[0].sources.values()) assert.equal(source.data.features.length,0);
+  assert.equal(h.maps[0].getSource('pilot-route').data.features.length,0);
 });
 test('rotation is opt-in, stops offscreen, on touch, and for reduced motion',async()=>{
   const h=harness();await h.load();assert.equal(h.frames.size,0);
@@ -116,10 +119,49 @@ test('new production resources are versioned and preview remains separate',()=>{
   const html=fs.readFileSync(new URL('../views/booking-ops.html',import.meta.url),'utf8');
   const sw=fs.readFileSync(new URL('../public/pilot-sw.js',import.meta.url),'utf8');
   const version=sw.match(/PILOT_STYLESHEET_VERSION = '([^']+)'/)[1];
-  for(const file of ['pilot-premium.css','pilot-map-view.js','pilot-display.js']) {
+  for(const file of ['pilot-premium.css','pilot-observatory.css','pilot-map-view.js','pilot-display.js']) {
     assert.ok(html.includes(`/${file}?v=${version}`));assert.ok(sw.includes(`/${file}?v=\${PILOT_STYLESHEET_VERSION}`));
   }
   assert.ok(!html.includes('/efb-preview/'));
   assert.match(html,/Overview only · direct route · not for navigation/);
   assert.match(html,/dragging:true,\s+touchZoom:true/);
+});
+
+test('route fit uses panel-aware padding without retaining camera padding',async()=>{
+  const padding={top:180,right:350,bottom:280,left:48};
+  const h=harness({getPadding:()=>padding}); await h.load();
+  assert.equal(h.maps[0].camera.padding,undefined);
+  h.adapter.setFlight(route);
+  assert.equal(h.maps[0].padding,0);
+  assert.equal(h.maps[0].fit.options.padding,padding);
+  h.maps[0].fitBounds=()=>{throw new Error('No fitting area');};
+  assert.doesNotThrow(()=>h.adapter.fitRoute());
+  assert.match(h.status.textContent,/adjust map view manually/);
+});
+
+test('relief toggle and source failure keep the route and map instance',async()=>{
+  const h=harness();h.adapter.setFlight(route);await h.load();
+  assert.ok(h.maps[0].getSource('pilot-relief'));
+  h.adapter.setRelief(false);
+  assert.equal(h.maps[0].layout.value,'none');
+  assert.match(h.status.textContent,/Vector basemap/);
+  h.adapter.setRelief(true);
+  assert.equal(h.maps[0].layout.value,'visible');
+  h.maps[0].emit('error',{sourceId:'pilot-relief'});
+  assert.equal(h.maps[0].layout.value,'none');
+  assert.match(h.status.textContent,/vector map retained/);
+  assert.equal(h.maps.length,1);
+  assert.equal(h.maps[0].getSource('pilot-route').data.features.length,3);
+});
+
+test('restored connectivity clears a stale offline label after the map settles',async()=>{
+  const h=harness();await h.load();
+  h.navigator.onLine=false;h.listeners.get('offline')();
+  assert.match(h.status.textContent,/Offline/);
+  h.navigator.onLine=true;h.listeners.get('online')();
+  assert.equal(h.maps[0].repainted,true);
+  assert.equal(h.status.dataset.state,'loading');
+  h.maps[0].emit('idle');
+  assert.equal(h.status.dataset.state,'ready');
+  assert.doesNotMatch(h.status.textContent,/Offline/);
 });
