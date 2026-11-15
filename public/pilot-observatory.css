@@ -251,6 +251,11 @@ html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .ops-globe-ca
   html body.pilot-ops-v2 .app-navigation-title h1 { font-size:20px; }
 }
 /* Transparent effects are optional; the same contrast works in solid mode. */
-html[data-efb-material="solid"] body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; }
-@supports not (backdrop-filter:blur(1px)) { html body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; } }
-@media(prefers-reduced-transparency:reduce) { html body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; } }
+html[data-efb-material="solid"] body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; --deck-brush:none; }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  html:root body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; }
+}
+@media(prefers-reduced-transparency:reduce) {
+  html:root body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; --deck-brush:none; }
+  html body.pilot-ops-v2 #flightPickerDialog::backdrop { backdrop-filter:none; -webkit-backdrop-filter:none; background:#0b1726c9; }
+}
