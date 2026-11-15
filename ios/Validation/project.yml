@@ -1,0 +1,45 @@
+name: PilotOpsValidation
+options:
+  deploymentTarget:
+    iOS: "17.0"
+packages:
+  PilotFlightSwitcher:
+    path: ../FlightSwitcher
+targets:
+  PilotOpsValidation:
+    type: application
+    platform: iOS
+    sources: [App]
+    dependencies:
+      - package: PilotFlightSwitcher
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.natglobe.validation.flightpicker
+        TARGETED_DEVICE_FAMILY: "2"
+        SUPPORTED_PLATFORMS: iphonesimulator
+        SWIFT_VERSION: "6.0"
+    info:
+      path: Generated/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight, UIInterfaceOrientationPortraitUpsideDown]
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+  FlightSwitcherChecks:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: PilotOpsValidation
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.natglobe.validation.flightpicker.checks
+        TEST_TARGET_NAME: PilotOpsValidation
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  PilotOpsValidation:
+    build:
+      targets:
+        PilotOpsValidation: all
+    test:
+      targets: [FlightSwitcherChecks]

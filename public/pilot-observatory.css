@@ -2,19 +2,21 @@
    Surfaces use an opaque tint under the blur so labels remain readable over imagery. */
 html body.pilot-ops-v2 {
   --deck-font:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI",Arial,sans-serif;
-  --deck-surface:rgba(247,248,247,.91);
-  --deck-solid:#f3f5f4;
-  --deck-edge:rgba(28,40,36,.16);
-  --deck-shine:rgba(255,255,255,.7);
-  --deck-ink:#19231f;
-  --deck-muted:#52605a;
-  --deck-control:rgba(230,235,232,.9);
-  --deck-selected:#263e34;
+  --deck-surface:rgba(235,241,247,.91);
+  --deck-solid:#f4f7fa;
+  --deck-edge:rgba(32,56,82,.23);
+  --deck-shine:rgba(255,255,255,.84);
+  --deck-ink:#10253d;
+  --deck-muted:#42546a;
+  --deck-control:#dfe7ee;
+  --deck-selected:#173d64;
   --deck-selected-ink:#fff;
   --deck-caution:#80520a;
   --deck-warning:#ad283b;
   --deck-blur:blur(24px) saturate(115%);
-  --shell-base:#e8ece9;
+  --shell-base:#d5dfe8;
+  --deck-trim:linear-gradient(100deg,#7d92a8,#e9f0f6 24%,#91a4b7 63%,#d5e0e9);
+  --deck-brush:repeating-linear-gradient(0deg,transparent 0 2px,rgba(75,98,121,.05) 2px 3px);
   --glass-surface:var(--deck-surface);
   --glass-edge:var(--deck-edge);
   --glass-highlight:var(--deck-shine);
@@ -23,34 +25,66 @@ html body.pilot-ops-v2 {
   font-family:var(--deck-font);
 }
 html[data-efb-theme="night"] body.pilot-ops-v2 {
-  --deck-surface:rgba(31,35,34,.84);
-  --deck-solid:#202423;
-  --deck-edge:rgba(230,239,233,.13);
-  --deck-shine:rgba(239,249,240,.09);
-  --deck-ink:#f3f6f3;
-  --deck-muted:#bac5be;
-  --deck-control:rgba(58,64,60,.8);
-  --deck-selected:#e5ebe5;
-  --deck-selected-ink:#18221d;
+  --deck-surface:rgba(21,38,59,.89);
+  --deck-solid:#16283d;
+  --deck-edge:rgba(182,203,222,.25);
+  --deck-shine:rgba(210,232,252,.16);
+  --deck-ink:#f1f6fb;
+  --deck-muted:#bacadc;
+  --deck-control:#253e58;
+  --deck-selected:#c5d8e9;
+  --deck-selected-ink:#10253d;
   --deck-caution:#e9b86f;
   --deck-warning:#ffaaaa;
-  --shell-base:#111715;
+  --shell-base:#0b1726;
+  --deck-trim:linear-gradient(100deg,#3c5570,#8298ad 24%,#324c68 63%,#68829a);
+  --deck-brush:repeating-linear-gradient(0deg,transparent 0 2px,rgba(183,208,231,.045) 2px 3px);
   --glass-surface:var(--deck-surface);
   --glass-edge:var(--deck-edge);
   --glass-highlight:var(--deck-shine);
   --shell-ink:var(--deck-ink);
   --shell-muted:var(--deck-muted);
-  --app-card-solid:#202423;
-  --app-card-muted:#191e1c;
-  --app-ink:#f3f6f3;
-  --app-muted:#bac5be;
-  --app-line:rgba(230,239,233,.15);
+  --app-card-solid:var(--deck-solid);
+  --app-card-muted:var(--deck-control);
+  --app-ink:var(--deck-ink);
+  --app-muted:var(--deck-muted);
+  --app-line:var(--deck-edge);
 }
-html body.pilot-ops-v2 .efb-masthead { border-bottom-color:var(--deck-edge); }
-html body.pilot-ops-v2 .app-navigation-title h1 { font-family:var(--deck-font); font-weight:450; font-size:25px; letter-spacing:-.04em; }
+/* The header participates in layout. Long routes, enlarged text and extra
+   status actions must increase its height rather than spill into the map. */
+html body.pilot-ops-v2 > .frame { grid-template-rows:auto var(--shell-context) minmax(0,1fr); }
+html body.pilot-ops-v2 .efb-masthead {
+  height:auto; min-height:64px; padding:8px 14px; flex-wrap:wrap; gap:6px 12px;
+  background:var(--deck-brush),var(--deck-trim) bottom/100% 2px no-repeat,var(--deck-surface);
+  border-bottom:1px solid var(--deck-edge); -webkit-backdrop-filter:var(--deck-blur); backdrop-filter:var(--deck-blur);
+}
+html body.pilot-ops-v2 .app-navigation-title { flex:1 1 228px; min-width:0; gap:8px; }
+html body.pilot-ops-v2 .app-navigation-title > .workspace-identity { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; min-width:0; }
+html body.pilot-ops-v2 .app-navigation-title h1 { margin:0; font:600 clamp(18px,2vw,24px)/1.24 var(--deck-font); letter-spacing:-.025em; white-space:normal; overflow-wrap:anywhere; }
+html body.pilot-ops-v2 .efb-masthead .masthead-status { display:flex; flex:0 1 auto; min-width:0; max-width:100%; flex-wrap:wrap; align-items:center; gap:2px; }
+html body.pilot-ops-v2 .efb-masthead #appUpdateBtn:not([hidden])::before { content:none; }
 html body.pilot-ops-v2 .efb-masthead :is(.shell-icon-button,.cockpit-location) { border-radius:50%; }
 html body.pilot-ops-v2 .efb-masthead .cockpit-location { border-radius:28px; }
-html body.pilot-ops-v2 .flight-switch-button { padding:6px 11px; margin-top:4px; background:var(--deck-control); border:1px solid var(--deck-edge); border-radius:24px; font:400 13px/1.4 var(--deck-font); }
+html body.pilot-ops-v2 .flight-switch-button {
+  display:inline-flex; align-items:center; min-width:0; max-width:min(100%,24ch); min-height:48px; margin:0; padding:6px 12px;
+  background:var(--deck-control); color:var(--deck-ink); border:1px solid var(--deck-edge); border-radius:16px;
+  box-shadow:inset 0 1px var(--deck-shine); font:550 14px/1.35 var(--deck-font); }
+html body.pilot-ops-v2 .flight-switch-button #appWorkspaceSubtitle { font:inherit; }
+html body.pilot-ops-v2 .flight-switch-button > svg { flex:none; width:12px; height:12px; }
+@media(min-width:1101px) and (max-width:1279px) {
+  /* With the rail open, trade the redundant network label for route space.
+     The location control retains its accessible name and detail sheet. */
+  html body.pilot-ops-v2:not(.sidebar-collapsed) .masthead-status .app-connection { display:none; }
+  html body.pilot-ops-v2:not(.sidebar-collapsed) .efb-masthead .cockpit-location { width:48px; padding:8px; justify-content:center; }
+  html body.pilot-ops-v2:not(.sidebar-collapsed) .cockpit-location #cockpitLocationValue { display:none; }
+}
+@media(max-width:720px) {
+  html body.pilot-ops-v2 .efb-masthead { padding:6px 10px; }
+  html body.pilot-ops-v2 .app-navigation-title { flex-basis:100%; }
+  html body.pilot-ops-v2 .app-navigation-title > .workspace-identity { flex:1; justify-content:space-between; }
+  html body.pilot-ops-v2 .efb-masthead .masthead-status { width:100%; justify-content:flex-end; }
+  html body.pilot-ops-v2 .efb-masthead .masthead-status #clock { margin-right:auto; }
+}
 html body.pilot-ops-v2 .ops-suite-nav { background:var(--deck-surface); -webkit-backdrop-filter:var(--deck-blur); backdrop-filter:var(--deck-blur); }
 html body.pilot-ops-v2 .ops-suite-nav .suite-tab { color:var(--deck-muted); }
 html body.pilot-ops-v2 .ops-suite-nav .suite-tab.active { background:var(--deck-selected); color:var(--deck-selected-ink); box-shadow:none; }

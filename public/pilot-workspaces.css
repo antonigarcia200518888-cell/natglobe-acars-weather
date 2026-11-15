@@ -57,6 +57,27 @@ html body.pilot-ops-v2 :is(.efb-action.primary,.performance-run,.performance-act
 
 /* Flights: navigation precedes content, and non-overview tabs don't inherit the
    entire overview dashboard above their controls. Alerts remain in every tab. */
+/* Brushed trim belongs on hardware-like edges. Flight data and alerts sit
+   on opaque surfaces; only the sheet controls use a glass-like finish. */
+html body.pilot-ops-v2 #flightPickerDialog {
+  color:var(--deck-ink); background:var(--deck-solid); border:1px solid var(--deck-edge);
+  box-shadow:0 12px 40px #08182740; max-height:calc(100dvh - 20px); overflow:auto;
+}
+html body.pilot-ops-v2 #flightPickerDialog .shell-dialog-head {
+  background:var(--deck-brush),var(--deck-trim) bottom/100% 2px no-repeat,var(--deck-control);
+  align-items:center; gap:12px; padding:16px 20px; color:var(--deck-ink);
+}
+html body.pilot-ops-v2 #flightPickerDialog :is(.shell-dialog-head strong,.flight-picker-route strong,.flight-picker-empty strong) { color:var(--deck-ink); }
+html body.pilot-ops-v2 #flightPickerDialog :is(.shell-dialog-head p,.flight-picker-empty p) { color:var(--deck-muted); }
+html body.pilot-ops-v2 #flightPickerDialog :is(#flightPickerCloseBtn,#flightPickerCreateBtn) {
+  width:auto; min-height:48px; padding:8px 16px; border-radius:16px; border:1px solid var(--deck-edge);
+  background:var(--deck-control); color:var(--deck-ink); box-shadow:inset 0 1px var(--deck-shine); font:600 15px/1.3 var(--deck-font);
+}
+html body.pilot-ops-v2 #flightPickerDialog #flightPickerCreateBtn { background:var(--deck-selected); color:var(--deck-selected-ink); }
+html body.pilot-ops-v2 #flightPickerDialog #flightPickerSearch { min-height:48px; font-size:16px; }
+html body.pilot-ops-v2 #flightPickerDialog .flight-picker-route { flex-wrap:wrap; }
+html body.pilot-ops-v2 #flightPickerDialog .flight-picker-row { overflow-wrap:anywhere; }
+html body.pilot-ops-v2 #flightPickerDialog .flight-picker-footer { padding-top:12px; }
 html body.pilot-ops-v2 #cockpitFlightFile .flight-detail-tabs {
   position:relative; top:auto; margin:0 0 12px; padding:4px; gap:4px;
   grid-template-columns:repeat(3,minmax(0,1fr)); background:var(--deck-control); border:1px solid var(--deck-edge); border-radius:18px;

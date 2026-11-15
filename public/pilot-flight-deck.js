@@ -31,13 +31,42 @@ window.createPilotFlightDeck = function createPilotFlightDeck({ getFlights, getS
     }).join('') || '<div class="flight-picker-empty"><strong>No matching flights</strong><p>Try an airport, flight reference, date or aircraft. The filters only change this list.</p></div>';
   }
 
-  function open() {
+  function openWebPicker() {
     node('flightPickerSearch').value = '';
     scope = 'ALL';
     render();
     picker.showModal();
     // Do not force the iPad keyboard open just to select a flight.
     node('flightPickerCloseBtn').focus();
+  }
+
+  // Safari and installed PWAs take the original synchronous path. A native
+  // host explicitly registers a reply-capable handler; no second flight store.
+  let nativeOpen = false;
+  async function open() {
+    if (nativeOpen || picker.open) return;
+    const bridge = window.webkit?.messageHandlers?.ngaFlightPicker;
+    if (!bridge?.postMessage) return openWebPicker();
+    nativeOpen = true;
+    let reply;
+    const original = getSelected()?.id ?? null;
+    try {
+      const flights = getFlights().map(f => ({
+        id:f.id, dep:f.dep || '----', arr:f.arr || '----', date:f.requestDate || '', time:f.requestTime || '',
+        aircraft:f.aircraft || '', pilotFile:f.manualFlight === true, status:f.status || '',
+        search:[f.depName, f.arrName, f.route, f.crew?.commander].filter(Boolean).join(' ')
+      }));
+      const appearance = document.documentElement.dataset;
+      reply = await bridge.postMessage({version:1, selected:original, today:today(), flights,
+        night:appearance.efbTheme === 'night', solid:appearance.efbMaterial === 'solid'});
+    } catch {
+      return openWebPicker();
+    } finally { nativeOpen = false; }
+    if (original !== (getSelected()?.id ?? null) || reply?.action === 'cancel') return;
+    if (reply?.action === 'create') return create();
+    const flight = reply?.action === 'select' && getFlights().find(f => f.id === reply.id);
+    if (flight) return choose(flight); // Same unsaved-OFP guard as the web picker.
+    openWebPicker(); // Stale ID, outdated host, or malformed reply.
   }
 
   function updateDraftStatus() {

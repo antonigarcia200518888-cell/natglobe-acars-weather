@@ -14,15 +14,36 @@ function harness() {
     return nodes.get(id);
   };
   const window={};
-  const ctx=vm.createContext({window,document:{getElementById:node,querySelectorAll:()=>[]}});
+  const ctx=vm.createContext({window,document:{documentElement:{dataset:{}},getElementById:node,querySelectorAll:()=>[]}});
   vm.runInContext(source,ctx);
   const state={requestId:'TEST-A',dirty:false,busy:false};
   let saves=0, saveError='', remainDirty=false;
   const planner={getState:()=>state,save:async()=>{saves++;if(saveError)throw Error(saveError);state.dirty=remainDirty;}};
   const flights=[{id:'TEST-A',dep:'EFHV',arr:'EFHN',requestDate:'2026-10-06',requestTime:'10:00',aircraft:'PA28',manualFlight:true},{id:'TEST-B',dep:'EFHK',arr:'EFTP',requestDate:'2026-10-07'}];
-  const deck=window.createPilotFlightDeck({getFlights:()=>flights,getSelected:()=>flights[0],getPlanner:()=>planner,choose:()=>{},create:()=>{},today:()=> '2026-10-06',escapeHtml:s=>String(s).replaceAll('<','&lt;').replaceAll('"','&quot;')});
-  return {deck,node,state,window,flights,get saves(){return saves;},fail(message){saveError=message;},remainDirty(){remainDirty=true;}};
+  const calls=[];
+  const deck=window.createPilotFlightDeck({getFlights:()=>flights,getSelected:()=>flights[0],getPlanner:()=>planner,choose:f=>calls.push(f.id),create:()=>calls.push('create'),today:()=> '2026-10-06',escapeHtml:s=>String(s).replaceAll('<','&lt;').replaceAll('"','&quot;')});
+  return {deck,node,state,window,flights,calls,get saves(){return saves;},fail(message){saveError=message;},remainDirty(){remainDirty=true;}};
 }
+
+test('native switcher only returns commands to the existing flight workflow',async()=>{
+  const h=harness(); let reply; let payload; let calls=0;
+  h.flights[0].passengers=['private manifest'];
+  h.window.webkit={messageHandlers:{ngaFlightPicker:{postMessage:async p=>{payload=p;calls++;return new Promise(r=>reply=r);}}}};
+  const first=h.deck.open(); await h.deck.open(); assert.equal(calls,1);
+  assert.equal(payload.version,1); assert.equal(payload.selected,'TEST-A'); assert.ok(!JSON.stringify(payload).includes('private manifest'));
+  reply({action:'select',id:'TEST-B'}); await first; assert.deepEqual(h.calls,['TEST-B']);
+  const cancel=h.deck.open(); reply({action:'cancel'}); await cancel; assert.deepEqual(h.calls,['TEST-B']);
+  const create=h.deck.open(); reply({action:'create'}); await create; assert.deepEqual(h.calls,['TEST-B','create']);
+  const stale=h.deck.open(); h.flights.pop(); reply({action:'select',id:'TEST-B'}); await stale;
+  assert.ok(h.node('flightPickerDialog').open); assert.deepEqual(h.calls,['TEST-B','create']);
+});
+
+test('native presentation failures fall back to the accessible web dialog',async()=>{
+  const h=harness();
+  h.window.webkit={messageHandlers:{ngaFlightPicker:{postMessage:async()=>{throw Error('unavailable')}}}};
+  await h.deck.open();
+  assert.ok(h.node('flightPickerDialog').open); assert.deepEqual(h.calls,[]);
+});
 
 test('flight search matches multiple operational terms and scopes without changing selection',()=>{
   const h=harness();

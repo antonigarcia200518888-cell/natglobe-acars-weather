@@ -1,0 +1,52 @@
+name: Pilot iPad simulator
+on:
+  push:
+    branches: [main]
+    paths: ['ios/**', '.github/workflows/pilot-ipad-validation.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  flight-switcher:
+    # Never allocate a paid/private or larger macOS runner for this check.
+    if: github.event.repository.private == false
+    runs-on: macos-26
+    timeout-minutes: 24
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      XCODEBUILDMCP_SENTRY_DISABLED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Prepare the simulator-only validation scheme
+        run: |
+          xcodebuild -version
+          command -v xcodegen || brew install xcodegen
+          xcodegen generate --spec ios/Validation/project.yml
+          DEVICE=$(xcrun simctl list devices available -j | jq -er '.devices["com.apple.CoreSimulator.SimRuntime.iOS-26-2"][] | select(.name=="iPad Air 11-inch (M3)") | .udid' | head -n1)
+          test -n "$DEVICE"
+          echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
+          echo "PilotOpsValidation · iPad Air 11-inch (M3) · iPadOS 26.2 · $DEVICE"
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+      - name: Build and launch with XcodeBuildMCP; exercise the native sheet
+        run: |
+          node ios/Validation/fixture-server.mjs &
+          trap 'kill "$!" 2>/dev/null || true' EXIT
+          curl --retry 10 --retry-connrefused --fail http://127.0.0.1:4179/booking-ops -o /dev/null
+          PROJECT="$GITHUB_WORKSPACE/ios/Validation/PilotOpsValidation.xcodeproj"
+          npx --yes xcodebuildmcp@2.0.7 simulator build-and-run --project-path "$PROJECT" --scheme PilotOpsValidation --simulator-id "$DEVICE"
+          xcodebuild test -project "$PROJECT" -scheme PilotOpsValidation -destination "id=$DEVICE" -parallel-testing-enabled NO -resultBundlePath "$RUNNER_TEMP/FlightChecks.xcresult"
+      - name: Capture fixture screenshot without billable artifact storage
+        if: always()
+        run: |
+          test -d "$RUNNER_TEMP/FlightChecks.xcresult"
+          xcrun xcresulttool export attachments --path "$RUNNER_TEMP/FlightChecks.xcresult" --output-path "$RUNNER_TEMP/screens"
+          FILE=$(jq -r '.. | objects | select((.suggestedHumanReadableName // "") | contains("Native-flight-switcher")) | .exportedFileName' "$RUNNER_TEMP/screens/manifest.json" | head -n1)
+          test -n "$FILE"
+          sips -Z 1100 -s format jpeg -s formatOptions 82 "$RUNNER_TEMP/screens/$FILE" --out "$RUNNER_TEMP/native-sheet.jpg"
+          # Transport this synthetic test image through the ordinary job log. No
+          # upload-artifact, paid storage, Actions cache, or extra write permissions.
+          base64 < "$RUNNER_TEMP/native-sheet.jpg" | tr -d '\r\n' | fold -w 1600 | sed 's/^/PILOT_SIM_JPEG:/'

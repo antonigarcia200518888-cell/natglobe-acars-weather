@@ -9,8 +9,8 @@ const contrast = (a,b) => { const x=luminance(a),y=luminance(b); return (Math.ma
 
 test('observatory text remains readable over the brightest and darkest map pixels',()=>{
   for (const theme of [
-    {tint:[247,248,247],alpha:.91,ink:'#19231f',muted:'#52605a',caution:'#80520a',warning:'#ad283b'},
-    {tint:[31,35,34],alpha:.84,ink:'#f3f6f3',muted:'#bac5be',caution:'#e9b86f',warning:'#ffaaaa'}
+    {tint:[235,241,247],alpha:.91,ink:'#10253d',muted:'#42546a',caution:'#80520a',warning:'#ad283b'},
+    {tint:[21,38,59],alpha:.89,ink:'#f1f6fb',muted:'#bacadc',caution:'#e9b86f',warning:'#ffaaaa'}
   ]) {
     assert.ok(css.includes(`rgba(${theme.tint.join(',')},${String(theme.alpha).slice(1)})`));
     for(const background of [0,255]) {

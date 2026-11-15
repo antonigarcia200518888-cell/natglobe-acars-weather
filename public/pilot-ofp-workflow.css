@@ -1,6 +1,6 @@
 /* NGA flight folder — one app layout, shared by embedded and standalone views. */
-:root { color-scheme:light; --bg:#e8ece9; --surface:#f8faf8; --soft:#e5ebe7; --ink:#19231f; --muted:#52605a; --line:#c5cec8; --blue:#263e34; --green:#126449; --green-soft:#e2f1e9; --amber:#80520a; --red:#ad293b; --shadow:0 16px 60px #0006; --mono:"Courier New",Courier,monospace; --chrome:#202923; --chrome-line:#3b4840; --action:#263e34; --action-ink:#fff; }
-:root[data-efb-theme="night"] { color-scheme:dark; --bg:#111715; --surface:#202423; --soft:#2b332e; --ink:#f3f6f3; --muted:#bac5be; --line:#444f48; --blue:#d9e7df; --green:#92ddba; --green-soft:#183a30; --amber:#e9b86f; --red:#ffaaaa; --action:#e5ebe5; --action-ink:#18221d; }
+:root { color-scheme:light; --bg:#d5dfe8; --surface:#f4f7fa; --soft:#dfe7ee; --ink:#10253d; --muted:#42546a; --line:#bccbd8; --blue:#173d64; --green:#126449; --green-soft:#e2f1e9; --amber:#80520a; --red:#ad293b; --shadow:0 16px 60px #0006; --mono:"Courier New",Courier,monospace; --chrome:#132c45; --chrome-line:#45647d; --action:#173d64; --action-ink:#fff; }
+:root[data-efb-theme="night"] { color-scheme:dark; --bg:#0b1726; --surface:#16283d; --soft:#253e58; --ink:#f1f6fb; --muted:#bacadc; --line:#415971; --blue:#c5d8e9; --green:#92ddba; --green-soft:#183a30; --amber:#e9b86f; --red:#ffaaaa; --action:#c5d8e9; --action-ink:#10253d; }
 *,*::before,*::after { box-sizing:border-box; }
 [hidden] { display:none !important; }
 html,body { height:100%; margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }

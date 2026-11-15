@@ -2943,24 +2943,33 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-15-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-15-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-15-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-15-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-15-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-15-2" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-15-2" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-15-2" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-15-2" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-15-2" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-15-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-15-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-15-2" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-15-2" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-15-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-15-1" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-15-1" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-15-1" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-15-2" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-15-2" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-15-2" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-15-2" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
     <header class="efb-masthead">
-      <div class="app-navigation-title"><button id="appBackBtn" class="shell-icon-button" type="button" aria-label="Back to previous workspace" disabled><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg></span></button><div><h1 id="appWorkspaceTitle">Pilot EFB</h1><button id="flightSwitchBtn" class="flight-switch-button" type="button" aria-label="Switch active flight" aria-haspopup="dialog"><span id="appWorkspaceSubtitle">NGA · Pilot operations</span><span aria-hidden="true">⌄</span></button></div><span id="appDraftBadge" class="app-draft-badge" hidden>Unsaved OFP</span></div>
+      <div class="app-navigation-title">
+        <button id="appBackBtn" class="shell-icon-button" type="button" aria-label="Back to previous workspace" disabled><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg></span></button>
+        <div class="workspace-identity">
+          <h1 id="appWorkspaceTitle">Pilot EFB</h1>
+          <button id="flightSwitchBtn" class="flight-switch-button" type="button" aria-label="Switch active flight" aria-describedby="appWorkspaceSubtitle" aria-haspopup="dialog" aria-controls="flightPickerDialog">
+            <span id="appWorkspaceSubtitle">Select flight</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg>
+          </button>
+        </div>
+        <span id="appDraftBadge" class="app-draft-badge" hidden>Unsaved OFP</span>
+      </div>
       <button id="sidebarToggle" class="shell-icon-button masthead-menu-button" type="button" aria-label="Collapse navigation" title="Navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span></button>
       <div class="masthead-brand"><span class="efb-logo-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
       <div class="masthead-status">
@@ -3874,12 +3883,12 @@ END OF MESSAGE</pre>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
   <dialog id="cockpitLocationDialog" class="shell-dialog cockpit-location-dialog" aria-labelledby="cockpitLocationTitle"><header class="shell-dialog-head"><div><span>Device sensor</span><strong id="cockpitLocationTitle">Location &amp; precision</strong></div><button id="cockpitLocationClose" type="button">Done</button></header><div class="cockpit-location-body"><p id="cockpitPositionDetail">Location monitoring is off.</p><p>Accuracy is the device-reported uncertainty in metres, not HDOP or certified GPS integrity. A green indicator only means a recent fix with reported accuracy of 50 m or better. This overview is not for navigation.</p><p>Location is used on this device only, never saved or uploaded. Monitoring pauses while the app is hidden.</p><button id="cockpitLocationStart" type="button">Enable device location</button><button id="cockpitLocationStop" type="button" hidden>Stop location monitoring</button></div></dialog>
-  <script src="/pilot-cockpit.js?v=2026-11-15-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-15-1"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-15-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-15-1"></script>
-  <script src="/pilot-map-view.js?v=2026-11-15-1"></script>
-  <script src="/pilot-display.js?v=2026-11-15-1"></script>
+  <script src="/pilot-cockpit.js?v=2026-11-15-2"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-15-2"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-15-2"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-15-2"></script>
+  <script src="/pilot-map-view.js?v=2026-11-15-2"></script>
+  <script src="/pilot-display.js?v=2026-11-15-2"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>

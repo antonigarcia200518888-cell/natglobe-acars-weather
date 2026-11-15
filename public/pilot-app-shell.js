@@ -36,7 +36,9 @@ window.createPilotAppShell = function createPilotAppShell({ navigate, getFlight,
   function updateContext() {
     const flight = getFlight();
     node('appWorkspaceTitle').textContent = titles[current] || 'Pilot EFB';
-    node('appWorkspaceSubtitle').textContent = flight ? `${flight.dep || '----'} → ${flight.arr || '----'} · ${flight.id}` : 'NGA · Pilot operations';
+    const route = flight ? `${flight.dep || '----'} → ${flight.arr || '----'}` : 'Select flight';
+    node('appWorkspaceSubtitle').textContent = route;
+    node('flightSwitchBtn').title = flight ? `Switch active flight: ${route} · ${flight.id}` : 'Select an active flight';
     node('appFocusBtn').hidden = current !== 'flight-plan' || !flight?.id;
     node('appBackBtn').disabled = history.state?.ngaAppSession !== session || !(history.state?.ngaAppDepth > 0);
     if (current !== 'flight-plan' || !flight?.id) setFocus(false);
