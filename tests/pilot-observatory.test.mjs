@@ -23,11 +23,11 @@ test('observatory text remains readable over the brightest and darkest map pixel
   }
 });
 
-test('tablet rail reserves space and portrait cards return to document flow',()=>{
-  assert.match(css,/@media\(min-width:760px\) and \(min-height:600px\)/);
-  assert.match(css,/padding-right:88px/);
-  assert.match(css,/@media\(max-width:999px\), \(max-height:730px\)/);
-  assert.match(css,/position:relative; inset:auto; grid-column:1\/-1/);
+test('tablet rail reserves its actual width; portrait folder and map have separate rows',()=>{
+  assert.match(css,/@media \(min-width:960px\) and \(min-height:600px\)/);
+  assert.match(css,/padding-right:calc\(var\(--rail-width\) \+ var\(--rail-inset\) \+ 8px\)/);
+  assert.match(css,/grid-template-areas:"map" "file" "pulse"/);
+  assert.match(css,/#opsGlobeCanvas:not\(\[hidden\]\) \+ #opsVectorMap \{ visibility:hidden/);
   assert.match(css,/\.cockpit-empty-flight\[hidden\] \{ display:none; \}/);
   assert.match(css,/prefers-reduced-transparency:reduce/);
   assert.match(css,/--deck-surface:var\(--deck-solid\); --deck-blur:none/);

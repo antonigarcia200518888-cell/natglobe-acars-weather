@@ -56,76 +56,73 @@ html body.pilot-ops-v2 .ops-suite-nav .suite-tab { color:var(--deck-muted); }
 html body.pilot-ops-v2 .ops-suite-nav .suite-tab.active { background:var(--deck-selected); color:var(--deck-selected-ink); box-shadow:none; }
 html body.pilot-ops-v2 .ops-suite-nav .suite-tab strong { font-weight:500; }
 
-/* A right-side control rail at tablet sizes; narrow Split View keeps the dock.
-   The frame reserves the rail width, so it cannot cover the OFP or flight list. */
-@media(min-width:760px) and (min-height:600px) {
-  html body.pilot-ops-v2:not(.app-focus) > .frame { padding-right:88px; padding-bottom:var(--shell-bottom); }
+/* Use a labelled rail only when the viewport can afford it. The frame reserves
+   its exact footprint; in portrait/Split View the existing bottom dock takes over. */
+@media (min-width:960px) and (min-height:600px) {
+  html body.pilot-ops-v2 { --rail-width:148px; --rail-inset:max(8px,env(safe-area-inset-right)); }
+  html body.pilot-ops-v2.sidebar-collapsed { --rail-width:64px; }
+  html body.pilot-ops-v2:not(.app-focus) > .frame { padding-right:calc(var(--rail-width) + var(--rail-inset) + 8px); padding-bottom:var(--shell-bottom); }
   html body.pilot-ops-v2:not(.app-focus) .ops-suite-nav,
   html body.pilot-ops-v2.sidebar-collapsed:not(.app-focus) .ops-suite-nav {
-    inset:auto 12px 20px auto; width:64px; max-width:none; height:auto; max-height:calc(100% - 112px);
-    display:flex; flex-direction:column; gap:4px; padding:6px; border-radius:34px; overflow-y:auto;
-    box-shadow:inset 0 1px var(--deck-shine);
+    inset:calc(var(--shell-top) + 8px) var(--rail-inset) auto auto; width:var(--rail-width); max-width:none;
+    height:auto; max-height:calc(100% - var(--shell-top) - var(--shell-bottom) - 16px);
+    display:flex; flex-direction:column; gap:3px; padding:6px; border:1px solid var(--deck-edge);
+    border-radius:22px; overflow:auto; scrollbar-width:thin; overscroll-behavior:contain; box-shadow:none;
   }
-  html body.pilot-ops-v2 .ops-suite-nav .suite-tab { flex:0 0 56px; width:50px; min-height:56px; padding:4px 0; gap:2px; border-radius:26px; }
-  html body.pilot-ops-v2 .ops-suite-nav .suite-tab strong { font-size:10px; }
-  html body.pilot-ops-v2 .ops-suite-nav .suite-tab .suite-icon { width:24px; height:24px; }
+  html body.pilot-ops-v2:not(.app-focus) #pilotWorkspaceNav .suite-nav-tools {
+    display:flex !important; align-items:center; justify-content:space-between; flex:none; gap:2px;
+    padding:0 0 4px; margin-bottom:2px; border-bottom:1px solid var(--deck-edge);
+  }
+  html body.pilot-ops-v2 #sidebarRailToggle { display:grid; place-items:center; width:48px; height:48px; padding:0; color:var(--deck-ink); background:transparent; border:0; cursor:pointer; }
+  html body.pilot-ops-v2 #sidebarRailToggle::before { content:none; }
+  html body.pilot-ops-v2 #pilotWorkspaceNav .suite-nav-label { display:block; font:500 12px var(--deck-font); color:var(--deck-muted); padding-left:6px; }
+  html body.pilot-ops-v2 #pilotWorkspaceNav .suite-tab { flex:0 0 50px; width:100%; min-height:50px; flex-direction:row; justify-content:flex-start; gap:10px; padding:6px 10px; border-radius:14px; }
+  html body.pilot-ops-v2 #pilotWorkspaceNav .suite-tab strong { font-size:14px; }
+  html body.pilot-ops-v2 #pilotWorkspaceNav .suite-icon { display:block; width:24px; height:24px; flex:none; }
+  html body.pilot-ops-v2.sidebar-collapsed #pilotWorkspaceNav .suite-tab { padding:4px; justify-content:center; }
+  html body.pilot-ops-v2.sidebar-collapsed #pilotWorkspaceNav :is(.suite-nav-label,.suite-tab strong) { display:none; }
 }
+html body.pilot-ops-v2 #pilotWorkspaceNav :is(.suite-tab[aria-current="page"],.mobile-more-tab.active) { background:#214c39; color:#d5f8e6; box-shadow:inset 0 0 0 1px #78a98c; }
+/* An icon-only rail preference mustn't remove icons from the bottom dock. */
+html body.pilot-ops-v2.sidebar-collapsed #pilotWorkspaceNav .suite-icon { display:inline-grid; }
 
-/* Home owns one map canvas. Panels sit in reserved regions above it. */
-html body.pilot-ops-v2[data-app-workspace="dashboard"] { --shell-header:94px; --shell-context:0px; }
+/* Home: controls, map, and flight folder occupy separate layout regions. The
+   map surface has its own height, so loading data or expanding a card cannot
+   push controls over the map or change the document's scroll owner. */
+html body.pilot-ops-v2[data-app-workspace="dashboard"] { --shell-context:0px; }
 html body.pilot-ops-v2[data-app-workspace="dashboard"] .active-flight-strip { display:none; }
-html body.pilot-ops-v2[data-app-workspace="dashboard"] > .frame { grid-template-columns:minmax(0,1fr); }
-html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-masthead {
-  grid-area:1 / 1; z-index:5; padding:12px 24px; color:var(--deck-ink);
-  border:0; background:var(--deck-surface); -webkit-backdrop-filter:var(--deck-blur); backdrop-filter:var(--deck-blur);
-}
-html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-layout { grid-area:1 / 1 / -1 / -1; }
-html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-content { background:var(--shell-base); }
-html body.pilot-ops-v2 #dashboardWorkspace { margin:0; padding:0; height:100%; min-height:0; border:0; background:none; }
+html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-layout { grid-row:3; }
+html body.pilot-ops-v2 #dashboardWorkspace { height:auto; min-height:100%; margin:0; padding:0; border:0; background:var(--shell-base); }
 html body.pilot-ops-v2 .dashboard-cockpit {
-  position:relative; isolation:isolate; display:grid; grid-template-columns:minmax(0,1fr) 304px;
-  grid-template-rows:minmax(0,1fr); gap:20px; height:100%; min-height:0;
-  padding:calc(var(--shell-header) + 20px) 24px 64px;
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(265px,30%); grid-template-areas:"map file" "pulse file";
+  align-items:start; align-content:start; gap:14px; height:auto; min-height:0; padding:14px;
 }
 html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card {
-  position:absolute; inset:0; grid-area:auto; z-index:-1; display:block; min-height:0; border:0; border-radius:0; background:#111b1a;
+  position:relative; inset:auto; grid-area:map; display:flex; flex-direction:column; height:auto; min-height:0;
+  isolation:isolate; overflow:hidden; border:1px solid var(--deck-edge); border-radius:22px; background:#18201c;
 }
-html body.pilot-ops-v2 .ops-globe-stage { position:absolute; inset:0; width:100%; height:100%; min-height:0; background:#111b1a; }
-html body.pilot-ops-v2 .ops-globe-head {
-  position:absolute; z-index:3; top:calc(var(--shell-header) + 18px); left:24px; right:348px;
-  padding:0; border:0; background:none; display:block;
-}
-html body.pilot-ops-v2 .ops-globe-head > div:first-child { display:none; }
-html body.pilot-ops-v2 .ops-globe-actions { justify-content:flex-start; gap:8px; }
-html body.pilot-ops-v2 .ops-globe-actions > button,
-html body.pilot-ops-v2 .map-mode-segment {
-  background:var(--deck-surface); color:var(--deck-ink); border:1px solid var(--deck-edge); border-radius:28px;
-  -webkit-backdrop-filter:var(--deck-blur); backdrop-filter:var(--deck-blur); box-shadow:inset 0 1px var(--deck-shine);
-}
-html body.pilot-ops-v2 .ops-globe-actions button { font:400 13px/1.2 var(--deck-font); min-height:48px; padding:10px 16px; }
-html body.pilot-ops-v2 .map-mode-segment { gap:2px; padding:3px; }
-html body.pilot-ops-v2 .map-mode-segment button { min-height:42px; border-radius:24px; color:var(--deck-ink); }
-html body.pilot-ops-v2 .map-mode-segment button[aria-pressed="true"],
-html body.pilot-ops-v2 #opsMapLayerBtn[aria-pressed="true"] { color:var(--deck-selected-ink); background:var(--deck-selected); box-shadow:none; }
-html body.pilot-ops-v2 #cockpitDeckToggle { order:4; }
-html body.pilot-ops-v2 #opsGlobeRotateBtn { order:3; }
+html body.pilot-ops-v2 .ops-globe-head { position:static; padding:12px; border:0; background:var(--deck-solid); display:flex; flex-flow:row wrap; align-items:center; justify-content:space-between; gap:8px; }
+html body.pilot-ops-v2 .ops-globe-head > div:first-child > span { display:none; }
+html body.pilot-ops-v2 #opsGlobeTitle { color:var(--deck-ink); margin:0; font:500 17px/1.4 var(--deck-font); }
+html body.pilot-ops-v2 .ops-globe-actions { flex:1 1 auto; flex-wrap:wrap; justify-content:flex-end; gap:4px; }
+html body.pilot-ops-v2 .ops-globe-actions button { min-height:48px; padding:8px 12px; font:500 13px/1.3 var(--deck-font); }
+html body.pilot-ops-v2 .ops-globe-actions > button,html body.pilot-ops-v2 .map-mode-segment { color:var(--deck-ink); background:var(--deck-control); border:1px solid var(--deck-edge); border-radius:16px; box-shadow:none; }
+html body.pilot-ops-v2 .map-mode-segment { padding:0; gap:0; }
+html body.pilot-ops-v2 .map-mode-segment button { background:transparent; color:var(--deck-ink); border:0; border-radius:15px; }
+html body.pilot-ops-v2 .map-mode-segment button[aria-pressed="true"],html body.pilot-ops-v2 #opsMapLayerBtn[aria-pressed="true"] { color:var(--deck-selected-ink); background:var(--deck-selected); }
 html body.pilot-ops-v2 #opsGlobeRotateBtn:disabled { display:none; }
-html body.pilot-ops-v2 .ops-globe-footer {
-  position:absolute; left:24px; bottom:12px; right:348px; z-index:2; display:flex; gap:6px;
-  padding:0; border:0; background:none; pointer-events:none;
-}
+html body.pilot-ops-v2 .ops-globe-stage { position:relative; inset:auto; width:100%; height:clamp(280px,52dvh,660px); flex:none; min-height:0; background:#16221c; }
+html body.pilot-ops-v2 .ops-globe-footer { position:static; inset:auto; padding:8px 12px; border:0; display:block; background:var(--deck-solid); }
 html body.pilot-ops-v2 .ops-globe-footer > div { display:none; }
-html body.pilot-ops-v2 .ops-globe-footer .ops-map-status { color:#d6e0d9; text-shadow:0 1px 3px #000; font:11px/1.3 var(--deck-font); }
-html body.pilot-ops-v2 .ops-map-note {
-  position:absolute; right:12px; bottom:36px; z-index:2; max-width:300px; padding:6px 10px;
-  border:0; border-radius:12px; background:#18231ee6; color:#e0e9e3; font:10px/1.4 var(--deck-font); pointer-events:none;
-}
-#opsVectorMap .maplibregl-ctrl-top-right { top:calc(var(--shell-header) + 144px); right:332px; }
-#opsVectorMap .maplibregl-ctrl-group { border:1px solid #d5e1d544; border-radius:26px; background:#28312cec; box-shadow:inset 0 1px #ffffff14; }
-#opsVectorMap .maplibregl-ctrl-group button { width:46px; height:48px; border-color:#ffffff20; }
-#opsVectorMap .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter:invert(1); opacity:.9; }
+html body.pilot-ops-v2 .ops-globe-footer .ops-map-status { color:var(--deck-muted); text-shadow:none; font:12px/1.4 var(--deck-font); }
+html body.pilot-ops-v2 .ops-map-note { position:static; inset:auto; max-width:none; margin:0; padding:8px 12px 0; color:var(--deck-ink); background:var(--deck-solid); border:0; border-radius:0; font:12px/1.4 var(--deck-font); }
+#opsVectorMap .maplibregl-ctrl-top-right { top:6px; right:6px; }
+#opsVectorMap .maplibregl-ctrl-group { background:#f2f5f2; border-radius:15px; overflow:hidden; }
+#opsVectorMap .maplibregl-ctrl-group button { width:48px; height:48px; }
 #opsVectorMap .maplibregl-ctrl-attrib { max-width:100%; background:#18231ee6; color:#d6e0d9; }
-#opsVectorMap .maplibregl-ctrl-attrib a { color:#d6e0d9; }
+#opsVectorMap .maplibregl-ctrl-attrib a { color:inherit; }
+/* Keep the WebGL canvas measurable while loading, without painting two globes. */
+#opsGlobeCanvas:not([hidden]) + #opsVectorMap { visibility:hidden; }
 
 /* Shared card material. Blur is limited to the three floating card surfaces. */
 html body.pilot-ops-v2 .dashboard-cockpit > :is(.efb-flight-hero,.dashboard-deck),
@@ -198,53 +195,26 @@ html body.pilot-ops-v2 .cockpit-empty-flight > div { display:flex; flex-wrap:wra
 html body.pilot-ops-v2 .cockpit-empty-flight button { min-height:48px; padding:12px 18px; border:1px solid var(--deck-edge); border-radius:26px; background:var(--deck-control); color:var(--deck-ink); font:500 14px/1.3 var(--deck-font); }
 html body.pilot-ops-v2 .cockpit-empty-flight #cockpitSelectFlight { background:var(--deck-selected); color:var(--deck-selected-ink); }
 html body.pilot-ops-v2 .cockpit-empty-flight[hidden] { display:none; }
-html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
-html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .ops-globe-card { grid-area:auto; }
-html body.pilot-ops-v2.cockpit-deck-collapsed :is(.ops-globe-head,.ops-globe-footer) { right:24px; }
-html body.pilot-ops-v2.cockpit-deck-collapsed #opsVectorMap .maplibregl-ctrl-top-right { right:12px; }
 
-/* Portrait and Split View: cards reflow beneath the map instead of overlapping it. */
-@media(max-width:999px), (max-height:730px) {
-  html body.pilot-ops-v2 #dashboardWorkspace { height:auto; min-height:100%; }
-  html body.pilot-ops-v2 .dashboard-cockpit { height:auto; min-height:100%; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:auto auto; padding:0 16px 20px; gap:16px; }
-  html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card { position:relative; inset:auto; grid-column:1/-1; grid-row:1; min-height:620px; height:72dvh; margin:0 -16px; z-index:0; overflow:hidden; }
-  html body.pilot-ops-v2 .ops-globe-head { right:24px; }
-  html body.pilot-ops-v2 .ops-globe-footer { right:24px; bottom:64px; }
-  #opsVectorMap .maplibregl-ctrl-top-right { right:12px; top:calc(var(--shell-header) + 135px); }
-  html body.pilot-ops-v2 .cockpit-empty-flight { top:auto; bottom:112px; width:min(380px,calc(100% - 96px)); }
-  html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { grid-column:2; grid-row:2; max-height:none; }
-  html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck { grid-column:1; grid-row:2; align-self:start; width:100%; max-height:560px; margin:0; }
-  html body.pilot-ops-v2 .ops-command-strip { grid-template-columns:repeat(3,minmax(0,1fr)); }
-  html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
-  html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .ops-globe-card { grid-area:1 / 1 / auto / -1; }
-  html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .dashboard-deck { max-width:none; }
+/* The flight folder is the single entry point when no plan is loaded. */
+html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { grid-area:file; max-height:none; overflow:visible; }
+html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck { grid-area:pulse; width:100%; max-height:none; overflow:visible; }
+html body.pilot-ops-v2 .dashboard-cockpit .cockpit-empty-flight { position:static; order:0; width:auto; padding:0; border:0; border-radius:0; background:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+html body.pilot-ops-v2 .efb-flight-hero[data-active="false"] .efb-flight-hero-copy { display:none; }
+html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit { grid-template-columns:minmax(0,1fr); grid-template-areas:"map" "pulse"; }
+html body.pilot-ops-v2.cockpit-deck-collapsed .dashboard-cockpit > .ops-globe-card { grid-area:map; }
+@media(max-width:959px) {
+  html body.pilot-ops-v2 .dashboard-cockpit { grid-template-columns:minmax(0,1fr); grid-template-areas:"map" "file" "pulse"; }
+  html body.pilot-ops-v2 .ops-globe-stage { height:clamp(260px,38dvh,480px); }
+  html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { padding:16px; }
+  html body.pilot-ops-v2 .ops-command-strip { grid-template-columns:repeat(auto-fit,minmax(78px,1fr)); }
 }
-@media(max-width:759px) {
-  html body.pilot-ops-v2[data-app-workspace="dashboard"] { --shell-header:94px; }
-  html body.pilot-ops-v2[data-app-workspace="dashboard"] .efb-masthead { padding-inline:14px; }
-  html body.pilot-ops-v2 .dashboard-cockpit { grid-template-columns:minmax(0,1fr); }
-  html body.pilot-ops-v2 .dashboard-cockpit > .efb-flight-hero { grid-column:1; grid-row:2; }
-  html body.pilot-ops-v2 .dashboard-cockpit > .dashboard-deck { grid-column:1; grid-row:3; max-height:none; }
-  html body.pilot-ops-v2 .ops-globe-head { left:16px; right:16px; }
-  html body.pilot-ops-v2 .ops-globe-actions { gap:6px; }
-  html body.pilot-ops-v2 .ops-globe-actions button { padding-inline:12px; }
-  html body.pilot-ops-v2 .app-navigation-title h1 { font-size:22px; }
-  html body.pilot-ops-v2 .cockpit-empty-flight { left:16px; }
-  html body.pilot-ops-v2 .ops-command-strip { grid-template-columns:repeat(5,minmax(0,1fr)); }
-}
-@media(max-width:520px) {
-  html body.pilot-ops-v2 .dashboard-cockpit > .ops-globe-card { min-height:680px; }
-  html body.pilot-ops-v2 .app-navigation-title { gap:4px; }
-  html body.pilot-ops-v2[data-app-workspace="dashboard"] #appBackBtn { display:none; }
-  html body.pilot-ops-v2 .flight-switch-button { max-width:100%; font-size:11px; padding-inline:8px; }
-  html body.pilot-ops-v2 .cockpit-empty-flight { width:calc(100% - 32px); bottom:148px; }
-  html body.pilot-ops-v2 .ops-globe-footer { bottom:104px; }
-  html body.pilot-ops-v2 .ops-map-note { bottom:78px; }
-  #opsVectorMap .maplibregl-ctrl-top-right { top:calc(var(--shell-header) + 120px); }
-  #opsVectorMap .maplibregl-ctrl-group { display:flex; }
-  #opsVectorMap .maplibregl-ctrl-group button + button { border-top:0; border-left:1px solid #ffffff20; }
-  html body.pilot-ops-v2 .ops-command-card strong { font-size:29px; }
-  html body.pilot-ops-v2 .ops-command-strip { gap:8px; }
+@media(max-width:600px) {
+  html body.pilot-ops-v2 .dashboard-cockpit { padding:8px; gap:10px; }
+  html body.pilot-ops-v2 .ops-globe-actions { justify-content:flex-start; }
+  html body.pilot-ops-v2 .ops-globe-head { padding:8px; }
+  html body.pilot-ops-v2 .ops-globe-footer { padding-inline:10px; }
+  html body.pilot-ops-v2 .app-navigation-title h1 { font-size:20px; }
 }
 /* Transparent effects are optional; the same contrast works in solid mode. */
 html[data-efb-material="solid"] body.pilot-ops-v2 { --deck-surface:var(--deck-solid); --deck-blur:none; }

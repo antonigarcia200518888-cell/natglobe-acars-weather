@@ -1,0 +1,250 @@
+/* Shared workspace baseline. Existing forms, state and calculation engines remain
+   authoritative. One palette feeds the older component tokens, avoiding separate
+   blue, black and white themes inside the same flight deck. */
+html body.pilot-ops-v2 {
+  --app-canvas:var(--shell-base); --app-scene:var(--shell-base);
+  --app-card:var(--deck-surface); --app-card-solid:var(--deck-solid);
+  --app-card-muted:var(--deck-control); --app-field:var(--deck-solid);
+  --app-ink:var(--deck-ink); --app-muted:var(--deck-muted); --app-faint:var(--deck-muted);
+  --app-line:var(--deck-edge); --app-line-strong:var(--deck-edge);
+  --app-blue:var(--deck-ink); --app-active:var(--deck-selected); --app-active-ink:var(--deck-selected-ink);
+  --app-warn:var(--deck-caution); --app-danger:var(--deck-warning);
+  --efb-ui:var(--deck-font); --efb-canvas:var(--shell-base); --efb-canvas-deep:var(--shell-base);
+  --efb-surface:var(--deck-surface); --efb-surface-raised:var(--deck-solid); --efb-surface-strong:var(--deck-solid);
+  --efb-glass:var(--deck-surface); --efb-glass-solid:var(--deck-solid); --efb-field:var(--deck-solid);
+  --efb-text:var(--deck-ink); --efb-secondary:var(--deck-muted); --efb-tertiary:var(--deck-muted);
+  --efb-border:var(--deck-edge); --efb-border-strong:var(--deck-edge); --efb-divider:var(--deck-edge);
+  --efb-blue:var(--deck-selected); --efb-blue-strong:var(--deck-ink); --efb-blue-soft:var(--deck-control);
+  --efb-active-text:var(--deck-selected-ink);
+  --touch-surface:var(--deck-solid); --touch-ink:var(--deck-ink); --touch-muted:var(--deck-muted);
+  --touch-line:var(--deck-edge); --touch-blue:var(--deck-ink);
+}
+html body.pilot-ops-v2 :is(#performanceOpsPane,#aircraftOpsPane) {
+  --perf-surface:var(--deck-solid); --perf-solid:var(--deck-solid); --perf-ice:var(--deck-control);
+  --perf-ink:var(--deck-ink); --perf-copy:var(--deck-ink); --perf-muted:var(--deck-muted);
+  --perf-line:var(--deck-edge); --perf-line-strong:var(--deck-edge);
+  --perf-navy:var(--deck-ink); --perf-navy-deep:var(--deck-ink); --perf-blue:var(--deck-muted); --perf-shadow:none;
+  --tool-glass:var(--deck-solid); --tool-glass-soft:var(--deck-surface);
+  --tool-line:var(--deck-edge); --tool-line-strong:var(--deck-edge); --tool-shadow:none; --tool-shadow-small:none;
+}
+
+/* Hidden panels must not be resurrected by legacy display:grid rules. */
+html body.pilot-ops-v2 [hidden] { display:none !important; }
+html body.pilot-ops-v2:not([data-app-workspace="dashboard"]) .efb-content { background:var(--shell-base); }
+html body.pilot-ops-v2 :is(#opsToolWorkspace,#bookingsWorkspace) { color:var(--deck-ink); font-family:var(--deck-font); }
+html body.pilot-ops-v2 :is(#opsToolWorkspace,#bookingsWorkspace) :is(button,summary) {
+  min-height:48px !important; font-family:var(--deck-font); font-size:14px; line-height:1.4; letter-spacing:0; touch-action:manipulation;
+}
+html body.pilot-ops-v2 :is(#opsToolWorkspace,#bookingsWorkspace) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea) {
+  min-height:48px; font-size:16px; color:var(--deck-ink); background:var(--deck-solid); border-color:var(--deck-edge); border-radius:12px;
+}
+html body.pilot-ops-v2 :is(#opsToolWorkspace,#bookingsWorkspace) label { font-family:var(--deck-font); font-size:13px; line-height:1.5; letter-spacing:0; }
+html body.pilot-ops-v2 :is(#opsToolWorkspace,#bookingsWorkspace) small { font-family:var(--deck-font); font-size:12px; line-height:1.5; }
+html body.pilot-ops-v2 :is(#opsToolWorkspace,#bookingsWorkspace) :is(button,input,select,textarea,summary):focus-visible {
+  outline:3px solid var(--deck-ink) !important; outline-offset:3px;
+}
+html body.pilot-ops-v2 :is(#opsToolWorkspace,#bookingsWorkspace) button:disabled { opacity:.45; cursor:not-allowed; }
+html body.pilot-ops-v2 :is(.flight-file-library,.weather-console,.performance-console,.aircraft-console,.logbook-app) { padding:16px; gap:16px; background:transparent; }
+html body.pilot-ops-v2 :is(.flight-file-head,.flight-file-group,.suite-doc-summary > div,.acars-console-head,.weather-toolbar,.weather-options,.weather-radar-card,.acars-preview,.logbook-hero,.logbook-summary-card,.logbook-activity,.logbook-records,.logbook-disclaimer) {
+  border:1px solid var(--deck-edge); border-radius:20px; background:var(--deck-surface); box-shadow:inset 0 1px var(--deck-shine); color:var(--deck-ink);
+}
+html body.pilot-ops-v2 :is(.flight-file-head h2,.acars-console-head strong,.logbook-hero h2) { color:var(--deck-ink); font:450 27px/1.25 var(--deck-font); letter-spacing:-.035em; }
+html body.pilot-ops-v2 :is(.flight-file-head,.acars-console-head,.logbook-hero) { min-height:0; padding:18px 20px; }
+html body.pilot-ops-v2 :is(.flight-file-head p,.logbook-hero-copy > p) { margin:6px 0 0; max-width:56ch; color:var(--deck-muted); font-size:13px; line-height:1.5; }
+html body.pilot-ops-v2 :is(.efb-action.primary,.performance-run,.performance-actions button.primary,.aircraft-hero-action,#saveAircraftStatusBtn,#recordFluidLogBtn) {
+  background:var(--deck-selected); color:var(--deck-selected-ink); border-color:var(--deck-edge); box-shadow:none;
+}
+
+/* Flights: navigation precedes content, and non-overview tabs don't inherit the
+   entire overview dashboard above their controls. Alerts remain in every tab. */
+html body.pilot-ops-v2 #cockpitFlightFile .flight-detail-tabs {
+  position:relative; top:auto; margin:0 0 12px; padding:4px; gap:4px;
+  grid-template-columns:repeat(3,minmax(0,1fr)); background:var(--deck-control); border:1px solid var(--deck-edge); border-radius:18px;
+}
+html body.pilot-ops-v2 #cockpitFlightFile .flight-detail-tabs button { min-width:0; padding:8px 6px; border-radius:13px; color:var(--deck-ink); background:transparent; }
+html body.pilot-ops-v2 #cockpitFlightFile .flight-detail-tabs button.active { background:var(--deck-selected); color:var(--deck-selected-ink); box-shadow:none; }
+html body.pilot-ops-v2 #bookingsWorkspace :is(.panel,.dispatch-board,.flight-control-head,.release-console,.movement-console,.crew-control) { background:var(--deck-solid); border-color:var(--deck-edge); box-shadow:none; }
+html body.pilot-ops-v2 #bookingsWorkspace .panel-title { font:500 17px/1.4 var(--deck-font); padding-block:12px; color:var(--deck-ink); }
+html body.pilot-ops-v2 #bookingsWorkspace :is(.meta span,.dispatch-metric span,.movement-phase span,.movement-phase strong,.ops-alert,.flight-control-sequence span,.queue-result-bar,.queue-selection-hint) { font-size:12px; line-height:1.45; }
+html body.pilot-ops-v2 #bookingsWorkspace .meta-grid { gap:8px; margin-bottom:12px; }
+html body.pilot-ops-v2 #bookingsWorkspace .dispatch-board { margin-block:12px; padding:14px; }
+html body.pilot-ops-v2 #bookingsWorkspace .dispatch-route strong { font-size:24px; }
+html body.pilot-ops-v2 #bookingsWorkspace .movement-phase-strip { margin-block:12px; }
+html body.pilot-ops-v2 #bookingsWorkspace .live-movement-console { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; padding:16px; }
+html body.pilot-ops-v2 #bookingsWorkspace .live-movement-intro { max-width:60ch; }
+html body.pilot-ops-v2 #bookingsWorkspace .live-movement-actions { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+html body.pilot-ops-v2 #bookingsWorkspace .movement-command { min-height:100px !important; padding:14px; }
+html body.pilot-ops-v2 #bookingsWorkspace .movement-command :is(span,small) { font-size:12px; line-height:1.4; }
+html body.pilot-ops-v2 #bookingsWorkspace .movement-command strong { font-size:18px; line-height:1.4; }
+
+/* Files: keep unavailable workflows out of pilot-only records. */
+html body.pilot-ops-v2 .flight-file-head { gap:16px; align-items:center; }
+html body.pilot-ops-v2 #suiteDocFlight { overflow-wrap:anywhere; font:500 13px/1.5 var(--deck-font); }
+html body.pilot-ops-v2 .suite-doc-summary { grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+html body.pilot-ops-v2 .suite-doc-summary > div { min-height:0; padding:14px 18px; }
+html body.pilot-ops-v2 .suite-doc-summary span { font-size:12px; }
+html body.pilot-ops-v2 .suite-doc-summary strong { font:500 16px/1.5 var(--deck-font); }
+html body.pilot-ops-v2 .flight-file-groups { grid-template-columns:repeat(auto-fit,minmax(min(100%,390px),1fr)); gap:16px; }
+html body.pilot-ops-v2 .flight-file-group { padding:18px; }
+html body.pilot-ops-v2 .flight-file-group > header { padding:0 0 12px; }
+html body.pilot-ops-v2 .flight-file-group > header span { font-size:12px; }
+html body.pilot-ops-v2 .flight-file-group > header strong { font:500 19px/1.4 var(--deck-font); }
+html body.pilot-ops-v2 .flight-file-row { grid-template-columns:48px minmax(0,1fr) auto; gap:14px; padding:16px 0; }
+html body.pilot-ops-v2 .flight-file-row strong { font:500 16px/1.4 var(--deck-font); }
+html body.pilot-ops-v2 .flight-file-row button { border-radius:24px; background:var(--deck-control); color:var(--deck-ink); border-color:var(--deck-edge); min-width:110px; }
+html body.pilot-ops-v2 .file-type { width:48px; height:48px; border-radius:14px; background:var(--deck-control); color:var(--deck-ink); font:600 12px var(--deck-font); }
+html body.pilot-ops-v2 :is(.workspace-empty,.workspace-notice) { margin:0; padding:20px; border:1px solid var(--deck-edge); border-radius:20px; background:var(--deck-surface); color:var(--deck-muted); line-height:1.5; }
+html body.pilot-ops-v2 .workspace-empty h3 { color:var(--deck-ink); font:450 24px/1.3 var(--deck-font); margin:0 0 8px; }
+html body.pilot-ops-v2 .workspace-empty button { margin-top:10px; }
+
+/* Weather is two explicit tasks, not a long radar detour before the briefing. */
+html body.pilot-ops-v2 .weather-toolbar { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:16px; gap:12px; }
+html body.pilot-ops-v2 .weather-route { grid-column:1/-1; min-height:0; padding:0 0 10px; border:0; border-bottom:1px solid var(--deck-edge); background:none; }
+html body.pilot-ops-v2 .weather-route span { font-size:12px; }
+html body.pilot-ops-v2 .weather-route strong { font:500 17px/1.5 var(--deck-font); }
+html body.pilot-ops-v2 .weather-toolbar > button { grid-column:auto; width:auto; border-radius:24px; }
+html body.pilot-ops-v2 .weather-report-options { border:1px solid var(--deck-edge); border-radius:16px; background:var(--deck-surface); }
+html body.pilot-ops-v2 .weather-report-options summary { padding:12px 16px; cursor:pointer; }
+html body.pilot-ops-v2 .weather-report-options summary span { margin-left:12px; color:var(--deck-muted); font-size:12px; }
+html body.pilot-ops-v2 .weather-options { margin:0; border:0; padding:12px; box-shadow:none; }
+html body.pilot-ops-v2 .weather-option-group label { min-height:44px; display:inline-flex; align-items:center; gap:8px; }
+html body.pilot-ops-v2 .workspace-segments { display:flex; gap:4px; padding:4px; border:1px solid var(--deck-edge); border-radius:18px; background:var(--deck-control); }
+html body.pilot-ops-v2 .workspace-segments button { flex:1; min-width:0; border:0; border-radius:13px; color:var(--deck-ink); background:none; }
+html body.pilot-ops-v2 .workspace-segments button[aria-selected="true"] { color:var(--deck-selected-ink); background:var(--deck-selected); }
+html body.pilot-ops-v2 .weather-status { margin:0 0 12px; color:var(--deck-muted); font-size:13px; line-height:1.5; }
+html body.pilot-ops-v2 .acars-preview-head { color:var(--deck-muted); border-color:var(--deck-edge); background:var(--deck-control); font-size:12px; }
+html body.pilot-ops-v2 #weatherAcarsReport { margin:0; padding:20px; background:transparent; color:var(--deck-ink); font:15px/1.65 "Courier New",monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+html body.pilot-ops-v2 .weather-radar-head { padding:16px 18px; }
+html body.pilot-ops-v2 .weather-radar-head h2 { font:450 23px/1.3 var(--deck-font); }
+html body.pilot-ops-v2 .weather-radar-head :is(span,p) { font-size:12px; color:var(--deck-muted); }
+html body.pilot-ops-v2 #weatherRadarMap { height:clamp(320px,48dvh,540px); min-height:320px; }
+html body.pilot-ops-v2 .weather-radar-controls { flex-wrap:wrap; gap:8px; }
+html body.pilot-ops-v2 .weather-radar-controls button { min-width:48px; }
+
+/* Performance: aircraft identification is a compact header, not a hero poster. */
+html body.pilot-ops-v2 #performanceOpsPane .performance-reference-scene,
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-reference-scene { background:var(--deck-surface); border:1px solid var(--deck-edge); border-radius:22px; box-shadow:none; overflow:hidden; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-hero { display:grid; grid-template-columns:minmax(0,1fr) 160px; gap:16px; min-height:0; padding:18px; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity { position:static; grid-area:1/1; width:auto; max-width:none; padding:0; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity h2 { font:450 28px/1.2 var(--deck-font); color:var(--deck-ink); }
+html body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity :is(span,p) { font-size:13px; color:var(--deck-muted); }
+html body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-identity > strong { max-width:none; margin:0; font-size:12px; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-title { margin:4px 0; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-profile-state { display:none; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual { position:static; grid-area:1/2; inset:auto; width:160px; height:80px; min-height:0; padding:0; margin:0; opacity:.85; align-self:center; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-aircraft-visual img { width:100%; height:80px; max-height:80px; object-fit:contain; transform:none; filter:none; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards { position:static; grid-area:2/1/auto/-1; display:flex; flex-wrap:wrap; gap:8px 24px; width:auto; margin:0; padding:0; justify-self:start; background:none; border:0; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards > div { display:flex; align-items:baseline; gap:8px; min-height:0; padding:0; border:0; border-radius:0; background:none; box-shadow:none; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards span { font-size:12px; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-limit-cards strong { color:var(--deck-ink); font:500 14px/1.5 var(--deck-font); }
+html body.pilot-ops-v2 #performanceOpsPane .performance-flight-setup { padding:16px; background:transparent; border-top:1px solid var(--deck-edge); box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-context { gap:12px; min-height:0; padding:0 0 14px; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-context > div:first-child > p { display:none; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-context-actions { gap:8px; }
+html body.pilot-ops-v2 #performanceDataState { font-size:12px; color:var(--deck-muted); background:none; border-color:var(--deck-edge); }
+html body.pilot-ops-v2 #performanceOpsPane .performance-leg-setup-grid { grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr); gap:12px; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-leg-setup { padding:12px; border-radius:14px; background:var(--deck-solid); }
+html body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs { position:static; width:100%; margin:16px 0; background:var(--deck-control); }
+html body.pilot-ops-v2 #performanceOpsPane .performance-stage-tabs button.active { color:var(--deck-selected-ink); background:var(--deck-selected); box-shadow:none; }
+html body.pilot-ops-v2 #performanceOpsPane :is(.performance-label,.performance-result-metric span,.performance-result-status span,.performance-leg-title span,.performance-source-drawer summary span) { font-size:12px; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-block { background:var(--deck-solid); box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+html body.pilot-ops-v2 #performanceOpsPane :is(.performance-result-header,.performance-block-tag,.performance-actions button.primary,.performance-calculate,.performance-run) { background:var(--deck-selected); color:var(--deck-selected-ink); }
+html body.pilot-ops-v2 #performanceOpsPane .performance-result-header :is(.performance-result-status,.performance-result-metric) { background:none; color:inherit; }
+html body.pilot-ops-v2 #performanceOpsPane .performance-result-header :is(span,strong,small) { color:inherit; }
+
+/* Aircraft: keep health and the fluid checkpoint in reach on landscape iPad. */
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-fleet-hero { display:grid; grid-template-columns:minmax(0,1fr) 180px; gap:16px; min-height:0; padding:18px; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-copy { position:static; width:auto; max-width:none; padding:0; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-copy h2 { margin:4px 0; font:450 28px/1.2 var(--deck-font); color:var(--deck-ink); }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-copy :is(span,p) { font-size:13px; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-visual { position:static; inset:auto; width:180px; height:110px; padding:0; align-self:center; opacity:.85; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-visual > img { width:100%; height:110px; object-fit:contain; transform:none; filter:none; opacity:1; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-metrics { position:static; grid-column:1/-1; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; padding:0; margin:0; width:auto; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-metrics > div { min-height:0; padding:12px; border-radius:14px; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-status-metric span { font-size:12px; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-status-metric strong { font:500 20px/1.4 var(--deck-font); }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-health-strip { margin:0; padding:12px 18px; gap:10px; border-top:1px solid var(--deck-edge); background:none; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-health-strip > div { min-height:0; padding:8px; border-radius:12px; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-health-strip :is(span,strong,small) { font-size:12px; line-height:1.5; white-space:normal; text-overflow:clip; overflow-wrap:anywhere; }
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-panel-grid { margin-top:16px; gap:16px; }
+
+/* Logbook totals are useful; decorative hero space is not. */
+html body.pilot-ops-v2 .logbook-hero { grid-template-columns:minmax(0,1fr); gap:14px; }
+html body.pilot-ops-v2 .logbook-hero::after { content:none; }
+html body.pilot-ops-v2 .logbook-hero-copy > p { display:none; }
+html body.pilot-ops-v2 .logbook-owner { margin-top:8px; }
+html body.pilot-ops-v2 .logbook-hero-actions { grid-template-columns:repeat(3,minmax(0,1fr)); }
+html body.pilot-ops-v2 .logbook-summary-grid { grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; }
+html body.pilot-ops-v2 .logbook-summary-card { min-height:0; padding:12px; }
+html body.pilot-ops-v2 .logbook-summary-card strong { font:450 24px/1.3 var(--deck-font); }
+html body.pilot-ops-v2 :is(.logbook-summary-card span,.logbook-activity span,.logbook-kicker,.logbook-records-head span) { font-size:12px; }
+html body.pilot-ops-v2 .logbook-summary-card small { white-space:normal; }
+html body.pilot-ops-v2 .logbook-activity { grid-template-columns:repeat(4,minmax(0,1fr)); }
+html body.pilot-ops-v2 .logbook-activity-title { grid-column:1/-1; flex-direction:row; justify-content:space-between; align-items:center; gap:12px; }
+html body.pilot-ops-v2 .logbook-activity > div { min-height:0; padding:10px 14px; }
+html body.pilot-ops-v2 .logbook-records-head { grid-template-columns:minmax(0,1fr); gap:12px; }
+
+/* Measure the usable flight folder, not the device: expanding the sidebar
+   can turn the very same iPad from a two-column to a single-column layout. */
+html body.pilot-ops-v2 #bookingsWorkspace { container:flight-folder / inline-size; min-width:0; }
+html body.pilot-ops-v2 #bookingsWorkspace .flight-pane-link { display:none; border:1px solid var(--deck-edge); border-radius:14px; background:var(--deck-control); color:var(--deck-ink); padding:8px 14px; }
+html body.pilot-ops-v2 #flightFileHeading .file-heading-label { display:inline; font:500 18px var(--deck-font); color:var(--deck-ink); }
+html body.pilot-ops-v2 .file-workflow-actions { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+html body.pilot-ops-v2 #cockpitFlightFile { container:active-file / inline-size; }
+@container active-file (min-width:600px) {
+  html body.pilot-ops-v2 #cockpitFlightFile .flight-detail-tabs { grid-template-columns:repeat(6,minmax(0,1fr)); }
+}
+html body.pilot-ops-v2 #bookingsWorkspace .queue-panel,
+html body.pilot-ops-v2 #cockpitFlightFile { border-radius:18px; }
+html body.pilot-ops-v2 #bookingsWorkspace button.request { flex:none; }
+@container flight-folder (min-width:900px) {
+  html body.pilot-ops-v2 #bookingsWorkspace > .layout { grid-template-columns:clamp(260px,28%,345px) minmax(0,1fr); }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-panel { overflow:auto; }
+  html body.pilot-ops-v2 #bookingsWorkspace .request-list { flex:1 0 auto; overflow:visible; }
+}
+@container flight-folder (max-width:899.98px) {
+  html body.pilot-ops-v2 #bookingsWorkspace > .layout { display:block; min-width:0; height:100%; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-panel,
+  html body.pilot-ops-v2 #bookingsWorkspace > .layout > section { position:static; width:100%; height:100%; min-height:0; max-height:none; overflow:auto; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-panel { display:block; padding:14px; }
+  html body.pilot-ops-v2 #bookingsWorkspace .request-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); align-content:start; height:auto; max-height:none; overflow:visible; }
+  html body.pilot-ops-v2 #bookingsWorkspace .queue-filter-drawer { max-height:none; overflow:visible; }
+  html body.pilot-ops-v2 #bookingsWorkspace .flight-pane-link { display:inline-flex; align-items:center; justify-content:center; }
+  html body.pilot-ops-v2 #bookingsWorkspace[data-pane="file"] .queue-panel,
+  html body.pilot-ops-v2 #bookingsWorkspace[data-pane="list"] > .layout > section { display:none; }
+  html body.pilot-ops-v2 #showActiveFile { margin-top:12px; }
+  html body.pilot-ops-v2 #cockpitFlightFile { min-width:0; }
+}
+
+/* Preserve the livery: light the transparent artwork's backing, not the
+   entire card. Text and operational status keep their normal night colors. */
+html body.pilot-ops-v2 .efb-aircraft-stage img,
+html body.pilot-ops-v2 :is(#aircraftOpsPane,#performanceOpsPane) :is(.aircraft-hero-visual,.performance-aircraft-visual) > img {
+  object-fit:contain; object-position:center; opacity:1; filter:none; mix-blend-mode:normal; transform:none;
+}
+html[data-efb-theme="night"] body.pilot-ops-v2 .efb-aircraft-stage img,
+html[data-efb-theme="night"] body.pilot-ops-v2 :is(#aircraftOpsPane,#performanceOpsPane) :is(.aircraft-hero-visual,.performance-aircraft-visual) {
+  background:radial-gradient(ellipse at center,#a0a8a3 0%,#737e77 66%,#56615b 100%); border-radius:12px; opacity:1;
+}
+html body.pilot-ops-v2 :is(#aircraftOpsPane,#performanceOpsPane) :is(.aircraft-hero-visual,.performance-aircraft-visual)::after { content:none; }
+
+@media(min-width:1200px) {
+  html body.pilot-ops-v2 .logbook-hero { grid-template-columns:minmax(0,1fr) auto; }
+}
+@media(max-width:850px) {
+  html body.pilot-ops-v2 .logbook-summary-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  html body.pilot-ops-v2 .logbook-activity { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:600px) {
+  html body.pilot-ops-v2 :is(.flight-file-library,.weather-console,.performance-console,.aircraft-console,.logbook-app) { padding:12px; gap:12px; }
+  html body.pilot-ops-v2 .flight-file-row { grid-template-columns:48px minmax(0,1fr); }
+  html body.pilot-ops-v2 .flight-file-row button { grid-column:2; justify-self:start; }
+  html body.pilot-ops-v2 .weather-toolbar { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  html body.pilot-ops-v2 .weather-toolbar > label:nth-of-type(3) { grid-column:1/-1; }
+  html body.pilot-ops-v2 #performanceOpsPane .performance-leg-setup-grid { grid-template-columns:minmax(0,1fr); }
+  html body.pilot-ops-v2 #performanceOpsPane .performance-route-arrow { display:none; }
+  html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  html body.pilot-ops-v2 #aircraftOpsPane .aircraft-fleet-hero { grid-template-columns:minmax(0,1fr); }
+  html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-visual { display:none; }
+  html body.pilot-ops-v2 .logbook-hero-actions { grid-template-columns:minmax(0,1fr); }
+}
