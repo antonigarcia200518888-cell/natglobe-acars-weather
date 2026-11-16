@@ -102,16 +102,21 @@ test('app resources are versioned together and Home Screen metadata is present',
   const sw=fs.readFileSync(new URL('../public/pilot-sw.js',import.meta.url),'utf8');
   const version=sw.match(/PILOT_STYLESHEET_VERSION = '([^']+)'/)[1];
   for(const ext of ['js','css']) assert.ok(html.includes(`/pilot-app-shell.${ext}?v=${version}`));
-  for (const file of ['pilot-app-shell.js','pilot-flight-deck.js','pilot-ofp-checks.js','pilot-map-view.js','pilot-display.js']) {
+  for (const file of ['pilot-app-shell.js','pilot-flight-deck.js','pilot-ofp-checks.js','pilot-map-view.js','pilot-display.js','pilot-glass.js','vendor/liquid-glass/glass.js']) {
     const networkFirst = sw.match(/if \(isEfbStylesheet \|\| (\[[^\]]+\])\.includes\(url\.pathname\)/)?.[1];
     assert.ok(networkFirst?.includes(`'/${file}'`), `${file} stays network-first`);
   }
-  for(const file of ['booking-ops.html','pilot-login.html']) {
-    const page=fs.readFileSync(new URL('../views/'+file,import.meta.url),'utf8');
+  for(const file of ['views/booking-ops.html','views/pilot-login.html','views/operational-flight-plan.html','public/pilot-offline.html']) {
+    const page=fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
     assert.match(page,/apple-mobile-web-app-capable" content="yes/);
-    assert.match(page,/rel="apple-touch-icon"/);
+    assert.match(page,/name="mobile-web-app-capable" content="yes"/);
+    assert.match(page,/apple-mobile-web-app-status-bar-style" content="default"/);
+    assert.match(page,/apple-mobile-web-app-title" content="NGA Pilot EFB"/);
+    assert.match(page,/rel="apple-touch-icon" href="\/icon-192.png"/);
+    assert.match(page,/rel="manifest" href="\/pilot-manifest.webmanifest"/);
   }
   const manifest=JSON.parse(fs.readFileSync(new URL('../public/pilot-manifest.webmanifest',import.meta.url),'utf8'));
   assert.equal(manifest.display,'standalone');
+  assert.equal(manifest.start_url,'/booking-ops');
   assert.equal(manifest.id,manifest.start_url);
 });

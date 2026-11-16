@@ -1,5 +1,15 @@
 /* Appearance only. No flight data or session state is touched. */
 (function () {
+  const mapTools = document.getElementById('opsMapTools');
+  const mapToolsBtn = document.getElementById('opsMapToolsBtn');
+  if (mapTools && mapToolsBtn) {
+    const expand = on => { mapTools.hidden = !on; mapToolsBtn.setAttribute('aria-expanded',String(on)); };
+    expand(false);
+    mapToolsBtn.addEventListener('click',() => expand(mapTools.hidden));
+    mapTools.addEventListener('keydown',e => {
+      if (e.key === 'Escape') { expand(false); mapToolsBtn.focus(); }
+    });
+  }
   const key = 'nga-efb-material';
   const buttons = document.querySelectorAll('[data-app-material]');
   function apply(value, persist) {

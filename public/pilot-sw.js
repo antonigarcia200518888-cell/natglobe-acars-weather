@@ -1,5 +1,5 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v35';
-const PILOT_STYLESHEET_VERSION = '2026-11-15-3';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v36';
+const PILOT_STYLESHEET_VERSION = '2026-11-15-4';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
@@ -25,6 +25,9 @@ const PILOT_SHELL_ASSETS = [
   `/pilot-ofp-checks.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-map-view.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-display.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-glass.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/vendor/liquid-glass/glass.js?v=${PILOT_STYLESHEET_VERSION}`,
+  '/pilot-glass-relief.svg',
   `/pilot-cockpit.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-touch-controls.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-ofp-touch.js?v=${PILOT_STYLESHEET_VERSION}`,
@@ -81,7 +84,7 @@ self.addEventListener('fetch', event => {
   const shellAsset = PILOT_SHELL_ASSETS.find(asset => new URL(asset, self.location.origin).pathname === url.pathname);
   if (shellAsset) {
     const isEfbStylesheet = PILOT_EFB_STYLESHEETS.some(asset => new URL(asset, self.location.origin).pathname === url.pathname);
-    if (isEfbStylesheet || ['/pilot-app-shell.js', '/pilot-flight-deck.js', '/pilot-ofp-checks.js', '/pilot-map-view.js', '/pilot-display.js', '/pilot-cockpit.js', '/pilot-touch-controls.js', '/pilot-ofp-touch.js'].includes(url.pathname)) {
+    if (isEfbStylesheet || ['/vendor/liquid-glass/glass.js', '/pilot-glass.js', '/pilot-app-shell.js', '/pilot-flight-deck.js', '/pilot-ofp-checks.js', '/pilot-map-view.js', '/pilot-display.js', '/pilot-cockpit.js', '/pilot-touch-controls.js', '/pilot-ofp-touch.js'].includes(url.pathname)) {
       event.respondWith(
         fetch(request)
           .then(response => {

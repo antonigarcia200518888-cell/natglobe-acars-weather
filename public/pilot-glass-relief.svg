@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="768" viewBox="0 0 1024 768">
+  <!-- Decorative milled graphite. No geographic or operational information. -->
+  <defs>
+    <linearGradient id="slate" x2=".9" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#3d4141"/><stop offset=".36" stop-color="#9daba8"/><stop offset=".6" stop-color="#505654"/><stop offset="1" stop-color="#282d2e"/>
+    </linearGradient>
+    <linearGradient id="seam" x2=".8" y2=".85">
+      <stop stop-color="#cad4d0"/><stop offset=".48" stop-color="#899590"/><stop offset=".55" stop-color="#454f4c"/><stop offset="1" stop-color="#67716e"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#slate)" d="M0 0h1024v768H0z"/>
+  <path fill="url(#seam)" d="M245-20c44 194 255 154 288 307s194 191 313 220 153 111 208 121V-20z"/>
+  <g fill="none" stroke="#e5eae8" opacity=".4">
+    <path stroke-width="3" d="M247-20c44 194 255 154 288 307s194 191 313 220 153 111 208 121"/>
+    <path d="M295-20c61 176 251 138 298 286s200 172 310 211 135 96 167 105M348-25c68 154 249 129 303 261s201 161 308 201"/>
+  </g>
+</svg>
