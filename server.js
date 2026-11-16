@@ -12,6 +12,7 @@ import {
 import { degrees, PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { airports as bundledAirports } from './data/airports.js';
+import { dispatchToPdfBuffer } from './lib/dispatch-document.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -3904,32 +3905,6 @@ async function getAirportWeather(icao) {
   };
 }
 
-function wrapText(text, maxChars = 34) {
-  const words = String(text || '').split(/\s+/).filter(Boolean);
-  const lines = [];
-  let current = '';
-
-  for (const word of words) {
-    const test = current ? `${current} ${word}` : word;
-    if (test.length <= maxChars) {
-      current = test;
-    } else {
-      if (current) lines.push(current);
-
-      if (word.length > maxChars) {
-        for (let i = 0; i < word.length; i += maxChars) {
-          lines.push(word.slice(i, i + maxChars));
-        }
-        current = '';
-      } else {
-        current = word;
-      }
-    }
-  }
-
-  if (current) lines.push(current);
-  return lines.length ? lines : [''];
-}
 
 function formatDateOnly(d) {
   return d.toISOString().slice(0, 10);
@@ -4530,126 +4505,6 @@ async function buildPerformanceData(query) {
   };
 }
 
-async function dispatchToPdfBuffer(data) {
-  const pdfDoc = await PDFDocument.create();
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Courier);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.CourierBold);
-
-  const pageWidth = 595.28;
-  const pageHeight = 841.89;
-  const page = pdfDoc.addPage([pageWidth, pageHeight]);
-
-  page.drawRectangle({
-    x: 0,
-    y: 0,
-    width: pageWidth,
-    height: pageHeight,
-    color: rgb(1, 1, 1)
-  });
-
-  const black = rgb(0, 0, 0);
-  const blockWidth = 311.81;
-  const left = (pageWidth - blockWidth) / 2;
-  const indent = 12;
-  let y = pageHeight - 36;
-
-  const drawLine = (text, size = 10, bold = false, x = left, color = black) => {
-    y -= size;
-    page.drawText(text, {
-      x,
-      y,
-      size,
-      font: bold ? boldFont : regularFont,
-      color
-    });
-    y -= 3.5;
-  };
-
-  const drawWrappedText = (text, size = 9.2, x = left + indent) => {
-    const wrapped = wrapText(text, 50);
-    for (const line of wrapped) {
-      y -= size;
-      page.drawText(line, {
-        x,
-        y,
-        size,
-        font: regularFont,
-        color: black
-      });
-      y -= 3;
-    }
-  };
-
-  const drawWeatherSection = (title, wx, wantMetar, wantTaf) => {
-    if (!wx || (!wantMetar && !wantTaf)) return;
-
-    const category = getMetarFlightCategory(wx.metar);
-    const categoryColor = category === 'VFR'
-      ? rgb(0.05, 0.55, 0.25)
-      : category === 'MVFR'
-        ? rgb(0.08, 0.32, 0.78)
-        : category === 'IFR'
-          ? rgb(0.78, 0.08, 0.12)
-          : category === 'LIFR'
-            ? rgb(0.58, 0.08, 0.68)
-            : rgb(0.35, 0.35, 0.35);
-    drawLine(`${title} (${wx.airport}) ${category}`, 10.5, true, left, categoryColor);
-
-    if (wantMetar) {
-      drawLine('METAR', 9.2, true);
-      drawWrappedText(wx.metar || 'NOT AVAILABLE');
-      y -= 4;
-    }
-
-    if (wantTaf) {
-      drawLine('TAF', 9.2, true);
-      drawWrappedText(wx.taf || 'NOT AVAILABLE');
-      y -= 4;
-    }
-  };
-
-  const headerLine1 = [
-    'OPS NATGLOBE AVIATION',
-    `DATE ${data.date}`,
-    `UTC ${data.timeUtc.replace(' UTC', '')}`
-  ].join('   ');
-
-  const headerLine2 = [
-    data.flight ? `FLT ${data.flight}` : null,
-    data.dep ? `ORIG ${data.dep}` : null,
-    data.arr ? `DEST ${data.arr}` : null,
-    data.route ? `ROUTE ${data.route}` : null
-  ].filter(Boolean).join('   ');
-
-  drawLine('ACARS WEATHER REPORT', 12, true);
-  drawLine('--------------------', 11, true);
-  drawLine(headerLine1, 9.5, false);
-  drawLine(headerLine2, 9.5, false);
-  y -= 4;
-
-  drawWeatherSection('DEP WX', data.depWx, data.includeDepMetar, data.includeDepTaf);
-  drawWeatherSection('ARR WX', data.arrWx, data.includeArrMetar, data.includeArrTaf);
-  drawWeatherSection('ALTN WX', data.altnWx, data.includeAltnMetar, data.includeAltnTaf);
-
-  if (data.includeWindsAloft && hasAnyWindsLine(data.windsAloft)) {
-    drawLine('WINDS ALOFT', 10.2, true);
-
-    const depLine = buildWindsLine('DEP', data.windsAloft?.dep);
-    const arrLine = buildWindsLine('ARR', data.windsAloft?.arr);
-
-    if (depLine) drawWrappedText(depLine, 9.2, left + indent);
-    if (arrLine) drawWrappedText(arrLine, 9.2, left + indent);
-
-    y -= 4;
-  }
-
-  drawLine(`RMK ${generateAutoRemark(data)}`, 9.5, true);
-  y -= 2;
-
-  drawLine('END OF REPORT', 10.5, true);
-
-  return Buffer.from(await pdfDoc.save());
-}
 
 app.get('/booking', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -8002,11 +7857,13 @@ app.get('/api/dispatch-pdf', async (req, res) => {
 
     const windsAloft = includeWindsAloft ? { dep: depWinds, arr: arrWinds } : null;
     const data = buildDispatchData(req.query, depWx, arrWx, altnWx, windsAloft);
-    const pdf = await dispatchToPdfBuffer(data);
+    const pages = req.query.preview === '1' ? [] : null;
+    const pdf = await dispatchToPdfBuffer(data, pages, {getMetarFlightCategory, generateAutoRemark, hasAnyWindsLine, buildWindsLine});
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    if (pages) return res.json({pageWidth:595.28, pageHeight:841.89, pages, pdf:pdf.toString('base64')});
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="ACARS_DISPATCH_REPORT.pdf"');
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.send(pdf);
   } catch (err) {
     console.error(err);

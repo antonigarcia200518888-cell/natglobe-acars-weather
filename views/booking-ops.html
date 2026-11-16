@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#fafafd" />
+  <meta name="theme-color" content="#071426" />
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NGA Pilot EFB" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/pilot-natglobe-180.png" />
+  <link rel="icon" type="image/png" href="/pilot-natglobe-192.png" />
   <title>NGA Pilot Operations Centre</title>
   <script>
     (() => {
@@ -19,7 +20,7 @@
       })();
       document.documentElement.dataset.efbTheme = theme;
       document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#202127' : '#fafafd');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#071426' : '#fafafd');
     })();
   </script>
   <style>
@@ -2944,20 +2945,20 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-16-3" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-16-3" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-16-3" />
 </head>
 <body class="pilot-ops-v2 efb-ui">
   <main class="frame">
@@ -2966,7 +2967,7 @@
       <div class="app-navigation-title">
         <button id="appBackBtn" class="shell-icon-button" type="button" aria-label="Back to previous workspace" disabled><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg></span></button>
         <div class="workspace-identity">
-          <h1 id="appWorkspaceTitle">Pilot EFB</h1>
+          <h1 aria-labelledby="appWorkspaceTitle"><button id="launchDeskBtn" class="brand-desk-button" type="button" aria-label="Open flight desk" aria-haspopup="dialog" aria-controls="launchDesk"><span class="brand-wing" aria-hidden="true"></span><span id="appWorkspaceTitle">Pilot EFB</span></button></h1>
           <button id="flightSwitchBtn" class="flight-switch-button" type="button" data-glass-control aria-label="Switch active flight" aria-describedby="appWorkspaceSubtitle" aria-haspopup="dialog" aria-controls="flightPickerDialog">
             <span id="appWorkspaceSubtitle">Select flight</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg>
           </button>
@@ -2974,7 +2975,7 @@
         <span id="appDraftBadge" class="app-draft-badge" hidden>Unsaved OFP</span>
       </div>
       <button id="sidebarToggle" class="shell-icon-button masthead-menu-button" type="button" aria-label="Collapse navigation" title="Navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span></button>
-      <div class="masthead-brand"><span class="efb-logo-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
+      <div class="masthead-brand"><span class="efb-logo-mark"><img src="/pilot-natglobe-logo.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
       <div class="masthead-status">
         <button id="cockpitLocationBtn" class="cockpit-location" type="button" aria-label="Device location status" data-tone="neutral"><span aria-hidden="true">◎</span><span id="cockpitLocationValue">Location off</span></button>
         <span id="appConnection" class="app-connection" aria-live="polite">Network</span>
@@ -3125,12 +3126,13 @@
         <div class="weather-console">
           <header class="acars-console-head"><div><span>Pilot weather dispatch</span><strong>ACARS weather</strong></div><em class="acars-live-badge">Raw METAR / TAF</em></header>
           <div class="weather-toolbar">
-            <div class="weather-route"><span>Dispatch route</span><strong id="weatherRoute">ENTER ICAO ROUTE</strong></div>
-            <label>Departure ICAO<input id="weatherDep" list="weatherAirportOptions" maxlength="4" placeholder="EFHV" /></label>
-            <label>Arrival ICAO<input id="weatherArr" list="weatherAirportOptions" maxlength="4" placeholder="EFHN" /></label>
-            <label>Alternate ICAO<input id="weatherAltn" maxlength="4" placeholder="OPTIONAL" /></label>
+            <div class="weather-route"><span>Briefing airports</span><strong id="weatherRoute">Enter your airports</strong><small id="wxCodeHint">Enter a four-letter ICAO code for each airport. Alternate is optional.</small></div>
+            <label class="wx-code-label">Departure<input id="weatherDep" aria-describedby="wxCodeHint" maxlength="4" pattern="[A-Z]{4}" placeholder="····" required autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" /></label>
+            <label class="wx-code-label">Arrival<input id="weatherArr" aria-describedby="wxCodeHint" maxlength="4" pattern="[A-Z]{4}" placeholder="····" required autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" /></label>
+            <label class="wx-code-label">Alternate <small>Optional</small><input id="weatherAltn" aria-describedby="wxCodeHint" maxlength="4" pattern="[A-Z]{4}" placeholder="····" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" /></label>
             <button id="refreshWeatherBtn" class="efb-action primary" type="button">Generate weather</button>
             <button id="openWeatherPdfBtn" class="efb-action" type="button">Open weather PDF</button>
+            <button id="swapWxAirports" class="efb-action" type="button" disabled>⇄ Swap airports</button>
           </div>
           <datalist id="weatherAirportOptions"></datalist>
           <details class="weather-report-options"><summary>Report options <span>METAR / TAF by airport</span></summary>
@@ -3918,14 +3920,27 @@ END OF MESSAGE</pre>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
   <dialog id="cockpitLocationDialog" class="shell-dialog cockpit-location-dialog" aria-labelledby="cockpitLocationTitle"><header class="shell-dialog-head"><div><span>Device sensor</span><strong id="cockpitLocationTitle">Location &amp; precision</strong></div><button id="cockpitLocationClose" type="button">Done</button></header><div class="cockpit-location-body"><p id="cockpitPositionDetail">Location monitoring is off.</p><p>Accuracy is the device-reported uncertainty in metres, not HDOP or certified GPS integrity. A green indicator only means a recent fix with reported accuracy of 50 m or better. This overview is not for navigation.</p><p>Location is used on this device only, never saved or uploaded. Monitoring pauses while the app is hidden.</p><button id="cockpitLocationStart" type="button">Enable device location</button><button id="cockpitLocationStop" type="button" hidden>Stop location monitoring</button></div></dialog>
-  <script src="/pilot-cockpit.js?v=2026-11-16-2"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-16-2"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-16-2"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-16-2"></script>
-  <script src="/pilot-map-view.js?v=2026-11-16-2"></script>
-  <script src="/pilot-display.js?v=2026-11-16-2"></script>
-  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-16-2"></script>
-  <script defer src="/pilot-glass.js?v=2026-11-16-2"></script>
+  <dialog id="wxReader" class="wx-reader" aria-labelledby="wxReaderTitle">
+    <header class="reader-header"><button id="wxReaderBack" type="button" autofocus>‹ Back to Weather</button><div class="reader-heading"><small>Weather PDF</small><h2 id="wxReaderTitle">Dispatch briefing</h2></div>
+      <div class="reader-actions"><button id="wxReaderMode" type="button" aria-pressed="false" hidden>Reading view</button><button id="wxReaderShare" type="button" hidden>Share PDF</button><a id="wxReaderDownload" class="efb-action" download hidden>Save PDF</a></div></header>
+    <div class="reader-state"><span id="wxReaderStatus" role="status"></span><button type="button" id="wxReaderRetry" hidden>Retry</button></div>
+    <div id="wxReaderScroll" class="reader-scroll" tabindex="0" aria-label="Weather document pages"><div id="wxReaderPages"></div></div>
+  </dialog>
+  <dialog id="launchDesk" class="natglobe-desk" aria-labelledby="deskTitle">
+    <header><img src="/pilot-natglobe-logo.png" width="1414" height="517" alt="NatGlobe Aviation" /><button id="deskClose" type="button" aria-label="Close flight desk">Done</button></header>
+    <div class="desk-copy"><small>PILOT OPERATIONS</small><h2 id="deskTitle">Flight desk</h2><p id="deskFlight">No flight loaded</p></div>
+    <dl class="desk-instruments"><div><dt>Zulu time</dt><dd id="deskZulu">—</dd></div><div><dt>Connection</dt><dd id="deskNetwork">—</dd></div></dl>
+    <div class="desk-actions"><button id="deskMap" type="button">Open map <span aria-hidden="true">↗</span></button><button id="deskFlightAction" type="button">Select flight</button><button id="deskWeather" type="button">Brief weather</button></div>
+  </dialog>
+  <script src="/pilot-weather-viewer.js?v=2026-11-16-3"></script>
+  <script src="/pilot-cockpit.js?v=2026-11-16-3"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-16-3"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-16-3"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-16-3"></script>
+  <script src="/pilot-map-view.js?v=2026-11-16-3"></script>
+  <script src="/pilot-display.js?v=2026-11-16-3"></script>
+  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-16-3"></script>
+  <script defer src="/pilot-glass.js?v=2026-11-16-3"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -4104,6 +4119,7 @@ END OF MESSAGE</pre>
     const refreshWeatherBtn = el('refreshWeatherBtn');
     const openWeatherPdfBtn = el('openWeatherPdfBtn');
     const weatherStatus = el('weatherStatus');
+    const weatherReader = createWeatherReader(el('wxReader'));
     const weatherCategoryStrip = el('weatherCategoryStrip');
     const weatherAirportGrid = el('weatherAirportGrid');
     const weatherWinds = el('weatherWinds');
@@ -4246,6 +4262,7 @@ END OF MESSAGE</pre>
     let performanceContextFingerprint = '';
     let latestWeatherData = null;
     let weatherDataKey = '';
+    let weatherLoadGeneration = 0;
     let weatherAirportCatalog = [];
     let weatherRadarMap = null;
     let weatherRadarBaseLayer = null;
@@ -4855,6 +4872,7 @@ END OF MESSAGE</pre>
     }
 
     function renderActiveFlightStrip(req = selected) {
+      if (el('launchDesk').open) updateDesk();
       const phase = activeFlightPhaseData(req);
       const load = req ? declaredLoad(req) : { totalKg:0, passengerKg:0, baggageKg:0 };
       const ofp = req?.operationalFlightPlan || {};
@@ -5085,9 +5103,9 @@ END OF MESSAGE</pre>
       toolFlightContext.textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
       if (weatherAltn.dataset.request !== (req?.id || '')) {
         weatherAltn.dataset.request = req?.id || '';
-        weatherDep.value = req?.dep || '';
-        weatherArr.value = req?.arr || '';
-        weatherAltn.value = req?.operationalFlightPlan?.alternate || '';
+        weatherDep.value = weatherIcao(req?.dep);
+        weatherArr.value = weatherIcao(req?.arr);
+        weatherAltn.value = weatherIcao(req?.operationalFlightPlan?.alternate);
         latestWeatherData = null;
         weatherDataKey = '';
       }
@@ -5205,9 +5223,10 @@ END OF MESSAGE</pre>
       const dep = weatherIcao(weatherDep.value);
       const arr = weatherIcao(weatherArr.value);
       const usesSelectedRoute = Boolean(selected && dep === weatherIcao(selected.dep) && arr === weatherIcao(selected.arr));
-      weatherRoute.textContent = dep && arr
+      el('swapWxAirports').disabled = dep.length !== 4 || arr.length !== 4;
+      weatherRoute.textContent = dep.length === 4 && arr.length === 4
         ? `${dep}  >  ${arr}${usesSelectedRoute ? ` / ${selected.requestDate || 'DATE'} ${selected.requestTime || 'TIME'}` : ' / MANUAL DISPATCH'}`
-        : 'ENTER ICAO ROUTE';
+        : 'Enter your airports';
     }
 
     async function loadWeatherAirportChoices() {
@@ -5638,8 +5657,9 @@ END OF MESSAGE</pre>
     async function loadWeatherWorkspace(force = false) {
       const dep = weatherIcao(weatherDep.value);
       const arr = weatherIcao(weatherArr.value);
-      if (!/^[A-Z]{4}$/.test(dep) || !/^[A-Z]{4}$/.test(arr)) {
-        weatherStatus.textContent = 'ENTER BOTH FOUR-LETTER ICAO CODES TO GENERATE WEATHER.';
+      if (![weatherDep, weatherArr, weatherAltn].every(input=>input.validity.valid)) {
+        weatherLoadGeneration++; refreshWeatherBtn.disabled = false;
+        weatherStatus.textContent = 'Departure and arrival need four letters each. Complete the alternate or leave it blank.';
         weatherAirportGrid.innerHTML = '';
         weatherCategoryStrip.innerHTML = '';
         weatherWinds.innerHTML = '';
@@ -5650,6 +5670,7 @@ END OF MESSAGE</pre>
       }
       const context = `${selected?.id || 'MANUAL'}|${weatherQuery().toString()}`;
       if (!force && latestWeatherData && weatherDataKey === context) return;
+      const generation = ++weatherLoadGeneration;
       weatherDataKey = context;
       refreshWeatherBtn.disabled = true;
       weatherStatus.textContent = `LOADING RAW METAR / TAF / ${dep}-${arr}`;
@@ -5657,9 +5678,11 @@ END OF MESSAGE</pre>
         const query = weatherQuery();
         const response = await fetch(`/api/booking-ops/weather?${query}`, { cache:'no-store' });
         const data = await response.json().catch(() => ({}));
+        if (generation !== weatherLoadGeneration || weatherDataKey !== context) return;
         if (!response.ok) throw new Error(data.error || 'WEATHER BRIEFING UNAVAILABLE');
         renderWeatherBriefing(data);
       } catch (error) {
+        if (generation !== weatherLoadGeneration || weatherDataKey !== context) return;
         latestWeatherData = null;
         weatherStatus.textContent = `OFFLINE / ${error.message || 'WEATHER BRIEFING UNAVAILABLE'} / USE AN APPROVED INDEPENDENT SOURCE`;
         weatherStatus.classList.add('offline');
@@ -5671,19 +5694,19 @@ END OF MESSAGE</pre>
         weatherReportMode.textContent = 'NO DATA';
         renderActiveFlightStrip(selected);
       } finally {
-        refreshWeatherBtn.disabled = false;
+        if (generation === weatherLoadGeneration) refreshWeatherBtn.disabled = false;
       }
     }
 
     function openWeatherPdf() {
-      const dep = weatherIcao(weatherDep.value);
-      const arr = weatherIcao(weatherArr.value);
-      if (!/^[A-Z]{4}$/.test(dep) || !/^[A-Z]{4}$/.test(arr)) {
-        weatherStatus.textContent = 'ENTER BOTH FOUR-LETTER ICAO CODES BEFORE OPENING THE WEATHER PDF';
-        return;
-      }
-      const query = weatherQuery();
-      window.open(`/api/dispatch-pdf?${query}`, '_blank', 'noopener');
+      if (!validateWeatherAirports()) return;
+      weatherReader.open(weatherQuery(),openWeatherPdfBtn);
+    }
+    function validateWeatherAirports() {
+      const field=[weatherDep,weatherArr,weatherAltn].find(input=>!input.validity.valid);
+      if (!field) return true;
+      weatherStatus.textContent='Enter four letters for '+field.labels[0].textContent.trim().replace('Optional','').trim().toLowerCase()+'.';
+      field.focus(); field.reportValidity(); return false;
     }
 
     async function fetchRunways(icao) {
@@ -8582,11 +8605,21 @@ END OF MESSAGE</pre>
     });
     refreshWeatherBtn.addEventListener('click', () => {
       setWeatherView('briefing');
+      if (!validateWeatherAirports()) return;
       loadWeatherWorkspace(true).catch(() => {});
     });
     openWeatherPdfBtn.addEventListener('click', openWeatherPdf);
+    el('swapWxAirports').addEventListener('click',()=>{
+      [weatherDep.value,weatherArr.value]=[weatherArr.value,weatherDep.value];
+      weatherArr.dispatchEvent(new Event('input')); loadWeatherWorkspace(true).catch(()=>{});
+    });
     [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('input', () => {
       input.value = weatherIcao(input.value);
+      weatherLoadGeneration++; refreshWeatherBtn.disabled=false;
+      weatherStatus.classList.remove('offline');
+      weatherStatus.textContent='Airport entry changed. Generate a briefing for this route.';
+      weatherCategoryStrip.replaceChildren(); weatherReportMode.textContent='NOT BRIEFED';
+      weatherAcarsReport.textContent='No briefing for the edited route.';
       latestWeatherData = null;
       weatherDataKey = '';
       updateWeatherRouteLabel();
@@ -8596,6 +8629,7 @@ END OF MESSAGE</pre>
     [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('keydown', event => {
       if (event.key === 'Enter') {
         event.preventDefault();
+        if (!validateWeatherAirports()) return;
         loadWeatherWorkspace(true).catch(() => {});
       }
     }));
@@ -9149,7 +9183,7 @@ END OF MESSAGE</pre>
       efbThemeToggle.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
       efbThemeToggle.setAttribute('aria-pressed', String(theme === 'night'));
       efbThemeToggle.title = `Switch to ${nextTheme} mode`;
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#202127' : '#fafafd');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#071426' : '#fafafd');
       if (persist) {
         try { localStorage.setItem('nga-efb-theme', theme); } catch {}
       }
@@ -9174,6 +9208,27 @@ END OF MESSAGE</pre>
     appShell = window.createPilotAppShell({ navigate:switchOpsWorkspace, getFlight:() => selected, setTheme:applyEfbTheme, install:promptPilotAppInstall, canInstall:() => Boolean(deferredInstallPrompt) });
     flightDeck = window.createPilotFlightDeck({ getFlights:() => sortQueue(requests), getSelected:() => selected, getPlanner:activePlanner, choose:req => activateFlight(req), create:openManualFlightComposer, today:todayIso, escapeHtml });
     el('cockpitSelectFlight').addEventListener('click', () => flightDeck.open());
+    const desk=el('launchDesk');
+    function updateDesk(){
+      if (!desk.open) return;
+      el('deskFlight').textContent=selected ? [selected.dep,selected.arr].filter(Boolean).join(' → ') || selected.id : 'No flight loaded';
+      el('deskFlightAction').textContent=selected?'Continue OFP':'Select flight';
+      el('deskZulu').textContent=new Date().toISOString().slice(11,16)+' Z';
+      el('deskNetwork').textContent=navigator.onLine?'Network available':'Offline';
+    }
+    function openDesk(){if(!desk.open){desk.showModal();updateDesk();}}
+    el('launchDeskBtn').addEventListener('click',openDesk);
+    el('deskClose').addEventListener('click',()=>desk.close());
+    el('deskWeather').addEventListener('click',()=>{desk.close();switchOpsWorkspace('weather');focusOpenedWorkspace('weather');});
+    el('deskMap').addEventListener('click',()=>{desk.close();switchOpsWorkspace('dashboard');focusOpenedWorkspace('dashboard');});
+    el('deskFlightAction').addEventListener('click',()=>{desk.close();if(selected){switchOpsWorkspace('flight-plan');focusOpenedWorkspace('flight-plan');}else flightDeck.open();});
+    window.addEventListener('online',updateDesk);window.addEventListener('offline',updateDesk);
+    // Restore other sections and respect deep links; never interrupt a draft with a splash.
+    try {
+      if (activeWorkspace==='dashboard' && !sessionStorage.getItem('nga-desk-welcome') && !document.querySelector('dialog[open]')) {
+        sessionStorage.setItem('nga-desk-welcome','seen'); openDesk();
+      }
+    } catch { /* The flight desk remains available from the workspace title. */ }
     el('cockpitQueueSelect').addEventListener('click', () => flightDeck.open());
     el('showActiveFile').addEventListener('click', () => setFlightPane('file', true));
     el('showFlightList').addEventListener('click', () => setFlightPane('list', true));
@@ -9260,7 +9315,7 @@ END OF MESSAGE</pre>
       }).catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', showAppUpdate);
     }
-    window.createPilotCockpit({ onMinute:renderLiveTiming });
+    window.createPilotCockpit({ onMinute:()=>{renderLiveTiming();updateDesk();} });
     setInterval(autoSyncOps, 30000);
     loadPilotSession().catch(() => {});
     Promise.all([

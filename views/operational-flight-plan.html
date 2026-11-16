@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#fafafd" />
+  <meta name="theme-color" content="#071426" />
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NGA Pilot EFB" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/pilot-natglobe-180.png" />
+  <link rel="icon" type="image/png" href="/pilot-natglobe-192.png" />
   <title>OFP Builder | NGA Pilot EFB</title>
   <script>
     (() => {
@@ -19,7 +20,7 @@
         const nextTheme = theme === 'night' ? 'day' : 'night';
         document.documentElement.dataset.efbTheme = theme;
         document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#202127' : '#fafafd');
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#071426' : '#fafafd');
         const button = document.getElementById('efbThemeToggleOFP');
         if (button) {
           button.dataset.currentTheme = theme;
@@ -51,17 +52,17 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-16-2" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-16-2" />
-  <script src="/pilot-instruments.js?v=2026-11-16-2"></script>
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-16-3" />
+  <script src="/pilot-instruments.js?v=2026-11-16-3"></script>
 </head>
 <body class="efb-ui efb-planner">
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
     <header class="topbar ofp-app-header">
       <div class="topbar-title ofp-header-context">
-        <span class="ofp-brand-mark"><img src="/booking-logo-mark.png" alt="NGA Private Aviation" /></span>
+        <span class="ofp-brand-mark"><img src="/pilot-natglobe-logo.png" alt="NGA Private Aviation" /></span>
         <div><div class="eyebrow">NGA Pilot EFB</div><h1>Flight planner</h1><div class="sub">General aviation · Flight planning</div></div>
       </div>
       <div class="top-actions ofp-header-actions">
@@ -543,10 +544,10 @@
       </form>
     </dialog>
   </main>
-  <script src="/pilot-ofp-checks.js?v=2026-11-16-2"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-16-2"></script>
-  <script src="/pilot-display.js?v=2026-11-16-2"></script>
-  <script src="/pilot-ofp-touch.js?v=2026-11-16-2" defer></script>
+  <script src="/pilot-ofp-checks.js?v=2026-11-16-3"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-16-3"></script>
+  <script src="/pilot-display.js?v=2026-11-16-3"></script>
+  <script src="/pilot-ofp-touch.js?v=2026-11-16-3" defer></script>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
     if (embedded) document.documentElement.classList.add('embedded');

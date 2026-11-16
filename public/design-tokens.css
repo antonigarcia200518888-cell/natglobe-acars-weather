@@ -9,13 +9,14 @@
   --efb-base:#eff2f6; --efb-card:#fff; --efb-soft:#e7edf4;
   --efb-text:#162032; --efb-secondary:#48566a; --efb-link:#005d97;
   --efb-line:rgba(28,48,75,.22); --efb-highlight:rgba(255,255,255,.85);
-  --efb-pane:rgba(246,249,253,.86); --efb-filter:blur(20px);
+  --efb-pane:rgba(243,248,255,.82); --efb-filter:blur(20px) saturate(135%);
+  --glass-rim:rgba(255,255,255,.8); --glass-glint:rgba(215,235,255,.25);
 }
 :root[data-efb-theme=night], .efb-offline {
-  --efb-base:#0b1019; --efb-card:#141923; --efb-soft:#202b3a;
+  --efb-base:#071426; --efb-card:#10243c; --efb-soft:#1a3453;
   --efb-text:#f6f9ff; --efb-secondary:#b9c6d8; --efb-link:#67c6ff;
   --efb-line:rgba(255,255,255,0.12); --efb-highlight:rgba(255,255,255,0.08);
-  --efb-pane:rgba(23,31,44,.83);
+  --efb-pane:rgba(16,39,66,.81); --glass-rim:rgba(197,224,255,.32); --glass-glint:rgba(163,207,255,.14);
 }
 @media screen {
   html:root body.efb-ui {
@@ -39,7 +40,7 @@
   }
   html:not(.embedded) body.efb-ui::after {
     content:""; position:fixed; z-index:10000; inset:0 0 auto; height:env(safe-area-inset-top,0px);
-    background:#0b1019; pointer-events:none;
+    background:#071426; pointer-events:none;
   }
   html body.efb-ui :is(button,summary,select,[role=button],input:not([type=hidden]):not([type=checkbox]):not([type=radio]),a.efb-action) {
     min-height:var(--efb-hit) !important; min-width:var(--efb-hit) !important; touch-action:manipulation;
@@ -148,3 +149,66 @@
   :root:root { --efb-pane:var(--efb-card); --efb-filter:none; }
 }
 @media print { .efb-instrument { display:none; } .folder-table-wrap { display:block; } }
+
+/* Navy glass is for controls. Paper, raw reports and flight values stay opaque. */
+@media screen {
+  html:root body.efb-ui :is(#pilotWorkspaceNav,.efb-masthead,.inspector-switch,.reader-header,.efb-glass-pill) {
+    background:linear-gradient(135deg,var(--glass-glint),transparent 58%),var(--efb-pane);
+    box-shadow:inset 0 1px var(--glass-rim); backdrop-filter:var(--efb-filter); -webkit-backdrop-filter:var(--efb-filter);
+  }
+  html body.efb-ui .efb-masthead .brand-desk-button {
+    display:inline-flex; gap:9px; align-items:center; max-width:100%; padding:0; border:0; background:none;
+    box-shadow:none; color:var(--efb-text); font:inherit; text-align:start; text-transform:none; letter-spacing:inherit;
+  }
+  .brand-wing { flex:none; width:32px; height:32px; border-radius:50%; background:white url('/pilot-natglobe-logo.png') 50.5% 4.8% / 590% auto no-repeat; }
+  html body.efb-ui .wx-code-label input { width:100%; box-sizing:border-box; font:600 20px/1.2 var(--efb-mono) !important; letter-spacing:.2em; }
+  .wx-code-label input::placeholder { color:var(--efb-secondary); opacity:.8; }
+  .wx-code-label small { color:var(--efb-secondary); font-weight:400; }
+  html body.efb-ui #wxCodeHint { display:block; margin-top:4px; color:var(--efb-secondary); font:14px/1.4 var(--efb-font); }
+  :is(.wx-reader,.natglobe-desk) { box-sizing:border-box; color:var(--efb-text); font:16px/1.45 var(--efb-font); }
+  :is(.wx-reader,.natglobe-desk)::backdrop { background:rgba(3,13,28,.73); }
+  .wx-reader[open] { position:fixed; inset:0; display:flex; flex-direction:column; margin:0; width:100%; max-width:none;
+    height:100vh; height:100dvh; max-height:none; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    border:0; border-radius:0; background:var(--efb-base); overflow:hidden; }
+  .reader-header,.reader-actions,.desk-actions,.natglobe-desk header,.reader-state { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+  .reader-header { flex:none; padding:10px clamp(10px,2vw,28px); border-bottom:1px solid var(--efb-line); }
+  .reader-heading { flex:1 1 auto; min-width:0; }
+  .reader-heading small,.desk-copy small { color:var(--efb-link); font-weight:650; }
+  .reader-heading h2,.desk-copy h2 { margin:0; font:650 clamp(19px,2vw,28px)/1.2 var(--efb-font); }
+  html body.efb-ui :is(.reader-header,.reader-state,.natglobe-desk) :is(button,a.efb-action) {
+    box-sizing:border-box; align-content:center; padding:8px 16px; border:1px solid var(--efb-line); border-radius:26px;
+    color:var(--efb-text); background:var(--efb-soft); font:600 15px/1.25 var(--efb-font); text-decoration:none; text-transform:none;
+  }
+  html body.efb-ui :is(#wxReaderBack,#wxReaderMode[aria-pressed=true],#deskMap) { color:var(--efb-on-active); background:var(--efb-active); }
+  .wx-reader [hidden] { display:none !important; }
+  .reader-state { flex:none; justify-content:center; min-height:30px; color:var(--efb-secondary); font-size:14px; }
+  .reader-scroll { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; padding:12px; }
+  #wxReaderPages { display:grid; gap:14px; justify-items:center; }
+  .wx-paper-page,.wx-reading-page { box-sizing:border-box; width:min(760px,100%); }
+  .wx-paper-page { background:white; color:black; }
+  html body.efb-ui .wx-paper-page svg { display:block; width:100%; height:auto; stroke:none; font-family:Courier,"Courier New",monospace; }
+  .wx-reading-page { border-radius:20px; background:var(--efb-card); padding:clamp(12px,3vw,28px); }
+  .wx-reading-page pre { white-space:pre-wrap; overflow-wrap:anywhere; margin:0; font:16px/1.65 var(--efb-mono); color:var(--efb-text); }
+  .natglobe-desk[open] { position:fixed; inset:0; margin:auto; width:min(490px,calc(100% - 32px)); height:fit-content;
+    max-height:calc(100dvh - max(16px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom))); overflow:auto;
+    padding:clamp(18px,3vw,30px); border:1px solid var(--glass-rim); border-radius:28px;
+    background:linear-gradient(140deg,var(--glass-glint),transparent 60%),var(--efb-pane); box-shadow:inset 0 1px var(--glass-rim);
+    backdrop-filter:var(--efb-filter); -webkit-backdrop-filter:var(--efb-filter); }
+  .natglobe-desk header { justify-content:space-between; }
+  .natglobe-desk header img,.pilot-offline-brand { width:156px; height:auto; border-radius:12px; background:#fff; }
+  .desk-copy { margin:24px 0 18px; } .desk-copy small { font-size:12px; letter-spacing:.13em; }
+  .desk-copy h2 { font-size:36px; letter-spacing:-.04em; } .desk-copy p { margin:6px 0; color:var(--efb-secondary); }
+  .desk-instruments { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 16px; }
+  .desk-instruments div { padding:12px; border:1px solid var(--efb-line); border-radius:15px; background:var(--efb-card); }
+  .desk-instruments dt { color:var(--efb-secondary); font-size:13px; } .desk-instruments dd { margin:4px 0 0; font:600 16px var(--efb-font); }
+  #deskZulu { font-family:var(--efb-mono); font-variant-numeric:tabular-nums; }
+  .desk-actions { display:grid; grid-template-columns:1fr 1fr; }
+  #deskMap { grid-column:1/-1; } #deskMap span { margin-inline-start:6px; }
+  html body.pilot-login.efb-ui .pilot-access-mark { display:grid; place-items:center; width:122px; min-width:0; height:auto; border:0; padding:3px; border-radius:10px; background:white; }
+  html body.pilot-login.efb-ui .pilot-access-mark img { width:100%; height:auto; max-height:none; object-fit:contain; }
+  @media (max-width:620px) { .reader-actions { width:100%; } .reader-actions > * { flex:auto; } .brand-wing { display:none; } }
+  @media (prefers-reduced-motion:no-preference) {
+    .natglobe-desk[open] { animation:desk-arrive .19s ease-out; }
+    @keyframes desk-arrive { from {opacity:0; transform:translateY(8px);} to {opacity:1; transform:none;} }
+  }
+}

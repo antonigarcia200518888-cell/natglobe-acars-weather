@@ -112,7 +112,7 @@ test('app resources are versioned together and Home Screen metadata is present',
     assert.match(page,/name="mobile-web-app-capable" content="yes"/);
     assert.match(page,/apple-mobile-web-app-status-bar-style" content="black-translucent"/);
     assert.match(page,/apple-mobile-web-app-title" content="NGA Pilot EFB"/);
-    assert.match(page,/rel="apple-touch-icon" href="\/icon-192.png"/);
+    assert.match(page,/rel="apple-touch-icon" href="\/pilot-natglobe-180.png"/);
     assert.match(page,/rel="manifest" href="\/pilot-manifest.webmanifest"/);
   }
   const manifest=JSON.parse(fs.readFileSync(new URL('../public/pilot-manifest.webmanifest',import.meta.url),'utf8'));
