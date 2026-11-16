@@ -7,7 +7,7 @@
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NGA Pilot EFB" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
   <title>NGA Pilot EFB / Offline</title>
@@ -57,8 +57,9 @@
     }
     button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   </style>
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-16-2" />
 </head>
-<body>
+<body class="efb-ui efb-offline">
   <main>
     <span>Offline / no authenticated shell available</span>
     <h1>NGA Pilot EFB</h1>

@@ -7,7 +7,7 @@
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NGA Pilot EFB" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
   <title>OFP Builder | NGA Pilot EFB</title>
@@ -51,11 +51,13 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-16-2" />
+  <script src="/pilot-instruments.js?v=2026-11-16-2"></script>
 </head>
-<body>
+<body class="efb-ui efb-planner">
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
     <header class="topbar ofp-app-header">
       <div class="topbar-title ofp-header-context">
@@ -126,7 +128,9 @@
         </section>
         <section id="timeSummarySection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabTime" hidden>
           <div class="folder-page-intro"><h3>Time summary</h3><p>One timeline for the planned schedule and recorded flight events.</p><button type="button" data-folder-open="SETUP">Edit departure &amp; EET</button></div>
-          <section class="folder-sheet"><header><h3>Movement timeline</h3><span>UTC / LOCAL</span></header><div class="folder-table-wrap"><table class="folder-table"><thead><tr><th scope="col">Event</th><th scope="col">Planned UTC</th><th scope="col">Actual UTC / local</th><th scope="col">Difference</th></tr></thead><tbody id="folderTimeRows"></tbody></table></div></section>
+          <section class="folder-sheet"><header><h3>Movement timeline</h3><span>UTC / LOCAL</span></header>
+            <figure class="efb-instrument"><figcaption>Flight and block duration · minutes</figcaption><div id="durationPlot"></div></figure>
+            <div class="folder-table-wrap"><table class="folder-table"><caption>Exact movement times</caption><thead><tr><th scope="col">Event</th><th scope="col">Planned UTC</th><th scope="col">Actual UTC / local</th><th scope="col">Difference</th></tr></thead><tbody id="folderTimeRows"></tbody></table></div></section>
           <div id="folderDurationRows" class="folder-duration-grid"></div><p class="folder-note">Actual durations and differences use dated server records only; legacy clock-only values are not inferred. Positive difference = later than planned. The planned schedule includes 10 minutes taxi out and 5 minutes taxi in.</p><button type="button" data-folder-open="FLY">Open journey log</button>
         </section>
         <section id="folderDocumentsSection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabFiles" hidden>
@@ -245,7 +249,7 @@
               </div>
               <datalist id="routeHistory"></datalist>
               <div id="navSearchResults" class="nav-results" hidden></div>
-              <div id="routeTokens" class="route-tokens" aria-label="Route sequence"></div>
+              <section class="efb-card navigation-log" aria-labelledby="navLogTitle"><h3 id="navLogTitle" class="efb-card-title">Navigation log</h3><div id="routeTokens" class="route-tokens" aria-label="Planned route sequence"></div></section>
               <div class="route-command-row">
                 <button id="directRouteBtn" class="btn" type="button">Build direct route</button>
                 <button id="clearRouteBtn" class="btn subtle" type="button">Clear route</button>
@@ -304,10 +308,11 @@
             <div class="fuel-ladder" aria-label="Fuel plan summary">
               <div><span>Taxi</span><strong id="fuelTaxiSummary">0.0</strong><small>USG</small></div>
               <div><span>Trip</span><strong id="fuelTripSummary">0.0</strong><small>USG</small></div>
-              <div><span>Reserve + alternate</span><strong id="fuelReserveSummary">0.0</strong><small>USG</small></div>
+              <div><span>Contingency, alternate &amp; reserve</span><strong id="fuelReserveSummary">0.0</strong><small>USG</small></div>
               <div><span>Extra</span><strong id="fuelExtraSummary">0.0</strong><small>USG</small></div>
               <div class="fuel-total"><span>Block fuel</span><strong id="fuelBlockSummary">0.0</strong><small>USG</small></div>
             </div>
+            <figure class="efb-instrument"><figcaption>Planned fuel allocation · US gallons</figcaption><div id="fuelPlot"></div><small class="instrument-caption">* Contingency, alternate and final reserve combined.</small></figure>
             <div class="grid">
               <label>Planning fuel flow (USG/H)<input data-field="fuelFlowGph" type="number" min="0" step="0.1" /></label>
               <label>Taxi / start (USG)<input data-field="taxiFuelGal" type="number" min="0" step="0.1" /></label>
@@ -353,6 +358,7 @@
                 <div class="load-help">Auto mode uses the latest declared passenger and baggage totals from the booking. Select manual only when the actual measured load differs.</div>
               </div>
               <label>Stabilizer trim<input data-field="stabTrim" placeholder="Pilot entry" /></label>
+              <figure class="efb-instrument"><figcaption>Takeoff CG envelope</figcaption><div id="envelopePlot"></div></figure>
               <details class="advanced-profile">
                 <summary>Aircraft station data and approved envelope</summary>
                 <div class="detail-body grid">
@@ -368,14 +374,7 @@
               <label>Max ramp weight (LB)<input data-field="maxRampWeightLb" type="number" readonly /></label>
               <label>Max takeoff weight (LB)<input data-field="maxTakeoffWeightLb" type="number" readonly /></label>
               <label>Max landing weight (LB)<input data-field="maxLandingWeightLb" type="number" readonly /></label>
-              <div class="envelope"><div class="envelope-title">Approved CG envelope / fixed limits</div><div class="envelope-grid">
-                <div class="envelope-point"><span>Forward</span>80.00 IN / 1400 LB</div>
-                <div class="envelope-point"><span>Forward</span>80.00 IN / 1800 LB</div>
-                <div class="envelope-point"><span>Forward</span>82.00 IN / 2300 LB</div>
-                <div class="envelope-point"><span>Forward</span>87.30 IN / 2650 LB</div>
-                <div class="envelope-point"><span>Aft</span>93.00 IN / 1400 LB</div>
-                <div class="envelope-point"><span>Aft</span>93.00 IN / 2650 LB</div>
-              </div></div>
+              <div class="envelope"><div class="envelope-title">Approved CG envelope / aircraft profile</div><div id="cgLimitRows" class="envelope-grid">Profile limits unavailable.</div></div>
                 </div>
               </details>
             </div>
@@ -544,10 +543,10 @@
       </form>
     </dialog>
   </main>
-  <script src="/pilot-ofp-checks.js?v=2026-11-16-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-16-1"></script>
-  <script src="/pilot-display.js?v=2026-11-16-1"></script>
-  <script src="/pilot-ofp-touch.js?v=2026-11-16-1" defer></script>
+  <script src="/pilot-ofp-checks.js?v=2026-11-16-2"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-16-2"></script>
+  <script src="/pilot-display.js?v=2026-11-16-2"></script>
+  <script src="/pilot-ofp-touch.js?v=2026-11-16-2" defer></script>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
     if (embedded) document.documentElement.classList.add('embedded');
@@ -1848,6 +1847,10 @@
       }).join('');
       const actualFlight = datedMinutesBetween(plan.actualOffIso, plan.actualOnIso);
       const actualBlock = datedMinutesBetween(plan.actualOutIso, plan.actualInIso);
+      window.PilotInstruments?.durations(el('durationPlot'), [
+        num(plan.estimatedEnrouteMinutes) > 0 ? num(plan.estimatedEnrouteMinutes) : null,
+        actualFlight, smartSchedule ? Math.round((smartSchedule.in.instant-smartSchedule.out.instant)/60000) : null, actualBlock
+      ]);
       el('folderDurationRows').innerHTML = [['Planned flight',num(plan.estimatedEnrouteMinutes)>0 ? `${num(plan.estimatedEnrouteMinutes)} MIN` : 'Not set'],['Planned block',smartSchedule ? `${Math.round((smartSchedule.in.instant-smartSchedule.out.instant)/60000)} MIN` : 'Not set'],['Actual flight',actualFlight === null ? '—' : `${actualFlight} MIN`],['Actual block',actualBlock === null ? '—' : `${actualBlock} MIN`]].map(([label,value])=>`<div><span>${label}</span><strong>${value}</strong></div>`).join('');
     }
 
@@ -1856,6 +1859,9 @@
       renderAircraftProfile();
       el('blockFuel').textContent = `${calc.blockFuelGal.toFixed(1)} USG`;
       const reserveFuel = num(plan.contingencyFuelGal) + num(plan.alternateFuelGal) + num(plan.finalReserveFuelGal);
+      window.PilotInstruments?.fuel(el('fuelPlot'), [num(plan.taxiFuelGal), num(plan.tripFuelGal), reserveFuel, num(plan.extraFuelGal)]);
+      window.PilotInstruments?.envelope(el('envelopePlot'), calc);
+      window.PilotInstruments?.limits(el('cgLimitRows'), calc.profile);
       el('fuelTaxiSummary').textContent = num(plan.taxiFuelGal).toFixed(1);
       el('fuelTripSummary').textContent = num(plan.tripFuelGal).toFixed(1);
       el('fuelReserveSummary').textContent = reserveFuel.toFixed(1);

@@ -1,5 +1,5 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v37';
-const PILOT_STYLESHEET_VERSION = '2026-11-16-1';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v38';
+const PILOT_STYLESHEET_VERSION = '2026-11-16-2';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
@@ -14,7 +14,8 @@ const PILOT_EFB_STYLESHEETS = [
   `/pilot-observatory.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-workspaces.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-touch.css?v=${PILOT_STYLESHEET_VERSION}`,
-  `/pilot-ofp-touch.css?v=${PILOT_STYLESHEET_VERSION}`
+  `/pilot-ofp-touch.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/design-tokens.css?v=${PILOT_STYLESHEET_VERSION}`
 ];
 const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
@@ -31,6 +32,7 @@ const PILOT_SHELL_ASSETS = [
   `/pilot-cockpit.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-touch-controls.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-ofp-touch.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-instruments.js?v=${PILOT_STYLESHEET_VERSION}`,
   '/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0',
   '/vendor/maplibre-gl/maplibre-gl-csp.js?v=5.24.0',
   '/vendor/maplibre-gl/maplibre-gl-csp-worker.js?v=5.24.0',
@@ -84,7 +86,7 @@ self.addEventListener('fetch', event => {
   const shellAsset = PILOT_SHELL_ASSETS.find(asset => new URL(asset, self.location.origin).pathname === url.pathname);
   if (shellAsset) {
     const isEfbStylesheet = PILOT_EFB_STYLESHEETS.some(asset => new URL(asset, self.location.origin).pathname === url.pathname);
-    if (isEfbStylesheet || ['/vendor/liquid-glass/glass.js', '/pilot-glass.js', '/pilot-app-shell.js', '/pilot-flight-deck.js', '/pilot-ofp-checks.js', '/pilot-map-view.js', '/pilot-display.js', '/pilot-cockpit.js', '/pilot-touch-controls.js', '/pilot-ofp-touch.js'].includes(url.pathname)) {
+    if (isEfbStylesheet || ['/vendor/liquid-glass/glass.js', '/pilot-glass.js', '/pilot-app-shell.js', '/pilot-flight-deck.js', '/pilot-ofp-checks.js', '/pilot-map-view.js', '/pilot-display.js', '/pilot-cockpit.js', '/pilot-touch-controls.js', '/pilot-ofp-touch.js', '/pilot-instruments.js'].includes(url.pathname)) {
       event.respondWith(
         fetch(request)
           .then(response => {

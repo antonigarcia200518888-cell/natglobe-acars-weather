@@ -23,8 +23,8 @@ test('planner has scoped touch styles, eight folder sections, and no duplicate I
     assert.equal(values.length, new Set(values).size, `duplicate ${attribute}`);
   }
   assert.equal([...markup.matchAll(/role="tab" data-workspace=/g)].length, 8);
-  assert.equal([...markup.matchAll(/rel="stylesheet"/g)].length, 3);
-  for (const sheet of ['pilot-ofp-workflow.css','pilot-touch.css','pilot-ofp-touch.css']) assert.ok(markup.includes(`/${sheet}?v=`));
+  const sheets = Array.from(markup.matchAll(/rel="stylesheet" href="\/([^"?]+)\?v=/g), m => m[1]);
+  assert.deepEqual(sheets, ['pilot-ofp-workflow.css','pilot-touch.css','pilot-ofp-touch.css','design-tokens.css']);
   assert.doesNotMatch(source, /foreflight/i);
   for (const field of ['departure','destination','route','depRunway','arrRunway','estimatedEnrouteMinutes','fuelFlowGph','tripFuelGal','finalReserveFuelGal','crew1Lb','passengerWeightOverrideLb','releaseAccepted','actualOut','actualOff','actualOn','actualIn']) {
     assert.ok(markup.includes(`data-field="${field}"`), `missing ${field}`);

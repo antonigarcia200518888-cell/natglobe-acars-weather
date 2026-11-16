@@ -7,7 +7,7 @@
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NGA Pilot EFB" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
   <title>NGA Pilot Operations Centre</title>
@@ -2944,21 +2944,22 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-16-2" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-16-2" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-16-1" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-16-2" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-16-2" />
 </head>
-<body class="pilot-ops-v2">
+<body class="pilot-ops-v2 efb-ui">
   <main class="frame">
     <canvas id="glassCanvas" aria-hidden="true"></canvas>
     <header class="efb-masthead" data-glass-surface>
@@ -3060,7 +3061,7 @@
       <section class="ops-globe-card" aria-labelledby="opsGlobeTitle">
         <header class="ops-globe-head">
           <div><h2 id="opsGlobeTitle">Flight map</h2></div>
-          <div class="ops-globe-actions">
+          <div class="ops-globe-actions efb-glass-pill">
             <button id="opsMapToolsBtn" type="button" aria-expanded="false" aria-controls="opsMapTools">Map tools</button>
             <button id="cockpitDeckToggle" type="button" aria-expanded="true" aria-controls="efbFlightHero homeOperations">Expand map</button>
           </div>
@@ -3152,13 +3153,14 @@
           </section>
           <div id="weatherBriefingPanel" role="tabpanel" aria-labelledby="weatherBriefingTab">
           <div id="weatherStatus" class="weather-status" role="status">Enter departure and arrival ICAO codes, or open a flight to preload its route.</div>
+          <div id="weatherCategoryStrip" aria-label="Weather by airport"></div>
+          <p class="wx-badge-key">Pilot Ops badges: VFR green · MVFR amber · IFR red · LIFR magenta. Map legends are unchanged.</p>
           <div class="weather-output-layout">
             <section class="acars-preview"><header class="acars-preview-head"><span>Raw aviation weather report</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
 --------------------
 ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
           </div>
           </div>
-          <div id="weatherCategoryStrip" hidden></div>
           <div id="weatherAirportGrid" hidden></div>
           <div id="weatherWinds" hidden></div>
           <div id="weatherDecision" hidden></div>
@@ -3916,14 +3918,14 @@ END OF MESSAGE</pre>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
   <dialog id="cockpitLocationDialog" class="shell-dialog cockpit-location-dialog" aria-labelledby="cockpitLocationTitle"><header class="shell-dialog-head"><div><span>Device sensor</span><strong id="cockpitLocationTitle">Location &amp; precision</strong></div><button id="cockpitLocationClose" type="button">Done</button></header><div class="cockpit-location-body"><p id="cockpitPositionDetail">Location monitoring is off.</p><p>Accuracy is the device-reported uncertainty in metres, not HDOP or certified GPS integrity. A green indicator only means a recent fix with reported accuracy of 50 m or better. This overview is not for navigation.</p><p>Location is used on this device only, never saved or uploaded. Monitoring pauses while the app is hidden.</p><button id="cockpitLocationStart" type="button">Enable device location</button><button id="cockpitLocationStop" type="button" hidden>Stop location monitoring</button></div></dialog>
-  <script src="/pilot-cockpit.js?v=2026-11-16-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-16-1"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-16-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-16-1"></script>
-  <script src="/pilot-map-view.js?v=2026-11-16-1"></script>
-  <script src="/pilot-display.js?v=2026-11-16-1"></script>
-  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-16-1"></script>
-  <script defer src="/pilot-glass.js?v=2026-11-16-1"></script>
+  <script src="/pilot-cockpit.js?v=2026-11-16-2"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-16-2"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-16-2"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-16-2"></script>
+  <script src="/pilot-map-view.js?v=2026-11-16-2"></script>
+  <script src="/pilot-display.js?v=2026-11-16-2"></script>
+  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-16-2"></script>
+  <script defer src="/pilot-glass.js?v=2026-11-16-2"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>

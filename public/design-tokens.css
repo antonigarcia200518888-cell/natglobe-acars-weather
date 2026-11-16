@@ -1,0 +1,150 @@
+/* Pilot Ops display primitives. Map tiles, official overlays and print products
+   keep their own palettes. Only control surfaces sample the background. */
+:root {
+  --efb-font:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;
+  --efb-mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --efb-gap:16px; --efb-radius:22px; --efb-hit:48px;
+  --efb-vfr:#00E676; --efb-mvfr:#FFB300; --efb-ifr:#FF3B30; --efb-lifr:#EC9BFF;
+  --efb-active:#00A3FF; --efb-on-active:#071520;
+  --efb-base:#eff2f6; --efb-card:#fff; --efb-soft:#e7edf4;
+  --efb-text:#162032; --efb-secondary:#48566a; --efb-link:#005d97;
+  --efb-line:rgba(28,48,75,.22); --efb-highlight:rgba(255,255,255,.85);
+  --efb-pane:rgba(246,249,253,.86); --efb-filter:blur(20px);
+}
+:root[data-efb-theme=night], .efb-offline {
+  --efb-base:#0b1019; --efb-card:#141923; --efb-soft:#202b3a;
+  --efb-text:#f6f9ff; --efb-secondary:#b9c6d8; --efb-link:#67c6ff;
+  --efb-line:rgba(255,255,255,0.12); --efb-highlight:rgba(255,255,255,0.08);
+  --efb-pane:rgba(23,31,44,.83);
+}
+@media screen {
+  html:root body.efb-ui {
+    --deck-font:var(--efb-font); --deck-solid:var(--efb-card); --deck-surface:var(--efb-card);
+    --deck-control:var(--efb-soft); --deck-edge:var(--efb-line); --deck-shine:var(--efb-highlight);
+    --deck-ink:var(--efb-text); --deck-muted:var(--efb-secondary); --deck-selected:var(--efb-active);
+    --deck-selected-ink:var(--efb-on-active); --shell-base:var(--efb-base); --deck-blur:var(--efb-filter);
+    --bg:var(--efb-base); --surface:var(--efb-card); --soft:var(--efb-soft); --ink:var(--efb-text);
+    --line:var(--efb-line); --muted:var(--efb-secondary); --mono:var(--efb-mono);
+    --blue:var(--efb-link); --action:var(--efb-active); --action-ink:var(--efb-on-active);
+    --ofp-glass:var(--efb-pane); --ofp-blur:var(--efb-filter);
+    background:var(--efb-base); color:var(--efb-text); font-family:var(--efb-font);
+    -webkit-tap-highlight-color:transparent;
+  }
+  html:not(.embedded) body.efb-planner .shell {
+    box-sizing:border-box; padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  }
+  html body:is(.pilot-login,.efb-offline) {
+    box-sizing:border-box; padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right))
+      max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  }
+  html:not(.embedded) body.efb-ui::after {
+    content:""; position:fixed; z-index:10000; inset:0 0 auto; height:env(safe-area-inset-top,0px);
+    background:#0b1019; pointer-events:none;
+  }
+  html body.efb-ui :is(button,summary,select,[role=button],input:not([type=hidden]):not([type=checkbox]):not([type=radio]),a.efb-action) {
+    min-height:var(--efb-hit) !important; min-width:var(--efb-hit) !important; touch-action:manipulation;
+  }
+  html body.efb-ui :is(label:has(input[type=checkbox]),label:has(input[type=radio])) {
+    min-height:48px; min-width:48px; box-sizing:border-box; align-content:center; touch-action:manipulation;
+  }
+  html body.efb-ui :is(button:not(:disabled),summary,[role=button],a.efb-action):active { transform:scale(.97); }
+  html body.efb-ui :is(button,summary,a,input,select,textarea):focus-visible { outline:3px solid var(--efb-link); outline-offset:2px; }
+  html body.efb-ui :is(h1,h2,h3,h4,label,button,summary) { font-family:var(--efb-font); }
+  html body.efb-ui :is(.efb-telemetry,#clock,.masthead-utc,.efb-hero-metrics strong,.flight-strip-item strong,.folder-table,
+    .folder-data-list dd,.folder-schedule strong,.folder-duration-grid strong,.fuel-ladder strong,.metric strong,
+    .load-margin-strip strong,.weather-category-value,.weather-category-icao,.weather-metric strong,.weather-report code,
+    .performance-metric strong,.logbook-summary-card strong,pre,input[type=number],input[type=time]) {
+    font-family:var(--efb-mono); font-variant-numeric:tabular-nums; letter-spacing:0;
+  }
+  html body.efb-ui :is(#dashboardWorkspace .dashboard-cockpit,.efb-bento,.flight-file-groups,.weather-output-layout) {
+    display:grid; gap:var(--efb-gap); padding:var(--efb-gap); box-sizing:border-box;
+  }
+  html body.efb-ui :is(.dashboard-cockpit,.editor,.efb-bento,.flight-file-groups) > * { min-width:0; }
+  html body.efb-ui :is(.editor,.weather-console,.aircraft-console,.performance-console,.flight-file-library,.logbook-app) { padding:var(--efb-gap); }
+  html:root body.efb-ui :is(#dashboardWorkspace #efbFlightHero,#dashboardWorkspace #homeOperations,.ops-globe-card,
+    .flight-file-group,.flight-file-head,.weather-radar-card,.acars-preview,.logbook-hero,.logbook-summary-card,.logbook-records,
+    .performance-flight-setup,.performance-block,.aircraft-panel,.release-console,.folder-sheet,.ofp-task-panel:not([hidden]),.efb-card,
+    #bookingsWorkspace .queue-panel,#cockpitFlightFile,.app-settings-group,.weather-category-tile,.logbook-activity,.ofp-empty-state) {
+    background:var(--efb-card); border:1px solid var(--efb-line); border-radius:var(--efb-radius);
+    box-shadow:inset 0 1px 0 var(--efb-highlight); color:var(--efb-text);
+  }
+  html:root body.efb-ui :is(#pilotWorkspaceNav,.ops-globe-stage > .map-mode-segment,.inspector-switch,
+    .efb-glass-pill,.ofp-toolbar-actions,.queue-primary-filters,.workspace-segments,.flight-detail-tabs) {
+    background:var(--efb-pane); border:1px solid var(--efb-line); border-radius:26px;
+    box-shadow:inset 0 1px var(--efb-highlight);
+    -webkit-backdrop-filter:var(--efb-filter); backdrop-filter:var(--efb-filter);
+  }
+  html body.efb-ui :is(.ofp-toolbar-actions,.efb-glass-pill) { flex-wrap:wrap; padding:3px; gap:3px; }
+  html body.efb-ui :is(.ofp-toolbar-actions,.efb-glass-pill) button { border-radius:24px; }
+  html body.efb-ui .ops-globe-actions.efb-glass-pill { flex:0 1 auto; margin-inline-start:auto; }
+  html body.efb-ui #efbFlightHero .efb-hero-metrics strong { white-space:normal; overflow:visible; overflow-wrap:anywhere; text-overflow:clip; }
+  /* The library's compact disclosure was drawn for 24px. Reserve its enlarged
+     hit box in the credit strip rather than tiling its icon across the map. */
+  #opsVectorMap .maplibregl-ctrl-attrib.maplibregl-compact {
+    box-sizing:border-box; min-height:48px; min-width:48px; max-width:calc(100vw - 40px);
+    padding:0 48px 0 0; border-radius:24px; background:#182130ed; color:white;
+  }
+  #opsVectorMap .maplibregl-ctrl-attrib.maplibregl-compact-show { padding-inline-start:12px; align-content:center; }
+  #opsVectorMap .maplibregl-ctrl-attrib-inner, #opsVectorMap .maplibregl-ctrl-attrib a { color:white; }
+  #opsVectorMap .maplibregl-ctrl-attrib summary.maplibregl-ctrl-attrib-button {
+    width:48px; height:48px; border-radius:50%; background-color:#e8eef4;
+    background-repeat:no-repeat; background-size:24px 24px; background-position:center;
+  }
+  html body.efb-ui .route-command-row { flex-wrap:wrap; }
+  html body.efb-ui #directRouteBtn { border-radius:24px; background:var(--efb-pane); color:var(--efb-link); -webkit-backdrop-filter:var(--efb-filter); backdrop-filter:var(--efb-filter); }
+  html body.efb-ui #bookingsWorkspace > .layout { gap:var(--efb-gap); padding:var(--efb-gap); box-sizing:border-box; }
+  html body.efb-offline main { background:var(--efb-card); border:1px solid var(--efb-line); border-radius:var(--efb-radius); color:var(--efb-text); }
+  html[data-efb-theme=night] body.efb-ui #efbFlightHero .efb-aircraft-stage img {
+    background:radial-gradient(ellipse at 44% 42%,#8996a5 0%,#606d7d 54%,#455365 100%);
+  }
+  html:root body.efb-ui :is(#pilotWorkspaceNav,.map-mode-segment,.inspector-switch,.flight-detail-tabs,.queue-primary-filters)
+    :is(button[aria-current=page],button[aria-selected=true],button[aria-pressed=true]) {
+    background:var(--efb-active); color:var(--efb-on-active); border-color:transparent;
+  }
+  html body.efb-planner .ofp-workspace-button[aria-selected=true] { box-shadow:inset 3px 0 var(--efb-active); background:var(--efb-soft); }
+  html body.efb-planner .ofp-workspace-button[aria-selected=true] .task-title { color:var(--efb-link); }
+  #weatherCategoryStrip:not(:empty) { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr)); gap:16px; margin:16px 0 8px; }
+  #weatherCategoryStrip:empty + .wx-badge-key { display:none; }
+  .wx-badge-key,.instrument-caption { color:var(--efb-secondary); font:14px/1.5 var(--efb-font); }
+  .weather-category-tile,.wx-report-category { --wx-accent:#d0d9e7; }
+  .vfr { --wx-accent:var(--efb-vfr); } .mvfr { --wx-accent:var(--efb-mvfr); }
+  .ifr { --wx-accent:var(--efb-ifr); } .lifr { --wx-accent:var(--efb-lifr); }
+  html body.efb-ui :is(.wx-report-category,.weather-category-value,.weather-card-category strong) {
+    background:#101620; color:var(--wx-accent); border-radius:6px; padding:2px 5px;
+  }
+  .efb-instrument { margin:12px 0 16px; padding:16px; min-width:0; border-radius:18px; background:var(--efb-base); }
+  .efb-instrument figcaption,.efb-card-title { font:600 16px/1.45 var(--efb-font); color:var(--efb-text); }
+  .efb-instrument svg { display:block; width:100%; max-width:560px; height:auto; margin:8px auto; overflow:visible; }
+  /* The legacy icon system strokes every SVG; chart labels and fills must not inherit that stroke. */
+  html body.efb-ui .efb-instrument svg { stroke:none; }
+  html body.efb-ui .efb-masthead .masthead-status #clock { font-family:var(--efb-mono); font-variant-numeric:tabular-nums; flex-shrink:0; }
+  .efb-instrument svg text { fill:var(--efb-text); font:12px var(--efb-mono); font-variant-numeric:tabular-nums; }
+  .efb-ui .envelope-point,.efb-ui .aircraft-specs strong,.efb-ui .time-value,.efb-ui #efbClock {
+    font-family:var(--efb-mono); font-variant-numeric:tabular-nums;
+  }
+  .efb-instrument p,.wx-badge-key { margin:6px 0; }
+  .navigation-log { margin-block:12px; padding:16px; }
+  .navigation-log h3 { margin:0 0 8px; }
+  html body.pilot-login.efb-ui .frame { background:var(--efb-card); color:var(--efb-text); border:1px solid var(--efb-line); border-radius:var(--efb-radius); box-shadow:inset 0 1px var(--efb-highlight); }
+  html body.pilot-login.efb-ui #loginForm button { background:var(--efb-active); color:var(--efb-on-active); border:0; border-radius:24px; }
+  .efb-instrument + details > summary { align-content:center; }
+  @media (max-width:959px), (orientation:portrait) {
+    html body.pilot-ops-v2.efb-ui .frame { padding-inline:max(0px,env(safe-area-inset-left)) max(0px,env(safe-area-inset-right)); }
+    html body.efb-ui #pilotWorkspaceNav { max-width:calc(100% - max(12px,env(safe-area-inset-left)) - max(12px,env(safe-area-inset-right))); }
+  }
+  @media (max-width:600px) {
+    html body.efb-ui .folder-toolbar { flex-wrap:wrap; }
+    html body.efb-ui .folder-toolbar .ofp-toolbar-actions { margin-inline-start:auto; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    html body.efb-ui :is(button,summary,[role=button],a):active { transform:none; }
+  }
+}
+:root[data-efb-material=solid] { --efb-pane:var(--efb-card); --efb-filter:none; }
+@media (prefers-reduced-transparency:reduce), (forced-colors:active) {
+  :root:root { --efb-pane:var(--efb-card); --efb-filter:none; }
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  :root:root { --efb-pane:var(--efb-card); --efb-filter:none; }
+}
+@media print { .efb-instrument { display:none; } .folder-table-wrap { display:block; } }
