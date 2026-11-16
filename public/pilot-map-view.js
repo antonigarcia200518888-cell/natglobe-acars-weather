@@ -3,6 +3,11 @@
   'use strict';
   const VERSION = '5.24.0';
   const STYLES = { day: 'https://tiles.openfreemap.org/styles/liberty', night: 'https://tiles.openfreemap.org/styles/dark' };
+  // Regional overview, never an inferred aircraft position.
+  const HOME = { center:[24.8811,60.6544], zoom:6.5 };
+  const DAY_LAND = Object.freeze({water:'#b2cbdc',landuse_residential:'#e6e5e8',landcover_wood:'#cad6cf',landcover_grass:'#dee4dc',park:'#d8e1d8',aeroway_fill:'#c7c8d0'});
+  const pref = key => { try { return root.localStorage?.getItem('nga-map-'+key); } catch { return null; } };
+  const save = (key,value) => { try { root.localStorage?.setItem('nga-map-'+key,value); } catch {} };
   let enginePromise;
 
   function coordinates(value) {
@@ -60,11 +65,14 @@
   function createPilotMapView({ container, fallback, status, onState = () => {}, getPadding = () => 64 }) {
     let map, ready = false, active = false, destroyed = false, starting = false, failed = false;
     let flight = null, flightKey = '', theme = document.documentElement.dataset.efbTheme === 'day' ? 'day' : 'night';
-    let mode = 'globe', rotating = false, frame = 0, previousTime = 0, timer = 0, styleFrame = 0;
+    let mode = pref('projection') === 'globe' ? 'globe' : 'map', chartCamera = null;
+    let rotating = false, frame = 0, previousTime = 0, timer = 0, styleFrame = 0;
     let currentStyle = theme, fitPending = true, styleReady = false, attempt = 0;
-    let relief = true, reliefFailed = false;
+    let relief = pref('relief') === 'on', reliefFailed = false, fieldsVisible = false;
+    let fields = {type:'FeatureCollection',features:[]}, airportPin;
+    const clearPin = () => { airportPin?.remove(); airportPin=null; };
     const reducedMotion = root.matchMedia('(prefers-reduced-motion: reduce)');
-    const announce = () => onState({ ready, mode, rotating, relief, hasRoute: routeCoordinates(flight?.departure, flight?.arrival).length > 0 });
+    const announce = () => onState({ ready, failed, mode, rotating, relief:relief && !reliefFailed, fieldsVisible, hasFields:fields.features.length > 0, hasRoute: routeCoordinates(flight?.departure, flight?.arrival).length > 0 });
     const message = (text, state) => { status.textContent = text; status.dataset.state = state; };
     const mapDescription = () => relief && !reliefFailed ? 'NASA relief overview · vector detail at close zoom' : 'Vector basemap · online';
 
@@ -88,9 +96,54 @@
     }
     function setRelief(value) {
       relief = Boolean(value); reliefFailed = false;
+      save('relief',relief ? 'on' : 'off');
       drawRelief();
       if (ready) message(mapDescription(), 'ready');
       announce();
+    }
+
+    // Optional planning overlay: only catalogued ICAOs with finite coordinates.
+    function setAirports(list) {
+      const seen = new Set();
+      fields = {type:'FeatureCollection',features:[]};
+      for (const a of list || []) {
+        if (!a || !/^[A-Z]{4}$/.test(a.icao) || seen.has(a.icao) || a.lat == null || a.lon == null || String(a.lat).trim()==='' || String(a.lon).trim()==='') continue;
+        const point = coordinates({lat:Number(a.lat),lon:Number(a.lon)});
+        if (!point) continue;
+        seen.add(a.icao);
+        fields.features.push({type:'Feature',properties:{icao:a.icao,name:String(a.name || '').slice(0,80)},geometry:{type:'Point',coordinates:point}});
+      }
+      map?.getSource('pilot-fields')?.setData(fields);
+      drawFields(); announce();
+    }
+    function drawFields() {
+      if (!map || !styleReady) return;
+      const visibility = fieldsVisible ? 'visible' : 'none';
+      if (!map.getSource('pilot-fields')) {
+        if (!fieldsVisible || !fields.features.length) return;
+        const before = map.getLayer('pilot-route-casing') ? 'pilot-route-casing' : undefined;
+        map.addSource('pilot-fields',{type:'geojson',data:fields});
+        map.addLayer({id:'pilot-field-dots',type:'circle',source:'pilot-fields',minzoom:5,paint:{'circle-radius':4,'circle-color':'#e7edf8','circle-stroke-color':'#374665','circle-stroke-width':2}},before);
+        map.addLayer({id:'pilot-field-labels',type:'symbol',source:'pilot-fields',minzoom:6,layout:{'text-field':['get','icao'],'text-font':['Noto Sans Regular'],'text-size':13,'text-anchor':'left','text-offset':[.7,0]},paint:{'text-color':'#182232','text-halo-color':'#f5f7fc','text-halo-width':1.8}},before);
+      } else for (const layer of ['pilot-field-dots','pilot-field-labels']) map.setLayoutProperty(layer,'visibility',visibility);
+      filterRouteFields();
+    }
+    function filterRouteFields() {
+      if (!styleReady || !map?.getSource('pilot-fields')) return;
+      const featured = [coordinates(flight?.departure) && flight?.dep, coordinates(flight?.arrival) && flight?.arr].filter(Boolean);
+      const filter = featured.length ? ['!', ['in',['get','icao'],['literal',featured]]] : null;
+      for (const id of ['pilot-field-dots','pilot-field-labels']) map.setFilter(id,filter);
+    }
+    function setFields(value) { fieldsVisible = Boolean(value) && fields.features.length > 0; drawFields(); announce(); }
+    function viewAirport(code) {
+      const point = fields.features.find(f => f.properties.icao === String(code).trim().toUpperCase());
+      if (!ready || !point) return false;
+      setMode('map'); setRotating(false); map.stop();
+      map.easeTo({center:point.geometry.coordinates,zoom:9,bearing:0,pitch:0,duration:reducedMotion.matches ? 0 : 450});
+      clearPin();
+      airportPin = new root.maplibregl.Popup({className:'airport-reference',closeOnClick:true,focusAfterOpen:false,maxWidth:'240px'})
+        .setLngLat(point.geometry.coordinates).setText([point.properties.icao,point.properties.name].filter(Boolean).join(' · ')).addTo(map);
+      return true;
     }
 
     function stopAnimation() {
@@ -115,6 +168,7 @@
       syncAnimation(); announce();
     }
     function fitRoute() {
+      clearPin();
       if (!ready || !active) { fitPending = true; return; }
       fitPending = false;
       setRotating(false);
@@ -131,7 +185,7 @@
           // Rendering failure must never interrupt saving or loading a flight.
           message('Route loaded · adjust map view manually', 'limited');
         }
-      } else map.easeTo({ center: [24, 52], zoom: mode === 'globe' ? 1.8 : 3.5, bearing: 0, pitch: 0, duration });
+      } else map.easeTo({ ...HOME, zoom:mode === 'globe' ? .6 : HOME.zoom, bearing:0, pitch:0, duration });
     }
     function drawFlight() {
       if (!map || !styleReady) return;
@@ -148,6 +202,7 @@
     }
     function fail() {
       if (destroyed) return;
+      clearPin();
       attempt++;
       failed = true; ready = false; starting = false; fitPending = true; styleReady = false;
       root.clearTimeout(timer); stopAnimation();
@@ -167,8 +222,9 @@
         engine.setWorkerUrl(`/vendor/maplibre-gl/maplibre-gl-csp-worker.js?v=${VERSION}`);
         container.hidden = false;
         currentStyle = theme;
-        map = new engine.Map({ container, style: STYLES[theme], center: [24, 45], zoom: .8, maxZoom: 14, attributionControl: false, pixelRatio: Math.min(root.devicePixelRatio || 1, 2), renderWorldCopies: false });
+        map = new engine.Map({ container, style: STYLES[theme], ...HOME, zoom:mode === 'map' ? HOME.zoom : .6, maxZoom: 14, attributionControl: false, pixelRatio: Math.min(root.devicePixelRatio || 1, 2), renderWorldCopies: false });
         map.addControl(new engine.NavigationControl({ visualizePitch: true }), 'top-right');
+        map.addControl(new engine.ScaleControl({unit:'nautical',maxWidth:90}), 'bottom-left');
         map.addControl(new engine.AttributionControl({ compact: true }), 'bottom-right');
         map.on('style.load', () => {
           styleReady = true;
@@ -176,19 +232,33 @@
           if (currentStyle === 'night') {
             // Brighter coastline/labels than the stock dark basemap, without a CSS filter.
             for (const layer of map.getStyle().layers) {
-              if (layer.id === 'background') map.setPaintProperty(layer.id, 'background-color', '#29332c');
-              if (layer.id === 'water') map.setPaintProperty(layer.id, 'fill-color', '#15282d');
+              // The dark style references an absent circle-11 sprite on three city
+              // labels. Keep their real text, without a redundant settlement dot.
+              if (['place_town','place_city','place_city_large'].includes(layer.id) && JSON.stringify(layer.layout?.['icon-image'] || '').includes('"circle-11"')) map.setLayoutProperty(layer.id,'icon-image',null);
+              if (layer.id === 'background') map.setPaintProperty(layer.id, 'background-color', '#42454c');
+              if (layer.id === 'water') map.setPaintProperty(layer.id, 'fill-color', '#1b293b');
+              if (layer.id === 'landcover_wood') map.setPaintProperty(layer.id,'fill-color','#353b41');
+              if (layer.id === 'landuse_residential') map.setPaintProperty(layer.id,'fill-color','#52545d');
+              if (['highway_motorway_inner','highway_motorway_subtle','highway_major_inner','highway_major_subtle'].includes(layer.id)) map.setPaintProperty(layer.id,'line-color','#898b98');
+              if (layer.id === 'aeroway-runway') map.setPaintProperty(layer.id,'line-color','#d4d4dc');
               if (layer.id === 'landcover_glacier' || layer.id === 'landcover_ice_shelf') map.setPaintProperty(layer.id, 'fill-color', '#496373');
               if (layer.id.startsWith('boundary_country')) map.setPaintProperty(layer.id, 'line-color', '#5a7a8a');
               if (layer.type === 'symbol' && layer.id.startsWith('place_')) {
-                map.setPaintProperty(layer.id, 'text-color', '#d2e3ee');
-                map.setPaintProperty(layer.id, 'text-halo-color', '#19303f');
+                map.setPaintProperty(layer.id, 'text-color', '#f0f0f5');
+                map.setPaintProperty(layer.id, 'text-halo-color', '#24252c');
               }
+            }
+          } else {
+            // Use the style's real geometry; keep hazard and operational layers independent.
+            for (const layer of map.getStyle().layers) {
+              if (layer.id === 'background') map.setPaintProperty(layer.id,'background-color','#f3f2ef');
+              if (layer.type === 'fill' && Object.hasOwn(DAY_LAND,layer.id)) map.setPaintProperty(layer.id,'fill-color',DAY_LAND[layer.id]);
+              if (layer.type === 'line' && /^(road|bridge|tunnel)_motorway(_link)?$/.test(layer.id)) map.setPaintProperty(layer.id,'line-color','#d7c6a8');
             }
           }
           map.setProjection({ type: mode === 'globe' ? 'globe' : 'mercator' });
           // style.load permits adding sources even while source tiles are loading.
-          drawRelief(); drawFlight();
+          drawRelief(); drawFields(); drawFlight();
           if (ready) message(mapDescription(), 'ready');
         });
         map.on('load', () => {
@@ -202,6 +272,7 @@
         map.on('error', event => {
           if (event.sourceId === 'pilot-relief') {
             reliefFailed = true; drawRelief();
+            announce();
             if (ready) message('Relief unavailable · vector map retained', 'limited');
           } else if (ready) message('Some map detail is unavailable · check connection', 'limited');
         });
@@ -222,8 +293,8 @@
       const nextKey = JSON.stringify([value?.dep, value?.arr, coordinates(value?.departure), coordinates(value?.arrival)]);
       flight = value;
       if (nextKey === flightKey) return;
-      flightKey = nextKey; fitPending = true;
-      drawFlight(); if (ready) fitRoute(); announce();
+      flightKey = nextKey; fitPending = true; chartCamera = null;
+      drawFlight(); filterRouteFields(); if (ready) fitRoute(); announce();
     }
     function setTheme(value) {
       theme = value === 'day' ? 'day' : 'night';
@@ -239,12 +310,17 @@
       });
     }
     function setMode(value) {
-      if (!ready) return;
-      mode = value === 'map' ? 'map' : 'globe';
+      const next = value === 'map' ? 'map' : 'globe';
+      if (!ready || next === mode) return;
+      map.stop();
+      if (mode === 'map') chartCamera = {center:map.getCenter(),zoom:map.getZoom(),bearing:map.getBearing(),pitch:map.getPitch()};
+      clearPin(); mode = next; save('projection',mode);
       setRotating(false);
       map.setProjection({ type: mode === 'globe' ? 'globe' : 'mercator' });
       // Keep the flight and camera. Zooming out reveals the spherical projection.
-      if (mode === 'globe') map.easeTo({ zoom: Math.min(map.getZoom(), .8), pitch: 0, duration: reducedMotion.matches ? 0 : 650 });
+      if (mode === 'globe') map.easeTo({ zoom: Math.min(map.getZoom(), .6), pitch: 0, duration: reducedMotion.matches ? 0 : 450 });
+      else if (chartCamera) map.easeTo({...chartCamera,duration:reducedMotion.matches ? 0 : 450});
+      else fitRoute();
       announce();
     }
     const resize = new ResizeObserver(() => { if (active && map) map.resize(); });
@@ -261,7 +337,8 @@
     };
     root.addEventListener('online', connectionChanged); root.addEventListener('offline', connectionChanged);
     return {
-      get ready() { return ready; }, setActive, setFlight, setTheme, setMode, setRotating, setRelief, fitRoute,
+      get ready() { return ready; }, setActive, setFlight, setTheme, setMode, setRotating, setRelief, fitRoute, setAirports, setFields, viewAirport,
+      retry() { if (active && failed && !destroyed) { failed=false; announce(); start(); } },
       destroy() { destroyed = true; stopAnimation(); root.clearTimeout(timer); root.cancelAnimationFrame(styleFrame); resize.disconnect(); reducedMotion.removeEventListener('change', motionChanged); root.removeEventListener('online', connectionChanged); root.removeEventListener('offline', connectionChanged); map?.remove(); }
     };
   }

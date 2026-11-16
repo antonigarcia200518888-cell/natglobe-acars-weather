@@ -12,7 +12,8 @@ function harness(options = {}) {
     constructor(options) { this.options=options; this.events=new Map(); this.sources=new Map(); this.fits=0; this.styles=[]; maps.push(this); }
     on(name, fn) { this.events.set(name, [...(this.events.get(name)||[]), fn]); }
     emit(name, event={}) { this.events.get(name)?.forEach(fn=>fn(event)); }
-    addControl() {} resize() {} setProjection(value) { this.projection=value; }
+    addControl(control) { (this.controls ||= []).push(control); } resize() {} setProjection(value) { this.projection=value; }
+    stop() {} getLayer() { return undefined; } getBearing(){return 22;} getPitch(){return 0;}
     setPadding(value) { this.padding=value; }
     triggerRepaint() { this.repainted=true; }
     isStyleLoaded() { return true; }
@@ -22,6 +23,7 @@ function harness(options = {}) {
     addSource(name, value) { this.sources.set(name, { data:value.data, setData(data){this.data=data;} }); }
     addLayer() {}
     setLayoutProperty(id, property, value) { this.layout = {id, property, value}; }
+    setFilter(id,filter) { this.filter=filter; }
     setStyle(value) { this.styles.push(value); this.sources.clear(); this.emit('style.load'); }
     fitBounds(bounds, options) { this.fits++; this.fit={bounds,options}; }
     easeTo(value) { this.camera=value; }
@@ -33,7 +35,7 @@ function harness(options = {}) {
   }
   class Bounds { constructor() {this.points=[];} extend(p) {this.points.push(p);return this;} }
   const window = {
-    maplibregl:{ Map:MapStub, NavigationControl:class {}, AttributionControl:class {}, LngLatBounds:Bounds, setWorkerUrl(){} },
+    maplibregl:{ Map:MapStub, NavigationControl:class {}, ScaleControl:class {constructor(options){this.unit=options.unit;}}, Popup:class {setLngLat(){return this;}setText(t){this.text=t;return this;}addTo(m){m.pin=this;return this;}remove(){this.removed=true;}}, AttributionControl:class {}, LngLatBounds:Bounds, setWorkerUrl(){} },
     matchMedia:()=>motion, devicePixelRatio:3,
     requestAnimationFrame:fn=>{frames.set(++id,fn);return id;}, cancelAnimationFrame:key=>frames.delete(key),
     setTimeout:fn=>{timers.set(++id,fn);return id;},clearTimeout:key=>timers.delete(key),
@@ -101,11 +103,37 @@ test('unloading a flight clears all route features without recreating the vector
 });
 test('rotation is opt-in, stops offscreen, on touch, and for reduced motion',async()=>{
   const h=harness();await h.load();assert.equal(h.frames.size,0);
+  h.adapter.setMode('globe');
   h.adapter.setRotating(true);assert.equal(h.frames.size,1);
   h.adapter.setActive(false);assert.equal(h.frames.size,0);
   h.adapter.setActive(true);h.flush();assert.equal(h.frames.size,1);
   h.maps[0].emit('dragstart',{originalEvent:{}});assert.equal(h.frames.size,0);
   h.motion.matches=true;h.adapter.setRotating(true);assert.equal(h.frames.size,0);
+});
+test('Home opens a regional 2D map with a nautical scale; returning from Globe restores the map camera',async()=>{
+  const h=harness();await h.load();const m=h.maps[0];
+  assert.equal(m.projection.type,'mercator');assert.equal(m.camera.zoom,6.5);
+  assert.ok(m.controls.some(c=>c.unit==='nautical'));
+  h.adapter.setMode('globe');assert.ok(m.camera.zoom<1);
+  h.adapter.setMode('map');assert.equal(m.camera.zoom,7);assert.equal(m.camera.bearing,22);
+});
+test('airport lookup and the optional airfields layer never generate flight legs',async()=>{
+  const h=harness();await h.load();const a=h.adapter,m=h.maps[0];
+  a.setAirports([{icao:'EFHV',lat:'60.65',lon:24.88},{icao:'EFHV',lat:1,lon:1},{icao:'EFHN',lat:null,lon:1},{icao:'EFXX',lat:1,lon:''}]);
+  assert.equal(m.getSource('pilot-fields'),undefined);a.setFields(true);
+  assert.equal(m.getSource('pilot-fields').data.features.length,1);
+  assert.equal(a.viewAirport('efhn'),false);assert.equal(a.viewAirport(' efhv '),true);assert.equal(m.camera.zoom,9);
+  assert.equal(m.pin.text,'EFHV');a.fitRoute();assert.equal(m.pin.removed,true);
+  assert.equal(m.getSource('pilot-route').data.features.length,0);
+  a.setFields(false);assert.equal(m.layout.value,'none');
+  a.setFlight(route);assert.match(JSON.stringify(m.filter),/EFHV.*EFHN/);
+  a.setFlight(null);assert.equal(m.filter,null);
+});
+test('manual retry replaces a failed map once and reinstates the loaded route',async()=>{
+  const h=harness();h.adapter.setFlight(route);await h.load();h.maps[0].emit('webglcontextlost');
+  assert.equal(h.states.at(-1).failed,true);h.adapter.retry();h.adapter.retry();await Promise.resolve();
+  assert.equal(h.maps.length,2);h.maps[1].emit('style.load');h.maps[1].emit('load');
+  assert.equal(h.maps[1].getSource('pilot-route').data.features.length,3);
 });
 test('WebGL failure restores the fallback and reconnect retries without losing route',async()=>{
   const h=harness();h.adapter.setFlight(route);await h.load();

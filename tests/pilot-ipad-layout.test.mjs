@@ -78,7 +78,8 @@ test('Home empty state and safety notice stay outside the absolute map stage', (
   const welcome = html.indexOf('id="cockpitEmptyFlight"');
   const note = html.indexOf('<span class="ops-map-note">');
   assert.ok(welcome < stage && stage < note);
-  assert.match(html.slice(stage, note), /<\/div><\/div>\s*$/);
+  const stageMarkup = html.slice(stage,note);
+  assert.equal((stageMarkup.match(/<div\b/g)||[]).length,(stageMarkup.match(/<\/div>/g)||[]).length,'The stage and its toolbar must close before the safety notice');
   assert.doesNotMatch(read('public/pilot-premium.css'), /\.cockpit-empty-flight \{ position:absolute/);
 });
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#f6f7f6" />
+  <meta name="theme-color" content="#fafafd" />
   <link rel="manifest" href="/pilot-manifest.webmanifest" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -19,7 +19,7 @@
       })();
       document.documentElement.dataset.efbTheme = theme;
       document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#202425' : '#f6f7f6');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#202127' : '#fafafd');
     })();
   </script>
   <style>
@@ -2944,19 +2944,19 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-15-4" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-15-4" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-15-4" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-15-4" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-15-4" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-16-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-15-4" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-15-4" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-16-1" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-15-4" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-15-4" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-15-4" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-15-4" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-16-1" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-16-1" />
 </head>
 <body class="pilot-ops-v2">
   <main class="frame">
@@ -3015,7 +3015,11 @@
     <div class="efb-content">
     <section id="dashboardWorkspace" class="ops-dashboard">
       <header class="dashboard-head"><div><span>Pilot EFB / Operations Control</span><h2>Operations Dashboard</h2><p>Start with the current flight picture, then open the workspace you need without carrying the full booking queue into every task.</p></div><strong>Live operations view</strong></header>
-      <div class="dashboard-cockpit">
+      <div class="dashboard-cockpit" data-inspector="flight">
+      <div class="inspector-switch" role="group" aria-label="Side panel">
+        <button type="button" data-inspector-view="flight" aria-controls="efbFlightHero" aria-pressed="true">Flight folder</button>
+        <button type="button" data-inspector-view="ops" aria-controls="homeOperations" aria-pressed="false">Operations</button>
+      </div>
       <section id="efbFlightHero" class="efb-flight-hero" aria-label="Active aircraft and flight overview" data-active="false">
         <section id="cockpitEmptyFlight" class="cockpit-empty-flight" aria-labelledby="cockpitEmptyTitle"><span>FLIGHT FOLDER</span><h2 id="cockpitEmptyTitle">No flight loaded</h2><p>Select a saved flight or start a pilot-only flight plan.</p><div><button id="cockpitSelectFlight" type="button">Select flight</button><button id="cockpitBuildFlight" type="button">Build flight</button></div></section>
         <div class="efb-flight-hero-copy">
@@ -3047,29 +3051,41 @@
           <div><span>Cabin load</span><strong id="efbHeroLoad">TBC</strong></div>
           <div><span>Preflight</span><strong id="efbHeroWeather">Not briefed</strong></div>
         </div>
+        <div class="inspector-related" role="group" aria-label="Preflight tools">
+          <span>Preflight tools</span>
+          <button type="button" data-dashboard-view="weather">Weather briefing <span aria-hidden="true">↗</span></button>
+          <button type="button" data-dashboard-view="performance">Aircraft performance <span aria-hidden="true">↗</span></button>
+        </div>
       </section>
       <section class="ops-globe-card" aria-labelledby="opsGlobeTitle">
         <header class="ops-globe-head">
           <div><h2 id="opsGlobeTitle">Flight map</h2></div>
           <div class="ops-globe-actions">
-            <div class="map-mode-segment" role="group" aria-label="Map projection">
-              <button id="opsMapModeBtn" type="button" aria-pressed="false" disabled>Map</button>
-              <button id="opsGlobeModeBtn" type="button" aria-pressed="true" disabled>Globe</button>
-            </div>
             <button id="opsMapToolsBtn" type="button" aria-expanded="false" aria-controls="opsMapTools">Map tools</button>
+            <button id="cockpitDeckToggle" type="button" aria-expanded="true" aria-controls="efbFlightHero homeOperations">Expand map</button>
           </div>
         </header>
         <div class="ops-globe-actions map-tools-row" id="opsMapTools" role="group" aria-label="Additional map controls">
-          <button id="opsMapLayerBtn" type="button" aria-pressed="true" aria-label="Show NASA relief imagery" title="Historical NASA relief overview; vector detail at close zoom" disabled>Relief</button>
+          <button id="opsMapLayerBtn" type="button" aria-pressed="false" aria-label="Show NASA relief imagery" title="Historical NASA relief overview; vector detail at close zoom" disabled>Relief</button>
+          <button id="opsAirfieldsBtn" type="button" aria-pressed="false" title="Show catalogued airfields at regional zoom and closer" disabled>Airfields</button>
           <button id="opsGlobeRotateBtn" type="button" aria-pressed="false">Rotate</button>
           <button id="opsGlobeResetBtn" type="button">Reset view</button>
-          <button id="cockpitDeckToggle" type="button" aria-expanded="true" aria-controls="efbFlightHero">Hide flight panel</button>
+          <form id="mapAirportSearch" aria-label="Find an airport on the map">
+            <input id="mapAirportCode" aria-label="Airport ICAO code" list="weatherAirportOptions" placeholder="Airport ICAO" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" required />
+            <button id="mapAirportGo" type="submit" disabled>Locate</button>
+          </form>
+          <span id="mapSearchResult" role="status"></span>
         </div>
-        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Simplified operations globe. Use arrow keys to rotate and tilt, and Space to pause or resume rotation."></canvas><div id="opsVectorMap" role="region" aria-label="Interactive flight overview map" hidden></div></div>
+        <div class="ops-globe-stage"><canvas id="opsGlobeCanvas" role="region" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Space" aria-label="Simplified operations globe. Use arrow keys to rotate and tilt, and Space to pause or resume rotation."></canvas><div id="opsVectorMap" role="region" aria-label="Interactive flight overview map" hidden></div>
+          <div class="map-mode-segment" role="group" aria-label="Map projection">
+            <button id="opsMapModeBtn" type="button" aria-pressed="false" disabled>Map</button>
+            <button id="opsGlobeModeBtn" type="button" aria-pressed="true" disabled>Globe</button>
+          </div>
+        </div>
         <span class="ops-map-note">Overview only · direct route · not for navigation</span>
-        <footer class="ops-globe-footer"><div><span>Active route</span><strong id="opsGlobeRoute">NO FLIGHT SELECTED</strong></div><div><span>View</span><strong id="opsGlobeView">GLOBE</strong></div><span id="opsMapStatus" class="ops-map-status" role="status">Map will load when Home opens</span></footer>
+        <footer class="ops-globe-footer"><div><span>Active route</span><strong id="opsGlobeRoute">NO FLIGHT SELECTED</strong></div><div><span>View</span><strong id="opsGlobeView">GLOBE</strong></div><span id="opsMapStatus" class="ops-map-status" role="status">Map will load when Home opens</span><button id="mapRetryBtn" type="button" hidden>Retry map</button></footer>
       </section>
-      <aside class="dashboard-deck" aria-label="Pilot quick deck">
+      <aside id="homeOperations" class="dashboard-deck" aria-label="Pilot quick deck">
       <header class="dashboard-deck-head"><div><span>Pilot quick deck</span><strong id="quickDeckTitle">Workspaces</strong></div><small>Open a task without losing the active flight.</small></header>
       <nav class="dashboard-actions" aria-labelledby="quickDeckTitle">
         <button class="dashboard-action" type="button" data-dashboard-view="flights" aria-label="Open flight control workspace"><span class="dashboard-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="3"></rect><path d="M7 2.5V6M17 2.5V6M2.5 8.5h19"></path><path d="m7 15 10-3-3.25 3L17 18l-10-3Z"></path></svg></span><span>Flight control</span><strong>Open flights</strong><small>Review the queue, assign crew, update decisions, and manage passenger files.</small></button>
@@ -3900,14 +3916,14 @@ END OF MESSAGE</pre>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
   <dialog id="cockpitLocationDialog" class="shell-dialog cockpit-location-dialog" aria-labelledby="cockpitLocationTitle"><header class="shell-dialog-head"><div><span>Device sensor</span><strong id="cockpitLocationTitle">Location &amp; precision</strong></div><button id="cockpitLocationClose" type="button">Done</button></header><div class="cockpit-location-body"><p id="cockpitPositionDetail">Location monitoring is off.</p><p>Accuracy is the device-reported uncertainty in metres, not HDOP or certified GPS integrity. A green indicator only means a recent fix with reported accuracy of 50 m or better. This overview is not for navigation.</p><p>Location is used on this device only, never saved or uploaded. Monitoring pauses while the app is hidden.</p><button id="cockpitLocationStart" type="button">Enable device location</button><button id="cockpitLocationStop" type="button" hidden>Stop location monitoring</button></div></dialog>
-  <script src="/pilot-cockpit.js?v=2026-11-15-4"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-15-4"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-15-4"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-15-4"></script>
-  <script src="/pilot-map-view.js?v=2026-11-15-4"></script>
-  <script src="/pilot-display.js?v=2026-11-15-4"></script>
-  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-15-4"></script>
-  <script defer src="/pilot-glass.js?v=2026-11-15-4"></script>
+  <script src="/pilot-cockpit.js?v=2026-11-16-1"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-16-1"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-16-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-16-1"></script>
+  <script src="/pilot-map-view.js?v=2026-11-16-1"></script>
+  <script src="/pilot-display.js?v=2026-11-16-1"></script>
+  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-16-1"></script>
+  <script defer src="/pilot-glass.js?v=2026-11-16-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -5205,6 +5221,7 @@ END OF MESSAGE</pre>
       } catch (_) {
         weatherAirportCatalog = [];
       }
+      opsVectorMap?.setAirports(weatherAirportCatalog);
       updateOpsGlobeContext();
       updateWeatherRadarRoute(false);
     }
@@ -9130,7 +9147,7 @@ END OF MESSAGE</pre>
       efbThemeToggle.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
       efbThemeToggle.setAttribute('aria-pressed', String(theme === 'night'));
       efbThemeToggle.title = `Switch to ${nextTheme} mode`;
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#202425' : '#f6f7f6');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#202127' : '#fafafd');
       if (persist) {
         try { localStorage.setItem('nga-efb-theme', theme); } catch {}
       }
@@ -9168,9 +9185,13 @@ END OF MESSAGE</pre>
     el('cockpitDeckToggle').addEventListener('click', () => {
       const collapsed = document.body.classList.toggle('cockpit-deck-collapsed');
       el('cockpitDeckToggle').setAttribute('aria-expanded', String(!collapsed));
-      el('cockpitDeckToggle').textContent = collapsed ? 'Show flight panel' : 'Hide flight panel';
+      el('cockpitDeckToggle').textContent = collapsed ? 'Restore panels' : 'Expand map';
       window.dispatchEvent(new Event('resize'));
     });
+    document.querySelectorAll('[data-inspector-view]').forEach(button => button.addEventListener('click', () => {
+      button.closest('.dashboard-cockpit').dataset.inspector = button.dataset.inspectorView;
+      document.querySelectorAll('[data-inspector-view]').forEach(item => item.setAttribute('aria-pressed',String(item === button)));
+    }));
     setFlightDetailTab('overview');
     renderActiveFlightStrip();
     renderReleasePanel();
@@ -9182,19 +9203,23 @@ END OF MESSAGE</pre>
         // navigation controls, labels and attribution inside the map.
         const stage = el('opsVectorMap').getBoundingClientRect();
         const inset = Math.min(48, stage.width * .12, stage.height * .16);
-        return { top:inset, right:Math.min(80, stage.width * .22), bottom:inset, left:inset };
+        return { top:Math.min(82,stage.height*.24), right:Math.min(80, stage.width * .22), bottom:inset, left:inset };
       },
-      onState({ ready, mode, rotating, relief, hasRoute }) {
+      onState({ ready, failed, mode, rotating, relief, hasRoute, fieldsVisible, hasFields }) {
         el('opsMapModeBtn').disabled = !ready;
         el('opsGlobeModeBtn').disabled = !ready;
         el('opsMapLayerBtn').disabled = !ready;
         el('opsMapLayerBtn').setAttribute('aria-pressed', String(relief));
-        el('opsMapModeBtn').setAttribute('aria-pressed', String(mode === 'map'));
-        el('opsGlobeModeBtn').setAttribute('aria-pressed', String(mode === 'globe'));
+        el('opsAirfieldsBtn').disabled = !ready || !hasFields;
+        el('mapAirportGo').disabled = !ready || !hasFields;
+        el('opsAirfieldsBtn').setAttribute('aria-pressed',String(fieldsVisible));
+        el('mapRetryBtn').hidden = !failed;
+        el('opsMapModeBtn').setAttribute('aria-pressed', String(ready && mode === 'map'));
+        el('opsGlobeModeBtn').setAttribute('aria-pressed', String(!ready || mode === 'globe'));
         opsGlobeRotateBtn.disabled = ready && (mode === 'map' || window.matchMedia('(prefers-reduced-motion: reduce)').matches);
         opsGlobeRotateBtn.setAttribute('aria-pressed', String(rotating));
         opsGlobeRotateBtn.textContent = rotating ? 'Pause' : 'Rotate';
-        opsGlobeResetBtn.textContent = ready && hasRoute ? 'Fit route' : 'Reset view';
+        opsGlobeResetBtn.textContent = ready && hasRoute ? 'Fit route' : ready && mode === 'map' ? 'Home area' : 'Reset view';
         if (ready) {
           opsGlobeView.textContent = `${mode === 'map' ? '2D VECTOR MAP' : '3D GLOBE'}${rotating ? ' / ROTATING' : ''}`;
           window.cancelAnimationFrame(globeAnimationFrame); globeAnimationFrame = 0;
@@ -9204,6 +9229,14 @@ END OF MESSAGE</pre>
     el('opsMapModeBtn').addEventListener('click', () => opsVectorMap?.setMode('map'));
     el('opsGlobeModeBtn').addEventListener('click', () => opsVectorMap?.setMode('globe'));
     el('opsMapLayerBtn').addEventListener('click', () => opsVectorMap?.setRelief(el('opsMapLayerBtn').getAttribute('aria-pressed') !== 'true'));
+    el('opsAirfieldsBtn').addEventListener('click', () => opsVectorMap?.setFields(el('opsAirfieldsBtn').getAttribute('aria-pressed') !== 'true'));
+    el('mapRetryBtn').addEventListener('click', () => opsVectorMap?.retry());
+    el('mapAirportSearch').addEventListener('submit', e => {
+      e.preventDefault();
+      const code = el('mapAirportCode').value.trim().toUpperCase();
+      el('mapSearchResult').textContent = opsVectorMap?.viewAirport(code)
+        ? `Viewing ${code}. Flight plan unchanged.` : 'Airport not found in the available catalogue.';
+    });
     opsGlobeRotateBtn.setAttribute('aria-pressed', String(globeAutoRotate));
     opsGlobeRotateBtn.textContent = globeAutoRotate ? 'Pause' : 'Rotate';
     drawOpsGlobe();

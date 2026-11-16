@@ -218,12 +218,12 @@ html body.pilot-ops-v2 #cockpitFlightFile { container:active-file / inline-size;
 html body.pilot-ops-v2 #bookingsWorkspace .queue-panel,
 html body.pilot-ops-v2 #cockpitFlightFile { border-radius:18px; }
 html body.pilot-ops-v2 #bookingsWorkspace button.request { flex:none; }
-@container flight-folder (min-width:900px) {
+@container flight-folder (min-width:830px) {
   html body.pilot-ops-v2 #bookingsWorkspace > .layout { grid-template-columns:clamp(260px,28%,345px) minmax(0,1fr); }
   html body.pilot-ops-v2 #bookingsWorkspace .queue-panel { overflow:auto; }
   html body.pilot-ops-v2 #bookingsWorkspace .request-list { flex:1 0 auto; overflow:visible; }
 }
-@container flight-folder (max-width:899.98px) {
+@container flight-folder (max-width:829.98px) {
   html body.pilot-ops-v2 #bookingsWorkspace > .layout { display:block; min-width:0; height:100%; }
   html body.pilot-ops-v2 #bookingsWorkspace .queue-panel,
   html body.pilot-ops-v2 #bookingsWorkspace > .layout > section { position:static; width:100%; height:100%; min-height:0; max-height:none; overflow:auto; }
@@ -245,12 +245,32 @@ html body.pilot-ops-v2 :is(#aircraftOpsPane,#performanceOpsPane) :is(.aircraft-h
 }
 html[data-efb-theme="night"] body.pilot-ops-v2 .efb-aircraft-stage img,
 html[data-efb-theme="night"] body.pilot-ops-v2 :is(#aircraftOpsPane,#performanceOpsPane) :is(.aircraft-hero-visual,.performance-aircraft-visual) {
-  background:radial-gradient(ellipse at center,#a0a8a3 0%,#737e77 66%,#56615b 100%); border-radius:12px; opacity:1;
+  background:radial-gradient(ellipse at center,#d2d3db 0%,#9899a3 66%,#676873 100%); border-radius:12px; opacity:1;
 }
 html body.pilot-ops-v2 :is(#aircraftOpsPane,#performanceOpsPane) :is(.aircraft-hero-visual,.performance-aircraft-visual)::after { content:none; }
 
 @media(min-width:1200px) {
   html body.pilot-ops-v2 .logbook-hero { grid-template-columns:minmax(0,1fr) auto; }
+}
+@media (orientation:landscape) and (min-width:960px) and (min-height:500px) {
+  html body.pilot-ops-v2 .weather-console {
+    display:grid; grid-template-columns:minmax(228px,.78fr) minmax(0,1.8fr);
+    grid-template-areas:"title modes" "inputs output" "options output" ". output";
+    align-items:start; align-content:start; gap:10px; padding:12px;
+  }
+  html body.pilot-ops-v2 .weather-console .acars-console-head { grid-area:title; }
+  html body.pilot-ops-v2 .weather-console .workspace-segments { grid-area:modes; margin:0; }
+  html body.pilot-ops-v2 #weatherOpsPane .weather-toolbar { grid-area:inputs; grid-template-columns:repeat(2,minmax(0,1fr)); padding:12px; }
+  html body.pilot-ops-v2 #weatherOpsPane .weather-toolbar .efb-action { grid-column:1/-1; width:100%; min-width:0; padding-inline:12px; white-space:normal; }
+  html body.pilot-ops-v2 .weather-toolbar > label:nth-of-type(3) { grid-column:1/-1; }
+  html body.pilot-ops-v2 .weather-console .weather-report-options { grid-area:options; }
+  html body.pilot-ops-v2 .weather-console [role=tabpanel] { grid-area:output; min-width:0; margin:0; }
+  html body.pilot-ops-v2 #weatherRadarMap { height:clamp(230px,46dvh,530px); }
+  html body.pilot-ops-v2 .weather-radar-controls { display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
+  html body.pilot-ops-v2 .weather-radar-controls input { flex:1 1 88px; min-width:0; }
+  html body.pilot-ops-v2 .weather-toolbar button { white-space:normal; }
+  html body.pilot-ops-v2 :is(.flight-file-library,.aircraft-console,.performance-console,.logbook-app) { padding:12px; gap:12px; }
+  html body.pilot-ops-v2 .flight-file-groups { grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr)); gap:12px; }
 }
 @media(max-width:850px) {
   html body.pilot-ops-v2 .logbook-summary-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }

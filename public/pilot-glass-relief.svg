@@ -2,10 +2,10 @@
   <!-- Decorative milled graphite. No geographic or operational information. -->
   <defs>
     <linearGradient id="slate" x2=".9" y2="1" gradientUnits="objectBoundingBox">
-      <stop stop-color="#3d4141"/><stop offset=".36" stop-color="#9daba8"/><stop offset=".6" stop-color="#505654"/><stop offset="1" stop-color="#282d2e"/>
+      <stop stop-color="#292932"/><stop offset=".24" stop-color="#72727f"/><stop offset=".36" stop-color="#d1d1d9"/><stop offset=".6" stop-color="#555563"/><stop offset="1" stop-color="#24242d"/>
     </linearGradient>
     <linearGradient id="seam" x2=".8" y2=".85">
-      <stop stop-color="#cad4d0"/><stop offset=".48" stop-color="#899590"/><stop offset=".55" stop-color="#454f4c"/><stop offset="1" stop-color="#67716e"/>
+      <stop stop-color="#dfdfe7"/><stop offset=".43" stop-color="#9696a4"/><stop offset=".53" stop-color="#474752"/><stop offset="1" stop-color="#747480"/>
     </linearGradient>
   </defs>
   <path fill="url(#slate)" d="M0 0h1024v768H0z"/>

@@ -201,9 +201,9 @@ void main() {
                 if (canvas.width !== pw || canvas.height !== ph) { canvas.width=pw; canvas.height=ph; }
                 gl.viewport(0,0,pw,ph);
                 gl.uniform2f(u.uRes,pw,ph); gl.uniform1f(u.uDpr,dpr); gl.uniform2f(u.uScreen,w,h);
-                gl.uniform4f(u.uSheetTint, ...(night ? [.065,.075,.075,.77] : [.97,.98,.975,.82]));
-                gl.uniform4f(u.uPanelTint, ...(night ? [.10,.12,.12,.54] : [.95,.965,.96,.64]));
-                gl.uniform1f(u.uRim, night ? .13 : .2);
+                gl.uniform4f(u.uSheetTint, ...(night ? [.055,.055,.075,.72] : [.97,.97,.99,.77]));
+                gl.uniform4f(u.uPanelTint, ...(night ? [.11,.11,.14,.57] : [.96,.96,.985,.70]));
+                gl.uniform1f(u.uRim, night ? .19 : .22);
                 gl.uniform4f(u.uPress,press.x,press.y,press.amount,press.amount);
                 const panels = controls.slice(0, MAX_PANELS);
                 panels.forEach((el,i) => {
