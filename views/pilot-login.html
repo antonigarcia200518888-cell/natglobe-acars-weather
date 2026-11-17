@@ -158,9 +158,12 @@
     }
   </style>
   <link rel="stylesheet" href="/pilot-efb.css?v=2026-10-01-1" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-17-2" />
+  <script src="/pilot-startup.js?v=2026-11-17-2"></script>
 </head>
 <body class="pilot-login efb-ui">
+  <div class="nga-splash" aria-hidden="true"><img src="/pilot-natglobe-logo.png" width="1414" height="517" alt="" /></div>
   <main class="frame">
     <header class="pilot-access-brand">
       <span class="pilot-access-mark"><img src="/pilot-natglobe-logo.png" alt="NGA Private Aviation" /></span>
@@ -239,7 +242,7 @@
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'ACCESS DENIED');
         setStatus(`ACCESS GRANTED / ${data.role || 'PILOT'}`, 'ok');
-        window.location.href = '/booking-ops';
+        window.location.replace('/booking-ops?entry=map&t='+Date.now()+'#dashboard');
       } catch (err) {
         setStatus(err.message || 'ACCESS DENIED', 'err');
       }
@@ -265,7 +268,7 @@
         const verifyData = await verifyRes.json().catch(() => ({}));
         if (!verifyRes.ok) throw new Error(verifyData.error || 'DEVICE PASSKEY LOGIN FAILED');
         setStatus(`ACCESS GRANTED / ${verifyData.role || 'PILOT'}`, 'ok');
-        window.location.href = '/booking-ops';
+        window.location.replace('/booking-ops?entry=map&t='+Date.now()+'#dashboard');
       } catch (err) {
         const message = String(err?.message || err || 'DEVICE PASSKEY LOGIN FAILED');
         setStatus(message.includes('NotAllowedError') ? 'DEVICE PASSKEY LOGIN CANCELLED' : message, 'err');

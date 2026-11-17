@@ -2,7 +2,7 @@
 window.createPilotAppShell = function createPilotAppShell({ navigate, getFlight, setTheme, install, canInstall }) {
   const node = id => document.getElementById(id);
   const scroller = document.querySelector('.efb-content');
-  const titles = { dashboard:'Flight operations', flights:'Flights', 'flight-plan':'Flight briefing', weather:'Weather', performance:'Performance', aircraft:'Aircraft', logbook:'Logbook', documents:'Flight files' };
+  const titles = { dashboard:'Map', flights:'Flights', 'flight-plan':'Flight briefing', weather:'Weather', performance:'Performance', aircraft:'Aircraft', logbook:'Logbook', documents:'Documents' };
   const positions = new Map();
   const displayMode = window.matchMedia('(display-mode: standalone)');
   const session = history.state?.ngaAppSession || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -36,7 +36,7 @@ window.createPilotAppShell = function createPilotAppShell({ navigate, getFlight,
   function updateContext() {
     const flight = getFlight();
     node('appWorkspaceTitle').textContent = titles[current] || 'Pilot EFB';
-    const route = flight ? `${flight.dep || '----'} → ${flight.arr || '----'}` : 'Select flight';
+    const route = flight ? `${flight.operationalFlightPlan?.departure || flight.dep || '----'} → ${flight.operationalFlightPlan?.destination || flight.arr || '----'}` : 'Select flight';
     node('appWorkspaceSubtitle').textContent = route;
     node('flightSwitchBtn').title = flight ? `Switch active flight: ${route} · ${flight.id}` : 'Select an active flight';
     node('appFocusBtn').hidden = current !== 'flight-plan' || !flight?.id;

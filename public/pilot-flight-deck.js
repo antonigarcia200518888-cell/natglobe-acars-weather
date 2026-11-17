@@ -2,10 +2,14 @@
 window.pilotFlightMatches = function pilotFlightMatches(flight, query = '', scope = 'ALL', today = '') {
   const words = String(query).trim().toUpperCase().split(/\s+/).filter(Boolean);
   const text = [flight.id, flight.dep, flight.arr, flight.depName, flight.arrName, flight.route,
-    flight.aircraft, flight.requestDate, flight.requestTime, flight.crew?.commander].join(' ').toUpperCase();
+    flight.aircraft,flight.operationalFlightPlan?.aircraftRegistration,flight.operationalFlightPlan?.departure,flight.operationalFlightPlan?.destination,flight.importProvenance?.format,flight.importProvenance?'IMPORTED FOREFLIGHT':'NGA',flight.management?.category,flight.status,flight.operationalFlightPlan?.actualIn?'COMPLETED':'PLANNED', flight.requestDate, flight.requestTime, flight.crew?.commander].join(' ').toUpperCase();
   return words.every(word => text.includes(word))
     && (scope !== 'TODAY' || flight.requestDate === today)
-    && (scope !== 'MANUAL' || flight.manualFlight === true);
+    && (scope !== 'MANUAL' || flight.manualFlight === true)
+    && (!['private','training','operational'].includes(scope) || flight.management?.category===scope)
+    && (scope !== 'IMPORTED' || Boolean(flight.importProvenance) || flight.trackCount>0)
+    && (scope !== 'COMPLETED' || Boolean(flight.operationalFlightPlan?.actualIn))
+    && (scope !== 'PLANNED' || !flight.operationalFlightPlan?.actualIn);
 };
 
 window.createPilotFlightDeck = function createPilotFlightDeck({ getFlights, getSelected, getPlanner, choose, create, today, escapeHtml }) {
@@ -25,9 +29,9 @@ window.createPilotFlightDeck = function createPilotFlightDeck({ getFlights, getS
     node('flightPickerResults').innerHTML = flights.map(flight => {
       const active = flight.id === selected?.id;
       return `<button type="button" class="flight-picker-row" data-pick-flight="${escapeHtml(flight.id)}" aria-current="${active ? 'true' : 'false'}">
-        <span class="flight-picker-route"><strong>${escapeHtml(flight.dep || '----')} <span aria-hidden="true">→</span> ${escapeHtml(flight.arr || '----')}</strong><em>${active ? 'ACTIVE' : flight.manualFlight ? 'PILOT FILE' : escapeHtml(flight.status || 'BOOKING')}</em></span>
-        <span class="flight-picker-schedule">${escapeHtml(flight.requestDate || 'Date not set')} · ${escapeHtml(flight.requestTime || '--:--')}L <span>${escapeHtml(flight.aircraft || 'Aircraft not set')}</span></span>
-        <small>${escapeHtml(flight.id)}</small></button>`;
+        <span class="flight-picker-route"><strong>${escapeHtml(flight.operationalFlightPlan?.departure || flight.dep || '----')} <span aria-hidden="true">→</span> ${escapeHtml(flight.operationalFlightPlan?.destination || flight.arr || '----')}</strong><em>${active ? 'ACTIVE' : flight.manualFlight ? 'PILOT FILE' : escapeHtml(flight.status || 'BOOKING')}</em></span>
+        <span class="flight-picker-schedule">${escapeHtml(flight.requestDate || 'Date not set')} · ${escapeHtml(flight.requestTime || '--:--')}L <span>${escapeHtml(flight.operationalFlightPlan?.aircraftRegistration || flight.aircraft || 'Aircraft not set')}</span></span>
+        <small>${escapeHtml(flight.id)} · ${escapeHtml(flight.management?.category||'Unclassified')} · ${escapeHtml(flight.importProvenance?.format||'NGA')}${flight.trackCount>0?' · '+escapeHtml(String(flight.trackCount))+' recorded track(s)':''}</small></button>`;
     }).join('') || '<div class="flight-picker-empty"><strong>No matching flights</strong><p>Try an airport, flight reference, date or aircraft. The filters only change this list.</p></div>';
   }
 
@@ -52,8 +56,8 @@ window.createPilotFlightDeck = function createPilotFlightDeck({ getFlights, getS
     const original = getSelected()?.id ?? null;
     try {
       const flights = getFlights().map(f => ({
-        id:f.id, dep:f.dep || '----', arr:f.arr || '----', date:f.requestDate || '', time:f.requestTime || '',
-        aircraft:f.aircraft || '', pilotFile:f.manualFlight === true, status:f.status || '',
+        id:f.id, dep:f.operationalFlightPlan?.departure || f.dep || '----', arr:f.operationalFlightPlan?.destination || f.arr || '----', date:f.requestDate || '', time:f.requestTime || '',
+        aircraft:f.operationalFlightPlan?.aircraftRegistration || f.aircraft || '', pilotFile:f.manualFlight === true, status:f.status || '',
         search:[f.depName, f.arrName, f.route, f.crew?.commander].filter(Boolean).join(' ')
       }));
       const appearance = document.documentElement.dataset;

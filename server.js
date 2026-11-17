@@ -1,5 +1,6 @@
 import express from 'express';
 import { mountFlightManagement, DOCUMENT_SCHEMA } from './lib/flight-management.js';
+import {mountAviationImports,IMPORT_SCHEMA} from './lib/aviation-import-routes.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -325,6 +326,7 @@ async function initializeBookingStore() {
   });
 
   await loadSupportingStore('flight documents', () => bookingPool.query(DOCUMENT_SCHEMA));
+  await loadSupportingStore('flight imports', () => bookingPool.query(IMPORT_SCHEMA));
   await loadSupportingStore('crew logbook', async () => {
     await bookingPool.query(`
       CREATE TABLE IF NOT EXISTS crew_logbook_entries (
@@ -2158,6 +2160,7 @@ function normalizeOperationalFlightPlan(input, request) {
     : defaults.scheduledOutUtc;
   const plan = {
     version: 'NGA-OFP-2026-08-SMART-SCHEDULE',
+    importReviewed: input.importReviewed === true,
     updatedAt: new Date().toISOString(),
     dateUtc: textField('dateUtc', 20),
     operatorIcao: textField('operatorIcao', 3).toUpperCase() || defaults.operatorIcao,
@@ -2282,6 +2285,7 @@ function normalizeOperationalFlightPlan(input, request) {
   if (smartSchedule) {
     plan.departureTimeZone = smartSchedule.timeZone;
     plan.scheduledOutUtc = smartSchedule.out.utc;
+    plan.scheduledOutIso = smartSchedule.out.instant;
     plan.scheduledOut = smartSchedule.out.value;
     plan.scheduledOff = smartSchedule.off.value;
     plan.scheduledOn = smartSchedule.on.value;
@@ -2292,6 +2296,7 @@ function normalizeOperationalFlightPlan(input, request) {
     plan.estimatedIn = smartSchedule.in.value;
   } else {
     plan.scheduledOutUtc = '';
+    plan.scheduledOutIso = '';
     plan.scheduledOut = '';
     plan.scheduledOff = '';
     plan.scheduledOn = '';
@@ -2301,8 +2306,13 @@ function normalizeOperationalFlightPlan(input, request) {
     plan.estimatedOn = '';
     plan.estimatedIn = '';
   }
+  if(plan.aircraftRegistration!=='OH-PMK'){
+    const unavailable={...plan,aircraftProfileVerified:false,weightBalanceProfile:null,performanceSnapshot:null,calculationStatus:'NO VERIFIED AIRCRAFT PROFILE',warnings:['NO VERIFIED AIRCRAFT PROFILE FOR THIS REGISTRATION']};
+    for(const key of ['bemLb','bemArmIn','crewArmIn','passengerArmIn','fuelArmIn','baggageArmIn','baggageLimitLb','fuelCapacityLb','fuelCapacityGal','gearRetractionMomentChangeInLb','cgForwardLimitIn','cgAftLimitIn','maxZeroFuelWeightLb','maxRampWeightLb','maxTakeoffWeightLb','maxLandingWeightLb','zeroFuelWeightLb','rampWeightLb','takeoffWeightLb','landingWeightLb','zeroFuelCgIn','takeoffCgIn','takeoffGearUpCgIn','landingCgIn','forwardCgLimitIn','aftCgLimitIn'])unavailable[key]=null;
+    return unavailable;
+  }
   const calculations = operationalFlightPlanCalculations(plan, request);
-  return { ...plan, ...calculations };
+  return { ...plan, ...calculations,aircraftProfileVerified:true };
 }
 
 function operationalPlanDependencyFingerprint(plan, includePerformance = true) {
@@ -5618,6 +5628,10 @@ app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
 mountFlightManagement(app, {requirePilotAccess, requireFlightCrew, ready:bookingStoreReady, pool:()=>bookingPool,
   lookup:id=>bookingRequests.find(row=>row.id===id), raw:express.raw({type:['application/pdf','image/jpeg','image/png'],limit:'2mb'})});
 
+mountAviationImports(app,{auth:requirePilotAccess,crew:requireFlightCrew,ready:bookingStoreReady,pool:()=>bookingPool,
+  records:()=>bookingRequests,createFile:createManualFlightFile,defaults:operationalFlightPlanDefaults,normalize:normalizeOperationalFlightPlan,
+  airports:getBookingAirportCatalog,schedule:operationalImportSchedule,raw:express.raw({type:'application/octet-stream',limit:'8mb'})});
+
 app.post('/api/booking-ops/manual-flight', requirePilotAccess, async (req, res) => {
   let reservedRequest = null;
   try {
@@ -5838,6 +5852,22 @@ function ofpSmartSchedule(dateValue, timeValue, timeZone, enrouteMinutes = 0, oc
     timeZone:resolved.timeZone,
     occurrence:resolved.occurrence
   };
+}
+
+// Import timestamps remain UTC in provenance. Adapt them once to the legacy OFP
+// editor's local date/time fields (dateUtc is historically named but local).
+function operationalImportSchedule(utc, departure) {
+  const instant = new Date(utc);
+  const timeZone = bookingAirportTimeZone(departure);
+  const local = ofpTimeZoneParts(instant, timeZone);
+  const dateUtc = `${local.year}-${local.month}-${local.day}`;
+  const scheduledOutLocal = `${local.hour}:${local.minute}`;
+  const candidates = ofpLocalFlightCandidates(dateUtc, scheduledOutLocal, timeZone)?.candidates || [];
+  const minute = Math.floor(instant.getTime() / 60000);
+  const index = candidates.findIndex(value => Math.floor(value.getTime() / 60000) === minute);
+  if (index < 0) throw Object.assign(new Error('Imported UTC departure could not be resolved to the airport time zone.'), {status:422});
+  return {dateUtc, scheduledOutLocal, scheduledOutUtc:instant.toISOString().slice(11,16), departureTimeZone:timeZone,
+    departureTimeOccurrence:candidates.length > 1 ? (index === 0 ? 'EARLIER' : 'LATER') : ''};
 }
 
 function operationalFlightPlanDefaults(request) {
@@ -6277,6 +6307,8 @@ function operationalReleasePanelState(request) {
   const commanderReady = Boolean(plan?.commanderName || (request?.crew?.commander && request.crew.commander !== 'UNASSIGNED'));
   const blockers = [];
   if (!plan) blockers.push('SAVE THE OFP DRAFT');
+  if(plan && plan.aircraftRegistration!=='OH-PMK')blockers.push('NO VERIFIED AIRCRAFT PROFILE FOR THIS REGISTRATION');
+  if(request?.importProvenance && !plan?.importReviewed)blockers.push('VERIFY IMPORTED FIELDS IN THE OFP');
   if (plan && !scheduleReady) blockers.push('COMPLETE FLIGHT REFERENCE AND SCHEDULE');
   if (plan && !routeReady) blockers.push('COMPLETE ROUTE AND RUNWAYS');
   if (!commanderReady) blockers.push('ASSIGN THE COMMANDER');
@@ -6895,6 +6927,7 @@ app.get('/api/booking-ops/requests/:id/operational-flight-plan/pdf', requirePilo
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
   if (!request.operationalFlightPlan) return res.status(400).json({ error: 'SAVE THE OPERATIONAL FLIGHT PLAN DRAFT FIRST' });
+  if(request.operationalFlightPlan.aircraftRegistration!=='OH-PMK')return res.status(422).json({error:'PDF calculation requires the verified OH-PMK profile. This imported aircraft has no verified NGA performance / mass-and-balance profile.'});
   const pdf = await createOperationalFlightPlanPdf(request);
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `inline; filename="${request.id}-OPERATIONAL-FLIGHT-PLAN.pdf"`);

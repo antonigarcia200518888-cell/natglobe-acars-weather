@@ -39,7 +39,7 @@
   }
 
   function flightGeometry(flight) {
-    const path = routeCoordinates(flight?.departure, flight?.arrival);
+    const path = flight?.showRoute === false ? [] : routeCoordinates(flight?.departure, flight?.arrival);
     const features = [];
     if (path.length) features.push({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: path } });
     for (const [key, label] of [['departure', flight?.dep], ['arrival', flight?.arr]]) {
@@ -62,17 +62,21 @@
     return enginePromise;
   }
 
-  function createPilotMapView({ container, fallback, status, onState = () => {}, getPadding = () => 64 }) {
+  function createPilotMapView({ container, fallback, status, onState = () => {}, getPadding = () => 64, startupGlobe = false, onAirport = () => {} }) {
     let map, ready = false, active = false, destroyed = false, starting = false, failed = false;
     let flight = null, flightKey = '', theme = document.documentElement.dataset.efbTheme === 'day' ? 'day' : 'night';
-    let mode = pref('projection') === 'globe' ? 'globe' : 'map', chartCamera = null;
+    let mode = startupGlobe || pref('projection') === 'globe' ? 'globe' : 'map', chartCamera = null;
+    let startupCamera=null;try{const c=JSON.parse(pref('startup'));if(c&&coordinates({lon:c.center?.[0],lat:c.center?.[1]})&&Number.isFinite(c.zoom)&&c.zoom>=0&&c.zoom<=14)startupCamera=c;}catch{}
+    let favorites=[];try{const f=JSON.parse(pref('favorites'));if(Array.isArray(f))favorites=f.filter(v=>/^[A-Z]{4}$/.test(v)).slice(0,50);}catch{}
+    let terrain=Number(pref('terrain') ?? 1),terrainFailed=false,recorded={type:'FeatureCollection',features:[]},replayMarker=null;
+    if(![0,1,1.5].includes(terrain))terrain=1;
     let rotating = false, frame = 0, previousTime = 0, timer = 0, styleFrame = 0;
     let currentStyle = theme, fitPending = true, styleReady = false, attempt = 0;
-    let relief = pref('relief') === 'on', reliefFailed = false, fieldsVisible = false;
+    let relief = startupGlobe || pref('relief') === 'on', reliefFailed = false, fieldsVisible = false;
     let fields = {type:'FeatureCollection',features:[]}, airportPin;
     const clearPin = () => { airportPin?.remove(); airportPin=null; };
     const reducedMotion = root.matchMedia('(prefers-reduced-motion: reduce)');
-    const announce = () => onState({ ready, failed, mode, rotating, relief:relief && !reliefFailed, fieldsVisible, hasFields:fields.features.length > 0, hasRoute: routeCoordinates(flight?.departure, flight?.arrival).length > 0 });
+    const announce = () => onState({ ready, failed, mode, rotating, relief:relief && !reliefFailed, fieldsVisible, hasFields:fields.features.length > 0, hasRoute: flight?.showRoute !== false && routeCoordinates(flight?.departure, flight?.arrival).length > 0 });
     const message = (text, state) => { status.textContent = text; status.dataset.state = state; };
     const mapDescription = () => relief && !reliefFailed ? 'NASA relief overview · vector detail at close zoom' : 'Vector basemap · online';
 
@@ -94,6 +98,48 @@
         }, labels?.id);
       } else map.setLayoutProperty('pilot-relief', 'visibility', relief && !reliefFailed ? 'visible' : 'none');
     }
+    function drawEnvironment(){
+      if(!map||!styleReady)return;
+      map.setSky?.({'sky-color':mode==='globe'?'#010204':currentStyle==='day'?'#dae8f4':'#090d14','horizon-color':'#829ebd','fog-color':'#192b40','atmosphere-blend':mode==='globe'?1:0});
+      if(map.setTerrain){
+        if(terrain&&!terrainFailed){
+          if(!map.getSource('pilot-elevation'))map.addSource('pilot-elevation',{type:'raster-dem',tiles:['https://tiles.mapterhorn.com/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:12,encoding:'terrarium',attribution:'Terrain: <a href="https://mapterhorn.com/attribution/" target="_blank" rel="noopener">Mapterhorn / open-data contributors</a>'});
+          map.setTerrain({source:'pilot-elevation',exaggeration:terrain});
+        }else map.setTerrain(null);
+      }
+    }
+    function setTerrain(value){terrain=[0,1,1.5].includes(Number(value))?Number(value):0;terrainFailed=false;save('terrain',String(terrain));drawEnvironment();}
+    function setFavorites(value){favorites=[...new Set(value)].filter(v=>/^[A-Z]{4}$/.test(v)).slice(0,50);save('favorites',JSON.stringify(favorites));drawFavorites();}
+    function drawFavorites(){
+      if(!map||!styleReady)return;
+      const data={type:'FeatureCollection',features:fields.features.filter(f=>favorites.includes(f.properties.icao))};
+      if(map.getSource('pilot-favorites'))map.getSource('pilot-favorites').setData(data);
+      else{
+        map.addSource('pilot-favorites',{type:'geojson',data});
+        map.addLayer({id:'pilot-favorite-dot',type:'circle',source:'pilot-favorites',paint:{'circle-radius':5,'circle-color':'#fff','circle-stroke-color':'#132a48','circle-stroke-width':2}});
+        map.addLayer({id:'pilot-favorite-label',type:'symbol',source:'pilot-favorites',layout:{'text-field':['get','icao'],'text-font':['Noto Sans Regular'],'text-size':13,'text-offset':[0,1.25]},paint:{'text-color':'#fff','text-halo-color':'#0e203a','text-halo-width':2}});
+      }
+    }
+    function drawTrack(){
+      if(!map||!styleReady)return;
+      if(map.getSource('pilot-recorded-track'))map.getSource('pilot-recorded-track').setData(recorded);
+      else{map.addSource('pilot-recorded-track',{type:'geojson',data:recorded});map.addLayer({id:'pilot-recorded-track',type:'line',source:'pilot-recorded-track',paint:{'line-color':'#5edec3','line-width':3,'line-opacity':.9}});}
+    }
+    function setTrack(data){recorded=data||{type:'FeatureCollection',features:[]};drawTrack();setRotating(false);}
+    function setReplayPosition(point,camera='free'){
+      if(!ready||!point)return;
+      if(!replayMarker){const n=document.createElement('div');n.className='track-aircraft';n.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 10 10 3 15v2l7-2v5l-2 1v1l4-1 4 1v-1l-2-1v-5l7 2v-2l-7-5z"/></svg>';replayMarker=new root.maplibregl.Marker({element:n,rotationAlignment:'map'}).setLngLat([point.lon,point.lat]).addTo(map);}
+      replayMarker.setLngLat([point.lon,point.lat]);replayMarker.setRotation(point.course||0);replayMarker.getElement().classList.toggle('unoriented',point.course==null);
+      if(camera!=='free')map.jumpTo({center:[point.lon,point.lat],zoom:Math.max(map.getZoom(),9),pitch:camera==='perspective'?55:0});
+    }
+    function clearReplay(){replayMarker?.remove();replayMarker=null;setTrack(null);}
+    function fitTrack(){
+      if(!ready)return;
+      const points=recorded.features.flatMap(f=>f.geometry.coordinates);if(!points.length)return;
+      map.setPadding(0);const bounds=points.reduce((b,p)=>b.extend(p),new root.maplibregl.LngLatBounds(points[0],points[0]));
+      map.fitBounds(bounds,{padding:getPadding(),maxZoom:10,duration:reducedMotion.matches?0:400});
+    }
+    function saveStartup(){if(!ready)return false;save('startup',JSON.stringify({center:[map.getCenter().lng,map.getCenter().lat],zoom:map.getZoom(),pitch:map.getPitch(),bearing:map.getBearing()}));return true;}
     function setRelief(value) {
       relief = Boolean(value); reliefFailed = false;
       save('relief',relief ? 'on' : 'off');
@@ -114,7 +160,7 @@
         fields.features.push({type:'Feature',properties:{icao:a.icao,name:String(a.name || '').slice(0,80)},geometry:{type:'Point',coordinates:point}});
       }
       map?.getSource('pilot-fields')?.setData(fields);
-      drawFields(); announce();
+      drawFields(); drawFavorites(); announce();
     }
     function drawFields() {
       if (!map || !styleReady) return;
@@ -154,7 +200,7 @@
       if (!ready || !active || document.hidden || !rotating || mode !== 'globe' || reducedMotion.matches) return;
       if (previousTime && !map.isMoving()) {
         const center = map.getCenter();
-        map.jumpTo({ center: [center.lng + Math.min(time - previousTime, 50) * .002, center.lat] });
+        map.jumpTo({ center: [center.lng + Math.min(time - previousTime, 50) * .0005, center.lat] });
       }
       previousTime = time;
       frame = root.requestAnimationFrame(animate);
@@ -185,7 +231,7 @@
           // Rendering failure must never interrupt saving or loading a flight.
           message('Route loaded · adjust map view manually', 'limited');
         }
-      } else map.easeTo({ ...HOME, zoom:mode === 'globe' ? .6 : HOME.zoom, bearing:0, pitch:0, duration });
+      } else map.easeTo({ ...HOME, zoom:mode === 'globe' ? .6 : HOME.zoom, bearing:0, pitch:0, ...(startupCamera||{}), duration });
     }
     function drawFlight() {
       if (!map || !styleReady) return;
@@ -258,7 +304,7 @@
           }
           map.setProjection({ type: mode === 'globe' ? 'globe' : 'mercator' });
           // style.load permits adding sources even while source tiles are loading.
-          drawRelief(); drawFields(); drawFlight();
+          drawRelief(); drawFields(); drawFlight(); drawFavorites(); drawTrack(); drawEnvironment();
           if (ready) message(mapDescription(), 'ready');
         });
         map.on('load', () => {
@@ -267,16 +313,19 @@
           message(mapDescription(), 'ready');
           map.resize();
           if (fitPending) fitRoute();
+          if(startupGlobe&&!flight?.dep)setRotating(true);
           setTheme(theme); syncAnimation(); announce();
         });
         map.on('error', event => {
-          if (event.sourceId === 'pilot-relief') {
+          if(event.sourceId==='pilot-elevation'){terrainFailed=true;map.setTerrain(null);message('Elevation unavailable · basemap retained (not terrain)', 'limited');}
+          else if (event.sourceId === 'pilot-relief') {
             reliefFailed = true; drawRelief();
             announce();
             if (ready) message('Relief unavailable · vector map retained', 'limited');
           } else if (ready) message('Some map detail is unavailable · check connection', 'limited');
         });
         map.on('idle', () => { if (ready && navigator.onLine && status.dataset.state !== 'limited') message(mapDescription(), 'ready'); });
+        map.on('click',event=>{if(!event.point)return;const layers=['pilot-favorite-dot','pilot-field-dots'].filter(id=>map.getLayer(id));if(!layers.length)return;const feature=map.queryRenderedFeatures(event.point,{layers})[0];if(feature){setRotating(false);onAirport(feature.properties.icao);}});
         map.on('webglcontextlost', fail);
         for (const name of ['dragstart', 'zoomstart', 'rotatestart', 'pitchstart']) map.on(name, event => { if (event.originalEvent) setRotating(false); });
       } catch { if (generation === attempt) fail(); }
@@ -290,7 +339,7 @@
       syncAnimation();
     }
     function setFlight(value) {
-      const nextKey = JSON.stringify([value?.dep, value?.arr, coordinates(value?.departure), coordinates(value?.arrival)]);
+      const nextKey = JSON.stringify([value?.dep, value?.arr, coordinates(value?.departure), coordinates(value?.arrival),value?.showRoute]);
       flight = value;
       if (nextKey === flightKey) return;
       flightKey = nextKey; fitPending = true; chartCamera = null;
@@ -317,6 +366,7 @@
       clearPin(); mode = next; save('projection',mode);
       setRotating(false);
       map.setProjection({ type: mode === 'globe' ? 'globe' : 'mercator' });
+      drawEnvironment();
       // Keep the flight and camera. Zooming out reveals the spherical projection.
       if (mode === 'globe') map.easeTo({ zoom: Math.min(map.getZoom(), .6), pitch: 0, duration: reducedMotion.matches ? 0 : 450 });
       else if (chartCamera) map.easeTo({...chartCamera,duration:reducedMotion.matches ? 0 : 450});
@@ -337,9 +387,10 @@
     };
     root.addEventListener('online', connectionChanged); root.addEventListener('offline', connectionChanged);
     return {
-      get ready() { return ready; }, setActive, setFlight, setTheme, setMode, setRotating, setRelief, fitRoute, setAirports, setFields, viewAirport,
+      get ready() { return ready; }, getFavorites:()=>[...favorites], setFavorites,setTerrain,saveStartup,setTrack,fitTrack,setReplayPosition,clearReplay,
+      setActive, setFlight, setTheme, setMode, setRotating, setRelief, fitRoute, setAirports, setFields, viewAirport,
       retry() { if (active && failed && !destroyed) { failed=false; announce(); start(); } },
-      destroy() { destroyed = true; stopAnimation(); root.clearTimeout(timer); root.cancelAnimationFrame(styleFrame); resize.disconnect(); reducedMotion.removeEventListener('change', motionChanged); root.removeEventListener('online', connectionChanged); root.removeEventListener('offline', connectionChanged); map?.remove(); }
+      destroy() { destroyed = true; stopAnimation(); replayMarker?.remove(); root.clearTimeout(timer); root.cancelAnimationFrame(styleFrame); resize.disconnect(); reducedMotion.removeEventListener('change', motionChanged); root.removeEventListener('online', connectionChanged); root.removeEventListener('offline', connectionChanged); map?.remove(); }
     };
   }
   root.PilotMapGeometry = Object.freeze({ coordinates, routeCoordinates, flightGeometry });

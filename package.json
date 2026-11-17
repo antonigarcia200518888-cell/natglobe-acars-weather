@@ -16,6 +16,7 @@
     "@simplewebauthn/browser": "^13.3.0",
     "@simplewebauthn/server": "^13.3.2",
     "express": "^4.21.2",
+    "fast-xml-parser": "5.11.2",
     "leaflet": "1.9.4",
     "maplibre-gl": "5.24.0",
     "passkit-generator": "^3.1.9",

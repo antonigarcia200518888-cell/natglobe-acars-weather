@@ -52,11 +52,12 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-1" />
-  <script src="/pilot-instruments.js?v=2026-11-17-1"></script>
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-2" />
+  <script src="/pilot-instruments.js?v=2026-11-17-2"></script>
+  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-17-2" />
 </head>
 <body class="efb-ui efb-planner">
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -174,6 +175,7 @@
                 </div>
               </div>
               <div id="alternateSuggestions" class="alternate-suggestions" hidden></div>
+              <section class="ofp-import-flow"><p>Import → Review → Complete missing inputs → Calculate → Preview → Generate PDF</p><button id="reviewImportBtn" class="btn" type="button">Import / review route file</button><div id="ofpImportProvenance" hidden><p id="ofpImportSource"></p><details><summary>Original imported fields</summary><dl id="ofpImportFields"></dl></details><label class="checkline"><input data-field="importReviewed" type="checkbox"><span>I have verified the imported route, aircraft, date/time and all missing inputs against current planning sources.</span></label><p>Fuel and mass/balance are NGA calculations from pilot inputs and the verified OH-PMK profile, not imported performance data. PDFs remain drafts until PIC release.</p></div></section>
               <div class="flight-identity-grid">
                 <div class="aircraft-profile-field ofp-smart-aircraft-card" data-component="aircraft-profile">
                   <span class="aircraft-profile-caption">Aircraft</span>
@@ -544,10 +546,10 @@
       </form>
     </dialog>
   </main>
-  <script src="/pilot-ofp-checks.js?v=2026-11-17-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-17-1"></script>
-  <script src="/pilot-display.js?v=2026-11-17-1"></script>
-  <script src="/pilot-ofp-touch.js?v=2026-11-17-1" defer></script>
+  <script src="/pilot-ofp-checks.js?v=2026-11-17-2"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-17-2"></script>
+  <script src="/pilot-display.js?v=2026-11-17-2"></script>
+  <script src="/pilot-ofp-touch.js?v=2026-11-17-2" defer></script>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
     if (embedded) document.documentElement.classList.add('embedded');
@@ -737,6 +739,7 @@
     }
 
     async function refreshPdfPreview() {
+      if(plan.aircraftRegistration!=='OH-PMK'){setSaveState('failed','PDF blocked: no verified performance / mass-and-balance profile for this aircraft. Imported source data remains saved.');return;}
       setInspector('PDF');
       const token = ++previewLoadToken;
       if (previewLoadTimeout) window.clearTimeout(previewLoadTimeout);
@@ -1424,6 +1427,16 @@
 
     async function populate(refreshRunways = true) {
       if (refreshRunways) await populateRunwaySelectors();
+      const verifiedProfile=plan.aircraftRegistration==='OH-PMK';
+      document.body.classList.toggle('unverified-aircraft',!verifiedProfile);
+      const registration=inputFor('aircraftRegistration');
+      if(plan.aircraftRegistration && ![...registration.options].some(o=>o.value===plan.aircraftRegistration))registration.add(new Option(plan.aircraftRegistration+' · no verified NGA profile',plan.aircraftRegistration));
+      el('ofpImportProvenance').hidden=!request.importProvenance;
+      if(request.importProvenance){
+        el('ofpImportSource').textContent=request.importProvenance.format+' · '+new Date(request.importProvenance.importedAt).toISOString()+' · Pilot review required';
+        el('ofpImportFields').replaceChildren();
+        for(const [key,value] of Object.entries(request.importProvenance.fields||{})){if(value==null||typeof value==='object')continue;const term=document.createElement('dt'),desc=document.createElement('dd');term.textContent=key;desc.textContent=String(value)+' · '+(request.importProvenance.origins?.[key]||'Imported')+(String(plan[key]??'')!==String(value)?' · current value differs (pilot/server edit)':'');el('ofpImportFields').append(term,desc);}
+      }
       fields().forEach(input => {
         const value = plan[input.dataset.field];
         if (input.type === 'checkbox') input.checked = value === true;
@@ -1540,6 +1553,8 @@
       const gearUpEnvelope = cgEnvelopeStatus(profile, tow, gearUpCg);
       const landingEnvelope = cgEnvelopeStatus(profile, landing, landingCg);
       const warnings = [];
+      if(plan.aircraftRegistration!=='OH-PMK')warnings.push('No verified aircraft performance or mass/balance profile for this registration. PDF generation is blocked.');
+      if(request?.importProvenance&&!plan.importReviewed)warnings.push('Review and verify imported route fields in Setup.');
       if (!String(plan.flightReference || '').trim()) warnings.push('Internal flight reference is required.');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(String(plan.dateUtc || ''))) warnings.push('Select the local departure date.');
       if (departureTimeNeedsOccurrence) warnings.push('This local departure hour occurs twice. Select the first or second UTC occurrence.');
@@ -2399,15 +2414,30 @@
       event.preventDefault();
       event.returnValue = '';
     });
+    el('reviewImportBtn').addEventListener('click',()=>{if(window.parent!==window && window.parent.PilotImport)window.parent.PilotImport.open('plan');else openPilotWorkspace('flights');});
     window.ngaOFP = Object.freeze({
       getState:() => ({ requestId, dirty:editRevision !== savedRevision, busy:saveBusy || movementBusy }),
-      save
+      save,
+      async setAirport(field,code){
+        await plannerReady;
+        if(!['departure','destination'].includes(field)||!/^[A-Z]{4}$/.test(code))return false;
+        inputFor(field).value=code;
+        inputFor(field==='departure'?'depRunway':'arrRunway').value='';
+        for(const key of field==='departure'?['departureProcedure']:['arrivalProcedure','approachProcedure'])inputFor(key).value='';
+        plan.performanceSnapshot=null;plan.releaseSnapshot=null;
+        inputFor('importReviewed').checked=false;
+        inputFor('releaseAccepted').checked=false;
+        handleFieldInput(inputFor(field));
+        markUnsaved('Airport selected from map. Review route, runways, performance and fuel.');
+        render();await populateRunwaySelectors();return true;
+      }
     });
     syncTaskRailOrientation();
     verticalTaskRailMedia.addEventListener('change', syncTaskRailOrientation);
     setInspectorCollapsed(initialInspectorCollapsed(), false);
     setInspector('SUMMARY');
-    load().catch(error => setSaveState('failed', error.message || 'Unable to load OFP.'));
+    const plannerReady=load().catch(error => {setSaveState('failed', error.message || 'Unable to load OFP.');throw error;});
+    plannerReady.catch(()=>{});
   </script>
 </body>
 </html>

@@ -161,7 +161,7 @@ test('PDF actions do not present an earlier saved revision as the current plan',
   let opened=false,closed=false;
   const nodes=new Map();const el=id=>{if(!nodes.has(id))nodes.set(id,{});return nodes.get(id);};
   const popup={closed:false,close(){closed=true;},location:{replace(){opened=true;}}};
-  const ctx=vm.createContext({saved:false,save:async()=>true,window:{open:()=>popup},el,
+  const ctx=vm.createContext({plan:{aircraftRegistration:'OH-PMK'},saved:false,save:async()=>true,window:{open:()=>popup},el,
     setSaveState:()=>{},setInspector:()=>{},setPdfPreviewBusy:()=>{},previewLoadToken:0,previewLoadTimeout:0});
   const previewStart=ofp.indexOf('    async function refreshPdfPreview() {');
   const openStart=ofp.indexOf('    async function openCurrentPdf() {');

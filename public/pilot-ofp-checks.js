@@ -6,7 +6,9 @@ window.pilotOFPChecks = (() => {
   function describeWarning(message) {
     const value = String(message || '');
     let action;
-    if (/runway identifiers/i.test(value)) action = target('SETUP', field('depRunway'), 'Runways', 'route');
+    if (/imported route fields/i.test(value)) action = target('SETUP', field('importReviewed'), 'Imported field review', 'setup');
+    else if (/No verified aircraft/i.test(value)) action = target('SETUP', field('aircraftRegistration'), 'Aircraft profile', 'setup');
+    else if (/runway identifiers/i.test(value)) action = target('SETUP', field('depRunway'), 'Runways', 'route');
     else if (/alternate review/i.test(value)) action = target('SETUP', field('alternate'), 'Alternate airport', 'route');
     else if (/four-character ICAO/i.test(value)) action = target('SETUP', field('departure'), 'Departure & destination', 'setup');
     else if (/occurs twice/i.test(value)) action = target('SETUP', field('departureTimeOccurrence'), 'Departure time occurrence', 'setup');

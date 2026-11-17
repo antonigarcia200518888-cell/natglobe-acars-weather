@@ -31,6 +31,8 @@ function harness(options = {}) {
     isMoving() { return false; }
     getCenter() { return {lng:24,lat:60}; }
     jumpTo(value) { this.camera=value; }
+    setTerrain(value) {this.terrain=value;}
+    setSky(value) {this.sky=value;}
     remove() { this.removed=true; }
   }
   class Bounds { constructor() {this.points=[];} extend(p) {this.points.push(p);return this;} }
@@ -72,6 +74,8 @@ test('missing airports do not create a made-up line and labels remain plain GeoJ
   assert.equal(data.features.length,1);
   assert.equal(data.features[0].geometry.type,'Point');
   assert.equal(data.features[0].properties.label,'<script>');
+  const trackOnly=geometry.flightGeometry({...route,showRoute:false});
+  assert.equal(trackOnly.features.length,2);assert.ok(trackOnly.features.every(f=>f.geometry.type==='Point'));
 });
 test('map is lazy, retained across workspaces, and duplicate flight refresh preserves camera',async()=>{
   const h=harness(); assert.equal(h.maps.length,0);
@@ -109,6 +113,24 @@ test('rotation is opt-in, stops offscreen, on touch, and for reduced motion',asy
   h.adapter.setActive(true);h.flush();assert.equal(h.frames.size,1);
   h.maps[0].emit('dragstart',{originalEvent:{}});assert.equal(h.frames.size,0);
   h.motion.matches=true;h.adapter.setRotating(true);assert.equal(h.frames.size,0);
+});
+test('Pilot Ops startup globe uses terrain and pauses automatic rotation for a loaded plan',async()=>{
+  const h=harness({startupGlobe:true});await h.load();const map=h.maps[0];
+  assert.equal(map.projection.type,'globe');assert.equal(map.sky['sky-color'],'#010204');
+  assert.equal(map.terrain.source,'pilot-elevation');assert.equal(map.terrain.exaggeration,1);
+  assert.equal(h.states.at(-1).rotating,true);
+  h.adapter.setFlight(route);assert.equal(h.frames.size,0);
+  h.adapter.setTerrain(1.5);assert.equal(map.terrain.exaggeration,1.5);
+  map.emit('error',{sourceId:'pilot-elevation'});assert.equal(map.terrain,null);
+  assert.equal(map.getSource('pilot-route').data.features.length,3);
+});
+test('favorite airfields are explicit, unique, catalogued and never become flight legs',async()=>{
+  const h=harness({startupGlobe:true});await h.load();
+  h.adapter.setAirports([{icao:'EFHK',lat:60.317,lon:24.963},{icao:'EETN',lat:59.413,lon:24.832}]);
+  assert.equal(h.maps[0].getSource('pilot-favorites').data.features.length,0);
+  h.adapter.setFavorites(['EFHK','EFHK','BAD','ZZZZ']);
+  assert.equal(h.maps[0].getSource('pilot-favorites').data.features.length,1);
+  assert.equal(h.maps[0].getSource('pilot-route').data.features.length,0);
 });
 test('Home opens a regional 2D map with a nautical scale; returning from Globe restores the map camera',async()=>{
   const h=harness();await h.load();const m=h.maps[0];

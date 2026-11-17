@@ -66,6 +66,6 @@
   if (window.ResizeObserver) { const observer = new ResizeObserver(invalidate); [...surfaces,...controls].forEach(el => observer.observe(el)); }
   const appearance = new MutationObserver(sync);
   appearance.observe(root,{attributes:true,attributeFilter:['data-efb-material','data-efb-theme']});
-  new MutationObserver(invalidate).observe(document.body,{attributes:true,attributeFilter:['class','data-app-workspace']});
+  if(document.body)new MutationObserver(invalidate).observe(document.body,{attributes:true,attributeFilter:['class','data-app-workspace']});
   sync();
 })();

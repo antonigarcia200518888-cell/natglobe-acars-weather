@@ -2945,21 +2945,22 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-17-2" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-17-2" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-1" />
-  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-17-2" />
 </head>
 <body class="pilot-ops-v2 efb-ui">
   <main class="frame">
@@ -2972,6 +2973,7 @@
             <span id="appWorkspaceSubtitle">Select flight</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg>
           </button>
         </div>
+        <button id="removeCurrentFlight" class="shell-icon-button" type="button" aria-label="Remove current flight from workspace without deleting it" title="Remove current flight" hidden>×</button>
         <span id="appDraftBadge" class="app-draft-badge" hidden>Unsaved OFP</span>
       </div>
       <div class="masthead-brand"><span class="efb-logo-mark"><img src="/pilot-natglobe-logo.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
@@ -3002,14 +3004,14 @@
     </section>
     <div class="efb-layout">
     <nav id="pilotWorkspaceNav" class="ops-suite-nav" data-glass-surface aria-label="Pilot operations workspaces">
-      <button class="suite-tab active" type="button" data-suite-view="dashboard" aria-label="Open operations dashboard" title="Operations dashboard"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg></span><strong>Home</strong></button>
+<button class="suite-tab active" type="button" data-suite-view="dashboard" aria-label="Open map workspace" title="Map workspace"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg></span><strong>Map</strong></button>
       <button class="suite-tab" type="button" data-suite-view="flights" aria-label="Open flight control" title="Flight control"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="3"></rect><path d="M7 2.5V6M17 2.5V6M2.5 8.5h19"></path><path d="m7 15 10-3-3.25 3L17 18l-10-3Z"></path></svg></span><strong>Flights</strong></button>
       <button class="suite-tab" type="button" data-suite-view="flight-plan" aria-label="Open operational flight plan" title="Operational flight plan"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6"></path><circle cx="8" cy="16" r="1.25"></circle><circle cx="16" cy="12" r="1.25"></circle><path d="M9.25 15.45 14.75 12.6"></path></svg></span><strong>OFP</strong></button>
       <button class="suite-tab" type="button" data-suite-view="weather" aria-label="Open weather dispatch" title="Weather dispatch"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M8 2.5v1M3.5 3.5l.8.8M2.5 8h1"></path><path d="M17.5 20H7a4.5 4.5 0 1 1 1.4-8.78A5.5 5.5 0 0 1 19 13a3.5 3.5 0 0 1-1.5 7Z"></path></svg></span><strong>Weather</strong></button>
       <button class="suite-tab" type="button" data-suite-view="performance" aria-label="Open aircraft performance" title="Aircraft performance"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"></path><path d="M6.5 18h11M12 8v2M6.35 12.3l1.4.8M17.65 12.3l-1.4.8M12 18l4-5"></path><circle cx="12" cy="18" r="1"></circle></svg></span><strong>Perf</strong></button>
       <button class="suite-tab" type="button" data-suite-view="aircraft" aria-label="Open aircraft status" title="Aircraft status"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10.75 2.5c-.8 0-1.3.7-1.3 1.5v5.1L3 12.5v2l6.45-1.7v4.35L7 19v1l3.75-.9"></path><path d="M13.5 10.3V4c0-.8-.5-1.5-1.3-1.5"></path><circle cx="17" cy="17" r="4"></circle><path d="m15.2 17 1.2 1.2 2.5-2.7"></path></svg></span><strong>Aircraft</strong></button>
       <button id="logbookNavBtn" class="suite-tab" type="button" data-suite-view="logbook" aria-label="Open crew logbook" title="Crew logbook"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 21.5Z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H15a2 2 0 0 0-2 2v16a2 2 0 0 1 2-2h2.5a2.5 2.5 0 0 1 2.5 2.5Z"></path><path d="M7 8h3M7 12h3M16 8h1.5M16 12h1.5"></path></svg></span><strong>Logbook</strong></button>
-      <button class="suite-tab" type="button" data-suite-view="documents" aria-label="Open flight files" title="Flight files"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5Z"></path><path d="M7.5 11h9M7.5 14.5h7"></path></svg></span><strong>Files</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="documents" aria-label="Open flight files" title="Flight files"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5Z"></path><path d="M7.5 11h9M7.5 14.5h7"></path></svg></span><strong>Documents</strong></button>
       <button id="mobileMoreBtn" class="suite-tab mobile-more-tab" type="button" aria-label="Open more EFB tools" title="More EFB tools"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.5"></rect><rect x="14" y="3.5" width="6.5" height="6.5" rx="1.5"></rect><rect x="3.5" y="14" width="6.5" height="6.5" rx="1.5"></rect><path d="M17.25 14v6.5M14 17.25h6.5"></path></svg></span><strong>More</strong></button>
     </nav>
     <div class="efb-content">
@@ -3068,6 +3070,7 @@
         <div class="ops-globe-actions map-tools-row" id="opsMapTools" role="group" aria-label="Additional map controls">
           <button id="opsMapLayerBtn" type="button" aria-pressed="false" aria-label="Show NASA relief imagery" title="Historical NASA relief overview; vector detail at close zoom" disabled>Relief</button>
           <button id="opsAirfieldsBtn" type="button" aria-pressed="false" title="Show catalogued airfields at regional zoom and closer" disabled>Airfields</button>
+          <button id="favoriteAirfieldsBtn" type="button">Favorites &amp; terrain</button>
           <button id="opsGlobeRotateBtn" type="button" aria-pressed="false">Rotate</button>
           <button id="opsGlobeResetBtn" type="button">Reset view</button>
           <form id="mapAirportSearch" aria-label="Find an airport on the map">
@@ -3544,6 +3547,7 @@ LOAD DATA TO CALCULATE.</pre></details>
     <div class="layout">
       <aside class="panel queue-panel">
         <div class="panel-title queue-panel-title"><div>Flights <span>Operations queue</span></div><button id="createPilotFlightBtn" class="create-pilot-flight-btn" type="button">+ Create flight</button></div>
+        <div class="expedition-tools"><button type="button" data-import-kind="plan">Import flight plan</button><button type="button" data-import-kind="track">Import track log</button><button type="button" data-import-files>Saved tracks &amp; sources</button></div>
         <nav class="management-scopes" aria-label="Flight management categories">
           <button type="button" data-flight-kind="all" aria-pressed="true">All files</button><button type="button" data-flight-kind="operational" aria-pressed="false">Operational / Business</button>
           <button type="button" data-flight-kind="private" aria-pressed="false">Private</button><button type="button" data-flight-kind="training" aria-pressed="false">Training</button>
@@ -3929,7 +3933,7 @@ END OF MESSAGE</pre>
   </dialog>
   <dialog id="flightPickerDialog" class="shell-dialog flight-picker-sheet" aria-labelledby="flightPickerTitle">
     <header class="shell-dialog-head"><div><strong id="flightPickerTitle">Your flights</strong><p>Switch the active flight across your EFB</p></div><button id="flightPickerCloseBtn" class="shell-icon-button" type="button">Done</button></header>
-    <div class="flight-picker-toolbar"><input id="flightPickerSearch" type="search" aria-label="Search your flights" placeholder="Airport, flight reference, date or aircraft" /><div class="queue-primary-filters" role="group" aria-label="Flight switcher scope"><button type="button" data-flight-scope="ALL" aria-pressed="true">All flights</button><button type="button" data-flight-scope="TODAY" aria-pressed="false">Today</button><button type="button" data-flight-scope="MANUAL" aria-pressed="false">Pilot files</button></div><span id="flightPickerCount" role="status"></span></div>
+<div class="flight-picker-toolbar"><input id="flightPickerSearch" type="search" aria-label="Search your flights" placeholder="Airport, flight reference, date or aircraft" /><div class="queue-primary-filters" role="group" aria-label="Flight switcher scope"><button type="button" data-flight-scope="ALL" aria-pressed="true">All flights</button><button type="button" data-flight-scope="TODAY" aria-pressed="false">Today</button><button type="button" data-flight-scope="MANUAL" aria-pressed="false">Pilot files</button><button type="button" data-flight-scope="private" aria-pressed="false">Private</button><button type="button" data-flight-scope="training" aria-pressed="false">Training</button><button type="button" data-flight-scope="operational" aria-pressed="false">Operational</button><button type="button" data-flight-scope="IMPORTED" aria-pressed="false">Imported</button><button type="button" data-flight-scope="PLANNED" aria-pressed="false">Planned</button><button type="button" data-flight-scope="COMPLETED" aria-pressed="false">Completed</button></div><span id="flightPickerCount" role="status"></span></div>
     <div id="flightPickerResults" class="flight-picker-results"></div><footer class="flight-picker-footer"><button id="flightPickerCreateBtn" class="app-sheet-action" type="button">+ Create pilot flight</button></footer>
   </dialog>
   <dialog id="flightChangeDialog" class="shell-dialog app-preferences-sheet" aria-labelledby="flightChangeTitle"><header class="shell-dialog-head"><strong id="flightChangeTitle">Save your current flight?</strong></header><div class="app-preferences-body"><p id="flightChangeMessage" role="status"></p><div class="app-reload-actions"><button id="flightChangeCancelBtn" class="app-sheet-action" type="button" autofocus>Keep editing</button><button id="flightChangeSaveBtn" class="app-sheet-action primary" type="button">Save &amp; continue</button></div></div></dialog>
@@ -3946,18 +3950,22 @@ END OF MESSAGE</pre>
     <dl class="desk-instruments"><div><dt>Zulu time</dt><dd id="deskZulu">—</dd></div><div><dt>Connection</dt><dd id="deskNetwork">—</dd></div></dl>
     <div class="desk-actions"><button id="deskMap" type="button">Open map <span aria-hidden="true">↗</span></button><button id="deskFlightAction" type="button">Select flight</button><button id="deskWeather" type="button">Brief weather</button></div>
   </dialog>
-  <script src="/pilot-weather-viewer.js?v=2026-11-17-1"></script>
-  <script src="/pilot-file-tools.js?v=2026-11-17-1"></script>
-  <script src="/pilot-weather-summary.js?v=2026-11-17-1"></script>
-  <script src="/pilot-hangar.js?v=2026-11-17-1" defer></script>
-  <script src="/pilot-cockpit.js?v=2026-11-17-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-17-1"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-17-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-17-1"></script>
-  <script src="/pilot-map-view.js?v=2026-11-17-1"></script>
-  <script src="/pilot-display.js?v=2026-11-17-1"></script>
-  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-17-1"></script>
-  <script defer src="/pilot-glass.js?v=2026-11-17-1"></script>
+  <script src="/pilot-weather-viewer.js?v=2026-11-17-2"></script>
+  <script src="/pilot-file-tools.js?v=2026-11-17-2"></script>
+  <script src="/pilot-weather-summary.js?v=2026-11-17-2"></script>
+  <script src="/pilot-hangar.js?v=2026-11-17-2" defer></script>
+  <script src="/pilot-cockpit.js?v=2026-11-17-2"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-17-2"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-17-2"></script>
+  <script src="/pilot-flight-context.js?v=2026-11-17-2"></script>
+  <script src="/pilot-imports.js?v=2026-11-17-2"></script>
+  <script src="/pilot-replay.js?v=2026-11-17-2"></script>
+  <script src="/pilot-airfields.js?v=2026-11-17-2"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-17-2"></script>
+  <script src="/pilot-map-view.js?v=2026-11-17-2"></script>
+  <script src="/pilot-display.js?v=2026-11-17-2"></script>
+  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-17-2"></script>
+  <script defer src="/pilot-glass.js?v=2026-11-17-2"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -4912,7 +4920,7 @@ END OF MESSAGE</pre>
       const docsLabel = !req ? 'OFP NOT STARTED' : releaseClientState(req).released ? `OFP RELEASED / BRIEF ${briefingReady ? 'OK' : 'OPEN'}` : ofp ? `OFP DRAFT / BRIEF ${briefingReady ? 'OK' : 'OPEN'}` : 'OFP NOT STARTED';
 
       activeFlightStrip.dataset.active = String(Boolean(req));
-      activeFlightRoute.textContent = req ? (req.route || `${req.dep || '----'} > ${req.arr || '----'}`) : 'NO FLIGHT SELECTED';
+      activeFlightRoute.textContent = req ? (ofp.route || `${ofp.departure || req.dep || '----'} > ${ofp.destination || req.arr || '----'}`) : 'NO FLIGHT SELECTED';
       activeFlightReference.textContent = req
         ? req.manualFlight
           ? `${req.id || 'REFERENCE PENDING'} / PILOT-ONLY MANUAL FLIGHT FILE`
@@ -4921,7 +4929,7 @@ END OF MESSAGE</pre>
       const scheduleLocal = ofp.scheduledOutLocal || req?.requestTime || 'TIME TBC';
       const scheduleUtc = ofp.scheduledOutUtc ? `${String(ofp.scheduledOutUtc).replace(/Z$/i, '')}Z` : '';
       activeFlightSchedule.textContent = req
-        ? `${req.requestDate || ofp.dateUtc || 'DATE TBC'} ${scheduleLocal}L${scheduleUtc ? ` / ${scheduleUtc}` : ''}`
+        ? `${ofp.dateUtc || req.requestDate || 'DATE TBC'} ${scheduleLocal}L${scheduleUtc ? ` / ${scheduleUtc}` : ''}`
         : '--';
       activeFlightPhase.textContent = phase.label;
       activeFlightPhaseDetail.textContent = phase.detail;
@@ -4944,7 +4952,7 @@ END OF MESSAGE</pre>
       setStripTone(activeFlightWeatherCard, weatherReady ? (weatherPartial ? 'warn' : categoryRisk) : (req ? 'warn' : ''));
 
       const hero = el('efbFlightHero');
-      const heroRoute = req ? (req.route || `${req.dep || '----'} > ${req.arr || '----'}`) : 'Select a flight to begin';
+      const heroRoute = req ? (ofp.route || `${ofp.departure || req.dep || '----'} > ${ofp.destination || req.arr || '----'}`) : 'Select a flight to begin';
       hero.dataset.active = String(Boolean(req));
       hero.dataset.tone = phase.tone || 'neutral';
       el('efbHeroState').textContent = req ? phase.label : 'Standby';
@@ -5111,6 +5119,8 @@ END OF MESSAGE</pre>
       syncFlightManagement(req);
       el('cockpitEmptyFlight').hidden = Boolean(req);
       el('cockpitUnloadFlight').hidden = !req;
+      el('removeCurrentFlight').hidden = !req;
+      window.PilotFlights?.notify();
       el('cockpitFlightFileEmpty').hidden = Boolean(req);
       el('cockpitFlightFile').hidden = !req;
       el('showActiveFile').hidden = !req;
@@ -5132,10 +5142,11 @@ END OF MESSAGE</pre>
         el('perfLandingAcars').textContent = 'LANDING PERFORMANCE\n------------------------\nLOAD DATA TO CALCULATE.';
       }
       toolFlightContext.textContent = req ? `${req.id} / ${req.route || `${req.dep}-${req.arr}`} / ${req.requestDate || 'DATE'} ${req.requestTime || 'TIME'}` : 'NO FLIGHT SELECTED';
-      if (weatherAltn.dataset.request !== (req?.id || '')) {
-        weatherAltn.dataset.request = req?.id || '';
-        weatherDep.value = weatherIcao(req?.dep);
-        weatherArr.value = weatherIcao(req?.arr);
+      const wxContext=[req?.id,req?.operationalFlightPlan?.departure||req?.dep,req?.operationalFlightPlan?.destination||req?.arr,req?.operationalFlightPlan?.alternate].join('|');
+      if (weatherAltn.dataset.request !== wxContext) {
+        weatherAltn.dataset.request = wxContext;
+        weatherDep.value = weatherIcao(req?.operationalFlightPlan?.departure||req?.dep);
+        weatherArr.value = weatherIcao(req?.operationalFlightPlan?.destination||req?.arr);
         weatherAltn.value = weatherIcao(req?.operationalFlightPlan?.alternate);
         latestWeatherData = null;
         weatherDataKey = '';
@@ -5256,7 +5267,7 @@ END OF MESSAGE</pre>
     function updateWeatherRouteLabel() {
       const dep = weatherIcao(weatherDep.value);
       const arr = weatherIcao(weatherArr.value);
-      const usesSelectedRoute = Boolean(selected && dep === weatherIcao(selected.dep) && arr === weatherIcao(selected.arr));
+      const usesSelectedRoute = Boolean(selected && dep === weatherIcao(selected.operationalFlightPlan?.departure || selected.dep) && arr === weatherIcao(selected.operationalFlightPlan?.destination || selected.arr));
       el('swapWxAirports').disabled = dep.length !== 4 || arr.length !== 4;
       weatherRoute.textContent = dep.length === 4 && arr.length === 4
         ? `${dep}  >  ${arr}${usesSelectedRoute ? ` / ${selected.requestDate || 'DATE'} ${selected.requestTime || 'TIME'}` : ' / MANUAL DISPATCH'}`
@@ -5333,8 +5344,9 @@ END OF MESSAGE</pre>
     }
 
     function opsGlobeRoutePoints() {
-      const departure = airportCoordinates(selected?.dep);
-      const arrival = airportCoordinates(selected?.arr);
+      if(!(selected?.operationalFlightPlan?.route ?? selected?.route))return [];
+      const departure = airportCoordinates(selected?.operationalFlightPlan?.departure || selected?.dep);
+      const arrival = airportCoordinates(selected?.operationalFlightPlan?.destination || selected?.arr);
       if (!departure || !arrival) return [];
       let lonDelta = arrival.lon - departure.lon;
       if (lonDelta > 180) lonDelta -= 360;
@@ -5418,10 +5430,11 @@ END OF MESSAGE</pre>
     function updateOpsGlobeContext(req = selected, options = {}) {
       if (!opsGlobeRoute) return;
       const recenter = options.recenter !== false;
-      const departure = airportCoordinates(req?.dep);
-      const arrival = airportCoordinates(req?.arr);
-      opsGlobeRoute.textContent = req ? `${req.dep || 'DEP'} → ${req.arr || 'ARR'} / ${req.id || 'PILOT FLIGHT'}` : 'NO FLIGHT SELECTED';
-      opsVectorMap?.setFlight({ dep:req?.dep, arr:req?.arr, departure, arrival });
+      const dep=req?.operationalFlightPlan?.departure||req?.dep,arr=req?.operationalFlightPlan?.destination||req?.arr;
+      const departure = airportCoordinates(dep);
+      const arrival = airportCoordinates(arr);
+      opsGlobeRoute.textContent = req ? `${dep || 'DEP'} → ${arr || 'ARR'} / ${req.id || 'PILOT FLIGHT'}` : 'NO FLIGHT SELECTED';
+      opsVectorMap?.setFlight({ dep, arr, departure, arrival,showRoute:Boolean(req?.operationalFlightPlan?.route ?? req?.route) });
       if (opsVectorMap?.ready) return;
       if (departure && arrival && recenter) {
         globeRotation.lon = (departure.lon + arrival.lon) / 2;
@@ -5670,12 +5683,12 @@ END OF MESSAGE</pre>
     function weatherQuery() {
       const dep = weatherIcao(weatherDep.value);
       const arr = weatherIcao(weatherArr.value);
-      const usesSelectedRoute = Boolean(selected && dep === weatherIcao(selected.dep) && arr === weatherIcao(selected.arr));
+      const usesSelectedRoute = Boolean(selected && dep === weatherIcao(selected.operationalFlightPlan?.departure || selected.dep) && arr === weatherIcao(selected.operationalFlightPlan?.destination || selected.arr));
       const query = new URLSearchParams({
         dep,
         arr,
         flight:usesSelectedRoute ? (selected?.flightNumber || selected?.id || '') : '',
-        route:usesSelectedRoute ? (selected?.route || `${dep}-${arr}`) : `${dep}-${arr}`,
+        route:usesSelectedRoute ? (selected?.operationalFlightPlan?.route || selected?.route || `${dep}-${arr}`) : `${dep}-${arr}`,
         includeDepMetar:String(el('wxDepMetar').checked),
         includeDepTaf:String(el('wxDepTaf').checked),
         includeArrMetar:String(el('wxArrMetar').checked),
@@ -6686,6 +6699,7 @@ END OF MESSAGE</pre>
     }
 
     async function runPerformanceReview() {
+      if(selected?.operationalFlightPlan?.aircraftRegistration && selected.operationalFlightPlan.aircraftRegistration!=='OH-PMK'){performanceStatus.textContent='No verified NGA performance profile for this aircraft. OH-PMK calculations cannot be applied.';return;}
       const dep = perfDep.value.trim().toUpperCase();
       const arr = perfArr.value.trim().toUpperCase();
       if (!/^[A-Z0-9]{4}$/.test(dep) || !/^[A-Z0-9]{4}$/.test(arr)) {
@@ -6871,6 +6885,7 @@ END OF MESSAGE</pre>
     async function applyPerformanceToOfp() {
       if (flightDeck && !await flightDeck.ensureSaved()) { switchOpsWorkspace('flight-plan'); return; }
       if (!selected?.id) throw new Error('SELECT A FLIGHT FIRST');
+      if(selected.operationalFlightPlan?.aircraftRegistration && selected.operationalFlightPlan.aircraftRegistration!=='OH-PMK')throw new Error('NO VERIFIED PERFORMANCE PROFILE FOR THIS AIRCRAFT');
       if (!latestPerformanceData) throw new Error('LOAD AIRCRAFT PERFORMANCE INPUTS FIRST');
       if (!perfDepRunway.value || !perfArrRunway.value) throw new Error('SELECT BOTH RUNWAY ENDS FIRST');
       if (!['pilot', 'saved'].includes(perfDepRunway.dataset.selectionSource) || !['pilot', 'saved'].includes(perfArrRunway.dataset.selectionSource)) throw new Error('CONFIRM BOTH RUNWAY ENDS BEFORE APPLYING THE SNAPSHOT');
@@ -7753,6 +7768,19 @@ END OF MESSAGE</pre>
       openShellDialog(logbookEntryDialog, el('logbookFlightReference'));
     }
 
+    async function prepareTrackLogbook(track){
+      if(!selected?.id)return;
+      const id=selected.id;switchOpsWorkspace('logbook');
+      try{
+        const response=await fetch('/api/booking-ops/logbook/prefill/'+encodeURIComponent(id),{cache:'no-store'}),data=await response.json();
+        if(!response.ok)throw new Error(data.error||'Logbook unavailable');
+        if(selected?.id!==id)return;
+        if(data.existingEntry){openLogbookEditor(data.existingEntry);logbookSetFormStatus('An entry already exists. Track data has not changed it.','caution');return;}
+        const source=data.prefill||{},p=selected.operationalFlightPlan||{};
+        openLogbookEditor(null,{...source,aircraftRegistration:p.aircraftRegistration||'',aircraftType:p.aircraftCode||'',source:'Recorded track / pilot review required',remarks:[source.remarks,'GPS recording: '+(track.summary.start.time||'undated')+' to '+(track.summary.end.time||'undated')+'. These are recording limits, not takeoff, landing or block times.'].filter(Boolean).join('\n'),warnings:['Verify movement times, aircraft, pilot role, credited time and landings. No track-derived time has been credited.']});
+        if(p.aircraftRegistration!=='OH-PMK')setLogbookField('logbookAircraftType',p.aircraftCode==='UNVERIFIED'?'':p.aircraftCode||'');
+      }catch(e){logbookSetStatus(e.message,'danger');}
+    }
     async function importActiveFlightToLogbook() {
       if (!selected?.id) {
         logbookSetStatus('Select a flight before importing movement data.', 'caution');
@@ -8192,7 +8220,7 @@ END OF MESSAGE</pre>
         if (req.manualFlight) return `
           <button type="button" class="request ${selected?.id === req.id ? 'selected' : ''}" data-id="${escapeHtml(req.id)}" aria-current="${selected?.id === req.id ? 'true' : 'false'}">
             <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">MANUAL OFP</span></div>
-            <strong class="request-route">${escapeHtml(req.route || 'MANUAL OFP')}</strong>
+            <strong class="request-route">${escapeHtml(req.operationalFlightPlan?.route || req.route || 'NO PLANNED ROUTE')}</strong>
             <span class="request-schedule">${escapeHtml(req.requestDate || 'DATE OPEN')} · ${escapeHtml(req.requestTime || 'TIME OPEN')}</span>
             <span class="request-detail">${escapeHtml(req.management?.category || 'Unclassified')} · ${escapeHtml(req.management?.category==='training' ? req.management.training?.instructor || 'Instructor not recorded' : 'Pilot-created file')}</span>
             ${flightKind==='training' && req.management?.training?.progress ? '<span class="request-detail">'+escapeHtml(req.management.training.progress)+'</span>' : ''}
@@ -9228,11 +9256,17 @@ END OF MESSAGE</pre>
 
     appShell = window.createPilotAppShell({ navigate:switchOpsWorkspace, getFlight:() => selected, setTheme:applyEfbTheme, install:promptPilotAppInstall, canInstall:() => Boolean(deferredInstallPrompt) });
     flightDeck = window.createPilotFlightDeck({ getFlights:() => sortQueue(requests), getSelected:() => selected, getPlanner:activePlanner, choose:req => activateFlight(req), create:openManualFlightComposer, today:todayIso, escapeHtml });
+    window.PilotFlights=window.createPilotFlightContext({getFlight:()=>selected,getFlights:()=>requests,activate:activateFlight,unload:unloadFlight,upsert:record=>{
+      const i=requests.findIndex(f=>f.id===record.id);if(i<0)requests.push(record);else requests[i]=record;
+      if(selected?.id===record.id){ofpOpsFrame.dataset.context='';selectRequest(record);}renderList();renderOpsTotals();renderCalendar();
+    }});
+const flightImports=window.createPilotImports({context:window.PilotFlights,ensureSaved:()=>flightDeck.ensureSaved(),openView:switchOpsWorkspace,onTrack:(track,saved)=>{switchOpsWorkspace('dashboard');window.PilotReplay?.load(track,saved);}});
+    window.PilotImport=flightImports;
     el('cockpitSelectFlight').addEventListener('click', () => flightDeck.open());
     const desk=el('launchDesk');
     function updateDesk(){
       if (!desk.open) return;
-      el('deskFlight').textContent=selected ? [selected.dep,selected.arr].filter(Boolean).join(' → ') || selected.id : 'No flight loaded';
+      el('deskFlight').textContent=selected ? [selected.operationalFlightPlan?.departure||selected.dep,selected.operationalFlightPlan?.destination||selected.arr].filter(Boolean).join(' → ') || selected.id : 'No flight loaded';
       el('deskFlightAction').textContent=selected?'Continue OFP':'Select flight';
       el('deskZulu').textContent=new Date().toISOString().slice(11,16)+' Z';
       el('deskNetwork').textContent=navigator.onLine?'Network available':'Offline';
@@ -9244,12 +9278,7 @@ END OF MESSAGE</pre>
     el('deskMap').addEventListener('click',()=>{desk.close();switchOpsWorkspace('dashboard');focusOpenedWorkspace('dashboard');});
     el('deskFlightAction').addEventListener('click',()=>{desk.close();if(selected){switchOpsWorkspace('flight-plan');focusOpenedWorkspace('flight-plan');}else flightDeck.open();});
     window.addEventListener('online',updateDesk);window.addEventListener('offline',updateDesk);
-    // Restore other sections and respect deep links; never interrupt a draft with a splash.
-    try {
-      if (activeWorkspace==='dashboard' && !sessionStorage.getItem('nga-desk-welcome') && !document.querySelector('dialog[open]')) {
-        sessionStorage.setItem('nga-desk-welcome','seen'); openDesk();
-      }
-    } catch { /* The flight desk remains available from the workspace title. */ }
+    // The flight desk is available on demand; an unlocked session opens on the map.
     el('cockpitQueueSelect').addEventListener('click', () => flightDeck.open());
     el('showActiveFile').addEventListener('click', () => setFlightPane('file', true));
     el('showFlightList').addEventListener('click', () => setFlightPane('list', true));
@@ -9260,6 +9289,7 @@ END OF MESSAGE</pre>
     });
     el('cockpitBuildFlight').addEventListener('click', openManualFlightComposer);
     el('cockpitUnloadFlight').addEventListener('click', unloadFlight);
+    el('removeCurrentFlight').addEventListener('click',unloadFlight);
     el('cockpitDeckToggle').addEventListener('click', () => {
       const collapsed = document.body.classList.toggle('cockpit-deck-collapsed');
       el('cockpitDeckToggle').setAttribute('aria-expanded', String(!collapsed));
@@ -9275,7 +9305,7 @@ END OF MESSAGE</pre>
     renderReleasePanel();
     updateNetworkState();
     if (window.createPilotMapView) opsVectorMap = window.createPilotMapView({
-      container:el('opsVectorMap'), fallback:opsGlobeCanvas, status:el('opsMapStatus'),
+      container:el('opsVectorMap'), fallback:opsGlobeCanvas, status:el('opsMapStatus'),startupGlobe:true,onAirport:code=>window.PilotAirfields?.open(code),
       getPadding() {
         // Folder and toolbar are outside the canvas. Only reserve space for
         // navigation controls, labels and attribution inside the map.
@@ -9284,6 +9314,7 @@ END OF MESSAGE</pre>
         return { top:Math.min(82,stage.height*.24), right:Math.min(80, stage.width * .22), bottom:inset, left:inset };
       },
       onState({ ready, failed, mode, rotating, relief, hasRoute, fieldsVisible, hasFields }) {
+        if(ready)window.PilotReplay?.onReady?.();
         el('opsMapModeBtn').disabled = !ready;
         el('opsGlobeModeBtn').disabled = !ready;
         el('opsMapLayerBtn').disabled = !ready;
@@ -9304,6 +9335,17 @@ END OF MESSAGE</pre>
         } else drawOpsGlobe();
       }
     });
+    window.PilotReplay=window.createPilotReplay({map:opsVectorMap,container:document.querySelector('.ops-globe-card'),isVisible:()=>activeWorkspace==='dashboard',context:window.PilotFlights,onDraft:prepareTrackLogbook});
+    window.PilotAirfields=window.createPilotAirfields({map:opsVectorMap,getAirports:()=>weatherAirportCatalog,addAirport:async(code,field)=>{
+      if(!await flightDeck.ensureSaved())return;
+      if(!selected){await openManualFlightComposer();(field==='departure'?manualFlightDep:manualFlightArr).value=code;return;}
+      switchOpsWorkspace('flight-plan');
+      const apply=()=>activePlanner()?.setAirport?.(field,code);
+      if(activePlanner())await apply();else ofpOpsFrame.addEventListener('load',apply,{once:true});
+    }});
+    el('favoriteAirfieldsBtn').addEventListener('click',()=>window.PilotAirfields.open());
+    document.querySelectorAll('[data-import-kind]').forEach(b=>b.addEventListener('click',()=>flightImports.open(b.dataset.importKind)));
+    document.querySelectorAll('[data-import-files]').forEach(b=>b.addEventListener('click',()=>flightImports.files()));
     el('opsMapModeBtn').addEventListener('click', () => opsVectorMap?.setMode('map'));
     el('opsGlobeModeBtn').addEventListener('click', () => opsVectorMap?.setMode('globe'));
     el('opsMapLayerBtn').addEventListener('click', () => opsVectorMap?.setRelief(el('opsMapLayerBtn').getAttribute('aria-pressed') !== 'true'));
@@ -9321,7 +9363,7 @@ END OF MESSAGE</pre>
     syncOpsGlobeAnimation();
     const savedSnapshot = readOperationalSnapshot();
     if (savedSnapshot?.cachedAt) offlineSnapshotState.textContent = `LATEST SAFE SNAPSHOT / ${savedSnapshot.id} / ${new Date(savedSnapshot.cachedAt).toLocaleString('en-GB', { hour12:false })}`;
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && !['localhost','127.0.0.1','::1'].includes(location.hostname)) {
       const showAppUpdate = () => {
         appUpdateBtn.hidden = false;
       };
@@ -9344,7 +9386,7 @@ END OF MESSAGE</pre>
       loadWeatherAirportChoices().catch(() => {}),
       loadAircraftStatus().catch(() => {})
     ])
-      .then(() => switchOpsWorkspace(location.hash.replace('#', '') || storedOpsWorkspace() || 'dashboard'))
+      .then(() => switchOpsWorkspace(location.hash.replace('#', '') || 'dashboard'))
       .catch(() => { mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE'; });
   </script>
 </body>

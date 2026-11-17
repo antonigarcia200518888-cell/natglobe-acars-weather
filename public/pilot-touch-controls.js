@@ -97,7 +97,7 @@
   // schedule one coalesced sync; never run a polling loop or observe our own output.
   new MutationObserver(records => {
     if (records.some(record => !record.target.closest?.('.pilot-choice-sheet,.pilot-choice-trigger,.pilot-segment') && record.target.id !== 'clock')) scheduleSync();
-  }).observe(document.body, { childList:true, subtree:true });
+  }).observe(document.documentElement, { childList:true, subtree:true });
   window.pilotTouchControls = { sync:scheduleSync, enhance };
   enhance();
 })();
