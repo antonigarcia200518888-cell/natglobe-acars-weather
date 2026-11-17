@@ -33,14 +33,12 @@ test('workspace navigation creates app history, not duplicate entries on repeate
   const h=harness();
   h.shell.enter('dashboard');
   assert.equal(h.history.replaces.length,1);
-  assert.equal(h.getNode('appBackBtn').disabled,true);
+  assert.ok(!source.includes('appBackBtn'));
   h.shell.leave('weather'); h.shell.enter('weather');
   h.shell.enter('weather');
   assert.equal(h.history.pushes.length,1);
   assert.equal(h.history.state.ngaAppDepth,1);
-  assert.equal(h.getNode('appBackBtn').disabled,false);
-  h.getNode('appBackBtn').events.click();
-  assert.equal(h.history.backs,1);
+  assert.equal(h.history.backs,0);
   assert.equal(h.document.title,'Weather · NGA Pilot EFB');
 });
 

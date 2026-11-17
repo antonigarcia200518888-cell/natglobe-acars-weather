@@ -37,5 +37,5 @@ test('all Pilot Ops entry points use the current offline design system and parse
     for(const [,source] of page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)) new vm.Script(source,{filename:file});
   }
   for(const asset of ['design-tokens.css','pilot-instruments.js']) assert.ok(sw.includes('/'+asset+'?v='));
-  const css=read('public/design-tokens.css'); for(const token of ['#00E676','#FFB300','#FF3B30','#00A3FF','#071426','#10243c'])assert.ok(css.includes(token));
+  const css=read('public/design-tokens.css'); for(const token of ['#00E676','#FFB300','#FF3B30','#0e203a','#101f3b','#7f8083'])assert.ok(css.includes(token));
 });

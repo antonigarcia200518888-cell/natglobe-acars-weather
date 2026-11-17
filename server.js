@@ -1,4 +1,5 @@
 import express from 'express';
+import { mountFlightManagement, DOCUMENT_SCHEMA } from './lib/flight-management.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -46,6 +47,7 @@ app.get('/vendor/simplewebauthn-browser.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'node_modules', '@simplewebauthn', 'browser', 'dist', 'bundle', 'index.umd.min.js'));
 });
 
+app.use('/vendor/three', express.static(path.join(__dirname, 'node_modules', 'three', 'build'), { maxAge:'1d' }));
 app.use('/vendor/leaflet', express.static(path.join(__dirname, 'node_modules', 'leaflet', 'dist'), {
   maxAge: '1d'
 }));
@@ -322,6 +324,7 @@ async function initializeBookingStore() {
     }
   });
 
+  await loadSupportingStore('flight documents', () => bookingPool.query(DOCUMENT_SCHEMA));
   await loadSupportingStore('crew logbook', async () => {
     await bookingPool.query(`
       CREATE TABLE IF NOT EXISTS crew_logbook_entries (
@@ -1069,6 +1072,7 @@ function createManualFlightFile(req, input = {}) {
   const notes = normalizeBookingText(input.notes, 240);
   return {
     id,
+    management: {category: ['operational','private','training'].includes(input.category) ? input.category : 'operational'},
     flightId: `NGA-MNL-${id.slice(4)}`,
     flightTitle: title.toUpperCase(),
     route,
@@ -3526,7 +3530,7 @@ function parseWindDetailed(metar) {
 }
 
 function parseVisibility(metar) {
-  const visMatch = metar.match(/\b(\d{4})\b/);
+  const visMatch = currentMetarConditions(metar).match(/(?:^|\s)(\d{4})(?:NDV)?(?=\s|$)/);
   if (!visMatch) return null;
 
   const value = parseInt(visMatch[1], 10);
@@ -3573,15 +3577,13 @@ function parseMetarVisibilityMiles(metar) {
   if (!text) return null;
   if (/\bCAVOK\b/.test(text)) return 6.2;
 
-  const smMatch = text.match(/\b(P?)(\d+)?\s?(\d\/\d)?SM\b/);
+  const smMatch = text.match(/(?:^|\s)([PM]?)(?:(\d+)\s+)?(\d+)(?:\/(\d+))?SM\b/);
   if (smMatch) {
-    let total = smMatch[1] === 'P' ? 6 : 0;
-    if (smMatch[2]) total += Number(smMatch[2]) || 0;
-    if (smMatch[3]) {
-      const [numerator, denominator] = smMatch[3].split('/').map(Number);
-      if (denominator) total += numerator / denominator;
-    }
-    return total || (smMatch[1] === 'P' ? 6 : null);
+    const denominator=Number(smMatch[4] || 1);
+    if(!denominator) return null;
+    const bound=Number(smMatch[2] || 0)+Number(smMatch[3])/denominator;
+    // Use the qualifier solely to place a bound at the correct category threshold.
+    return bound+(smMatch[1]==='M'?-0.000001:smMatch[1]==='P'?0.000001:0);
   }
 
   const visibilityM = parseVisibility(text);
@@ -3591,7 +3593,7 @@ function parseMetarVisibilityMiles(metar) {
 function parseMetarCeilingFt(metar) {
   const text = currentMetarConditions(metar);
   let lowest = null;
-  const ceilingRegex = /\b(BKN|OVC|VV)(\d{3})\b/g;
+  const ceilingRegex = /\b(BKN|OVC|VV)(\d{3})(?:CB|TCU)?\b/g;
   let match;
 
   while ((match = ceilingRegex.exec(text)) !== null) {
@@ -3611,8 +3613,11 @@ function getMetarFlightCategory(metar) {
   if (visibilityMiles === null && ceilingFt === null && !/\b(CAVOK|SKC|CLR|NSC|NCD)\b/.test(text)) return 'UNKNOWN';
   if ((visibilityMiles !== null && visibilityMiles < 1) || (ceilingFt !== null && ceilingFt < 500)) return 'LIFR';
   if ((visibilityMiles !== null && visibilityMiles < 3) || (ceilingFt !== null && ceilingFt < 1000)) return 'IFR';
-  if ((visibilityMiles !== null && visibilityMiles < 5) || (ceilingFt !== null && ceilingFt <= 3000)) return 'MVFR';
-  return 'VFR';
+  if ((visibilityMiles !== null && visibilityMiles <= 5) || (ceilingFt !== null && ceilingFt <= 3000)) return 'MVFR';
+  // Do not infer clear skies from absence of a decoded ceiling.
+  const current=currentMetarConditions(text);
+  if (visibilityMiles===null || /\b(?:BKN|OVC|VV)\/{3}/.test(current)) return 'UNKNOWN';
+  return ceilingFt!==null || /\b(?:CAVOK|SKC|CLR|NSC|NCD|(?:FEW|SCT)\d{3}(?:CB|TCU)?)\b/.test(current) ? 'VFR' : 'UNKNOWN';
 }
 
 function getMetarObservationData(metar, now = new Date()) {
@@ -5610,6 +5615,9 @@ app.get('/api/booking-ops/requests', requirePilotAccess, async (req, res) => {
   });
 });
 
+mountFlightManagement(app, {requirePilotAccess, requireFlightCrew, ready:bookingStoreReady, pool:()=>bookingPool,
+  lookup:id=>bookingRequests.find(row=>row.id===id), raw:express.raw({type:['application/pdf','image/jpeg','image/png'],limit:'2mb'})});
+
 app.post('/api/booking-ops/manual-flight', requirePilotAccess, async (req, res) => {
   let reservedRequest = null;
   try {
@@ -6851,7 +6859,8 @@ async function createSignedAgreementPdf(request, passenger) {
   return Buffer.from(await pdfDoc.save());
 }
 
-app.get('/api/booking-ops/requests/:id/reimbursement-statement/pdf', requirePilotAccess, async (req, res) => {
+app.get('/api/booking-ops/requests/:id/reimbursement-statement/pdf', requirePilotAccess, async (req, res, next) => {
+  try {
   await bookingStoreReady;
   const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
@@ -6860,6 +6869,7 @@ app.get('/api/booking-ops/requests/:id/reimbursement-statement/pdf', requirePilo
   res.setHeader('Content-Disposition', `inline; filename="${request.id}-REIMBURSEMENT-STATEMENT.pdf"`);
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.send(pdf);
+  } catch(error){ next(error); }
 });
 
 app.get('/api/booking-ops/requests/:id/operational-flight-plan', requirePilotAccess, async (req, res) => {
@@ -7790,8 +7800,10 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
         tafDistanceNm: wx.tafDistanceNm,
         wind: parseWindDetailed(metar),
         visibilityM: parseVisibility(metar),
+        visibilityText: currentMetarConditions(metar).match(/(?:^|\s)(CAVOK|[PM]?(?:\d+\s+)?\d+(?:\/\d+)?SM)\b/)?.[1] || null,
         ceilingFt,
         flightCategory: getMetarFlightCategory(metar),
+        dewpointC: parseDewpointC(metar),
         metarObservedAt: observation.observedAt,
         metarAgeMinutes: observation.ageMinutes,
         oatC,

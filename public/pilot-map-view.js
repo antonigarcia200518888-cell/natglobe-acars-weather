@@ -124,7 +124,7 @@
         const before = map.getLayer('pilot-route-casing') ? 'pilot-route-casing' : undefined;
         map.addSource('pilot-fields',{type:'geojson',data:fields});
         map.addLayer({id:'pilot-field-dots',type:'circle',source:'pilot-fields',minzoom:5,paint:{'circle-radius':4,'circle-color':'#e7edf8','circle-stroke-color':'#374665','circle-stroke-width':2}},before);
-        map.addLayer({id:'pilot-field-labels',type:'symbol',source:'pilot-fields',minzoom:6,layout:{'text-field':['get','icao'],'text-font':['Noto Sans Regular'],'text-size':13,'text-anchor':'left','text-offset':[.7,0]},paint:{'text-color':'#182232','text-halo-color':'#f5f7fc','text-halo-width':1.8}},before);
+        map.addLayer({id:'pilot-field-labels',type:'symbol',source:'pilot-fields',minzoom:6,layout:{'text-field':['get','icao'],'text-font':['Noto Sans Regular'],'text-size':13,'text-anchor':'left','text-offset':[.7,0]},paint:{'text-color':currentStyle==='night'?'#f1f4f8':'#182232','text-halo-color':currentStyle==='night'?'#090d14':'#f5f7fc','text-halo-width':1.8}},before);
       } else for (const layer of ['pilot-field-dots','pilot-field-labels']) map.setLayoutProperty(layer,'visibility',visibility);
       filterRouteFields();
     }
@@ -194,9 +194,9 @@
       if (source) source.setData(data);
       else {
         map.addSource('pilot-route', { type: 'geojson', data });
-        map.addLayer({ id: 'pilot-route-casing', type: 'line', source: 'pilot-route', filter: ['==', '$type', 'LineString'], paint: { 'line-color': '#14211b', 'line-width': 7, 'line-opacity': .75 } });
-        map.addLayer({ id: 'pilot-route-line', type: 'line', source: 'pilot-route', filter: ['==', '$type', 'LineString'], paint: { 'line-color': '#f5f8f3', 'line-width': 3 } });
-        map.addLayer({ id: 'pilot-route-airports', type: 'circle', source: 'pilot-route', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 7, 'circle-color': ['match', ['get', 'kind'], 'arrival', '#70e0b2', '#ffffff'], 'circle-stroke-width': 3, 'circle-stroke-color': '#16384a' } });
+        map.addLayer({ id: 'pilot-route-casing', type: 'line', source: 'pilot-route', filter: ['==', '$type', 'LineString'], paint: { 'line-color': currentStyle === 'night' ? '#0e203a' : '#ffffff', 'line-width': 7, 'line-opacity': .75 } });
+        map.addLayer({ id: 'pilot-route-line', type: 'line', source: 'pilot-route', filter: ['==', '$type', 'LineString'], paint: { 'line-color': currentStyle === 'night' ? '#eef2f7' : '#101f3b', 'line-width': 3 } });
+        map.addLayer({ id: 'pilot-route-airports', type: 'circle', source: 'pilot-route', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 7, 'circle-color': ['match', ['get', 'kind'], 'arrival', '#b4bbc8', '#ffffff'], 'circle-stroke-width': 3, 'circle-stroke-color': '#16384a' } });
         map.addLayer({ id: 'pilot-route-labels', type: 'symbol', source: 'pilot-route', filter: ['==', '$type', 'Point'], layout: { 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Regular'], 'text-size': 15, 'text-offset': [0, -1.5] }, paint: { 'text-color': '#ffffff', 'text-halo-color': '#132c3e', 'text-halo-width': 2 } });
       }
     }
@@ -235,17 +235,17 @@
               // The dark style references an absent circle-11 sprite on three city
               // labels. Keep their real text, without a redundant settlement dot.
               if (['place_town','place_city','place_city_large'].includes(layer.id) && JSON.stringify(layer.layout?.['icon-image'] || '').includes('"circle-11"')) map.setLayoutProperty(layer.id,'icon-image',null);
-              if (layer.id === 'background') map.setPaintProperty(layer.id, 'background-color', '#42454c');
-              if (layer.id === 'water') map.setPaintProperty(layer.id, 'fill-color', '#1b293b');
-              if (layer.id === 'landcover_wood') map.setPaintProperty(layer.id,'fill-color','#353b41');
-              if (layer.id === 'landuse_residential') map.setPaintProperty(layer.id,'fill-color','#52545d');
-              if (['highway_motorway_inner','highway_motorway_subtle','highway_major_inner','highway_major_subtle'].includes(layer.id)) map.setPaintProperty(layer.id,'line-color','#898b98');
+              if (layer.id === 'background') map.setPaintProperty(layer.id, 'background-color', '#090d14');
+              if (layer.id === 'water') map.setPaintProperty(layer.id, 'fill-color', '#0d1928');
+              if (layer.id === 'landcover_wood') map.setPaintProperty(layer.id,'fill-color','#141c1b');
+              if (layer.id === 'landuse_residential') map.setPaintProperty(layer.id,'fill-color','#19202b');
+              if (['highway_motorway_inner','highway_motorway_subtle','highway_major_inner','highway_major_subtle'].includes(layer.id)) map.setPaintProperty(layer.id,'line-color','#526072');
               if (layer.id === 'aeroway-runway') map.setPaintProperty(layer.id,'line-color','#d4d4dc');
               if (layer.id === 'landcover_glacier' || layer.id === 'landcover_ice_shelf') map.setPaintProperty(layer.id, 'fill-color', '#496373');
-              if (layer.id.startsWith('boundary_country')) map.setPaintProperty(layer.id, 'line-color', '#5a7a8a');
+              if (layer.id.startsWith('boundary_country')) map.setPaintProperty(layer.id, 'line-color', '#8494a4');
               if (layer.type === 'symbol' && layer.id.startsWith('place_')) {
                 map.setPaintProperty(layer.id, 'text-color', '#f0f0f5');
-                map.setPaintProperty(layer.id, 'text-halo-color', '#24252c');
+                map.setPaintProperty(layer.id, 'text-halo-color', '#080d14');
               }
             }
           } else {

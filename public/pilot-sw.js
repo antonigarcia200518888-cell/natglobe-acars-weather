@@ -1,5 +1,5 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v39';
-const PILOT_STYLESHEET_VERSION = '2026-11-16-3';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v40';
+const PILOT_STYLESHEET_VERSION = '2026-11-17-1';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
@@ -15,7 +15,8 @@ const PILOT_EFB_STYLESHEETS = [
   `/pilot-workspaces.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-touch.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-ofp-touch.css?v=${PILOT_STYLESHEET_VERSION}`,
-  `/design-tokens.css?v=${PILOT_STYLESHEET_VERSION}`
+  `/design-tokens.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-command-deck.css?v=${PILOT_STYLESHEET_VERSION}`
 ];
 const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
@@ -28,6 +29,9 @@ const PILOT_SHELL_ASSETS = [
   `/pilot-display.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-glass.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/vendor/liquid-glass/glass.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-file-tools.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-weather-summary.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-hangar.js?v=${PILOT_STYLESHEET_VERSION}`,
   '/pilot-glass-relief.svg',
   `/pilot-cockpit.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-touch-controls.js?v=${PILOT_STYLESHEET_VERSION}`,

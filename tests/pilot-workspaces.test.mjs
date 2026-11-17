@@ -37,13 +37,8 @@ test('radar opens on demand and stops playback when the briefing is selected', (
   run('setWeatherView',mocks,'briefing');
   assert.equal(stops,1); assert.equal(nodes.weatherBriefingPanel.hidden,false); assert.equal(nodes.weatherRadarPanel.hidden,true); assert.equal(tabs[0]['aria-selected'],'true');
 });
-test('sidebar preference updates the accessible name and expanded state on both toggles', () => {
-  const button=()=>({setAttribute(k,v){this[k]=v;}}), sidebarToggle=button(),sidebarRailToggle=button();
-  for(const collapsed of [true,false]) {
-    run('syncSidebar',{sidebarToggle,sidebarRailToggle,document:{body:{classList:{contains:()=>collapsed}}}});
-    for(const target of [sidebarToggle,sidebarRailToggle]) {
-      assert.equal(target['aria-expanded'],String(!collapsed));
-      assert.equal(target['aria-label'],collapsed?'Expand sidebar':'Collapse sidebar');
-    }
-  }
+test('workspace dock offers a labeled overflow without either obsolete sidebar toggle', () => {
+  assert.match(html,/id="mobileMoreBtn"[^>]+aria-label="Open more EFB tools"/);
+  assert.doesNotMatch(html,/id="(?:sidebarToggle|sidebarRailToggle|appBackBtn)"/);
+  assert.match(read('public/pilot-command-deck.css'),/position:fixed; inset:auto/);
 });

@@ -1,0 +1,72 @@
+/* Final viewport ownership: one dock at every breakpoint; no left rail. */
+html:root body.efb-ui.pilot-ops-v2:not(.app-focus) > .frame {
+  --shell-tabs:68px; --rail-width:0px; --rail-inset:0px;
+  padding:var(--shell-top) env(safe-area-inset-right) calc(var(--shell-tabs) + var(--shell-bottom)) env(safe-area-inset-left);
+}
+html:root body.efb-ui.pilot-ops-v2:not(.app-focus) #pilotWorkspaceNav {
+  position:fixed; inset:auto max(8px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+  display:flex; flex-flow:row nowrap; align-items:stretch; justify-content:center; transform:none;
+  width:auto; max-width:960px; height:60px; min-height:0; max-height:none; margin:0 auto; padding:4px;
+  box-sizing:border-box; overflow:visible; gap:3px; border-radius:16px; z-index:30;
+}
+html:root body.efb-ui #pilotWorkspaceNav .suite-tab:not([hidden]) {
+  display:flex!important; flex:1 1 0; flex-direction:column; align-items:center; justify-content:center;
+  width:auto; height:100%; min-height:48px; padding:2px; border:0; border-radius:11px; gap:2px; margin:0;
+  transition:background-color .14s,color .14s; color:var(--efb-secondary); background:none;
+}
+html:root body.efb-ui #pilotWorkspaceNav .suite-tab strong { display:block; font:600 12px/1.15 var(--efb-font); text-transform:none; }
+html:root body.efb-ui #pilotWorkspaceNav .suite-icon,html:root body.efb-ui #pilotWorkspaceNav .suite-icon svg { width:21px; height:21px; flex:none; }
+html:root body.efb-ui #pilotWorkspaceNav .suite-tab:is([aria-current=page],.active) { color:var(--efb-on-active); background:var(--efb-active); box-shadow:none; }
+html:root body.efb-ui #pilotWorkspaceNav .suite-tab[hidden] {display:none!important}
+@media(min-width:721px){ html:root body.efb-ui #pilotWorkspaceNav #mobileMoreBtn:not([hidden]) {display:none!important} }
+@media(max-width:720px){
+  html:root body.efb-ui #pilotWorkspaceNav .suite-tab:is([data-suite-view=aircraft],[data-suite-view=performance],[data-suite-view=documents],[data-suite-view=logbook]) {display:none!important}
+}
+html:root body.efb-ui .efb-masthead .masthead-status #clock {font:600 16px/1.2 "Courier New",monospace; font-variant-numeric:tabular-nums; white-space:nowrap; width:11ch; min-width:11ch; margin-inline-end:8px;}
+html:root body.efb-ui .efb-masthead #cockpitLocationBtn svg,html:root body.efb-ui #flightContextBtn svg { display:block; width:20px; height:20px; flex:none; aspect-ratio:1; }
+html:root body.efb-ui .brand-desk-button {flex-wrap:nowrap; white-space:normal; overflow:visible;}
+html:root body.efb-ui .app-navigation-title h1 {overflow:visible;}
+@media(max-width:620px){
+  html:root body.efb-ui .efb-masthead {display:grid; grid-template-columns:minmax(0,1fr); gap:3px; padding:4px 8px;}
+  html:root body.efb-ui .efb-masthead .masthead-status {grid-area:2 / 1; width:100%; justify-content:flex-end; display:flex; flex-wrap:wrap;}
+  html:root body.efb-ui .efb-masthead .masthead-status #clock {margin-right:auto;}
+  html:root body.efb-ui .efb-masthead .app-navigation-title {grid-area:1 / 1;width:100%;min-width:0;}
+  html:root body.efb-ui .efb-masthead .workspace-identity {display:grid;grid-template-columns:minmax(0,1fr) auto;width:100%;align-items:center;gap:6px;}
+  html:root body.efb-ui .efb-masthead .workspace-identity h1 {width:100%;min-width:0;}
+  html:root body.efb-ui .efb-masthead #appWorkspaceTitle {min-width:0;word-break:normal;overflow-wrap:normal;line-height:1.12;}
+  html:root body.efb-ui .efb-masthead #flightSwitchBtn {width:auto;max-width:120px;}
+}
+.management-scopes,.flight-kind-actions,.wx-generate,.hangar-tools {display:flex; flex-wrap:wrap; align-items:center; gap:5px;}
+.management-scopes button,.flight-kind-actions :is(button,a),.hangar-tools button,.hangar-launch,.wx-generate button {
+  padding:8px 12px; color:var(--efb-text); background:var(--efb-soft); border:1px solid var(--efb-line); border-radius:8px;
+}
+.management-scopes button[aria-pressed=true],.wx-generate button.primary {background:var(--efb-active);color:var(--efb-on-active);}
+.flight-kind-panel,.wx-review {margin-block:10px; padding:12px; border-block:1px solid var(--efb-line);}
+.flight-kind-panel h3,.wx-review h3 {margin:0 0 8px; font:600 17px var(--efb-font);}
+.flight-kind-panel label,.flight-kind-panel small {display:block; padding-block:3px;}
+.flight-kind-panel a {color:var(--efb-link);}
+.wx-generate {margin-block:8px;}
+.management-scopes {padding:8px 12px;}
+.management-scopes button,.flight-kind-actions :is(button,a),.hangar-tools button,.hangar-launch,.airframe-dialog button {min-height:48px;}
+.flight-kind-panel :is(input,select,textarea) {width:100%; max-width:100%; box-sizing:border-box;}
+.flight-kind-panel [hidden],.wx-review [hidden],a#privateDocStatement[hidden]{display:none!important;}
+.flight-kind-panel .flight-kind-actions,.flight-kind-panel section {margin-block:10px;}
+.flight-kind-panel .flight-kind-actions span{overflow-wrap:anywhere;}
+.wx-review #weatherWinds:not([hidden]):not(:empty){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:12px 0;font:500 13px var(--efb-mono);}
+.wx-review .weather-report code {display:block;white-space:normal;overflow-wrap:anywhere;}
+html body.efb-ui #efbFlightHero .hangar-portrait {display:block;position:relative;pointer-events:auto;width:100%;padding:0;border:0;background:transparent;cursor:pointer;}
+.hangar-portrait::after{content:"View 3D";position:absolute;bottom:4px;right:5px;background:#0e203a;color:white;border-radius:5px;padding:3px 6px;font:600 12px var(--efb-font);pointer-events:none;}
+.airframe-dialog header button {border:1px solid var(--efb-line);border-radius:8px;background:var(--efb-soft);color:var(--efb-text);padding-inline:14px;}
+.airframe-dialog,.attachment-reader {box-sizing:border-box;width:min(820px,94vw);max-height:88dvh;overflow:auto;color:var(--efb-text);background:var(--efb-card);border:1px solid var(--efb-line);border-radius:14px;padding:16px;}
+.airframe-dialog::backdrop,.attachment-reader::backdrop{background:rgba(4,9,16,.75);}
+.airframe-dialog header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.airframe-dialog h2,.airframe-dialog p {margin:4px 0 10px;}
+.airframe-dialog small{display:block;color:var(--efb-secondary);margin-top:8px;}
+.airframe-viewport {height:clamp(180px,44dvh,460px);overflow:hidden;background:#182538;border-radius:9px;display:grid;place-items:center;}
+.airframe-viewport canvas,.airframe-viewport img{display:block;width:100%;height:100%;object-fit:contain;}
+.airframe-viewport canvas{touch-action:none;cursor:grab;}
+.attachment-reader iframe {display:block;width:100%;height:65dvh;border:0;}
+.wx-review summary {align-content:center;}
+.wx-review #weatherAirportGrid:not(:empty) {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(245px,100%),1fr));gap:8px;}
+@media(hover:hover){html:root body.efb-ui #pilotWorkspaceNav .suite-tab:not(.active):hover{background:var(--efb-soft);color:var(--efb-text);}}
+@media(prefers-reduced-motion:reduce){html:root body.efb-ui #pilotWorkspaceNav .suite-tab{transition:none;}}

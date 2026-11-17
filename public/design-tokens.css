@@ -3,18 +3,21 @@
 :root {
   --efb-font:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;
   --efb-mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
-  --efb-gap:16px; --efb-radius:22px; --efb-hit:48px;
+  /* Sampled from the original wing, wordmark, silver lettering and field. */
+  --nga-wing:#0e203a; --nga-wordmark:#101f3b; --nga-metal:#7f8083; --nga-paper:#ffffff;
+  --efb-gap:12px; --efb-radius:12px; --efb-hit:48px;
   --efb-vfr:#00E676; --efb-mvfr:#FFB300; --efb-ifr:#FF3B30; --efb-lifr:#EC9BFF;
-  --efb-active:#00A3FF; --efb-on-active:#071520;
+  --efb-active:var(--nga-wing); --efb-on-active:var(--nga-paper);
   --efb-base:#eff2f6; --efb-card:#fff; --efb-soft:#e7edf4;
-  --efb-text:#162032; --efb-secondary:#48566a; --efb-link:#005d97;
+  --efb-text:var(--nga-wordmark); --efb-secondary:#48566a; --efb-link:#304b70;
   --efb-line:rgba(28,48,75,.22); --efb-highlight:rgba(255,255,255,.85);
   --efb-pane:rgba(243,248,255,.82); --efb-filter:blur(20px) saturate(135%);
   --glass-rim:rgba(255,255,255,.8); --glass-glint:rgba(215,235,255,.25);
 }
 :root[data-efb-theme=night], .efb-offline {
-  --efb-base:#071426; --efb-card:#10243c; --efb-soft:#1a3453;
-  --efb-text:#f6f9ff; --efb-secondary:#b9c6d8; --efb-link:#67c6ff;
+  --efb-base:#091322; --efb-card:var(--nga-wing); --efb-soft:#20334b;
+  --efb-active:#d7dce3; --efb-on-active:var(--nga-wordmark);
+  --efb-text:#f6f9ff; --efb-secondary:#b9c6d8; --efb-link:#c4d4e8;
   --efb-line:rgba(255,255,255,0.12); --efb-highlight:rgba(255,255,255,0.08);
   --efb-pane:rgba(16,39,66,.81); --glass-rim:rgba(197,224,255,.32); --glass-glint:rgba(163,207,255,.14);
 }
@@ -160,7 +163,7 @@
     display:inline-flex; gap:9px; align-items:center; max-width:100%; padding:0; border:0; background:none;
     box-shadow:none; color:var(--efb-text); font:inherit; text-align:start; text-transform:none; letter-spacing:inherit;
   }
-  .brand-wing { flex:none; width:32px; height:32px; border-radius:50%; background:white url('/pilot-natglobe-logo.png') 50.5% 4.8% / 590% auto no-repeat; }
+  .brand-signature { display:block; flex:none; box-sizing:content-box; width:clamp(76px,8vw,120px); height:auto; aspect-ratio:1414/517; object-fit:contain; padding:4px; background:white; border-radius:6px; }
   html body.efb-ui .wx-code-label input { width:100%; box-sizing:border-box; font:600 20px/1.2 var(--efb-mono) !important; letter-spacing:.2em; }
   .wx-code-label input::placeholder { color:var(--efb-secondary); opacity:.8; }
   .wx-code-label small { color:var(--efb-secondary); font-weight:400; }

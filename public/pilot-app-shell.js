@@ -40,7 +40,6 @@ window.createPilotAppShell = function createPilotAppShell({ navigate, getFlight,
     node('appWorkspaceSubtitle').textContent = route;
     node('flightSwitchBtn').title = flight ? `Switch active flight: ${route} · ${flight.id}` : 'Select an active flight';
     node('appFocusBtn').hidden = current !== 'flight-plan' || !flight?.id;
-    node('appBackBtn').disabled = history.state?.ngaAppSession !== session || !(history.state?.ngaAppDepth > 0);
     if (current !== 'flight-plan' || !flight?.id) setFocus(false);
   }
 
@@ -90,9 +89,6 @@ window.createPilotAppShell = function createPilotAppShell({ navigate, getFlight,
     if (!dialog.open) dialog.showModal();
   }
 
-  node('appBackBtn').addEventListener('click', () => {
-    if (!node('appBackBtn').disabled) history.back();
-  });
   node('appFocusBtn').addEventListener('click', () => setFocus(!document.body.classList.contains('app-focus')));
   node('appSettingsBtn').addEventListener('click', openSettings);
   node('appSettingsCloseBtn').addEventListener('click', () => node('appPreferencesDialog').close());

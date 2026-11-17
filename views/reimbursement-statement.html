@@ -75,7 +75,8 @@
 <body>
   <main class="workspace">
     <aside class="editor">
-      <h1>Statement Editor</h1>
+      <a href="/booking-ops#flights">‹ Return to Flights</a>
+      <h1>Reimbursement editor</h1>
       <p>Adjust the reimbursement statement, save its draft to Pilot Ops, then open the finished one-page PDF.</p>
       <label for="passengerSelect">Passenger</label><select id="passengerSelect"></select>
       <h2>Statement Dates</h2>
@@ -90,7 +91,7 @@
       <label for="crewName">Crew name</label><input id="crewName" />
       <label for="crewEmail">Crew email</label><input id="crewEmail" />
       <label for="crewPhone">Crew phone</label><input id="crewPhone" />
-      <h2>Charge Lines</h2><div id="chargeEditor"></div>
+      <h2>Charge lines</h2><p>Enter the agreed line amounts. The preview sums those amounts and applies the original statement split. Verify template amounts against your receipts before export.</p><div id="chargeEditor"></div>
       <button id="addChargeRow" class="btn secondary" type="button">+ Add Charge Row</button>
       <h2>Bank Details</h2>
       <label for="bankName">Bank</label><input id="bankName" placeholder="Enter bank name" />
@@ -100,7 +101,8 @@
       <label for="siirtoPhone">Siirto recipient phone</label><input id="siirtoPhone" placeholder="+358 40 123 4567" />
       <label for="paymentReference">Payment reference</label><input id="paymentReference" />
       <button id="saveDraft" class="btn" type="button">Save Statement Draft</button>
-      <button id="openPdfStatement" class="btn secondary" type="button">Open PDF</button>
+      <button id="downloadStatement" class="btn" type="button">Generate &amp; download PDF</button>
+      <button id="openPdfStatement" class="btn secondary" type="button">Print statement</button>
       <div id="saveStatus" class="save-status"></div>
     </aside>
 
@@ -271,8 +273,15 @@
       renderChargeEditor();
       sync();
     });
-    async function saveStatementDraft() {
+    async function saveStatementDraft(forExport=false) {
+      if (!request || !statement) {el('saveStatus').textContent='Flight data has not loaded. Reload the editor.';return false;}
       sync();
+      for (const input of document.querySelectorAll('[data-field="amount"],[data-field="unitPrice"]')) {
+        const value=input.value.trim().replace(/^(?:EUR|€)\s*|\s*(?:EUR|€)$/gi,'').trim();
+        if ((!value && forExport && input.dataset.field==='amount') || (value && !/^[+-]?\d+(?:[.,]\d+)?$/.test(value))) {
+          el('saveStatus').textContent='Check the highlighted charge. Enter a numeric amount with a decimal point or comma.';input.focus();return false;
+        }
+      }
       el('saveStatus').textContent = 'Saving statement draft...';
       try {
         const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(request.id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reimbursementStatement: statement }) });
@@ -291,10 +300,21 @@
     el('saveDraft').addEventListener('click', () => {
       void saveStatementDraft();
     });
+    el('downloadStatement').addEventListener('click', async () => {
+      const button=el('downloadStatement');button.disabled=true;
+      try{
+        if (!await saveStatementDraft(true)) return;
+        const response=await fetch('/api/booking-ops/requests/'+encodeURIComponent(request.id)+'/reimbursement-statement/pdf',{cache:'no-store'});
+        if (!response.ok || !response.headers.get('content-type')?.includes('application/pdf')) throw new Error('PDF unavailable. Your saved draft is unchanged.');
+        const url=URL.createObjectURL(await response.blob()), a=document.createElement('a');a.href=url;a.download=request.id+'-reimbursement.pdf';
+        document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+        el('saveStatus').textContent='PDF generated. Draft saved.';
+      }catch(error){el('saveStatus').textContent=error.message;}finally{button.disabled=false;}
+    });
     el('openPdfStatement').addEventListener('click', async () => {
       const button = el('openPdfStatement');
       button.disabled = true;
-      const saved = await saveStatementDraft();
+      const saved = await saveStatementDraft(true);
       button.disabled = false;
       if (!saved) return;
       window.print();

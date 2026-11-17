@@ -2945,46 +2945,45 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-17-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-17-1" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-16-3" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-16-3" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-1" />
+  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-17-1" />
 </head>
 <body class="pilot-ops-v2 efb-ui">
   <main class="frame">
     <canvas id="glassCanvas" aria-hidden="true"></canvas>
     <header class="efb-masthead" data-glass-surface>
       <div class="app-navigation-title">
-        <button id="appBackBtn" class="shell-icon-button" type="button" aria-label="Back to previous workspace" disabled><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7" /></svg></span></button>
         <div class="workspace-identity">
-          <h1 aria-labelledby="appWorkspaceTitle"><button id="launchDeskBtn" class="brand-desk-button" type="button" aria-label="Open flight desk" aria-haspopup="dialog" aria-controls="launchDesk"><span class="brand-wing" aria-hidden="true"></span><span id="appWorkspaceTitle">Pilot EFB</span></button></h1>
+          <h1 aria-labelledby="appWorkspaceTitle"><button id="launchDeskBtn" class="brand-desk-button" type="button" aria-label="Open flight desk" aria-haspopup="dialog" aria-controls="launchDesk"><img class="brand-signature" src="/pilot-natglobe-logo.png" width="1414" height="517" alt="NatGlobe Aviation" /><span id="appWorkspaceTitle">Pilot EFB</span></button></h1>
           <button id="flightSwitchBtn" class="flight-switch-button" type="button" data-glass-control aria-label="Switch active flight" aria-describedby="appWorkspaceSubtitle" aria-haspopup="dialog" aria-controls="flightPickerDialog">
             <span id="appWorkspaceSubtitle">Select flight</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg>
           </button>
         </div>
         <span id="appDraftBadge" class="app-draft-badge" hidden>Unsaved OFP</span>
       </div>
-      <button id="sidebarToggle" class="shell-icon-button masthead-menu-button" type="button" aria-label="Collapse navigation" title="Navigation"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></span></button>
       <div class="masthead-brand"><span class="efb-logo-mark"><img src="/pilot-natglobe-logo.png" alt="NGA Private Aviation" /></span><div class="masthead-brand-copy"><div class="title">NGA Pilot EFB</div><div class="intro">Flight operations</div></div></div>
       <div class="masthead-status">
-        <button id="cockpitLocationBtn" class="cockpit-location" type="button" aria-label="Device location status" data-tone="neutral"><span aria-hidden="true">◎</span><span id="cockpitLocationValue">Location off</span></button>
+        <button id="cockpitLocationBtn" class="cockpit-location" type="button" aria-label="Device location status" data-tone="neutral"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg><span id="cockpitLocationValue">Location off</span></button>
         <span id="appConnection" class="app-connection" aria-live="polite">Network</span>
         <button id="appFocusBtn" class="shell-icon-button app-focus-button" type="button" aria-label="Focus on flight briefing" aria-pressed="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" /></svg><span id="appFocusLabel">Focus</span></button>
         <button id="globalSearchBtn" class="shell-icon-button shell-search-button" type="button" aria-label="Search tools and flights"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg></span><span class="shell-search-label">Ask Pilot EFB or search</span><kbd>⌘ K</kbd></button>
         <button id="notificationsBtn" class="shell-icon-button masthead-round-button" type="button" aria-label="Open alerts" title="Alerts"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span><span id="notificationCount" class="count">0</span></button>
         <button id="userMenuBtn" class="shell-icon-button masthead-crew-button" type="button" aria-label="Open crew menu"><span class="app-avatar" aria-hidden="true">PIC</span><span class="masthead-crew-copy"><strong>Crew</strong><small>Pilot</small></span></button>
         <button id="efbThemeToggle" class="shell-icon-button efb-theme-toggle" type="button" aria-label="Switch to night mode" aria-pressed="false" title="Switch to night mode"><span class="efb-theme-icon" aria-hidden="true"><svg class="efb-theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg><svg class="efb-theme-icon-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></span></button>
-        <button id="flightContextBtn" class="shell-icon-button masthead-round-button flight-context-trigger" type="button" aria-label="Open active flight context" title="Active flight" aria-controls="flightContextPanel" aria-expanded="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 16l20-8-8 20-3-9-9-3Z"></path><path d="m11 19 4-4"></path></svg></span></button>
+        <button id="flightContextBtn" class="shell-icon-button masthead-round-button flight-context-trigger" type="button" aria-label="Open active flight context" title="Active flight" aria-controls="flightContextPanel" aria-expanded="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.6c-.9 0-1.3 1.2-1.3 2.4v4.2L3 14v1.9l7.7-2.7v5L8 20v1l4-1 4 1v-1l-2.7-1.8v-5L21 16v-2l-7.7-4.8V5c0-1.2-.4-2.4-1.3-2.4z"/></svg></span></button>
         <button id="appUpdateBtn" class="shell-icon-button masthead-round-button" type="button" aria-label="Refresh application" title="Update ready" hidden><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.34 5.66"></path><path d="M20 4v7h-7"></path></svg></span></button>
         <button id="appSettingsBtn" class="shell-icon-button" type="button" aria-label="Open app settings" title="App settings"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></span></button>
         <div id="pilotRoleBadge" class="badge">PILOT SESSION / LOADING</div>
@@ -3003,7 +3002,6 @@
     </section>
     <div class="efb-layout">
     <nav id="pilotWorkspaceNav" class="ops-suite-nav" data-glass-surface aria-label="Pilot operations workspaces">
-      <div class="suite-nav-tools"><span class="suite-nav-label">Workspaces</span><button id="sidebarRailToggle" type="button" aria-controls="pilotWorkspaceNav" aria-expanded="true" aria-label="Collapse sidebar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M14 4v16"/></svg></button></div>
       <button class="suite-tab active" type="button" data-suite-view="dashboard" aria-label="Open operations dashboard" title="Operations dashboard"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg></span><strong>Home</strong></button>
       <button class="suite-tab" type="button" data-suite-view="flights" aria-label="Open flight control" title="Flight control"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="3"></rect><path d="M7 2.5V6M17 2.5V6M2.5 8.5h19"></path><path d="m7 15 10-3-3.25 3L17 18l-10-3Z"></path></svg></span><strong>Flights</strong></button>
       <button class="suite-tab" type="button" data-suite-view="flight-plan" aria-label="Open operational flight plan" title="Operational flight plan"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6"></path><circle cx="8" cy="16" r="1.25"></circle><circle cx="16" cy="12" r="1.25"></circle><path d="M9.25 15.45 14.75 12.6"></path></svg></span><strong>OFP</strong></button>
@@ -3044,7 +3042,7 @@
           <span data-hero-phase="arrived"><i>4</i><strong>Arrived</strong></span>
         </div>
         <figure class="efb-aircraft-stage">
-          <img src="/piper-render-transparent.png" alt="OH-PMK Piper Arrow side profile" />
+          <button class="hangar-portrait" type="button" data-open-hangar aria-label="Explore representative 3D airframe"><img src="/piper-render-transparent.png" alt="OH-PMK Piper Arrow side profile" /></button>
           <figcaption><span>OH-PMK · Aircraft status</span><strong id="efbHeroAircraftStatus">Awaiting live status</strong></figcaption>
         </figure>
         <div class="efb-hero-metrics" aria-label="Active flight metrics">
@@ -3130,17 +3128,18 @@
             <label class="wx-code-label">Departure<input id="weatherDep" aria-describedby="wxCodeHint" maxlength="4" pattern="[A-Z]{4}" placeholder="····" required autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" /></label>
             <label class="wx-code-label">Arrival<input id="weatherArr" aria-describedby="wxCodeHint" maxlength="4" pattern="[A-Z]{4}" placeholder="····" required autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" /></label>
             <label class="wx-code-label">Alternate <small>Optional</small><input id="weatherAltn" aria-describedby="wxCodeHint" maxlength="4" pattern="[A-Z]{4}" placeholder="····" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" /></label>
-            <button id="refreshWeatherBtn" class="efb-action primary" type="button">Generate weather</button>
-            <button id="openWeatherPdfBtn" class="efb-action" type="button">Open weather PDF</button>
             <button id="swapWxAirports" class="efb-action" type="button" disabled>⇄ Swap airports</button>
           </div>
-          <datalist id="weatherAirportOptions"></datalist>
+          <details class="wx-review"><summary>Find an airport by name or ICAO</summary>
+            <label>Airport directory <input id="wxFind" type="search" list="weatherAirportOptions" placeholder="Airport name or code"></label>
+            <div class="flight-kind-actions" aria-label="Use airport for"><button type="button" data-wx-pick="weatherDep">Set departure</button><button type="button" data-wx-pick="weatherArr">Set arrival</button><button type="button" data-wx-pick="weatherAltn">Set alternate</button></div><small id="wxSearchStatus" role="status"></small>
+          </details><datalist id="weatherAirportOptions"></datalist>
           <details class="weather-report-options"><summary>Report options <span>METAR / TAF by airport</span></summary>
           <div class="weather-options" aria-label="Weather report options">
             <div class="weather-option-group"><strong>DEPARTURE</strong><label><input id="wxDepMetar" type="checkbox" checked /> METAR</label><label><input id="wxDepTaf" type="checkbox" checked /> TAF</label></div>
             <div class="weather-option-group"><strong>ARRIVAL</strong><label><input id="wxArrMetar" type="checkbox" checked /> METAR</label><label><input id="wxArrTaf" type="checkbox" checked /> TAF</label></div>
             <div class="weather-option-group"><strong>ALTERNATE</strong><label><input id="wxAltnMetar" type="checkbox" checked /> METAR</label><label><input id="wxAltnTaf" type="checkbox" checked /> TAF</label></div>
-            <input id="wxWinds" type="hidden" value="false" />
+            <label><input id="wxWinds" type="checkbox" /> Include winds aloft</label>
           </div>
           </details>
           <div class="workspace-segments" role="tablist" aria-label="Weather view">
@@ -3156,6 +3155,11 @@
           <div id="weatherBriefingPanel" role="tabpanel" aria-labelledby="weatherBriefingTab">
           <div id="weatherStatus" class="weather-status" role="status">Enter departure and arrival ICAO codes, or open a flight to preload its route.</div>
           <div id="weatherCategoryStrip" aria-label="Weather by airport"></div>
+          <details class="wx-review"><summary>Airport comparison · decoded observations and forecast groups</summary>
+            <p>Station observations and forecast groups use UTC. The raw report is authoritative; this partial decode is not an operational briefing.</p><div id="weatherAirportGrid"></div><div id="weatherWinds" class="winds-grid"></div><div id="weatherDecision"></div>
+          </details>
+          <div class="wx-generate"><button id="refreshWeatherBtn" class="efb-action primary" type="button">Generate briefing</button>
+            <button id="openWeatherPdfBtn" disabled class="efb-action" type="button">Preview weather PDF</button></div>
           <p class="wx-badge-key">Pilot Ops badges: VFR green · MVFR amber · IFR red · LIFR magenta. Map legends are unchanged.</p>
           <div class="weather-output-layout">
             <section class="acars-preview"><header class="acars-preview-head"><span>Raw aviation weather report</span><span id="weatherReportMode">READY</span></header><pre id="weatherAcarsReport">ACARS WEATHER REPORT
@@ -3163,9 +3167,6 @@
 ENTER ICAO ROUTE TO GENERATE WEATHER.</pre></section>
           </div>
           </div>
-          <div id="weatherAirportGrid" hidden></div>
-          <div id="weatherWinds" hidden></div>
-          <div id="weatherDecision" hidden></div>
         </div>
       </div>
       <div id="flightPlanOpsPane" class="ops-tool-pane" hidden>
@@ -3395,6 +3396,7 @@ LOAD DATA TO CALCULATE.</pre></details>
               <p>Piper Arrow II · PA-28R-200</p>
               <div class="aircraft-serviceability-pill"><i aria-hidden="true"></i><strong id="aircraftServiceabilityHero">STATUS LOADING</strong></div>
               <button id="editAircraftStatusBtn" class="aircraft-hero-action" type="button">Update aircraft</button>
+              <button class="hangar-launch" data-open-hangar type="button">Explore 3D airframe</button>
             </div>
             <div class="aircraft-hero-visual" aria-hidden="true"><img src="/piper-render-transparent.png" alt="" /></div>
             <div class="aircraft-hero-metrics" aria-label="Latest aircraft readings">
@@ -3514,7 +3516,8 @@ LOAD DATA TO CALCULATE.</pre></details>
         <section class="flight-file-library" aria-label="Selected flight document library">
           <header class="flight-file-head"><div><span>Controlled documents</span><h2>Flight File</h2><p>One organized record for planning, passenger documents, payment, and the final operations archive.</p></div><strong id="suiteDocFlight">NO FLIGHT SELECTED</strong></header>
           <div id="documentsEmpty" class="workspace-empty"><h3>No flight loaded</h3><p>Select a flight to open its planning documents and operations record.</p><button id="documentsSelectFlightBtn" type="button" class="efb-action primary">Select a flight</button></div>
-          <p id="documentsPilotOnly" class="workspace-notice" hidden>Pilot-only flight. Passenger agreements, reimbursement and payment documents do not apply.</p>
+          <p id="documentsPilotOnly" class="workspace-notice" hidden>Pilot-created file. Passenger agreements and payment collection do not apply.</p>
+          <a id="privateDocStatement" class="efb-action" target="_blank" rel="noopener" hidden>Open private reimbursement editor ↗</a>
           <div class="suite-doc-summary">
             <div><span>OFP state</span><strong id="suiteDocOfp">NOT STARTED</strong></div>
             <div><span>Cost statement</span><strong id="suiteDocStatement">NOT SAVED</strong></div>
@@ -3541,6 +3544,10 @@ LOAD DATA TO CALCULATE.</pre></details>
     <div class="layout">
       <aside class="panel queue-panel">
         <div class="panel-title queue-panel-title"><div>Flights <span>Operations queue</span></div><button id="createPilotFlightBtn" class="create-pilot-flight-btn" type="button">+ Create flight</button></div>
+        <nav class="management-scopes" aria-label="Flight management categories">
+          <button type="button" data-flight-kind="all" aria-pressed="true">All files</button><button type="button" data-flight-kind="operational" aria-pressed="false">Operational / Business</button>
+          <button type="button" data-flight-kind="private" aria-pressed="false">Private</button><button type="button" data-flight-kind="training" aria-pressed="false">Training</button>
+        </nav><p id="flightKindHint" class="queue-selection-hint">Includes unclassified historical files.</p>
         <div class="queue-search-bar"><input id="filterQuery" type="search" aria-label="Search flight queue" placeholder="Search flights…" /></div>
         <div class="queue-primary-filters" role="group" aria-label="Flight list scope"><button type="button" class="quick-filter active" data-quick-filter="ALL">All flights</button><button type="button" class="quick-filter" data-quick-filter="TODAY">Today</button><button type="button" class="quick-filter" data-quick-filter="MANUAL">Pilot files</button></div>
         <details class="queue-filter-drawer">
@@ -3570,6 +3577,12 @@ LOAD DATA TO CALCULATE.</pre></details>
         <div id="cockpitFlightFileEmpty" class="cockpit-file-empty"><span>FLIGHT FILE</span><h2>No flight loaded</h2><p>Choose a flight from the list to view its operational file, or create a new pilot flight.</p><button type="button" id="cockpitQueueSelect">Select flight</button></div>
         <div id="cockpitFlightFile" class="panel" hidden>
           <div class="panel-title" id="flightFileHeading" tabindex="-1"><span class="file-heading-label">Active flight file</span><button id="showFlightList" class="flight-pane-link" type="button">← Flight list</button></div>
+          <details class="flight-kind-panel" id="flightManagement"><summary>Flight management &amp; documents</summary>
+            <label>Flight category <select id="fileKind"><option value="">Unclassified</option><option value="operational">Operational / Business</option><option value="private">Private</option><option value="training">Training</option></select></label>
+            <fieldset id="trainingFields" hidden><legend>Training session</legend><label>Instructor <input id="fileInstructor" maxlength="100"></label><label>Exercises <textarea id="fileExercises" maxlength="1000"></textarea></label><label>Progress &amp; next session <textarea id="fileProgress" maxlength="1000"></textarea></label><p id="trainingActuals"></p></fieldset>
+            <div class="flight-kind-actions"><button id="fileKindSave" type="button">Save classification &amp; notes</button><a id="privateStatement" hidden>Reimbursement statement ↗</a></div><p id="fileKindStatus" role="status"></p>
+            <section aria-label="Documents attached to this flight"><h3>Attached documents</h3><label>PDF, JPEG or PNG · up to 2 MB each <input type="file" id="fileAttachment" accept="application/pdf,image/jpeg,image/png"></label><button type="button" id="uploadAttachment">Attach to flight</button><div id="attachmentList"></div><p role="status" id="attachmentStatus"></p></section>
+          </details>
           <nav class="flight-detail-tabs" aria-label="Active flight file sections" role="tablist">
             <button class="active" type="button" role="tab" data-flight-detail-tab="overview" aria-selected="true">Overview</button>
             <button type="button" role="tab" data-flight-detail-tab="release" aria-selected="false">Release</button>
@@ -3887,6 +3900,7 @@ END OF MESSAGE</pre>
           <label>Destination ICAO<input id="manualFlightArr" list="weatherAirportOptions" maxlength="4" pattern="[A-Za-z]{4}" placeholder="EFHN" autocomplete="off" required /></label>
         </div>
         <div class="manual-flight-fields">
+          <label>File category<select id="manualKind"><option value="operational">Operational / Business</option><option value="private">Private</option><option value="training">Training</option></select></label>
           <label>Departure date<input id="manualFlightDate" type="date" required /></label>
           <label>Departure time (local)<input id="manualFlightTime" type="time" required /></label>
           <label>Flight rules<select id="manualFlightRules"><option value="VFR">VFR</option><option value="IFR">IFR</option></select></label>
@@ -3932,15 +3946,18 @@ END OF MESSAGE</pre>
     <dl class="desk-instruments"><div><dt>Zulu time</dt><dd id="deskZulu">—</dd></div><div><dt>Connection</dt><dd id="deskNetwork">—</dd></div></dl>
     <div class="desk-actions"><button id="deskMap" type="button">Open map <span aria-hidden="true">↗</span></button><button id="deskFlightAction" type="button">Select flight</button><button id="deskWeather" type="button">Brief weather</button></div>
   </dialog>
-  <script src="/pilot-weather-viewer.js?v=2026-11-16-3"></script>
-  <script src="/pilot-cockpit.js?v=2026-11-16-3"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-16-3"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-16-3"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-16-3"></script>
-  <script src="/pilot-map-view.js?v=2026-11-16-3"></script>
-  <script src="/pilot-display.js?v=2026-11-16-3"></script>
-  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-16-3"></script>
-  <script defer src="/pilot-glass.js?v=2026-11-16-3"></script>
+  <script src="/pilot-weather-viewer.js?v=2026-11-17-1"></script>
+  <script src="/pilot-file-tools.js?v=2026-11-17-1"></script>
+  <script src="/pilot-weather-summary.js?v=2026-11-17-1"></script>
+  <script src="/pilot-hangar.js?v=2026-11-17-1" defer></script>
+  <script src="/pilot-cockpit.js?v=2026-11-17-1"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-17-1"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-17-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-17-1"></script>
+  <script src="/pilot-map-view.js?v=2026-11-17-1"></script>
+  <script src="/pilot-display.js?v=2026-11-17-1"></script>
+  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-17-1"></script>
+  <script defer src="/pilot-glass.js?v=2026-11-17-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -4227,8 +4244,6 @@ END OF MESSAGE</pre>
     const aircraftLog = el('aircraftLog');
     const installPilotAppBtn = el('installPilotAppBtn');
     const offlineSnapshotState = el('offlineSnapshotState');
-    const sidebarToggle = el('sidebarToggle');
-    const sidebarRailToggle = el('sidebarRailToggle');
     const globalSearchBtn = el('globalSearchBtn');
     const notificationsBtn = el('notificationsBtn');
     const notificationCount = el('notificationCount');
@@ -4254,6 +4269,20 @@ END OF MESSAGE</pre>
     let requests = [];
     let selected = null;
     let quickFilter = 'ALL';
+    let flightKind = 'all';
+    const fileTools = window.PilotFileTools.create({onSave:(id, management)=>{
+      const row=requests.find(item=>item.id===id);
+      if(row) row.management=management;
+      if(selected?.id===id){selected.management=management;updateSuiteContext(selected);}
+      renderList();
+    }});
+    function syncFlightManagement(req){ fileTools.select(req); }
+    document.querySelectorAll('[data-flight-kind]').forEach(button=>button.addEventListener('click',()=>{
+      flightKind=button.dataset.flightKind;
+      document.querySelectorAll('[data-flight-kind]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+      el('flightKindHint').textContent=({all:'Includes unclassified historical files.',private:'Personal flights · expenses and reimbursement statements.',training:'Training history · instructors, exercises and progress.',operational:'Business and operational flight files.'})[flightKind];
+      renderList();
+    }));
     let autoSyncing = false;
     let latestPerformanceData = null;
     let latestPerformanceEffectiveData = null;
@@ -4367,6 +4396,7 @@ END OF MESSAGE</pre>
         req.arr,
         req.depName,
         req.arrName,
+        req.management?.category, req.management?.training?.instructor, req.management?.training?.exercises, req.management?.training?.progress,
         req.aircraft,
         req.crew?.commander,
         req.name,
@@ -5078,6 +5108,7 @@ END OF MESSAGE</pre>
     }
 
     function updateSuiteContext(req = selected) {
+      syncFlightManagement(req);
       el('cockpitEmptyFlight').hidden = Boolean(req);
       el('cockpitUnloadFlight').hidden = !req;
       el('cockpitFlightFileEmpty').hidden = Boolean(req);
@@ -5121,6 +5152,8 @@ END OF MESSAGE</pre>
       el('documentsGroups').hidden = !req;
       el('documentsPassengerGroup').hidden = !passengerDocumentsApply;
       el('documentsPilotOnly').hidden = !req?.manualFlight;
+      el('privateDocStatement').hidden = !(req?.manualFlight && req?.management?.category==='private');
+      if(req) el('privateDocStatement').href='/booking-ops/requests/'+encodeURIComponent(req.id)+'/reimbursement-statement';
       document.querySelector('.suite-doc-summary').hidden = !req;
       ['suiteDocStatement', 'suiteDocAgreements', 'suiteDocPayment'].forEach(id => { el(id).parentElement.hidden = !passengerDocumentsApply; });
       suiteOpenOfpBtn.disabled = !req;
@@ -5174,11 +5207,11 @@ END OF MESSAGE</pre>
     }
 
     function weatherVisibility(wx) {
-      return Number.isFinite(wx?.visibilityM) ? (wx.visibilityM >= 9999 ? '10 KM+' : `${wx.visibilityM} M`) : 'N/A';
+      return wx?.visibilityText || (Number.isFinite(wx?.visibilityM) ? (wx.visibilityM >= 9999 ? '10 KM+' : `${wx.visibilityM} M`) : 'N/A');
     }
 
     function weatherCeiling(wx) {
-      return Number.isFinite(wx?.ceilingFt) ? `${wx.ceilingFt} FT` : 'UNLIMITED / N/A';
+      return Number.isFinite(wx?.ceilingFt) ? `${wx.ceilingFt} FT` : 'NOT REPORTED';
     }
 
     function weatherObservationAge(wx) {
@@ -5197,6 +5230,7 @@ END OF MESSAGE</pre>
         <div class="weather-category-top">
           <div><span class="weather-category-role">${escapeHtml(role)} WX</span><strong class="weather-category-icao">${escapeHtml(wx.icao || '----')}</strong></div>
           <strong class="weather-category-value">${escapeHtml(category)}</strong>
+          ${wx.metarFallback ? '<small>Nearby: '+escapeHtml(wx.metarSource || 'unknown station')+'</small>' : ''}${stale ? '<small>Stale observation</small>' : ''}
         </div>
         <div class="weather-category-meta">
           <span>Visibility<strong>${escapeHtml(weatherVisibility(wx))}</strong></span>
@@ -5559,7 +5593,7 @@ END OF MESSAGE</pre>
       const source = type === 'METAR' ? wx?.metarSource : wx?.tafSource;
       const distance = type === 'METAR' ? wx?.metarDistanceNm : wx?.tafDistanceNm;
       if (!source) return 'SOURCE UNAVAILABLE';
-      if (!fallback) return `${source} / LIVE`;
+      if (!fallback) return `${source} / STATION REPORT`;
       return `${source} / NEAREST REPORT${Number.isFinite(distance) ? ` / ${distance} NM` : ''}`;
     }
 
@@ -5567,8 +5601,8 @@ END OF MESSAGE</pre>
       if (!wx) return '';
       const stale = Number.isFinite(wx.metarAgeMinutes) && wx.metarAgeMinutes > 75;
       const sourceClass = wx.mode === 'NO DATA' ? '' : (stale ? 'stale' : (wx.metarFallback ? 'fallback' : 'live'));
-      const sourceLabel = wx.mode === 'NO DATA' ? 'NO DATA' : (stale ? 'STALE METAR' : (wx.metarFallback ? 'NEARBY DATA' : 'LIVE DATA'));
-      const wind = wx.wind?.raw || 'NOT REPORTED';
+      const sourceLabel = wx.mode === 'NO DATA' ? 'NO DATA' : (stale ? 'STALE METAR' : (wx.metarFallback ? 'NEARBY STATION' : Number.isFinite(wx.metarAgeMinutes) ? 'STATION REPORT' : 'AGE UNKNOWN'));
+      const w = wx.wind; const wind = w ? (w.variable?'Variable':w.direction+'° true')+' / '+w.speed+' kt'+(w.gust != null?' gust '+w.gust+' kt':'') : 'NOT REPORTED';
       const visibility = weatherVisibility(wx);
       const ceiling = weatherCeiling(wx);
       const oat = Number.isFinite(wx.oatC) ? `${wx.oatC} C` : 'N/A';
@@ -5577,18 +5611,18 @@ END OF MESSAGE</pre>
       const category = weatherCategory(wx);
       return `<article class="weather-card">
         <header class="weather-card-head"><div><span>${escapeHtml(role)} WX</span><h3>${escapeHtml(wx.icao)} / ${escapeHtml(wx.name)}</h3></div><em class="weather-source ${sourceClass}">${sourceLabel}</em></header>
-        <div class="weather-card-category ${weatherCategoryClass(category)}"><span>Current flight category / METAR ${escapeHtml(weatherObservationAge(wx))} old</span><strong>${escapeHtml(category)}</strong></div>
-        <div class="weather-metrics">${weatherMetric('Wind', wind)}${weatherMetric('Visibility', visibility)}${weatherMetric('Ceiling', ceiling)}${weatherMetric('OAT', oat)}${weatherMetric('QNH', qnh)}${weatherMetric('Density alt', densityAltitude)}</div>
-        <div class="weather-report"><span>METAR</span><code>${escapeHtml(wx.metar || 'NOT AVAILABLE')}</code><small>${escapeHtml(weatherSourceLabel(wx, 'METAR'))}</small></div>
-        <div class="weather-report"><span>TAF</span><code>${escapeHtml(wx.taf || 'NOT AVAILABLE')}</code><small>${escapeHtml(weatherSourceLabel(wx, 'TAF'))}</small></div>
+        <div class="weather-card-category ${weatherCategoryClass(category)}"><span>${escapeHtml(wx.metarFallback?'Nearby station category':'Reported category')} · ${escapeHtml(wx.metarObservedAt || 'UTC time unknown')} · age at retrieval ${escapeHtml(weatherObservationAge(wx))}</span><strong>${escapeHtml(category)}</strong></div>
+        <div class="weather-metrics">${weatherMetric('Wind', wind)}${weatherMetric('Visibility', visibility)}${weatherMetric('Ceiling', ceiling)}${weatherMetric('OAT', oat)}${weatherMetric('Dew point',Number.isFinite(wx.dewpointC)?wx.dewpointC+' °C':'N/A')}${weatherMetric('QNH', qnh)}${weatherMetric('Density alt', densityAltitude)}</div>
+        <div class="weather-report"><span>Cloud layers</span><code>${escapeHtml((wx.metar || '').split(/\b(?:NOSIG|TEMPO|BECMG|RMK)\b/)[0].match(/\b(?:(?:FEW|SCT|BKN|OVC|VV)(?:\d{3}|\/{3})(?:CB|TCU)?|CAVOK|SKC|CLR|NSC|NCD)\b/g)?.join(' · ') || 'Not reported')}</code></div><div class="weather-report"><span>METAR</span><code>${escapeHtml(wx.metar || 'NOT AVAILABLE')}</code><small>${escapeHtml(weatherSourceLabel(wx, 'METAR'))}</small></div>
+        <div class="weather-report"><span>TAF</span><code>${escapeHtml(wx.taf || 'NOT AVAILABLE')}</code><small>${escapeHtml(weatherSourceLabel(wx, 'TAF'))}</small><p>${escapeHtml(window.PilotWx.forecast(wx.taf))}</p></div>
       </article>`;
     }
 
     function renderWindsAloft(data) {
       const rows = [
-        ['AIRPORT', '2000 FT', 'FL050', 'FL100'],
-        [data?.windsAloft?.departure?.airport || data?.route?.dep || 'DEP', data?.windsAloft?.departure?.levels?.['2000FT'] || 'N/A', data?.windsAloft?.departure?.levels?.FL050 || 'N/A', data?.windsAloft?.departure?.levels?.FL100 || 'N/A'],
-        [data?.windsAloft?.arrival?.airport || data?.route?.arr || 'ARR', data?.windsAloft?.arrival?.levels?.['2000FT'] || 'N/A', data?.windsAloft?.arrival?.levels?.FL050 || 'N/A', data?.windsAloft?.arrival?.levels?.FL100 || 'N/A']
+        ['GFS UTC / airport', '925 hPa', '850 hPa', '700 hPa'],
+        [(data.route?.dep || 'DEP')+' / '+(data.windsAloft?.departure?.timeUtc || 'unavailable'), data?.windsAloft?.departure?.levels?.['2000FT'] || 'N/A', data?.windsAloft?.departure?.levels?.FL050 || 'N/A', data?.windsAloft?.departure?.levels?.FL100 || 'N/A'],
+        [(data.route?.arr || 'ARR')+' / '+(data.windsAloft?.arrival?.timeUtc || 'unavailable'), data?.windsAloft?.arrival?.levels?.['2000FT'] || 'N/A', data?.windsAloft?.arrival?.levels?.FL050 || 'N/A', data?.windsAloft?.arrival?.levels?.FL100 || 'N/A']
       ];
       weatherWinds.innerHTML = rows.flat().map((value, index) => `<div${index < 4 ? ' class="winds-head"' : ''}>${escapeHtml(value)}</div>`).join('');
     }
@@ -5605,7 +5639,7 @@ END OF MESSAGE</pre>
         .join('\n');
     }
 
-    function renderWeatherBriefing(data) {
+    function renderWeatherBriefing(data, generatedReport=false) {
       latestWeatherData = data;
       weatherAcarsReport.innerHTML = weatherReportMarkup(data.reportText || 'ACARS WEATHER REPORT\n--------------------\nNO REPORT DATA.');
       const departureCategory = weatherCategory(data.departure);
@@ -5619,14 +5653,17 @@ END OF MESSAGE</pre>
         data.alternate ? weatherAirportCard('Alternate', data.alternate) : ''
       ].join('');
       renderWeatherCategoryStrip(data);
-      renderWindsAloft(data);
-      const alternateMessage = data.operational?.arrivalNeedsAlternate
+      renderWindsAloft(data); weatherWinds.hidden=!el('wxWinds').checked;
+      const incomplete=[data.departure,data.arrival].some(wx=>!wx || !wx.metarObservedAt || wx.metarFallback || wx.metarAgeMinutes>75);
+      const alternateMessage = incomplete ? '<strong>Local observation missing, nearby or stale. Verify independently.</strong>' : data.operational?.arrivalNeedsAlternate
         ? `<strong>ARRIVAL WEATHER TRIGGERS ALTERNATE REVIEW.</strong>${data.operational?.suggestedAlternate ? ` Suggested: ${escapeHtml(data.operational.suggestedAlternate.airport)} / ${escapeHtml(data.operational.suggestedAlternate.distanceNm)} NM.` : ' Select and verify a suitable alternate.'}`
         : '<strong class="weather-ok">NO AUTOMATED ALTERNATE TRIGGER.</strong> Continue normal pilot review.';
       weatherDecision.innerHTML = `<p>${alternateMessage}</p><p><span>Automated watch:</span> ${escapeHtml(data.operational?.remarks || 'NO AUTOMATED WEATHER REMARKS')}</p><p class="weather-caution">Pilot must verify report validity, forecast timing, runway state, NOTAMs, minima, and the complete operational picture before release.</p>`;
-      const generated = data.generatedAt ? new Date(data.generatedAt).toLocaleString('en-GB', { timeZone:'Europe/Helsinki', hour12:false }) : 'NOW';
-      weatherStatus.textContent = `RAW METAR / TAF LOADED ${generated} HELSINKI TIME / ${data.route.dep}-${data.route.arr}`;
+      const generated = data.generatedAt ? new Date(data.generatedAt).toISOString().slice(0,19).replace('T',' ')+'Z' : 'time unknown';
+      weatherStatus.textContent = `NOAA Aviation Weather Center · retrieved ${generated} / ${data.route.dep}-${data.route.arr}`;
       weatherStatus.classList.remove('offline');
+      openWeatherPdfBtn.disabled=!generatedReport;
+      if(!generatedReport){weatherAcarsReport.textContent='Review airport conditions above, then generate your selected report.';weatherReportMode.textContent='REVIEW';}
       renderActiveFlightStrip(selected);
     }
 
@@ -5654,11 +5691,11 @@ END OF MESSAGE</pre>
       return query;
     }
 
-    async function loadWeatherWorkspace(force = false) {
+    async function loadWeatherWorkspace(force = false, generatedReport=false) {
       const dep = weatherIcao(weatherDep.value);
       const arr = weatherIcao(weatherArr.value);
       if (![weatherDep, weatherArr, weatherAltn].every(input=>input.validity.valid)) {
-        weatherLoadGeneration++; refreshWeatherBtn.disabled = false;
+        weatherLoadGeneration++; refreshWeatherBtn.disabled = false;openWeatherPdfBtn.disabled=true;latestWeatherData=null;weatherDataKey='';
         weatherStatus.textContent = 'Departure and arrival need four letters each. Complete the alternate or leave it blank.';
         weatherAirportGrid.innerHTML = '';
         weatherCategoryStrip.innerHTML = '';
@@ -5669,9 +5706,10 @@ END OF MESSAGE</pre>
         return;
       }
       const context = `${selected?.id || 'MANUAL'}|${weatherQuery().toString()}`;
-      if (!force && latestWeatherData && weatherDataKey === context) return;
+      if (!force && latestWeatherData && weatherDataKey === context && Date.now()-Date.parse(latestWeatherData.generatedAt)<60000) return;
       const generation = ++weatherLoadGeneration;
       weatherDataKey = context;
+      openWeatherPdfBtn.disabled=true;latestWeatherData=null; weatherAirportGrid.replaceChildren();weatherDecision.replaceChildren();weatherWinds.replaceChildren();weatherCategoryStrip.replaceChildren();weatherAcarsReport.textContent='Retrieving reports…';weatherReportMode.textContent='LOADING';
       refreshWeatherBtn.disabled = true;
       weatherStatus.textContent = `LOADING RAW METAR / TAF / ${dep}-${arr}`;
       try {
@@ -5680,7 +5718,7 @@ END OF MESSAGE</pre>
         const data = await response.json().catch(() => ({}));
         if (generation !== weatherLoadGeneration || weatherDataKey !== context) return;
         if (!response.ok) throw new Error(data.error || 'WEATHER BRIEFING UNAVAILABLE');
-        renderWeatherBriefing(data);
+        renderWeatherBriefing(data, generatedReport);
       } catch (error) {
         if (generation !== weatherLoadGeneration || weatherDataKey !== context) return;
         latestWeatherData = null;
@@ -5816,6 +5854,7 @@ END OF MESSAGE</pre>
       manualFlightRules.value = selected?.flightRules === 'IFR' ? 'IFR' : 'VFR';
       manualFlightDep.value = weatherIcao(selected?.dep || weatherDep.value);
       manualFlightArr.value = weatherIcao(selected?.arr || weatherArr.value);
+      el('manualKind').value = flightKind === 'all' ? 'operational' : flightKind;
       manualFlightFormStatus.textContent = 'Ready to create a pilot-only flight.';
       manualFlightFormStatus.dataset.tone = '';
       if (typeof manualFlightDialog.showModal === 'function') manualFlightDialog.showModal();
@@ -8132,6 +8171,7 @@ END OF MESSAGE</pre>
       const query = filterQuery.value.trim().toUpperCase();
       renderQuickFilterState();
       const visible = sortQueue(requests.filter(req => {
+        if (flightKind !== 'all' && req.management?.category !== flightKind) return false;
         const matchesQuery = !query || requestSearchText(req).includes(query);
         const crew = [req.crew?.commander, req.crew?.secondary];
         const dateInRange = (!filterDate.value || req.requestDate >= filterDate.value)
@@ -8154,7 +8194,8 @@ END OF MESSAGE</pre>
             <div class="request-topline"><strong>${escapeHtml(req.id)}</strong><span class="request-chip">MANUAL OFP</span></div>
             <strong class="request-route">${escapeHtml(req.route || 'MANUAL OFP')}</strong>
             <span class="request-schedule">${escapeHtml(req.requestDate || 'DATE OPEN')} · ${escapeHtml(req.requestTime || 'TIME OPEN')}</span>
-            <span class="request-detail">Pilot-only flight file · No passenger notifications</span>
+            <span class="request-detail">${escapeHtml(req.management?.category || 'Unclassified')} · ${escapeHtml(req.management?.category==='training' ? req.management.training?.instructor || 'Instructor not recorded' : 'Pilot-created file')}</span>
+            ${flightKind==='training' && req.management?.training?.progress ? '<span class="request-detail">'+escapeHtml(req.management.training.progress)+'</span>' : ''}
             <div class="request-state-row"><span class="request-state state-info">MANUAL</span><span class="request-state state-good">READY TO PLAN</span><span class="request-state ${releaseClientState(req).released ? 'state-good' : 'state-warn'}">${releaseClientState(req).released ? 'RELEASED' : 'DRAFT'}</span></div>
           </button>
         `;
@@ -8592,6 +8633,7 @@ END OF MESSAGE</pre>
         flightRules:manualFlightRules.value,
         estimatedFlightMinutes:manualFlightEet.value,
         title:manualFlightTitle.value.trim(),
+        category:el('manualKind').value,
         route:manualFlightRoute.value.trim(),
         notes:manualFlightNotes.value.trim()
       }, event.submitter?.value === 'open').catch(() => {});
@@ -8603,10 +8645,15 @@ END OF MESSAGE</pre>
     manualFlightDialog.addEventListener('click', event => {
       if (event.target === manualFlightDialog) closeManualFlightComposer();
     });
+    document.querySelectorAll('[data-wx-pick]').forEach(button=>button.addEventListener('click',()=>{
+      const term=el('wxFind').value.trim().toUpperCase(), match=weatherAirportCatalog.find(a=>a.icao?.toUpperCase()===term);
+      if(!match){el('wxSearchStatus').textContent='Choose an airport from the directory suggestions.';return;}
+      const field=el(button.dataset.wxPick);field.value=match.icao;field.dispatchEvent(new Event('input'));field.dispatchEvent(new Event('change'));el('wxSearchStatus').textContent=match.icao+' assigned.';
+    }));
     refreshWeatherBtn.addEventListener('click', () => {
       setWeatherView('briefing');
       if (!validateWeatherAirports()) return;
-      loadWeatherWorkspace(true).catch(() => {});
+      loadWeatherWorkspace(true,true).catch(() => {});
     });
     openWeatherPdfBtn.addEventListener('click', openWeatherPdf);
     el('swapWxAirports').addEventListener('click',()=>{
@@ -8615,10 +8662,10 @@ END OF MESSAGE</pre>
     });
     [weatherDep, weatherArr, weatherAltn].forEach(input => input.addEventListener('input', () => {
       input.value = weatherIcao(input.value);
-      weatherLoadGeneration++; refreshWeatherBtn.disabled=false;
+      weatherLoadGeneration++; refreshWeatherBtn.disabled=false;openWeatherPdfBtn.disabled=true;
       weatherStatus.classList.remove('offline');
       weatherStatus.textContent='Airport entry changed. Generate a briefing for this route.';
-      weatherCategoryStrip.replaceChildren(); weatherReportMode.textContent='NOT BRIEFED';
+      weatherAirportGrid.replaceChildren(); weatherWinds.replaceChildren(); weatherDecision.replaceChildren(); weatherCategoryStrip.replaceChildren(); weatherReportMode.textContent='NOT BRIEFED';
       weatherAcarsReport.textContent='No briefing for the edited route.';
       latestWeatherData = null;
       weatherDataKey = '';
@@ -9071,32 +9118,6 @@ END OF MESSAGE</pre>
       window.location.href = '/booking-ops';
     });
 
-    function syncSidebar() {
-      const collapsed = document.body.classList.contains('sidebar-collapsed');
-      for (const button of [sidebarToggle, sidebarRailToggle]) {
-        button.setAttribute('aria-expanded', String(!collapsed));
-        button.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
-        button.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
-      }
-    }
-    function toggleSidebar() {
-      const collapsed = document.body.classList.toggle('sidebar-collapsed');
-      syncSidebar();
-      try {
-        localStorage.setItem('nga-pilot-sidebar-collapsed', collapsed ? '1' : '0');
-      } catch {
-        // The rail still works when storage is unavailable.
-      }
-    }
-
-    try {
-      document.body.classList.toggle('sidebar-collapsed', localStorage.getItem('nga-pilot-sidebar-collapsed') === '1');
-    } catch {
-      // Use the expanded navigation by default.
-    }
-    syncSidebar();
-    sidebarToggle.addEventListener('click', toggleSidebar);
-    sidebarRailToggle.addEventListener('click', toggleSidebar);
 
     globalSearchBtn.addEventListener('click', () => {
       el('commandDialogTitle').textContent = 'Search Pilot EFB';
