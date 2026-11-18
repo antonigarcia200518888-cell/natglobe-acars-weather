@@ -158,17 +158,14 @@ test('late timeline responses cannot replace the next flight or an unloaded file
 });
 
 test('PDF actions do not present an earlier saved revision as the current plan',async()=>{
-  let opened=false,closed=false;
-  const nodes=new Map();const el=id=>{if(!nodes.has(id))nodes.set(id,{});return nodes.get(id);};
-  const popup={closed:false,close(){closed=true;},location:{replace(){opened=true;}}};
-  const ctx=vm.createContext({plan:{aircraftRegistration:'OH-PMK'},saved:false,save:async()=>true,window:{open:()=>popup},el,
-    setSaveState:()=>{},setInspector:()=>{},setPdfPreviewBusy:()=>{},previewLoadToken:0,previewLoadTimeout:0});
-  const previewStart=ofp.indexOf('    async function refreshPdfPreview() {');
-  const openStart=ofp.indexOf('    async function openCurrentPdf() {');
-  const end=ofp.indexOf('    function ',openStart+1);
-  vm.runInContext(ofp.slice(previewStart,end),ctx);
-  await vm.runInContext('refreshPdfPreview()',ctx);
-  assert.match(el('pdfPreviewState').textContent,/Newer edits remain unsaved/);
-  await vm.runInContext('openCurrentPdf()',ctx);
-  assert.equal(opened,false);assert.equal(closed,true);
+  let config;
+  const ctx=vm.createContext({saved:false,save:async()=>true,requestId:'TEST',encodeURIComponent,el:()=>({}),
+    window:{createFlightDocumentReader:value=>{config=value;return {};}},openPilotWorkspace:()=>{}});
+  const start=ofp.indexOf('    const flightDocuments =');
+  vm.runInContext(ofp.slice(start,ofp.indexOf('    async function refreshPdfPreview()',start)),ctx);
+  await assert.rejects(config.save(),/Newer edits remain unsaved/);
+  ctx.saved=true;await config.save();
+  const open=ofp.slice(ofp.indexOf('    async function openCurrentPdf()'),ofp.indexOf('    function setWorkspace'));
+  assert.doesNotMatch(open,/window.open|location.assign|location.replace/);
+  assert.match(open,/flightDocuments.open\('ofp', true\)/);
 });

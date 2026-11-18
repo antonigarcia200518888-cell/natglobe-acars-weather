@@ -12,6 +12,8 @@
   <link rel="apple-touch-icon" href="/pilot-natglobe-180.png" />
   <link rel="icon" type="image/png" href="/pilot-natglobe-192.png" />
   <title>NGA Pilot Operations Centre</title>
+  <link rel="stylesheet" href="/pilot-session-lock.css?v=2026-11-18-1" />
+  <script src="/pilot-session-lock.js?v=2026-11-18-1"></script>
   <script>
     (() => {
       const theme = (() => {
@@ -2945,22 +2947,22 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-18-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-18-1" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-18-1" />
 </head>
 <body class="pilot-ops-v2 efb-ui">
   <main class="frame">
@@ -3006,7 +3008,7 @@
     <nav id="pilotWorkspaceNav" class="ops-suite-nav" data-glass-surface aria-label="Pilot operations workspaces">
 <button class="suite-tab active" type="button" data-suite-view="dashboard" aria-label="Open map workspace" title="Map workspace"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg></span><strong>Map</strong></button>
       <button class="suite-tab" type="button" data-suite-view="flights" aria-label="Open flight control" title="Flight control"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="3"></rect><path d="M7 2.5V6M17 2.5V6M2.5 8.5h19"></path><path d="m7 15 10-3-3.25 3L17 18l-10-3Z"></path></svg></span><strong>Flights</strong></button>
-      <button class="suite-tab" type="button" data-suite-view="flight-plan" aria-label="Open operational flight plan" title="Operational flight plan"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6"></path><circle cx="8" cy="16" r="1.25"></circle><circle cx="16" cy="12" r="1.25"></circle><path d="M9.25 15.45 14.75 12.6"></path></svg></span><strong>OFP</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="flight-plan" aria-label="Open operational flight plan" title="Operational flight plan"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6"></path><circle cx="8" cy="16" r="1.25"></circle><circle cx="16" cy="12" r="1.25"></circle><path d="M9.25 15.45 14.75 12.6"></path></svg></span><strong>Plan</strong></button>
       <button class="suite-tab" type="button" data-suite-view="weather" aria-label="Open weather dispatch" title="Weather dispatch"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M8 2.5v1M3.5 3.5l.8.8M2.5 8h1"></path><path d="M17.5 20H7a4.5 4.5 0 1 1 1.4-8.78A5.5 5.5 0 0 1 19 13a3.5 3.5 0 0 1-1.5 7Z"></path></svg></span><strong>Weather</strong></button>
       <button class="suite-tab" type="button" data-suite-view="performance" aria-label="Open aircraft performance" title="Aircraft performance"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"></path><path d="M6.5 18h11M12 8v2M6.35 12.3l1.4.8M17.65 12.3l-1.4.8M12 18l4-5"></path><circle cx="12" cy="18" r="1"></circle></svg></span><strong>Perf</strong></button>
       <button class="suite-tab" type="button" data-suite-view="aircraft" aria-label="Open aircraft status" title="Aircraft status"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10.75 2.5c-.8 0-1.3.7-1.3 1.5v5.1L3 12.5v2l6.45-1.7v4.35L7 19v1l3.75-.9"></path><path d="M13.5 10.3V4c0-.8-.5-1.5-1.3-1.5"></path><circle cx="17" cy="17" r="4"></circle><path d="m15.2 17 1.2 1.2 2.5-2.7"></path></svg></span><strong>Aircraft</strong></button>
@@ -3044,7 +3046,7 @@
           <span data-hero-phase="arrived"><i>4</i><strong>Arrived</strong></span>
         </div>
         <figure class="efb-aircraft-stage">
-          <button class="hangar-portrait" type="button" data-open-hangar aria-label="Explore representative 3D airframe"><img src="/piper-render-transparent.png" alt="OH-PMK Piper Arrow side profile" /></button>
+          <div class="hangar-portrait"><img src="/piper-render-transparent.png" alt="OH-PMK Piper Arrow side profile" /></div>
           <figcaption><span>OH-PMK · Aircraft status</span><strong id="efbHeroAircraftStatus">Awaiting live status</strong></figcaption>
         </figure>
         <div class="efb-hero-metrics" aria-label="Active flight metrics">
@@ -3399,7 +3401,6 @@ LOAD DATA TO CALCULATE.</pre></details>
               <p>Piper Arrow II · PA-28R-200</p>
               <div class="aircraft-serviceability-pill"><i aria-hidden="true"></i><strong id="aircraftServiceabilityHero">STATUS LOADING</strong></div>
               <button id="editAircraftStatusBtn" class="aircraft-hero-action" type="button">Update aircraft</button>
-              <button class="hangar-launch" data-open-hangar type="button">Explore 3D airframe</button>
             </div>
             <div class="aircraft-hero-visual" aria-hidden="true"><img src="/piper-render-transparent.png" alt="" /></div>
             <div class="aircraft-hero-metrics" aria-label="Latest aircraft readings">
@@ -3888,6 +3889,7 @@ END OF MESSAGE</pre>
       <div class="user-session-card"><span>Signed in</span><strong id="userSessionName">Loading session</strong><small id="userSessionMeta">Role and expiry pending</small></div>
       <div class="user-menu-actions">
         <button id="userPasskeyBtn" class="btn ghost" type="button">Device access</button>
+        <button id="userLockBtn" class="btn ghost" type="button">Lock Pilot Ops</button>
         <button id="userLogoutBtn" class="btn ghost danger" type="button">Log out</button>
       </div>
     </div>
@@ -3950,22 +3952,21 @@ END OF MESSAGE</pre>
     <dl class="desk-instruments"><div><dt>Zulu time</dt><dd id="deskZulu">—</dd></div><div><dt>Connection</dt><dd id="deskNetwork">—</dd></div></dl>
     <div class="desk-actions"><button id="deskMap" type="button">Open map <span aria-hidden="true">↗</span></button><button id="deskFlightAction" type="button">Select flight</button><button id="deskWeather" type="button">Brief weather</button></div>
   </dialog>
-  <script src="/pilot-weather-viewer.js?v=2026-11-17-2"></script>
-  <script src="/pilot-file-tools.js?v=2026-11-17-2"></script>
-  <script src="/pilot-weather-summary.js?v=2026-11-17-2"></script>
-  <script src="/pilot-hangar.js?v=2026-11-17-2" defer></script>
-  <script src="/pilot-cockpit.js?v=2026-11-17-2"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-17-2"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-17-2"></script>
-  <script src="/pilot-flight-context.js?v=2026-11-17-2"></script>
-  <script src="/pilot-imports.js?v=2026-11-17-2"></script>
-  <script src="/pilot-replay.js?v=2026-11-17-2"></script>
-  <script src="/pilot-airfields.js?v=2026-11-17-2"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-17-2"></script>
-  <script src="/pilot-map-view.js?v=2026-11-17-2"></script>
-  <script src="/pilot-display.js?v=2026-11-17-2"></script>
-  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-17-2"></script>
-  <script defer src="/pilot-glass.js?v=2026-11-17-2"></script>
+  <script src="/pilot-weather-viewer.js?v=2026-11-18-1"></script>
+  <script src="/pilot-file-tools.js?v=2026-11-18-1"></script>
+  <script src="/pilot-weather-summary.js?v=2026-11-18-1"></script>
+  <script src="/pilot-cockpit.js?v=2026-11-18-1"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-18-1"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-18-1"></script>
+  <script src="/pilot-flight-context.js?v=2026-11-18-1"></script>
+  <script src="/pilot-imports.js?v=2026-11-18-1"></script>
+  <script src="/pilot-replay.js?v=2026-11-18-1"></script>
+  <script src="/pilot-airfields.js?v=2026-11-18-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-18-1"></script>
+  <script src="/pilot-map-view.js?v=2026-11-18-1"></script>
+  <script src="/pilot-display.js?v=2026-11-18-1"></script>
+  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-18-1"></script>
+  <script defer src="/pilot-glass.js?v=2026-11-18-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -8347,11 +8348,12 @@ END OF MESSAGE</pre>
     }
 
     async function loadRequests() {
+      if (window.NGAPilotLock?.locked) return;
       mode.textContent = 'MODE: FETCHING BOOKING REQUESTS';
       try {
         const res = await fetch('/api/booking-ops/requests', { cache: 'no-store' });
         if (res.status === 401) {
-          window.location.href = '/booking-ops';
+          window.NGAPilotLock?.lock();
           return;
         }
         const data = await res.json();
@@ -8421,6 +8423,7 @@ END OF MESSAGE</pre>
     }
 
     async function autoSyncOps() {
+      if (window.NGAPilotLock?.locked) return;
       const activeElement = document.activeElement;
       const editing = activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName);
       if (autoSyncing || document.hidden || editing || !selected?.id) return;
@@ -9188,6 +9191,7 @@ END OF MESSAGE</pre>
     });
 
     userMenuBtn.addEventListener('click', () => openShellDialog(userDialog));
+    el('userLockBtn').addEventListener('click', () => { userDialog.close(); window.NGAPilotLock?.lock(); });
     userPasskeyBtn.addEventListener('click', () => {
       userDialog.close();
       switchOpsWorkspace('flights');
@@ -9380,12 +9384,13 @@ const flightImports=window.createPilotImports({context:window.PilotFlights,ensur
     }
     window.createPilotCockpit({ onMinute:()=>{renderLiveTiming();updateDesk();} });
     setInterval(autoSyncOps, 30000);
-    loadPilotSession().catch(() => {});
-    Promise.all([
+    window.addEventListener('nga-pilot-unlocked', () => loadPilotSession().catch(() => {}));
+    Promise.resolve(window.NGAPilotLock?.ready).then(() => Promise.all([
+      loadPilotSession().catch(() => {}),
       loadRequests(),
       loadWeatherAirportChoices().catch(() => {}),
       loadAircraftStatus().catch(() => {})
-    ])
+    ]))
       .then(() => switchOpsWorkspace(location.hash.replace('#', '') || 'dashboard'))
       .catch(() => { mode.textContent = 'MODE: BOOKING REQUESTS UNAVAILABLE'; });
   </script>

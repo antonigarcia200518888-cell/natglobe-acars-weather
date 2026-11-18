@@ -1,0 +1,24 @@
+/* Fail closed before the first paint; a modal sits above existing dialogs. */
+html.nga-session-pending body > :not(.pilot-session-lock),html.nga-session-pending body > :not(.pilot-session-lock) * { visibility: hidden !important; }
+html.nga-session-pending body { overflow: hidden !important; }
+.pilot-session-lock { position: fixed; inset: 0; width: 100%; max-width: none; height: 100%; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: #071426; color: #fff; box-sizing: border-box; font: 16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.pilot-session-lock::backdrop { background: #071426; }
+.pilot-session-lock[open] { display: grid; place-items: center; overflow: auto; }
+.pilot-lock-splash { position: absolute; inset: 0; background: #fff; display: grid; place-items: center; z-index: 1; }
+.pilot-lock-splash img { width: min(68vw,620px); height: auto; object-fit: contain; }
+.pilot-session-lock[data-phase="unlock"] .pilot-lock-splash { display: none; }
+.pilot-session-lock[data-phase="splash"] .pilot-lock-panel { visibility: hidden; }
+.pilot-lock-panel { width: min(430px,100%); padding: max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom)); box-sizing: border-box; }
+.pilot-lock-panel > img { width: 180px; height: auto; background: #fff; border-radius: 8px; padding: 8px; }
+.pilot-lock-panel h1 { font-size: 28px; line-height: 1.2; margin: 22px 0 8px; }
+.pilot-lock-panel p { color: #c5cfdd; }
+.pilot-lock-panel button,.pilot-lock-panel summary,.pilot-lock-panel input { min-height: 48px; box-sizing: border-box; border-radius: 10px; font: inherit; padding: 12px; }
+.pilot-lock-panel button { width: 100%; border: 1px solid #6c89a9; background: #17395f; color: #fff; cursor: pointer; }
+.pilot-lock-panel button:disabled { opacity: .5; cursor: wait; }
+.pilot-lock-panel input { display: block; width: 100%; color: #fff; background: #0d2038; border: 1px solid #6c89a9; margin: 8px 0 12px; }
+.pilot-lock-panel summary { cursor: pointer; }
+.pilot-lock-panel .pilot-lock-note { font-size: 13px; }
+.pilot-lock-panel [data-status] { min-height: 48px; }
+.pilot-lock-panel [hidden] { display:none !important; }
+.nga-startup .pilot-login .frame { visibility: hidden; }
+.nga-startup .nga-splash { pointer-events: auto; }

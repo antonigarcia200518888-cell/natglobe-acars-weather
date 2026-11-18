@@ -52,12 +52,15 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-17-2" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-17-2" />
-  <script src="/pilot-instruments.js?v=2026-11-17-2"></script>
-  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-17-2" />
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-18-1" />
+  <script src="/pilot-instruments.js?v=2026-11-18-1"></script>
+  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-flight-documents.css?v=2026-11-18-1" />
+  <link rel="stylesheet" href="/pilot-session-lock.css?v=2026-11-18-1" />
+  <script src="/pilot-session-lock.js?v=2026-11-18-1"></script>
 </head>
 <body class="efb-ui efb-planner">
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -103,13 +106,12 @@
     </div>
     <nav class="ofp-workspaces ofp-task-rail" aria-label="Flight folder sections" role="tablist">
       <button id="taskTabSummary" class="ofp-workspace-button" type="button" role="tab" data-workspace="SUMMARY" aria-controls="flightSummarySection" aria-selected="false"><strong class="task-title">Flight summary</strong><em class="workspace-state">Overview</em></button>
-      <button id="taskTabSetup" class="ofp-workspace-button" type="button" role="tab" data-workspace="SETUP" data-step="1" aria-controls="flightSetupSection" aria-selected="true"><strong class="task-title">Flight setup</strong><em class="workspace-state">Aircraft &amp; airports</em></button>
+      <button id="taskTabSetup" class="ofp-workspace-button" type="button" role="tab" data-workspace="SETUP" data-step="1" aria-controls="flightSetupSection" aria-selected="true"><strong class="task-title">Flight information</strong><em class="workspace-state">Aircraft &amp; airports</em></button>
       <button id="taskTabRoute" class="ofp-workspace-button" type="button" role="tab" data-workspace="ROUTE" aria-controls="routeSection" aria-selected="false"><strong class="task-title">Route &amp; alternates</strong><em class="workspace-state">Navigation plan</em></button>
-      <button id="taskTabTime" class="ofp-workspace-button" type="button" role="tab" data-workspace="TIME" aria-controls="timeSummarySection" aria-selected="false"><strong class="task-title">Time summary</strong><em class="workspace-state">Planned / actual</em></button>
+      <button id="taskTabTime" class="ofp-workspace-button" type="button" role="tab" data-workspace="TIME" aria-controls="timeSummarySection movementSection" aria-selected="false"><strong class="task-title">Flight schedule</strong><em class="workspace-state">Planned &amp; actual times</em></button>
       <button id="taskTabLoad" class="ofp-workspace-button" type="button" role="tab" data-workspace="LOAD" data-step="2" aria-controls="fuelSection loadSection" aria-selected="false" tabindex="-1"><strong class="task-title">Fuel &amp; load</strong><em class="workspace-state">Fuel &amp; balance</em></button>
       <button id="taskTabBrief" class="ofp-workspace-button" type="button" role="tab" data-workspace="BRIEF" data-step="3" aria-controls="dispatchSection releaseSection" aria-selected="false" tabindex="-1"><strong class="task-title">Review &amp; release</strong><em class="workspace-state">Pilot verification</em></button>
-      <button id="taskTabFly" class="ofp-workspace-button" type="button" role="tab" data-workspace="FLY" data-step="4" aria-controls="movementSection" aria-selected="false" tabindex="-1"><strong class="task-title">Journey log</strong><em class="workspace-state">OUT · OFF · ON · IN</em></button>
-      <button id="taskTabFiles" class="ofp-workspace-button" type="button" role="tab" data-workspace="FILES" aria-controls="folderDocumentsSection" aria-selected="false"><strong class="task-title">Documents</strong><em class="workspace-state">OFP &amp; flight files</em></button>
+      <button id="taskTabFiles" class="ofp-workspace-button" type="button" role="tab" data-workspace="FILES" aria-controls="folderDocumentsSection" aria-selected="false"><strong class="task-title">Flight documents</strong><em class="workspace-state">OFP &amp; Journey Log</em></button>
     </nav>
     <div class="workspace ofp-app-workspace">
       <header class="folder-toolbar"><button id="ofpSectionsToggle" type="button" aria-label="Hide flight sections" aria-expanded="true">☰</button><div><span id="folderFlightContext">FLIGHT BRIEFING</span><h2 id="folderSectionTitle">Flight summary</h2></div><div class="ofp-toolbar-actions"><button id="ofpScratchpadBtn" type="button">Notes</button><button type="button" id="folderOverviewBtn" aria-label="Return to flight summary">Overview</button></div></header>
@@ -129,14 +131,15 @@
           <div class="folder-note">Planning aid only. Current approved weather, NOTAMs, charts and aircraft documentation remain required.</div>
         </section>
         <section id="timeSummarySection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabTime" hidden>
-          <div class="folder-page-intro"><h3>Time summary</h3><p>One timeline for the planned schedule and recorded flight events.</p><button type="button" data-folder-open="SETUP">Edit departure &amp; EET</button></div>
+          <div class="folder-page-intro"><h3>Flight schedule</h3><p>Planned and actual block out, takeoff, landing and block in. Record actual events below the timeline.</p><button type="button" data-folder-open="SETUP">Edit planned departure &amp; duration</button></div>
           <section class="folder-sheet"><header><h3>Movement timeline</h3><span>UTC / LOCAL</span></header>
             <figure class="efb-instrument"><figcaption>Flight and block duration · minutes</figcaption><div id="durationPlot"></div></figure>
             <div class="folder-table-wrap"><table class="folder-table"><caption>Exact movement times</caption><thead><tr><th scope="col">Event</th><th scope="col">Planned UTC</th><th scope="col">Actual UTC / local</th><th scope="col">Difference</th></tr></thead><tbody id="folderTimeRows"></tbody></table></div></section>
-          <div id="folderDurationRows" class="folder-duration-grid"></div><p class="folder-note">Actual durations and differences use dated server records only; legacy clock-only values are not inferred. Positive difference = later than planned. The planned schedule includes 10 minutes taxi out and 5 minutes taxi in.</p><button type="button" data-folder-open="FLY">Open journey log</button>
+          <div id="folderDurationRows" class="folder-duration-grid"></div><p class="folder-note">Actual durations and differences use dated server records only; legacy clock-only values are not inferred. Positive difference = later than planned. The planned schedule includes 10 minutes taxi out and 5 minutes taxi in.</p><button type="button" data-folder-open="FILES">OFP &amp; Journey Log documents</button>
         </section>
         <section id="folderDocumentsSection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabFiles" hidden>
-          <div class="folder-page-intro"><h3>Flight documents</h3><p>Generate the current flight plan or open the selected flight’s document workspace.</p></div>
+          <div class="folder-page-intro"><h3>OFP &amp; Journey Log</h3><p>Both documents use the same saved flight. Preview, expand, print or save a PDF without leaving the EFB.</p></div>
+          <div id="flightDocumentsHost"></div>
           <div class="folder-document-list"><article><span class="folder-file-icon" aria-hidden="true">PDF</span><div><h3>Operational flight plan</h3><p id="folderDocumentState">Save a draft to generate the current OFP.</p></div><button id="folderPreviewBtn" type="button">Preview OFP</button><button id="folderPdfBtn" type="button">Open PDF</button></article><article><span class="folder-file-icon" aria-hidden="true">DOC</span><div><h3>Supporting flight files</h3><p>Aircraft documents, passenger files and operational records available in Pilot Ops.</p></div><button id="folderFilesBtn" type="button">Open flight files</button></article></div>
           <section class="folder-sheet"><header><h3>Release record</h3><button type="button" data-folder-open="BRIEF">Review release</button></header><p id="folderReleaseRecord" class="folder-document-note">No authoritative release recorded.</p></section>
           <p class="folder-note">Charts and third-party briefing packs are not supplied by this app. Consult your current approved sources.</p>
@@ -406,16 +409,16 @@
           </div>
         </details>
 
-        <details id="movementSection" class="ofp-task-panel" data-task="FLY" role="tabpanel" aria-labelledby="taskTabFly" open>
+        <details id="movementSection" class="ofp-task-panel" data-task="TIME" role="tabpanel" aria-labelledby="taskTabTime" open>
           <summary class="ofp-task-panel-summary"><span>05</span><strong>Movement</strong><em>OUT, OFF, ON and IN event log</em></summary>
           <div class="detail-body">
-            <div class="section-heading ofp-card-head"><div><span>Live movement log</span><strong>OUT / OFF / ON / IN</strong></div><p>Stamp each event as it happens. Manual correction remains available with the correct airport-local and UTC context.</p></div>
+            <div class="section-heading ofp-card-head"><div><span>Actual movement log</span><strong>OUT / OFF / ON / IN</strong></div><p>Stamp each event as it happens, or enter its full UTC date and time. Check the date for flights crossing midnight. Local clocks are shown for reference.</p></div>
             <div class="movement-sequence" aria-hidden="true"><span>Block out</span><i></i><span>Airborne</span><i></i><span>Touchdown</span><i></i><span>Block in</span></div>
             <div class="movement-grid">
-              <article class="movement-card" data-movement-card="actualOut"><strong class="movement-code">OUT</strong><span>Start taxi / brakes released</span><div id="actualOutDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OUT local time" data-manual-time="actualOut" /><button class="btn" type="button" data-manual-field="actualOut">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOut">Stamp now</button></article>
-              <article class="movement-card" data-movement-card="actualOff"><strong class="movement-code">OFF</strong><span>Airborne / takeoff</span><div id="actualOffDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual OFF local time" data-manual-time="actualOff" /><button class="btn" type="button" data-manual-field="actualOff">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOff">Stamp now</button></article>
-              <article class="movement-card" data-movement-card="actualOn"><strong class="movement-code">ON</strong><span>Landed / touchdown</span><div id="actualOnDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual ON local time" data-manual-time="actualOn" /><button class="btn" type="button" data-manual-field="actualOn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOn">Stamp now</button></article>
-              <article class="movement-card" data-movement-card="actualIn"><strong class="movement-code">IN</strong><span>On stand / brakes set</span><div id="actualInDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><input type="time" aria-label="Manual IN local time" data-manual-time="actualIn" /><button class="btn" type="button" data-manual-field="actualIn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualIn">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualOut"><strong class="movement-code">OUT</strong><span>Start taxi / brakes released</span><div id="actualOutDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><label>Actual OUT · UTC<input type="datetime-local" step="60" data-manual-utc="actualOut" /></label><button class="btn" type="button" data-manual-field="actualOut">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOut">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualOff"><strong class="movement-code">OFF</strong><span>Airborne / takeoff</span><div id="actualOffDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><label>Actual OFF · UTC<input type="datetime-local" step="60" data-manual-utc="actualOff" /></label><button class="btn" type="button" data-manual-field="actualOff">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOff">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualOn"><strong class="movement-code">ON</strong><span>Landed / touchdown</span><div id="actualOnDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><label>Actual ON · UTC<input type="datetime-local" step="60" data-manual-utc="actualOn" /></label><button class="btn" type="button" data-manual-field="actualOn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualOn">Stamp now</button></article>
+              <article class="movement-card" data-movement-card="actualIn"><strong class="movement-code">IN</strong><span>On stand / brakes set</span><div id="actualInDisplay" class="movement-time">NOT RECORDED</div><div class="movement-actions"><label>Actual IN · UTC<input type="datetime-local" step="60" data-manual-utc="actualIn" /></label><button class="btn" type="button" data-manual-field="actualIn">Save time</button></div><button class="btn movement-button" type="button" data-stamp-field="actualIn">Stamp now</button></article>
             </div>
             <div hidden><label>Actual OUT<input data-field="actualOut" /></label><label>Actual OFF<input data-field="actualOff" /></label><label>Actual ON<input data-field="actualOn" /></label><label>Actual IN<input data-field="actualIn" /></label></div>
           </div>
@@ -502,8 +505,7 @@
             <button id="refreshPdfPreviewBtn" class="btn" type="button">Regenerate</button>
           </div>
           <div id="pdfPreviewState" class="pdf-preview-state" role="status" aria-live="polite">Save the flight plan to render the current OFP PDF.</div>
-          <iframe id="pdfPreviewFrame" class="pdf-preview-frame" title="Current Operational Flight Plan PDF preview" loading="lazy"></iframe>
-          <p class="folder-note">If your browser cannot display the embedded PDF, use Open full screen below.</p>
+          <p class="folder-note">The OFP and Journey Log now share the Flight Documents workspace, with an iPad-safe preview and a permanent return control.</p>
           <div class="pdf-preview-actions">
             <button id="openPdfFullBtn" class="btn" type="button">Open full screen</button>
             <button id="returnSummaryBtn" class="btn" type="button">Flight status</button>
@@ -546,10 +548,12 @@
       </form>
     </dialog>
   </main>
-  <script src="/pilot-ofp-checks.js?v=2026-11-17-2"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-17-2"></script>
-  <script src="/pilot-display.js?v=2026-11-17-2"></script>
-  <script src="/pilot-ofp-touch.js?v=2026-11-17-2" defer></script>
+  <script src="/pilot-ofp-checks.js?v=2026-11-18-1"></script>
+  <script src="/pilot-flight-documents.js?v=2026-11-18-1"></script>
+  <script src="/vendor/simplewebauthn-browser.js"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-18-1"></script>
+  <script src="/pilot-display.js?v=2026-11-18-1"></script>
+  <script src="/pilot-ofp-touch.js?v=2026-11-18-1" defer></script>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
     if (embedded) document.documentElement.classList.add('embedded');
@@ -573,21 +577,18 @@
     let briefingChecks = [];
     let routeLegs = [];
     let inspectorMode = 'SUMMARY';
-    let previewLoadToken = 0;
-    let previewLoadTimeout = 0;
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
     const workspaceSections = {
       SUMMARY:['flightSummarySection'],
       SETUP:['flightSetupSection'],
       ROUTE:['routeSection'],
-      TIME:['timeSummarySection'],
+      TIME:['timeSummarySection', 'movementSection'],
       LOAD:['fuelSection', 'loadSection'],
       BRIEF:['dispatchSection', 'releaseSection'],
-      FLY:['movementSection'],
       FILES:['folderDocumentsSection']
     };
-    const workspaceOrder = ['SUMMARY', 'SETUP', 'ROUTE', 'TIME', 'LOAD', 'BRIEF', 'FLY', 'FILES'];
-    const workspaceLabels = { SUMMARY:'Flight summary', SETUP:'Flight setup', ROUTE:'Route & alternates', TIME:'Time summary', LOAD:'Fuel & weights', BRIEF:'Briefing & release', FLY:'Journey log', FILES:'Documents', RELEASE:'Briefing & release' };
+    const workspaceOrder = ['SUMMARY', 'SETUP', 'ROUTE', 'TIME', 'LOAD', 'BRIEF', 'FILES'];
+    const workspaceLabels = { SUMMARY:'Flight summary', SETUP:'Flight information', ROUTE:'Route & navigation', TIME:'Flight schedule', LOAD:'Aircraft & fuel', BRIEF:'Briefing & release', FILES:'Flight documents', RELEASE:'Briefing & release' };
     const ofpWorkspaceStorageKey = `nga-ofp-workspace-v4:${requestId}`;
     const ofpInspectorStorageKey = 'nga-ofp-inspector-collapsed-v1';
     const compactInspectorMedia = window.matchMedia('(max-width: 1199px)');
@@ -726,86 +727,27 @@
       document.querySelector('.ofp-inspector').dataset.mode = inspectorMode.toLowerCase();
     }
 
-    function ofpPdfUrl(cacheBuster = '') {
-      const suffix = cacheBuster ? `?preview=${encodeURIComponent(cacheBuster)}` : '';
-      return `/api/booking-ops/requests/${encodeURIComponent(requestId)}/operational-flight-plan/pdf${suffix}`;
-    }
-
-    function setPdfPreviewBusy(busy) {
-      ['refreshPdfPreviewBtn', 'previewBtn', 'generateOfpBtn', 'dockPreviewBtn', 'folderPreviewBtn', 'folderPdfBtn'].forEach(id => {
-        const button = el(id);
-        if (button) button.disabled = busy;
-      });
-    }
-
+    const flightDocuments = window.createFlightDocumentReader({
+      host: el('flightDocumentsHost'),
+      baseUrl: `/api/booking-ops/requests/${encodeURIComponent(requestId)}`,
+      save: async () => {
+        if (!saved) await save();
+        if (!saved) throw new Error('Newer edits remain unsaved. Save them before generating documents.');
+      },
+      backToEfb: () => openPilotWorkspace('dashboard')
+    });
     async function refreshPdfPreview() {
-      if(plan.aircraftRegistration!=='OH-PMK'){setSaveState('failed','PDF blocked: no verified performance / mass-and-balance profile for this aircraft. Imported source data remains saved.');return;}
-      setInspector('PDF');
-      const token = ++previewLoadToken;
-      if (previewLoadTimeout) window.clearTimeout(previewLoadTimeout);
-      previewLoadTimeout = 0;
-      setPdfPreviewBusy(true);
-      el('pdfPreviewState').textContent = 'Saving the current draft and regenerating the OFP PDF...';
-      try {
-        await save();
-        if (!saved) throw new Error('Newer edits remain unsaved. Save them before generating the current PDF.');
-        if (token !== previewLoadToken) return;
-        const frame = el('pdfPreviewFrame');
-        let settled = false;
-        const finishPreviewLoad = (message, failed = false) => {
-          if (settled || token !== previewLoadToken) return;
-          settled = true;
-          if (previewLoadTimeout) window.clearTimeout(previewLoadTimeout);
-          previewLoadTimeout = 0;
-          el('pdfPreviewState').textContent = message;
-          if (failed) setSaveState('failed', message);
-          setPdfPreviewBusy(false);
-        };
-        frame.onload = () => finishPreviewLoad(`Current PDF / regenerated ${new Date().toLocaleTimeString('en-GB', { hour12:false })}`);
-        frame.onerror = () => finishPreviewLoad('The OFP PDF preview could not be loaded. Retry or open the PDF directly.', true);
-        previewLoadTimeout = window.setTimeout(() => {
-          finishPreviewLoad('The OFP PDF preview is taking longer than expected. Controls restored; retry or open the PDF directly.');
-        }, 20000);
-        frame.src = `${ofpPdfUrl(Date.now())}#toolbar=0&navpanes=0&view=FitH`;
-      } catch (error) {
-        if (token !== previewLoadToken) return;
-        if (previewLoadTimeout) window.clearTimeout(previewLoadTimeout);
-        previewLoadTimeout = 0;
-        el('pdfPreviewState').textContent = error.message || 'Unable to regenerate the OFP preview.';
-        setSaveState('failed', error.message || 'Unable to regenerate the OFP preview.');
-        setPdfPreviewBusy(false);
-      }
+      setWorkspace('FILES');
+      return flightDocuments.open('ofp');
     }
-
     async function openCurrentPdf() {
-      const popup = window.open('', '_blank');
-      try {
-        await save();
-        if (!saved) throw new Error('Newer edits remain unsaved. Save them before opening the current PDF.');
-        if (popup) {
-          popup.opener = null;
-          popup.location.replace(ofpPdfUrl());
-        } else {
-          const pdfUrl = ofpPdfUrl();
-          if (embedded && window.top !== window) {
-            try {
-              window.top.location.assign(pdfUrl);
-            } catch (_) {
-              window.location.assign(pdfUrl);
-            }
-          } else {
-            window.location.assign(pdfUrl);
-          }
-        }
-      } catch (error) {
-        if (popup && !popup.closed) popup.close();
-        setSaveState('failed', error.message || 'Unable to open the OFP PDF.');
-      }
+      setWorkspace('FILES');
+      return flightDocuments.open('ofp', true);
     }
 
     function setWorkspace(workspace, persist = true) {
       clearBriefingFocus();
-      const migrated = ({ PLAN:'SETUP', RELEASE:'BRIEF' })[workspace] || workspace;
+      const migrated = ({ PLAN:'SETUP', RELEASE:'BRIEF', FLY:'TIME' })[workspace] || workspace;
       const selected = Object.prototype.hasOwnProperty.call(workspaceSections, migrated) ? migrated : 'SUMMARY';
       currentWorkspace = selected;
       if (inspectorMode === 'PDF') setInspector('SUMMARY');
@@ -1857,9 +1799,10 @@
       el('folderTimeRows').innerHTML = phases.map(([key,code,label]) => {
         const field = `actual${key[0].toUpperCase()}${key.slice(1)}`;
         const actual = movementClocks(plan[field]);
+        const actualDate = Number.isFinite(Date.parse(plan[field+'Iso'])) ? new Date(plan[field+'Iso']).toISOString().slice(0,10) : 'Date not recorded';
         const scheduled = smartSchedule?.[key];
         const variance = actual.recorded ? datedMinutesBetween(scheduled?.instant?.toISOString(), plan[field+'Iso'], true) : null;
-        return `<tr><th scope="row"><b>${code}</b><span>${label}</span></th><td>${scheduled ? `${escapeHtml(scheduled.utc)}Z<small>${escapeHtml(scheduled.utcDate)}</small>` : 'Not set'}</td><td>${actual.utc}<small>${actual.local}</small></td><td>${variance === null ? '—' : `${variance > 0 ? '+' : ''}${variance} MIN`}</td></tr>`;
+        return `<tr><th scope="row"><b>${code}</b><span>${label}</span></th><td>${scheduled ? `${escapeHtml(scheduled.utc)}Z<small>${escapeHtml(scheduled.utcDate)}</small>` : 'Not set'}</td><td>${actual.utc}<small>${escapeHtml(actualDate)}</small><small>${actual.local}</small></td><td>${variance === null ? '—' : `${variance > 0 ? '+' : ''}${variance} MIN`}</td></tr>`;
       }).join('');
       const actualFlight = datedMinutesBetween(plan.actualOffIso, plan.actualOnIso);
       const actualBlock = datedMinutesBetween(plan.actualOutIso, plan.actualInIso);
@@ -1973,16 +1916,21 @@
       ['actualOut','actualOff','actualOn','actualIn'].forEach(field => {
         const value = String(inputFor(field).value || '').trim();
         const card = document.querySelector(`[data-movement-card="${field}"]`);
-        el(`${field}Display`).textContent = value || 'NOT RECORDED';
+        const instant = plan[field+'Iso'] || '';
+        const dated = Number.isFinite(Date.parse(instant)) ? new Date(instant).toISOString() : '';
+        el(`${field}Display`).textContent = dated ? `${dated.slice(0,10)} ${dated.slice(11,16)} UTC · ${movementClocks(value).local}` : value ? `${value} · DATE NOT RECORDED` : 'NOT RECORDED';
         card.classList.toggle('done', Boolean(value));
         const stampButton = card.querySelector('[data-stamp-field]');
         const manualButton = card.querySelector('[data-manual-field]');
-        const manualInput = card.querySelector('[data-manual-time]');
+        const manualInput = card.querySelector('[data-manual-utc]');
         stampButton.disabled = false;
         manualButton.disabled = false;
         manualInput.disabled = false;
-        manualInput.value = value ? localTimeFromMovement(value) : manualInput.value;
-        stampButton.textContent = value ? `UPDATE ${field.replace('actual','').toUpperCase()}` : stampButton.dataset.originalLabel;
+        if (manualInput.dataset.savedInstant !== instant) {
+          manualInput.value = dated.slice(0,16);
+          manualInput.dataset.savedInstant = instant;
+        }
+        stampButton.textContent = `Stamp ${field.replace('actual','').toUpperCase()} now`;
         manualButton.textContent = value ? 'SAVE CORRECTION' : 'SAVE TIME';
       });
     }
@@ -2163,14 +2111,14 @@
         dialog.showModal();
       });
     }
-    async function recordMovement(field, localTime = '') {
+    async function recordMovement(field, utcDateTime = '') {
       if (movementBusy) return;
       if (!saved) {
         setSaveState('unsaved', 'Save the current draft before recording a movement, so your planning changes are preserved.');
         return;
       }
       const phase = field.replace('actual', '').toLowerCase();
-      const source = localTime ? `manual local time ${localTime}` : 'the server flight clock';
+      const source = utcDateTime ? `manual UTC ${utcDateTime.replace('T',' ')}` : 'the server flight clock';
       const previous = String(inputFor(field).value || '').trim();
       const action = previous ? `Replace ${phase.toUpperCase()} ${previous}` : `Record ${phase.toUpperCase()}`;
       movementBusy = true;
@@ -2179,8 +2127,8 @@
         setSaveState('saving', `Recording ${phase.toUpperCase()} with ${source}...`);
         const res = await fetch(`/api/booking-ops/requests/${encodeURIComponent(requestId)}/movements/${phase}`, {
           method:'POST',
-          headers: localTime ? { 'Content-Type':'application/json' } : undefined,
-          body: localTime ? JSON.stringify({ localTime }) : undefined
+          headers: utcDateTime ? { 'Content-Type':'application/json' } : undefined,
+          body: utcDateTime ? JSON.stringify({ utcDateTime }) : undefined
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Unable to record movement time.');
@@ -2200,12 +2148,12 @@
     document.querySelectorAll('[data-stamp-field]').forEach(button => button.addEventListener('click', () => recordMovement(button.dataset.stampField)));
     document.querySelectorAll('[data-manual-field]').forEach(button => button.addEventListener('click', () => {
       const field = button.dataset.manualField;
-      const localTime = document.querySelector(`[data-manual-time="${field}"]`).value;
-      if (!localTime) {
-        setSaveState('unsaved', `Enter the local ${field.replace('actual', '').toUpperCase()} time first.`);
+      const utcDateTime = document.querySelector(`[data-manual-utc="${field}"]`).value;
+      if (!utcDateTime) {
+        setSaveState('unsaved', `Enter the UTC ${field.replace('actual', '').toUpperCase()} date and time first.`);
         return;
       }
-      recordMovement(field, localTime);
+      recordMovement(field, utcDateTime);
     }));
     el('directRouteBtn').addEventListener('click', () => {
       const departure = inputFor('departure').value;
@@ -2380,7 +2328,7 @@
       setInspectorCollapsed(el('ofpInspector').dataset.collapsed !== 'true');
     });
     el('summaryInspectorBtn').addEventListener('click', () => setInspector('SUMMARY'));
-    el('pdfInspectorBtn').addEventListener('click', () => setInspector('PDF'));
+    el('pdfInspectorBtn').addEventListener('click', refreshPdfPreview);
     el('returnSummaryBtn').addEventListener('click', () => setInspector('SUMMARY'));
     el('refreshPdfPreviewBtn').addEventListener('click', refreshPdfPreview);
     el('openPdfFullBtn').addEventListener('click', openCurrentPdf);
@@ -2436,7 +2384,7 @@
     verticalTaskRailMedia.addEventListener('change', syncTaskRailOrientation);
     setInspectorCollapsed(initialInspectorCollapsed(), false);
     setInspector('SUMMARY');
-    const plannerReady=load().catch(error => {setSaveState('failed', error.message || 'Unable to load OFP.');throw error;});
+    const plannerReady=Promise.resolve(window.NGAPilotLock?.ready).then(load).catch(error => {setSaveState('failed', error.message || 'Unable to load OFP.');throw error;});
     plannerReady.catch(()=>{});
   </script>
 </body>

@@ -41,9 +41,6 @@ importers:
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
-      three:
-        specifier: 0.180.0
-        version: 0.180.0
 
 packages:
 
@@ -653,9 +650,6 @@ packages:
 
   strnum@2.5.1:
     resolution: {integrity: sha512-UM4nTLWzQiDBseVxUGxN0wJzIk0UU89Qi7pKXz9qISo+lhviJikTuikBsK/oFRlpvYHvSdz0TVoLyQ+sEpYwxA==}
-
-  three@0.180.0:
-    resolution: {integrity: sha512-o+qycAMZrh+TsE01GqWUxUIKR1AL0S8pq7zDkYOQw8GqfX8b8VoCKYUoHbhiX5j+7hr8XsuHDVU6+gkQJQKg9w==}
 
   tinyqueue@3.0.0:
     resolution: {integrity: sha512-gRa9gwYU3ECmQYv3lslts5hxuIa90veaEcxDYuu3QGOIAEM2mOZkVHp48ANJuu1CURtRdHKUBY5Lm1tHV+sD4g==}
@@ -1432,8 +1426,6 @@ snapshots:
   strnum@2.5.1:
     dependencies:
       anynum: 1.0.1
-
-  three@0.180.0: {}
 
   tinyqueue@3.0.0: {}
 

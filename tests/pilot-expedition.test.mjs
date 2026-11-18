@@ -4,15 +4,18 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const source=name=>readFileSync(new URL('../public/'+name,import.meta.url),'utf8');
 
-test('fresh unlock splash lasts three seconds, can be skipped, and is not replayed in the session',()=>{
+test('fresh unlock splash lasts five foreground seconds and replays on return, not routing',()=>{
   const stored=new Map(),classes=new Set(),events=new Map();let timer;
   const ctx={sessionStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)},performance:{now:()=>10},
-    document:{documentElement:{classList:{add:k=>classes.add(k),remove:k=>classes.delete(k)}},addEventListener:(k,fn)=>events.set(k,fn),removeEventListener:k=>events.delete(k)},
+    document:{hidden:false,querySelector:()=>null,documentElement:{classList:{add:k=>classes.add(k),remove:k=>classes.delete(k)}},addEventListener:(k,fn)=>events.set(k,fn),removeEventListener:k=>events.delete(k)},
     window:{addEventListener(){}},setTimeout:(fn,delay)=>{timer={fn,delay};return 1;},clearTimeout(){}};
   vm.runInNewContext(source('pilot-startup.js'),ctx);
-  assert.equal(timer.delay,3000);assert.equal(classes.has('nga-startup'),true);
-  events.get('keydown')();assert.equal(classes.has('nga-startup'),false);
-  timer=null;vm.runInNewContext(source('pilot-startup.js'),ctx);assert.equal(timer,null);
+  assert.equal(timer.delay,5000);assert.equal(classes.has('nga-startup'),true);
+  assert.equal(events.has('keydown'),false);assert.equal(events.has('pointerdown'),false);
+  timer.fn();assert.equal(classes.has('nga-startup'),false);
+  ctx.document.hidden=true;events.get('visibilitychange')();assert.equal(classes.has('nga-startup'),true);
+  ctx.document.hidden=false;events.get('visibilitychange')();assert.equal(timer.delay,5000);
+  assert.equal(events.has('hashchange'),false);
 });
 
 test('shared flight facade uses the OFP view without mutating passenger booking data',()=>{

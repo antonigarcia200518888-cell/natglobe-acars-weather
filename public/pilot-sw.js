@@ -1,5 +1,5 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v41';
-const PILOT_STYLESHEET_VERSION = '2026-11-17-2';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v42';
+const PILOT_STYLESHEET_VERSION = '2026-11-18-1';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
@@ -37,7 +37,11 @@ const PILOT_SHELL_ASSETS = [
   `/vendor/liquid-glass/glass.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-file-tools.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-weather-summary.js?v=${PILOT_STYLESHEET_VERSION}`,
-  `/pilot-hangar.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-session-lock.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-session-lock.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-flight-documents.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-flight-documents.js?v=${PILOT_STYLESHEET_VERSION}`,
+  '/fonts/nga-courier.ttf',
   '/pilot-glass-relief.svg',
   `/pilot-cockpit.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-touch-controls.js?v=${PILOT_STYLESHEET_VERSION}`,

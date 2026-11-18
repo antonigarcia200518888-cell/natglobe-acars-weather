@@ -36,8 +36,8 @@ html:root body.efb-ui .app-navigation-title h1 {overflow:visible;}
   html:root body.efb-ui .efb-masthead #appWorkspaceTitle {min-width:0;word-break:normal;overflow-wrap:normal;line-height:1.12;}
   html:root body.efb-ui .efb-masthead #flightSwitchBtn {width:auto;max-width:120px;}
 }
-.management-scopes,.flight-kind-actions,.wx-generate,.hangar-tools {display:flex; flex-wrap:wrap; align-items:center; gap:5px;}
-.management-scopes button,.flight-kind-actions :is(button,a),.hangar-tools button,.hangar-launch,.wx-generate button {
+.management-scopes,.flight-kind-actions,.wx-generate {display:flex; flex-wrap:wrap; align-items:center; gap:5px;}
+.management-scopes button,.flight-kind-actions :is(button,a),.wx-generate button {
   padding:8px 12px; color:var(--efb-text); background:var(--efb-soft); border:1px solid var(--efb-line); border-radius:8px;
 }
 .management-scopes button[aria-pressed=true],.wx-generate button.primary {background:var(--efb-active);color:var(--efb-on-active);}
@@ -47,7 +47,7 @@ html:root body.efb-ui .app-navigation-title h1 {overflow:visible;}
 .flight-kind-panel a {color:var(--efb-link);}
 .wx-generate {margin-block:8px;}
 .management-scopes {padding:8px 12px;}
-.management-scopes button,.flight-kind-actions :is(button,a),.hangar-tools button,.hangar-launch,.airframe-dialog button {min-height:48px;}
+.management-scopes button,.flight-kind-actions :is(button,a) {min-height:48px;}
 .flight-kind-panel :is(input,select,textarea) {width:100%; max-width:100%; box-sizing:border-box;}
 .flight-kind-panel [hidden],.wx-review [hidden],a#privateDocStatement[hidden]{display:none!important;}
 .flight-kind-panel .flight-kind-actions,.flight-kind-panel section {margin-block:10px;}
@@ -55,16 +55,8 @@ html:root body.efb-ui .app-navigation-title h1 {overflow:visible;}
 .wx-review #weatherWinds:not([hidden]):not(:empty){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:12px 0;font:500 13px var(--efb-mono);}
 .wx-review .weather-report code {display:block;white-space:normal;overflow-wrap:anywhere;}
 html body.efb-ui #efbFlightHero .hangar-portrait {display:block;position:relative;pointer-events:auto;width:100%;padding:0;border:0;background:transparent;cursor:pointer;}
-.hangar-portrait::after{content:"View 3D";position:absolute;bottom:4px;right:5px;background:#0e203a;color:white;border-radius:5px;padding:3px 6px;font:600 12px var(--efb-font);pointer-events:none;}
-.airframe-dialog header button {border:1px solid var(--efb-line);border-radius:8px;background:var(--efb-soft);color:var(--efb-text);padding-inline:14px;}
-.airframe-dialog,.attachment-reader {box-sizing:border-box;width:min(820px,94vw);max-height:88dvh;overflow:auto;color:var(--efb-text);background:var(--efb-card);border:1px solid var(--efb-line);border-radius:14px;padding:16px;}
-.airframe-dialog::backdrop,.attachment-reader::backdrop{background:rgba(4,9,16,.75);}
-.airframe-dialog header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.airframe-dialog h2,.airframe-dialog p {margin:4px 0 10px;}
-.airframe-dialog small{display:block;color:var(--efb-secondary);margin-top:8px;}
-.airframe-viewport {height:clamp(180px,44dvh,460px);overflow:hidden;background:#182538;border-radius:9px;display:grid;place-items:center;}
-.airframe-viewport canvas,.airframe-viewport img{display:block;width:100%;height:100%;object-fit:contain;}
-.airframe-viewport canvas{touch-action:none;cursor:grab;}
+.attachment-reader {box-sizing:border-box;width:min(820px,94vw);max-height:88dvh;overflow:auto;color:var(--efb-text);background:var(--efb-card);border:1px solid var(--efb-line);border-radius:14px;padding:16px;}
+.attachment-reader::backdrop{background:rgba(4,9,16,.75);}
 .attachment-reader iframe {display:block;width:100%;height:65dvh;border:0;}
 .wx-review summary {align-content:center;}
 .wx-review #weatherAirportGrid:not(:empty) {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(245px,100%),1fr));gap:8px;}

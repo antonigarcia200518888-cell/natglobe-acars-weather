@@ -17,20 +17,21 @@ test('all EFB inline scripts parse', () => {
   }
 });
 
-test('planner has scoped touch styles, eight folder sections, and no duplicate IDs or fields', () => {
+test('planner has seven readable sections with movements in schedule and unified documents', () => {
   for (const attribute of ['id', 'data-field']) {
     const values = [...markup.matchAll(new RegExp(`\\s${attribute}="([^"]+)"`, 'g'))].map(m => m[1]);
     assert.equal(values.length, new Set(values).size, `duplicate ${attribute}`);
   }
-  assert.equal([...markup.matchAll(/role="tab" data-workspace=/g)].length, 8);
+  assert.equal([...markup.matchAll(/role="tab" data-workspace=/g)].length, 7);
   const sheets = Array.from(markup.matchAll(/rel="stylesheet" href="\/([^"?]+)\?v=/g), m => m[1]);
-  assert.deepEqual(sheets, ['pilot-ofp-workflow.css','pilot-touch.css','pilot-ofp-touch.css','design-tokens.css','pilot-expedition.css']);
+  assert.deepEqual(sheets, ['pilot-ofp-workflow.css','pilot-touch.css','pilot-ofp-touch.css','design-tokens.css','pilot-expedition.css','pilot-flight-documents.css','pilot-session-lock.css']);
   assert.doesNotMatch(source, /foreflight/i);
   for (const field of ['departure','destination','route','depRunway','arrRunway','estimatedEnrouteMinutes','fuelFlowGph','tripFuelGal','finalReserveFuelGal','crew1Lb','passengerWeightOverrideLb','releaseAccepted','actualOut','actualOff','actualOn','actualIn']) {
     assert.ok(markup.includes(`data-field="${field}"`), `missing ${field}`);
   }
   assert.match(source, /BRIEF:\['dispatchSection', 'releaseSection'\]/);
-  assert.match(source, /workspaceOrder = \['SUMMARY', 'SETUP', 'ROUTE', 'TIME', 'LOAD', 'BRIEF', 'FLY', 'FILES'\]/);
+  assert.match(source, /workspaceOrder = \['SUMMARY', 'SETUP', 'ROUTE', 'TIME', 'LOAD', 'BRIEF', 'FILES'\]/);
+  assert.match(source, /TIME:\['timeSummarySection', 'movementSection'\]/);
   for (const section of ['flightSummarySection','timeSummarySection','folderDocumentsSection']) assert.ok(markup.includes(`id="${section}"`));
   assert.match(source,/localStorage.getItem\(ofpWorkspaceStorageKey\) \|\| 'SUMMARY'/);
 });

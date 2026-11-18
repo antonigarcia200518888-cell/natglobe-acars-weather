@@ -33,7 +33,7 @@ html body.pilot-login .intro,html body.pilot-login .hint {text-transform:none;fo
 .track-profile {width:100%;height:110px;color:var(--efb-text);background:var(--efb-base);}
 .track-aircraft {width:28px;height:28px;color:#fff;filter:drop-shadow(0 1px 2px #000);}
 .import-dialog [hidden],.airfield-dialog [hidden],.replay-bar[hidden]{display:none!important;}
-html:root body.efb-ui #pilotWorkspaceNav .suite-tab[data-suite-view=performance],html:root body.efb-ui #pilotWorkspaceNav .suite-tab[data-suite-view=logbook]{display:none!important;}
+html:root body.efb-ui #pilotWorkspaceNav .suite-tab:is([data-suite-view=performance],[data-suite-view=logbook],[data-suite-view=aircraft],[data-suite-view=documents]){display:none!important;}
 html:root body.efb-ui #pilotWorkspaceNav #mobileMoreBtn:not([hidden]){display:flex!important;}
 @media(max-width:620px){.import-grid{grid-template-columns:1fr}.import-dialog{padding:12px}.import-field{grid-template-columns:28px minmax(70px,.4fr) minmax(0,1fr);}}
 @media(prefers-reduced-motion:reduce){.nga-splash{transition:none;}}

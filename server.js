@@ -15,6 +15,8 @@ import { degrees, PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { airports as bundledAirports } from './data/airports.js';
 import { dispatchToPdfBuffer } from './lib/dispatch-document.js';
+import { capturePdfPage, journeyLogLines } from './lib/flight-document-preview.js';
+import { parseMovementUtc, movementOrderError } from './lib/flight-movement-time.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,7 +50,6 @@ app.get('/vendor/simplewebauthn-browser.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'node_modules', '@simplewebauthn', 'browser', 'dist', 'bundle', 'index.umd.min.js'));
 });
 
-app.use('/vendor/three', express.static(path.join(__dirname, 'node_modules', 'three', 'build'), { maxAge:'1d' }));
 app.use('/vendor/leaflet', express.static(path.join(__dirname, 'node_modules', 'leaflet', 'dist'), {
   maxAge: '1d'
 }));
@@ -4937,7 +4938,7 @@ app.post('/api/pilot-passkeys/authentication/verify', async (req, res) => {
   const storedPasskey = pilotPasskeys.get(credentialId);
   if (!storedPasskey) return res.status(401).json({ error: 'THIS DEVICE PASSKEY IS NOT REGISTERED' });
   const profile = pilotAccessProfiles().find(item => item.role === storedPasskey.profileRole);
-  if (!profile) return res.status(403).json({ error: 'THE PILOT ROLE FOR THIS PASSKEY IS NO LONGER ACTIVE' });
+  if (!profile?.active) return res.status(403).json({ error: 'THE PILOT ROLE FOR THIS PASSKEY IS NO LONGER ACTIVE' });
   try {
     const verification = await verifyAuthenticationResponse({
       response: req.body?.credential,
@@ -6530,7 +6531,7 @@ function ofpPdfDuration(minutes) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}${String(total % 60).padStart(2, '0')}`;
 }
 
-async function createOperationalFlightPlanPdf(request) {
+async function createOperationalFlightPlanPdf(request, withPreview = false) {
   const plan = normalizeOperationalFlightPlan(request.operationalFlightPlan || operationalFlightPlanDefaults(request), request);
   const wbProfile = AIRCRAFT_WEIGHT_BALANCE_PROFILE;
   const pdfDoc = await PDFDocument.create();
@@ -6554,6 +6555,10 @@ async function createOperationalFlightPlanPdf(request) {
     return page;
   });
   const [page1, page2, page3] = pages;
+  const previewPages = withPreview ? pages.map((page, index) => capturePdfPage(page, {
+    width, height, courier, courierBold,
+    background: `data:image/png;base64,${fs.readFileSync(path.join(__dirname, 'data', `ofp-template-page-${index + 1}.png`)).toString('base64')}`
+  })) : null;
   const clean = (value, fallback = '......', max = 96) => ofpPdfText(value, fallback, max).toUpperCase();
   const fitSize = (font, value, size, maxWidth) => {
     if (!maxWidth) return size;
@@ -6789,7 +6794,26 @@ async function createOperationalFlightPlanPdf(request) {
   page3.drawText('Mass (lbs)', { x: graph.x - 24, y: graph.y + 126, size: 6.5, font: sansBold, color: ink, rotate: degrees(90) });
   pageFooter(page3, 3, 762.8);
 
-  return Buffer.from(await pdfDoc.save());
+  const pdf = Buffer.from(await pdfDoc.save());
+  return withPreview ? { pages: previewPages, pdf: pdf.toString('base64'), title: 'Operational Flight Plan', filename: `${request.id}-OPERATIONAL-FLIGHT-PLAN.pdf` } : pdf;
+}
+
+async function createJourneyLogPacket(request) {
+  const plan = normalizeOperationalFlightPlan(request.operationalFlightPlan, request);
+  const doc = await PDFDocument.create(); doc.registerFontkit(fontkit);
+  const courier = await doc.embedFont(fs.readFileSync(path.join(__dirname, 'cour.ttf')), { subset: true });
+  const courierBold = await doc.embedFont(StandardFonts.CourierBold);
+  const lines = journeyLogLines(request, plan);
+  const pages = [];
+  for (let offset = 0; offset < lines.length; offset += 48) {
+    const page = doc.addPage([595.5, 842.25]);
+    pages.push(capturePdfPage(page, { width: 595.5, height: 842.25, courier, courierBold }));
+    lines.slice(offset, offset + 48).forEach((line, row) => {
+      if (line) page.drawText(line, { x: 40, y: 794 - row * 15, size: 10.5, font: offset === 0 && row < 2 ? courierBold : courier, color: rgb(.08, .08, .08) });
+    });
+    page.drawText(`NGA JOURNEY LOG / ${request.id} / PAGE ${pages.length}`, { x: 40, y: 28, size: 9, font: courier, color: rgb(.3, .3, .3) });
+  }
+  return { pages, pdf: Buffer.from(await doc.save()).toString('base64'), title: 'Journey Log', filename: `${request.id}-JOURNEY-LOG.pdf` };
 }
 
 async function createSignedAgreementPdf(request, passenger) {
@@ -6928,11 +6952,41 @@ app.get('/api/booking-ops/requests/:id/operational-flight-plan/pdf', requirePilo
   if (!request) return res.status(404).json({ error: 'BOOKING REQUEST NOT FOUND' });
   if (!request.operationalFlightPlan) return res.status(400).json({ error: 'SAVE THE OPERATIONAL FLIGHT PLAN DRAFT FIRST' });
   if(request.operationalFlightPlan.aircraftRegistration!=='OH-PMK')return res.status(422).json({error:'PDF calculation requires the verified OH-PMK profile. This imported aircraft has no verified NGA performance / mass-and-balance profile.'});
-  const pdf = await createOperationalFlightPlanPdf(request);
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `inline; filename="${request.id}-OPERATIONAL-FLIGHT-PLAN.pdf"`);
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.send(pdf);
+  try {
+    const wantsPreview = req.get('Accept') === 'application/json';
+    const pdf = await createOperationalFlightPlanPdf(request, wantsPreview);
+    if (wantsPreview) {
+      res.setHeader('Cache-Control', 'no-store');
+      return res.json(pdf);
+    }
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${request.id}-OPERATIONAL-FLIGHT-PLAN.pdf"`);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.send(pdf);
+  } catch (error) {
+    console.error('OFP PDF:', error.message);
+    res.status(500).json({ error: 'OFP GENERATION FAILED. YOUR SAVED DRAFT IS UNCHANGED.' });
+  }
+});
+
+app.get('/fonts/nga-courier.ttf', (req, res) => res.sendFile(path.join(__dirname, 'cour.ttf')));
+
+app.get('/api/booking-ops/requests/:id/journey-log/pdf', requirePilotAccess, async (req, res) => {
+  await bookingStoreReady;
+  const request = bookingRequests.find(item => item.id === String(req.params.id || '').trim().toUpperCase());
+  if (!request) return res.status(404).json({ error: 'FLIGHT NOT FOUND' });
+  if (!request.operationalFlightPlan) return res.status(400).json({ error: 'SAVE THE FLIGHT DRAFT FIRST' });
+  try {
+    const packet = await createJourneyLogPacket(request);
+    res.setHeader('Cache-Control', 'no-store');
+    if (req.get('Accept') === 'application/json') return res.json(packet);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${packet.filename}"`);
+    res.send(Buffer.from(packet.pdf, 'base64'));
+  } catch (error) {
+    console.error('JOURNEY LOG:', error.message);
+    res.status(500).json({ error: 'JOURNEY LOG GENERATION FAILED' });
+  }
 });
 
 app.post('/api/booking-ops/requests/:id/release-checks/:check', requirePilotAccess, async (req, res) => {
@@ -7023,14 +7077,20 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   const previousTimestamp = previousPlan[step.field] || '';
 
   const manualTime = String(req.body?.localTime || '').trim();
+  const manualUtc = req.body?.utcDateTime;
+  const hasManualUtc = manualUtc !== undefined;
+  const utcInstant = hasManualUtc ? parseMovementUtc(manualUtc) : null;
+  if (hasManualUtc && !utcInstant) return res.status(400).json({ error: 'ENTER A VALID UTC DATE AND TIME (YYYY-MM-DD HH:MM)' });
   const timeZone = movementTimeZone(previousPlan, request, phase);
   const localDate = movementLocalDate(previousPlan, phase, timeZone);
-  const timestampRecord = manualTime
+  const timestampRecord = hasManualUtc ? movementTimestamp(utcInstant, timeZone) : manualTime
     ? manualMovementTimestamp(manualTime, localDate, timeZone, String(req.body?.occurrence || 'EARLIER').toUpperCase())
     : movementTimestamp(new Date(), timeZone);
   if (!timestampRecord) return res.status(400).json({ error: 'ENTER A VALID LOCAL TIME IN HH:MM FORMAT' });
+  const orderError = movementOrderError(previousPlan, step.field, timestampRecord.instant);
+  if (orderError) return res.status(400).json({ error: orderError });
   const timestamp = timestampRecord.value;
-  const source = manualTime ? 'MANUAL LOCAL TIME' : 'SERVER CLOCK';
+  const source = hasManualUtc ? 'MANUAL UTC DATE AND TIME' : manualTime ? 'MANUAL LOCAL TIME' : 'SERVER CLOCK';
   const flightPlan = normalizeOperationalFlightPlan({
     ...previousPlan,
     [step.field]: timestamp,
@@ -7041,7 +7101,7 @@ app.post('/api/booking-ops/requests/:id/movements/:phase', requirePilotAccess, a
   await addBookingTimelineEvent(
     request.id,
     previousTimestamp ? 'MOVEMENT TIME CORRECTED' : 'MOVEMENT TIME RECORDED',
-    `${step.label} ${previousTimestamp ? `${previousTimestamp} > ` : ''}${timestamp} / ${source}`,
+    `${step.label} ${previousTimestamp ? `${previousTimestamp} > ` : ''}${timestamp} / ${timestampRecord.instant} / ${source}`,
     pilotActor(req)
   );
   res.json({
