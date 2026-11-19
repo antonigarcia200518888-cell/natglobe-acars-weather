@@ -54,6 +54,17 @@ function harness(options = {}) {
 }
 const route={dep:'EFHV',arr:'EFHN',departure:{lon:24.88,lat:60.65},arrival:{lon:22.96,lat:59.85}};
 
+test('device position is separate from route, with a measured radius and stale styling',async()=>{
+  const h=harness();await h.load();const now=Date.now(),fix={latitude:60,longitude:25,accuracy:25,timestamp:now};
+  const geo=h.geometry.deviceGeometry(fix,now);assert.equal(geo.features.length,2);assert.equal(geo.features[0].geometry.coordinates[0].length,65);
+  assert.equal(geo.features[1].properties.stale,false);assert.equal(h.geometry.deviceGeometry(fix,now+16000).features[1].properties.stale,true);
+  assert.equal(h.geometry.deviceGeometry({...fix,accuracy:-1}).features.length,0);
+  const m=h.maps[0],previous=m.camera;h.adapter.setDevicePosition(fix);assert.equal(m.camera,previous,'receiving a position must not recenter');
+  assert.equal(h.adapter.centerDevicePosition(),true);assert.equal(JSON.stringify(m.camera.center),'[25,60]');
+  h.adapter.setDevicePosition({...fix,timestamp:now-20000});assert.equal(h.adapter.centerDevicePosition(),false);
+  h.adapter.setDevicePosition(null);assert.equal(m.sources.get('pilot-device').data.features.length,0);
+});
+
 test('coordinate validation rejects missing, NaN, out-of-range and string data',()=>{
   const {geometry}=harness();
   for(const value of [null,{}, {lon:NaN,lat:0},{lon:0,lat:91},{lon:181,lat:0},{lon:'24',lat:60}]) assert.equal(geometry.coordinates(value),null);
@@ -174,7 +185,7 @@ test('new production resources are versioned and preview remains separate',()=>{
   }
   assert.ok(!html.includes('/efb-preview/'));
   assert.match(html,/Overview only · direct route · not for navigation/);
-  assert.match(html,/dragging:true,\s+touchZoom:true/);
+  assert.match(fs.readFileSync(new URL('../public/pilot-weather-radar.js',import.meta.url),'utf8'),/L\.map\(/);
 });
 
 test('route fit uses panel-aware padding without retaining camera padding',async()=>{

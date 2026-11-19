@@ -1,5 +1,5 @@
-const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v42';
-const PILOT_STYLESHEET_VERSION = '2026-11-18-1';
+const PILOT_SHELL_CACHE = 'nga-pilot-shell-2026-11-v43';
+const PILOT_STYLESHEET_VERSION = '2026-11-19-1';
 const PILOT_EFB_STYLESHEETS = [
   `/pilot-efb.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-app-reference.css?v=${PILOT_STYLESHEET_VERSION}`,
@@ -20,6 +20,10 @@ const PILOT_EFB_STYLESHEETS = [
 ];
 const PILOT_SHELL_ASSETS = [
   '/pilot-offline.html',
+  `/pilot-ofp-layout.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-weather-workspace.css?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-weather-workspace.js?v=${PILOT_STYLESHEET_VERSION}`,
+  `/pilot-weather-radar.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-expedition.css?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-flight-context.js?v=${PILOT_STYLESHEET_VERSION}`,
   `/pilot-startup.js?v=${PILOT_STYLESHEET_VERSION}`,

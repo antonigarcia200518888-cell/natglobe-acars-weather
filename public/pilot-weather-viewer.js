@@ -5,7 +5,7 @@ window.createWeatherReader = function createWeatherReader(dialog) {
   const back=byId('wxReaderBack'), title=byId('wxReaderTitle'), status=byId('wxReaderStatus');
   const paper=byId('wxReaderPages'), scroller=byId('wxReaderScroll'), mode=byId('wxReaderMode');
   const download=byId('wxReaderDownload'), share=byId('wxReaderShare'), retry=byId('wxReaderRetry');
-  let controller, packet, url, file, params, opener, reading;
+  let controller, packet, url, file, params, opener, reading, deadline;
   const svgNS='http://www.w3.org/2000/svg';
   function render() {
     const fragment=document.createDocumentFragment();
@@ -33,12 +33,14 @@ window.createWeatherReader = function createWeatherReader(dialog) {
     scroller.scrollTop=0;
   }
   function reset() {
+    clearTimeout(deadline);
     controller?.abort(); controller=null; packet=null; file=null;
     download.removeAttribute('href'); if(url) URL.revokeObjectURL(url); url=null;
     paper.replaceChildren(); download.hidden=share.hidden=retry.hidden=mode.hidden=true;
   }
   async function load() {
     reset(); const current=new AbortController(); controller=current;
+    const timeout=setTimeout(()=>current.abort(),25000);deadline=timeout;
     status.textContent='Preparing weather document…'; paper.setAttribute('aria-busy','true');
     try {
       const response=await fetch('/api/dispatch-pdf?'+params,{signal:current.signal,cache:'no-store',headers:{Accept:'application/json'}});
@@ -55,8 +57,8 @@ window.createWeatherReader = function createWeatherReader(dialog) {
       status.textContent=result.pages.length+' '+(result.pages.length===1?'page':'pages')+' · Generated briefing';
     } catch {
       if(controller!==current) return;
-      status.textContent='Weather document unavailable. Check your connection and try again.'; retry.hidden=false;
-    } finally { if(controller===current) paper.removeAttribute('aria-busy'); }
+      status.textContent=current.signal.aborted?'Weather document timed out. Retry or return to Weather.':'Weather document unavailable. Check your connection and try again.'; retry.hidden=false;
+    } finally { clearTimeout(timeout);if(controller===current) paper.removeAttribute('aria-busy'); }
   }
   back.addEventListener('click',()=>dialog.close());
   dialog.addEventListener('close',()=>{ reset(); opener?.focus({preventScroll:true}); });

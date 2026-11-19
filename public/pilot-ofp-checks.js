@@ -11,10 +11,10 @@ window.pilotOFPChecks = (() => {
     else if (/runway identifiers/i.test(value)) action = target('SETUP', field('depRunway'), 'Runways', 'route');
     else if (/alternate review/i.test(value)) action = target('SETUP', field('alternate'), 'Alternate airport', 'route');
     else if (/four-character ICAO/i.test(value)) action = target('SETUP', field('departure'), 'Departure & destination', 'setup');
-    else if (/occurs twice/i.test(value)) action = target('SETUP', field('departureTimeOccurrence'), 'Departure time occurrence', 'setup');
-    else if (/local departure date/i.test(value)) action = target('SETUP', field('dateUtc'), 'Departure date', 'setup');
-    else if (/local departure time/i.test(value)) action = target('SETUP', field('scheduledOutLocal'), 'Departure time', 'setup');
-    else if (/elapsed flight time/i.test(value)) action = target('SETUP', field('estimatedEnrouteMinutes'), 'Planned flight time', 'setup');
+    else if (/occurs twice/i.test(value)) action = target('TIME', field('departureTimeOccurrence'), 'Departure time occurrence', 'setup');
+    else if (/local departure date/i.test(value)) action = target('TIME', field('dateUtc'), 'Departure date', 'setup');
+    else if (/local departure time/i.test(value)) action = target('TIME', field('scheduledOutLocal'), 'Departure time', 'setup');
+    else if (/elapsed flight time/i.test(value)) action = target('TIME', field('estimatedEnrouteMinutes'), 'Planned flight time', 'setup');
     else if (/flight reference/i.test(value)) action = target('SETUP', field('flightReference'), 'Flight reference', 'setup');
     else if (/pilot route/i.test(value)) action = target('ROUTE', field('route'), 'Route description', 'route');
     else if (/crew weights/i.test(value)) action = target('LOAD', field('crew1Lb'), 'Crew weights', 'load');
@@ -53,7 +53,7 @@ window.pilotOFPChecks = (() => {
 
   function serverAction(message) {
     const actions = {
-      'COMPLETE FLIGHT REFERENCE AND SCHEDULE': target('SETUP', field('dateUtc'), 'Flight setup'),
+      'COMPLETE FLIGHT REFERENCE AND SCHEDULE': target('TIME', field('dateUtc'), 'Flight schedule'),
       'COMPLETE ROUTE AND RUNWAYS': target('SETUP', field('depRunway'), 'Runways & airports'),
       'ASSIGN THE COMMANDER': { module:'flights', detailTab:'crew', label:'Crew assignment' },
       'WEATHER OPEN': { module:'flights', detailTab:'release', label:'Flight checks' },

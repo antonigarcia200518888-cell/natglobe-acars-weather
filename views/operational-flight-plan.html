@@ -52,15 +52,15 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-18-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-18-1" />
-  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-18-1" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-18-1" />
-  <script src="/pilot-instruments.js?v=2026-11-18-1"></script>
-  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-18-1" />
-  <link rel="stylesheet" href="/pilot-flight-documents.css?v=2026-11-18-1" />
-  <link rel="stylesheet" href="/pilot-session-lock.css?v=2026-11-18-1" />
-  <script src="/pilot-session-lock.js?v=2026-11-18-1"></script>
+  <link rel="stylesheet" href="/pilot-ofp-workflow.css?v=2026-11-19-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-19-1" />
+  <link rel="stylesheet" href="/pilot-ofp-touch.css?v=2026-11-19-1" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-19-1" />
+  <script src="/pilot-instruments.js?v=2026-11-19-1"></script>
+  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-19-1" />
+  <link rel="stylesheet" href="/pilot-flight-documents.css?v=2026-11-19-1" />
+  <link rel="stylesheet" href="/pilot-session-lock.css?v=2026-11-19-1" />
+  <script src="/pilot-session-lock.js?v=2026-11-19-1"></script>
 </head>
 <body class="efb-ui efb-planner">
   <main class="shell ofp-app-shell" data-component="ofp-app" data-workspace="SETUP">
@@ -105,12 +105,11 @@
       <div id="saveState" class="save-state loading" role="status" aria-live="polite">Loading flight file...</div>
     </div>
     <nav class="ofp-workspaces ofp-task-rail" aria-label="Flight folder sections" role="tablist">
-      <button id="taskTabSummary" class="ofp-workspace-button" type="button" role="tab" data-workspace="SUMMARY" aria-controls="flightSummarySection" aria-selected="false"><strong class="task-title">Flight summary</strong><em class="workspace-state">Overview</em></button>
-      <button id="taskTabSetup" class="ofp-workspace-button" type="button" role="tab" data-workspace="SETUP" data-step="1" aria-controls="flightSetupSection" aria-selected="true"><strong class="task-title">Flight information</strong><em class="workspace-state">Aircraft &amp; airports</em></button>
+      <button id="taskTabSetup" class="ofp-workspace-button" type="button" role="tab" data-workspace="SETUP" data-step="1" aria-controls="flightSetupSection" aria-selected="true"><strong class="task-title">Flight overview</strong><em class="workspace-state">Aircraft &amp; airports</em></button>
       <button id="taskTabRoute" class="ofp-workspace-button" type="button" role="tab" data-workspace="ROUTE" aria-controls="routeSection" aria-selected="false"><strong class="task-title">Route &amp; alternates</strong><em class="workspace-state">Navigation plan</em></button>
       <button id="taskTabTime" class="ofp-workspace-button" type="button" role="tab" data-workspace="TIME" aria-controls="timeSummarySection movementSection" aria-selected="false"><strong class="task-title">Flight schedule</strong><em class="workspace-state">Planned &amp; actual times</em></button>
-      <button id="taskTabLoad" class="ofp-workspace-button" type="button" role="tab" data-workspace="LOAD" data-step="2" aria-controls="fuelSection loadSection" aria-selected="false" tabindex="-1"><strong class="task-title">Fuel &amp; load</strong><em class="workspace-state">Fuel &amp; balance</em></button>
-      <button id="taskTabBrief" class="ofp-workspace-button" type="button" role="tab" data-workspace="BRIEF" data-step="3" aria-controls="dispatchSection releaseSection" aria-selected="false" tabindex="-1"><strong class="task-title">Review &amp; release</strong><em class="workspace-state">Pilot verification</em></button>
+      <button id="taskTabLoad" class="ofp-workspace-button" type="button" role="tab" data-workspace="LOAD" data-step="2" aria-controls="fuelSection loadSection" aria-selected="false" tabindex="-1"><strong class="task-title">Fuel &amp; performance</strong><em class="workspace-state">Fuel &amp; balance</em></button>
+      <button id="taskTabBrief" class="ofp-workspace-button" type="button" role="tab" data-workspace="BRIEF" data-step="3" aria-controls="dispatchSection releaseSection" aria-selected="false" tabindex="-1"><strong class="task-title">Weather &amp; review</strong><em class="workspace-state">Pilot verification</em></button>
       <button id="taskTabFiles" class="ofp-workspace-button" type="button" role="tab" data-workspace="FILES" aria-controls="folderDocumentsSection" aria-selected="false"><strong class="task-title">Flight documents</strong><em class="workspace-state">OFP &amp; Journey Log</em></button>
     </nav>
     <div class="workspace ofp-app-workspace">
@@ -118,7 +117,7 @@
       <nav class="ofp-planning-segments" aria-label="Planning shortcuts"><button type="button" data-planning-target="taskTabRoute">Routing</button><button type="button" data-planning-target="openPerformanceWorkspaceBtn">Performance ↗</button><button type="button" data-planning-target="taskTabLoad">Fuel</button><button type="button" data-planning-target="openWeatherWorkspaceBtn">Weather ↗</button></nav>
       <section class="editor ofp-task-content" aria-label="Selected flight plan stage">
         <div id="checkReturnBar" class="check-return-bar" hidden><div><span>BRIEFING CHECK</span><strong id="checkReturnLabel"></strong></div><button type="button" id="backToReviewBtn">Back to review</button></div>
-        <section id="flightSummarySection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabSummary" hidden>
+        <section id="flightSummarySection" class="folder-summary" aria-label="Flight summary" hidden>
           <div class="folder-flight-title"><div><span id="folderReference">FLIGHT FILE</span><strong id="folderAircraft">Aircraft not loaded</strong></div><span id="folderReleaseState" class="folder-status">DRAFT</span></div>
           <div class="folder-next-action"><div><span id="folderNextCount">PLANNING CHECKS</span><strong id="folderNextTitle">Review the flight plan</strong></div><button type="button" id="folderNextCheckBtn">Open next check</button></div>
           <div class="folder-route-diagram"><div><span>DEPARTURE</span><strong id="folderDeparture">----</strong><small id="folderDepartureName">Departure airport</small></div><div class="folder-route-line"><span id="folderEet">— MIN</span><i aria-hidden="true">✈</i><small id="folderDistance">— NM</small></div><div><span>DESTINATION</span><strong id="folderDestination">----</strong><small id="folderDestinationName">Arrival airport</small></div></div>
@@ -131,9 +130,10 @@
           <div class="folder-note">Planning aid only. Current approved weather, NOTAMs, charts and aircraft documentation remain required.</div>
         </section>
         <section id="timeSummarySection" class="folder-summary" role="tabpanel" aria-labelledby="taskTabTime" hidden>
-          <div class="folder-page-intro"><h3>Flight schedule</h3><p>Planned and actual block out, takeoff, landing and block in. Record actual events below the timeline.</p><button type="button" data-folder-open="SETUP">Edit planned departure &amp; duration</button></div>
+          <div class="folder-page-intro"><h3>Flight schedule</h3><p>Set planned departure and duration here. Calculated UTC times update below; actual movements stay separate.</p></div>
+          <div id="scheduleInputs" class="schedule-edit-grid"></div>
           <section class="folder-sheet"><header><h3>Movement timeline</h3><span>UTC / LOCAL</span></header>
-            <figure class="efb-instrument"><figcaption>Flight and block duration · minutes</figcaption><div id="durationPlot"></div></figure>
+            <details class="duration-disclosure"><summary>Compare flight &amp; block durations</summary><figure class="efb-instrument"><figcaption>Flight and block duration · minutes</figcaption><div id="durationPlot"></div></figure></details>
             <div class="folder-table-wrap"><table class="folder-table"><caption>Exact movement times</caption><thead><tr><th scope="col">Event</th><th scope="col">Planned UTC</th><th scope="col">Actual UTC / local</th><th scope="col">Difference</th></tr></thead><tbody id="folderTimeRows"></tbody></table></div></section>
           <div id="folderDurationRows" class="folder-duration-grid"></div><p class="folder-note">Actual durations and differences use dated server records only; legacy clock-only values are not inferred. Positive difference = later than planned. The planned schedule includes 10 minutes taxi out and 5 minutes taxi in.</p><button type="button" data-folder-open="FILES">OFP &amp; Journey Log documents</button>
         </section>
@@ -147,7 +147,7 @@
         <details id="flightSetupSection" class="ofp-task-panel" data-task="SETUP" role="tabpanel" aria-labelledby="taskTabSetup" open>
           <summary class="ofp-task-panel-summary"><span>01</span><strong>Flight &amp; schedule</strong><em>Identity, aircraft, airports and EOBT</em></summary>
           <div class="detail-body">
-            <div class="section-heading ofp-card-head"><div><span>Flight information</span><strong>Flight details</strong></div><p>Confirm the flight identity once. Local time, UTC and the movement schedule stay synchronized automatically.</p></div>
+            <div class="section-heading ofp-card-head"><div><span>Flight information</span><strong>Flight overview</strong></div><p>Confirm aircraft, airports and crew. Departure time and actual movements are together in Schedule.</p></div>
 
             <section class="flight-info-composer ofp-smart-card ofp-flight-setup-card" aria-label="Flight information composer" data-smart-card="flight-setup">
               <input data-field="aircraftModel" type="hidden" value="PA28-200R" />
@@ -195,7 +195,7 @@
                 <label class="rules-field">Flight rules<select id="flightRulesSelect" data-field="flightRules"><option value="VFR">VFR</option><option value="IFR">IFR</option></select></label>
               </div>
               <details id="setupDetailsDrawer" class="setup-details-drawer">
-                <summary>Time zone &amp; flight reference</summary>
+                <summary>Flight reference &amp; operator</summary>
                 <div class="detail-body">
                   <header class="flight-info-head">
                     <div><span>Flight file</span><strong id="flightInfoTitle">NEW OPERATIONAL FLIGHT PLAN</strong></div>
@@ -548,12 +548,13 @@
       </form>
     </dialog>
   </main>
-  <script src="/pilot-ofp-checks.js?v=2026-11-18-1"></script>
-  <script src="/pilot-flight-documents.js?v=2026-11-18-1"></script>
+  <script src="/pilot-ofp-checks.js?v=2026-11-19-1"></script>
+  <script src="/pilot-flight-documents.js?v=2026-11-19-1"></script>
+  <script src="/pilot-ofp-layout.js?v=2026-11-19-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-18-1"></script>
-  <script src="/pilot-display.js?v=2026-11-18-1"></script>
-  <script src="/pilot-ofp-touch.js?v=2026-11-18-1" defer></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-19-1"></script>
+  <script src="/pilot-display.js?v=2026-11-19-1"></script>
+  <script src="/pilot-ofp-touch.js?v=2026-11-19-1" defer></script>
   <script>
     const embedded = new URLSearchParams(location.search).get('embedded') === '1';
     if (embedded) document.documentElement.classList.add('embedded');
@@ -579,7 +580,6 @@
     let inspectorMode = 'SUMMARY';
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
     const workspaceSections = {
-      SUMMARY:['flightSummarySection'],
       SETUP:['flightSetupSection'],
       ROUTE:['routeSection'],
       TIME:['timeSummarySection', 'movementSection'],
@@ -587,17 +587,17 @@
       BRIEF:['dispatchSection', 'releaseSection'],
       FILES:['folderDocumentsSection']
     };
-    const workspaceOrder = ['SUMMARY', 'SETUP', 'ROUTE', 'TIME', 'LOAD', 'BRIEF', 'FILES'];
-    const workspaceLabels = { SUMMARY:'Flight summary', SETUP:'Flight information', ROUTE:'Route & navigation', TIME:'Flight schedule', LOAD:'Aircraft & fuel', BRIEF:'Briefing & release', FILES:'Flight documents', RELEASE:'Briefing & release' };
+    const workspaceOrder = ['SETUP', 'ROUTE', 'TIME', 'LOAD', 'BRIEF', 'FILES'];
+    const workspaceLabels = { SETUP:'Flight overview', ROUTE:'Route & navigation', TIME:'Schedule · UTC', LOAD:'Fuel & performance', BRIEF:'Weather & operational review', FILES:'Flight documents' };
     const ofpWorkspaceStorageKey = `nga-ofp-workspace-v4:${requestId}`;
     const ofpInspectorStorageKey = 'nga-ofp-inspector-collapsed-v1';
     const compactInspectorMedia = window.matchMedia('(max-width: 1199px)');
     const floatingInspectorMedia = window.matchMedia('(max-width: 1199px)');
-    let currentWorkspace = 'SUMMARY';
+    let currentWorkspace = 'SETUP';
 
     function storedWorkspace() {
-      try { return localStorage.getItem(ofpWorkspaceStorageKey) || 'SUMMARY'; }
-      catch (_) { return 'SUMMARY'; }
+      try { return localStorage.getItem(ofpWorkspaceStorageKey) || 'SETUP'; }
+      catch (_) { return 'SETUP'; }
     }
 
     function rememberWorkspace(workspace) {
@@ -728,6 +728,7 @@
     }
 
     const flightDocuments = window.createFlightDocumentReader({
+      backToPlan:()=>setWorkspace('SETUP'),
       host: el('flightDocumentsHost'),
       baseUrl: `/api/booking-ops/requests/${encodeURIComponent(requestId)}`,
       save: async () => {
@@ -747,8 +748,8 @@
 
     function setWorkspace(workspace, persist = true) {
       clearBriefingFocus();
-      const migrated = ({ PLAN:'SETUP', RELEASE:'BRIEF', FLY:'TIME' })[workspace] || workspace;
-      const selected = Object.prototype.hasOwnProperty.call(workspaceSections, migrated) ? migrated : 'SUMMARY';
+      const migrated = ({ SUMMARY:'SETUP', PLAN:'SETUP', RELEASE:'BRIEF', FLY:'TIME' })[workspace] || workspace;
+      const selected = Object.prototype.hasOwnProperty.call(workspaceSections, migrated) ? migrated : 'SETUP';
       currentWorkspace = selected;
       if (inspectorMode === 'PDF') setInspector('SUMMARY');
       if (persist) setInspectorCollapsed(true, false);
@@ -756,7 +757,7 @@
       document.querySelector('.shell').dataset.workspace = selected;
       document.body.dataset.ofpStage = selected.toLowerCase();
       el('folderSectionTitle').textContent = workspaceLabels[selected];
-      el('folderOverviewBtn').hidden = selected === 'SUMMARY';
+      el('folderOverviewBtn').hidden = selected === 'SETUP';
       Object.values(workspaceSections).flat().forEach(id => {
         const section = el(id);
         section.hidden = !visible.has(id);
@@ -2368,10 +2369,12 @@
       save,
       async setAirport(field,code){
         await plannerReady;
-        if(!['departure','destination'].includes(field)||!/^[A-Z]{4}$/.test(code))return false;
+        if(!['departure','destination','alternate'].includes(field)||!/^[A-Z]{4}$/.test(code))return false;
         inputFor(field).value=code;
-        inputFor(field==='departure'?'depRunway':'arrRunway').value='';
-        for(const key of field==='departure'?['departureProcedure']:['arrivalProcedure','approachProcedure'])inputFor(key).value='';
+        if(field!=='alternate'){
+          inputFor(field==='departure'?'depRunway':'arrRunway').value='';
+          for(const key of field==='departure'?['departureProcedure']:['arrivalProcedure','approachProcedure'])inputFor(key).value='';
+        }
         plan.performanceSnapshot=null;plan.releaseSnapshot=null;
         inputFor('importReviewed').checked=false;
         inputFor('releaseAccepted').checked=false;

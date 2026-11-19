@@ -19,7 +19,7 @@
 .flight-document-column h3 { font-size:16px; margin:0; }
 .flight-document-paper { width:100%; height:auto; display:block; background:#fff; color:#141414; margin:0 auto 16px; }
 .flight-document-paper text { stroke:none !important; stroke-width:0 !important; font-variant-numeric:tabular-nums; letter-spacing:normal; text-transform:none; }
-#flightDocumentsHost .flight-reader-header { display:none; }
+#flightDocumentsHost .flight-reader-header { border-radius:12px 12px 0 0; }
 #flightDocumentsHost .flight-document-scroll { max-height:760px; }
 @media(min-width:1100px) { .flight-document-pages[data-layout=both] { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:740px) { .flight-document-switcher { gap:4px; } .flight-document-switcher button { flex-basis:130px; font-size:14px; } .flight-reader-header strong { order:-1; flex-basis:100%; } }

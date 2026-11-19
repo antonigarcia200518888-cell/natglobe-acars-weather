@@ -11,13 +11,14 @@
     return selectedId ? requests.find(item => item.id === selectedId) || null : null;
   }
   root.PilotCockpit = { positionHealth, secondDelay, retainedFlight };
-  root.createPilotCockpit = function ({ onMinute = () => {} } = {}) {
+  root.createPilotCockpit = function ({ onMinute = () => {}, onPosition = () => {}, onCenter = () => false } = {}) {
     const node = id => document.getElementById(id);
     const clock = node('clock');
     const locationButton = node('cockpitLocationBtn');
     const dialog = node('cockpitLocationDialog');
     let timer = 0, locationTimer = 0, watch = null, wanted = false, fix = null, generation = 0;
     let lastSecond = '', lastMinute = '', failure = '';
+    let lastPositionKey = '';
     const write = (target, value) => { if (target.textContent !== value) target.textContent = value; };
     function showLocation() {
       const state = failure ? { tone:'caution', label:failure } : wanted ? positionHealth(fix) : { tone:'neutral', label:'Location off' };
@@ -27,9 +28,13 @@
       locationButton.title = 'Device location accuracy, not GPS integrity. Tap for details.';
       node('cockpitLocationStart').hidden = wanted;
       node('cockpitLocationStop').hidden = !wanted;
+      const key=[wanted,fix?.timestamp,fix?.accuracy,state.label,failure].join('|');
+      if(key!==lastPositionKey){lastPositionKey=key;onPosition(wanted && !failure ? fix : null);}
+      const center=node('cockpitLocationCenter');
+      center.disabled=!wanted || !!failure || !fix || Date.now()-fix.timestamp>15000 || fix.timestamp>Date.now()+1000;
       if (!dialog.open) return;
       write(node('cockpitPositionDetail'), fix && !failure
-        ? `${fix.latitude.toFixed(4)}°, ${fix.longitude.toFixed(4)}° · reported accuracy ±${Math.ceil(fix.accuracy)} m · ${Math.max(0, Math.floor((Date.now() - fix.timestamp) / 1000))}s old`
+        ? `${fix.accuracy<=50?'Good':'Weak'} device fix${Date.now()-fix.timestamp>15000?' · STALE':''} · ${fix.latitude.toFixed(4)}°, ${fix.longitude.toFixed(4)}° · reported accuracy ±${Math.ceil(fix.accuracy)} m · updated ${new Date(fix.timestamp).toISOString().slice(11,19)} UTC · ${Math.max(0, Math.floor((Date.now() - fix.timestamp) / 1000))}s old · browser geolocation`
         : failure || (wanted ? 'Waiting for a device location…' : 'Location monitoring is off.'));
     }
     function stopWatch() {
@@ -72,6 +77,7 @@
     }
     locationButton.addEventListener('click', () => { dialog.showModal(); showLocation(); });
     node('cockpitLocationClose').addEventListener('click', () => dialog.close());
+    node('cockpitLocationCenter').addEventListener('click',()=>{if(onCenter())dialog.close();else write(node('cockpitPositionDetail'),'No recent device fix or map still loading. Center on an airport or route instead.');});
     node('cockpitLocationStart').addEventListener('click', () => { wanted = true; failure = ''; fix = null; startWatch(); showLocation(); });
     node('cockpitLocationStop').addEventListener('click', () => { wanted = false; stopWatch(); fix = null; failure = ''; showLocation(); });
     document.addEventListener('visibilitychange', () => {

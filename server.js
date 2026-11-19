@@ -17,6 +17,11 @@ import { airports as bundledAirports } from './data/airports.js';
 import { dispatchToPdfBuffer } from './lib/dispatch-document.js';
 import { capturePdfPage, journeyLogLines } from './lib/flight-document-preview.js';
 import { parseMovementUtc, movementOrderError } from './lib/flight-movement-time.js';
+import { createWeatherService } from './lib/weather-service.js';
+import { createRadarService } from './lib/fmi-radar.js';
+
+const stationWeather = createWeatherService();
+const radarWeather = createRadarService();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,11 +71,8 @@ app.use(express.json());
 
 const AIRPORT_DB_TTL_MS = 24 * 60 * 60 * 1000;
 const WEATHER_CACHE_TTL_MS = 90 * 1000;
-const WEATHER_RADAR_CACHE_TTL_MS = 4 * 60 * 1000;
 const NEGATIVE_CACHE_TTL_MS = 15 * 1000;
-let weatherRadarCache = { expiresAt:0, data:null };
 
-const FETCH_TIMEOUT_RAW_MS = 4500;
 const FETCH_TIMEOUT_AIRPORT_DB_MS = 10000;
 const FETCH_TIMEOUT_WINDS_MS = 5500;
 
@@ -3422,42 +3424,12 @@ async function getNearbyAirports(icao, limit = FALLBACK_SEARCH_LIMIT) {
     .slice(0, limit);
 }
 
-async function fetchRaw(url) {
-  const cacheKey = `raw:${url}`;
-  const cached = getCached(cacheKey);
-  if (cached !== undefined) return cached;
-
-  try {
-    const res = await fetchWithTimeout(
-      url,
-      { headers: { 'User-Agent': 'NatGlobeAviation/1.0' } },
-      FETCH_TIMEOUT_RAW_MS
-    );
-
-    if (res.status === 204) {
-      setCached(cacheKey, null, WEATHER_CACHE_TTL_MS);
-      return null;
-    }
-
-    if (!res.ok) {
-      setCached(cacheKey, null, NEGATIVE_CACHE_TTL_MS);
-      return null;
-    }
-
-    const text = String(await res.text() || '').trim() || null;
-    setCached(cacheKey, text, WEATHER_CACHE_TTL_MS);
-    return text;
-  } catch {
-    return null;
-  }
-}
-
 async function getMetar(icao) {
-  return fetchRaw(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=raw`);
+  return (await stationWeather.get('metar', icao)).raw || null;
 }
 
 async function getTaf(icao) {
-  return fetchRaw(`https://aviationweather.gov/api/data/taf?ids=${icao}&format=raw`);
+  return (await stationWeather.get('taf', icao)).raw || null;
 }
 
 async function getNearestOfficial(fetchFn, requestedIcao) {
@@ -7808,41 +7780,31 @@ app.get('/api/booking-ops/navigation-search', requirePilotAccess, async (req, re
 
 app.get('/api/booking-ops/weather-radar', requirePilotAccess, async (req, res) => {
   try {
-    if (weatherRadarCache.data && weatherRadarCache.expiresAt > Date.now()) {
-      res.setHeader('Cache-Control', 'private, max-age=120');
-      return res.json(weatherRadarCache.data);
-    }
-    const response = await fetchWithTimeout('https://api.rainviewer.com/public/weather-maps.json', {
-      headers: { 'User-Agent':'NatGlobeAviation-PilotEFB/1.0' }
-    }, 7000);
-    if (!response.ok) throw new Error(`RADAR SOURCE ${response.status}`);
-    const source = await response.json();
-    const host = String(source?.host || '');
-    if (!/^https:\/\/tilecache\.rainviewer\.com$/i.test(host)) throw new Error('UNEXPECTED RADAR TILE HOST');
-    const normalizeFrames = frames => (Array.isArray(frames) ? frames : [])
-      .slice(-6)
-      .map(frame => ({
-        time:Number(frame?.time) || 0,
-        path:String(frame?.path || '').startsWith('/v2/radar/') ? String(frame.path) : ''
-      }))
-      .filter(frame => frame.time > 0 && frame.path);
-    const data = {
-      provider:'RainViewer',
-      generatedAt:new Date().toISOString(),
-      host,
-      frames:[
-        ...normalizeFrames(source?.radar?.past).map(frame => ({ ...frame, kind:'observed' })),
-        ...normalizeFrames(source?.radar?.nowcast).map(frame => ({ ...frame, kind:'nowcast' }))
-      ]
-    };
-    if (!data.frames.length) throw new Error('NO RADAR FRAMES AVAILABLE');
-    weatherRadarCache = { expiresAt:Date.now() + WEATHER_RADAR_CACHE_TTL_MS, data };
+    const data = await radarWeather();
     res.setHeader('Cache-Control', 'private, max-age=120');
     res.json(data);
   } catch (error) {
     console.error('WEATHER RADAR:', error.message);
     res.status(503).json({ error:'LIVE WEATHER RADAR TEMPORARILY UNAVAILABLE' });
   }
+});
+
+app.get('/api/booking-ops/weather-report', requirePilotAccess, async (req, res) => {
+  const icao = String(req.query.icao || '').trim().toUpperCase();
+  const product = String(req.query.product || 'summary');
+  if (!/^[A-Z]{4}$/.test(icao) || !['metar','taf','summary'].includes(product)) return res.status(400).json({error:'Use a four-letter ICAO and METAR, TAF or summary.'});
+  const started = Date.now();
+  const reports = await Promise.all((product === 'summary' ? ['metar','taf'] : [product]).map(type => stationWeather.get(type, icao)));
+  const metar = reports.find(report => report.product === 'metar');
+  const raw = metar?.raw || '';
+  const observation = getMetarObservationData(raw);
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(reports.every(report => report.status === 'error') ? 503 : 200).json({
+    icao, product, reports, requestedAt:new Date(started).toISOString(), elapsedMs:Date.now()-started,
+    observation:raw ? {...observation, wind:parseWindDetailed(raw), visibilityM:parseVisibility(raw),
+      ceilingFt:parseMetarCeilingFt(raw), oatC:parseTemperatureC(raw), dewpointC:parseDewpointC(raw),
+      qnhHpa:parseQnhHpa(raw), category:getMetarFlightCategory(raw)} : null
+  });
 });
 
 app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
@@ -7858,6 +7820,7 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
     const dep = depInput.value;
     const arr = arrInput.value;
     const altn = altnInput.value;
+    const reportOption = (name, fallback = true) => req.query[name] === undefined ? fallback : parseBoolean(req.query[name]);
 
     const [depWx, arrWx, altnWx, depAirport, arrAirport, altnAirport, depWinds, arrWinds] = await Promise.all([
       getAirportWeather(dep),
@@ -7866,8 +7829,8 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
       findAirportByIcao(dep),
       findAirportByIcao(arr),
       altn ? findAirportByIcao(altn) : null,
-      getWindsAloftForAirport(dep),
-      getWindsAloftForAirport(arr)
+      reportOption('includeWindsAloft', false) ? getWindsAloftForAirport(dep) : null,
+      reportOption('includeWindsAloft', false) ? getWindsAloftForAirport(arr) : null
     ]);
 
     const summarize = (icao, airport, wx) => {
@@ -7906,8 +7869,9 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
     };
 
     const needsAlternate = arrivalNeedsAlternate(arrWx);
-    const suggestedAlternate = needsAlternate ? await getSuggestedAlternate(arr, altn) : null;
-    const reportOption = (name, fallback = true) => req.query[name] === undefined ? fallback : parseBoolean(req.query[name]);
+    // Alternate selection is a pilot decision. Do not block every weather
+    // refresh on a serial search across another dozen reporting stations.
+    const suggestedAlternate = null;
     const dispatchData = buildDispatchData({
       dep,
       arr,

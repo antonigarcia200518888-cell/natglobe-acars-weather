@@ -1,5 +1,5 @@
 /* OFP and Journey Log share one reader, one saved flight, and a visible exit. */
-window.createFlightDocumentReader = function ({ host, baseUrl, save, backToEfb }) {
+window.createFlightDocumentReader = function ({ host, baseUrl, save, backToEfb, backToPlan = backToEfb }) {
   const NS = 'http://www.w3.org/2000/svg';
   const pane = document.createElement('section'); pane.className = 'flight-document-reader';
   pane.innerHTML = `<header class="flight-reader-header"><button type="button" data-close>Back to flight plan</button><strong>Flight documents</strong><button type="button" data-efb>Back to EFB</button></header>
@@ -23,7 +23,7 @@ window.createFlightDocumentReader = function ({ host, baseUrl, save, backToEfb }
     host.append(pane); by('expand').textContent = 'Expand document';
     opener?.focus({ preventScroll: true });
   });
-  by('close').onclick = close;
+  by('close').onclick = () => dialog.open ? close() : backToPlan();
   by('efb').onclick = () => { close(); backToEfb(); };
   by('expand').onclick = () => dialog.open ? close() : expand();
   const svgElement = (name, attributes) => {

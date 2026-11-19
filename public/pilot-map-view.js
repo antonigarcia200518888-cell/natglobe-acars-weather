@@ -49,6 +49,22 @@
     return { type: 'FeatureCollection', features };
   }
 
+  function deviceGeometry(fix, now = Date.now()) {
+    const data={type:'FeatureCollection',features:[]};
+    if(!fix || !coordinates({lat:fix.latitude,lon:fix.longitude}) || !Number.isFinite(fix.accuracy) || fix.accuracy<0 || !Number.isFinite(fix.timestamp))return data;
+    const stale=now-fix.timestamp>15000 || fix.timestamp>now+1000;
+    const center=[fix.longitude,fix.latitude],rad=Math.PI/180,lat=fix.latitude*rad,lon=fix.longitude*rad,distance=fix.accuracy/6371000;
+    const ring=Array.from({length:65},(_,i)=>{
+      const bearing=i/64*2*Math.PI;
+      const phi=Math.asin(Math.sin(lat)*Math.cos(distance)+Math.cos(lat)*Math.sin(distance)*Math.cos(bearing));
+      const lambda=lon+Math.atan2(Math.sin(bearing)*Math.sin(distance)*Math.cos(lat),Math.cos(distance)-Math.sin(lat)*Math.sin(phi));
+      return [lambda/rad,phi/rad];
+    });
+    data.features.push({type:'Feature',properties:{stale},geometry:{type:'Polygon',coordinates:[ring]}},
+      {type:'Feature',properties:{stale,label:stale?'Device · stale':'Device · ±'+Math.ceil(fix.accuracy)+' m'},geometry:{type:'Point',coordinates:center}});
+    return data;
+  }
+
   function loadEngine() {
     if (root.maplibregl) return Promise.resolve(root.maplibregl);
     if (!enginePromise) enginePromise = new Promise((resolve, reject) => {
@@ -62,7 +78,7 @@
     return enginePromise;
   }
 
-  function createPilotMapView({ container, fallback, status, onState = () => {}, getPadding = () => 64, startupGlobe = false, onAirport = () => {} }) {
+  function createPilotMapView({ container, fallback, status, onState = () => {}, getPadding = () => 64, startupGlobe = false, onAirport = () => {}, onSelection = () => {} }) {
     let map, ready = false, active = false, destroyed = false, starting = false, failed = false;
     let flight = null, flightKey = '', theme = document.documentElement.dataset.efbTheme === 'day' ? 'day' : 'night';
     let mode = startupGlobe || pref('projection') === 'globe' ? 'globe' : 'map', chartCamera = null;
@@ -74,6 +90,7 @@
     let currentStyle = theme, fitPending = true, styleReady = false, attempt = 0;
     let relief = startupGlobe || pref('relief') === 'on', reliefFailed = false, fieldsVisible = false;
     let fields = {type:'FeatureCollection',features:[]}, airportPin;
+    let deviceFix=null, selectedPoint=null;
     const clearPin = () => { airportPin?.remove(); airportPin=null; };
     const reducedMotion = root.matchMedia('(prefers-reduced-motion: reduce)');
     const announce = () => onState({ ready, failed, mode, rotating, relief:relief && !reliefFailed, fieldsVisible, hasFields:fields.features.length > 0, hasRoute: flight?.showRoute !== false && routeCoordinates(flight?.departure, flight?.arrival).length > 0 });
@@ -124,6 +141,28 @@
       if(!map||!styleReady)return;
       if(map.getSource('pilot-recorded-track'))map.getSource('pilot-recorded-track').setData(recorded);
       else{map.addSource('pilot-recorded-track',{type:'geojson',data:recorded});map.addLayer({id:'pilot-recorded-track',type:'line',source:'pilot-recorded-track',paint:{'line-color':'#5edec3','line-width':3,'line-opacity':.9}});}
+    }
+    function drawPositions(){
+      if(!map || !styleReady)return;
+      const device=deviceGeometry(deviceFix),selection={type:'FeatureCollection',features:selectedPoint?[{type:'Feature',properties:{label:'Selected point · not device'},geometry:{type:'Point',coordinates:selectedPoint}}]:[]};
+      if(map.getSource('pilot-device'))map.getSource('pilot-device').setData(device);
+      else{
+        map.addSource('pilot-device',{type:'geojson',data:device});
+        map.addLayer({id:'pilot-device-radius',type:'fill',source:'pilot-device',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':['case',['get','stale'],'#a6aebc','#268ef2'],'fill-opacity':.16}});
+        map.addLayer({id:'pilot-device-dot',type:'circle',source:'pilot-device',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':['case',['get','stale'],'#a6aebc','#268ef2'],'circle-stroke-color':'#fff','circle-stroke-width':2}});
+        map.addLayer({id:'pilot-device-label',type:'symbol',source:'pilot-device',filter:['==',['geometry-type'],'Point'],layout:{'text-field':['get','label'],'text-font':['Noto Sans Regular'],'text-size':12,'text-offset':[0,1.8]},paint:{'text-color':'#fff','text-halo-color':'#0e203a','text-halo-width':2}});
+      }
+      if(map.getSource('pilot-selection'))map.getSource('pilot-selection').setData(selection);
+      else{
+        map.addSource('pilot-selection',{type:'geojson',data:selection});
+        map.addLayer({id:'pilot-selection-dot',type:'circle',source:'pilot-selection',paint:{'circle-radius':6,'circle-color':'#ffc96b','circle-stroke-color':'#162130','circle-stroke-width':2}});
+        map.addLayer({id:'pilot-selection-label',type:'symbol',source:'pilot-selection',layout:{'text-field':['get','label'],'text-font':['Noto Sans Regular'],'text-size':12,'text-offset':[0,1.6]},paint:{'text-color':'#fff','text-halo-color':'#0e203a','text-halo-width':2}});
+      }
+    }
+    function setDevicePosition(fix){deviceFix=fix;drawPositions();}
+    function centerDevicePosition(){
+      if(!ready || !deviceGeometry(deviceFix).features.length || Date.now()-deviceFix.timestamp>15000 || deviceFix.timestamp>Date.now()+1000)return false;
+      setMode('map');setRotating(false);map.stop();map.easeTo({center:[deviceFix.longitude,deviceFix.latitude],zoom:Math.min(13,Math.max(6,16-Math.log2(Math.max(1,deviceFix.accuracy)/10))),bearing:0,pitch:0,duration:reducedMotion.matches?0:400});return true;
     }
     function setTrack(data){recorded=data||{type:'FeatureCollection',features:[]};drawTrack();setRotating(false);}
     function setReplayPosition(point,camera='free'){
@@ -231,7 +270,10 @@
           // Rendering failure must never interrupt saving or loading a flight.
           message('Route loaded · adjust map view manually', 'limited');
         }
-      } else map.easeTo({ ...HOME, zoom:mode === 'globe' ? .6 : HOME.zoom, bearing:0, pitch:0, ...(startupCamera||{}), duration });
+      } else {
+        const favorite=fields.features.find(f=>favorites.includes(f.properties.icao));
+        map.easeTo({ ...HOME, ...(favorite?{center:favorite.geometry.coordinates}:{}), zoom:mode === 'globe' ? .6 : HOME.zoom, bearing:0, pitch:0, ...(startupCamera||{}), duration });
+      }
     }
     function drawFlight() {
       if (!map || !styleReady) return;
@@ -304,7 +346,7 @@
           }
           map.setProjection({ type: mode === 'globe' ? 'globe' : 'mercator' });
           // style.load permits adding sources even while source tiles are loading.
-          drawRelief(); drawFields(); drawFlight(); drawFavorites(); drawTrack(); drawEnvironment();
+          drawRelief(); drawFields(); drawFlight(); drawFavorites(); drawTrack(); drawEnvironment(); drawPositions();
           if (ready) message(mapDescription(), 'ready');
         });
         map.on('load', () => {
@@ -325,7 +367,13 @@
           } else if (ready) message('Some map detail is unavailable · check connection', 'limited');
         });
         map.on('idle', () => { if (ready && navigator.onLine && status.dataset.state !== 'limited') message(mapDescription(), 'ready'); });
-        map.on('click',event=>{if(!event.point)return;const layers=['pilot-favorite-dot','pilot-field-dots'].filter(id=>map.getLayer(id));if(!layers.length)return;const feature=map.queryRenderedFeatures(event.point,{layers})[0];if(feature){setRotating(false);onAirport(feature.properties.icao);}});
+        map.on('click',event=>{
+          if(!event.point)return;setRotating(false);
+          const layers=['pilot-favorite-dot','pilot-field-dots'].filter(id=>map.getLayer(id));
+          const feature=layers.length?map.queryRenderedFeatures(event.point,{layers})[0]:null;
+          if(feature){onAirport(feature.properties.icao);return;}
+          selectedPoint=[event.lngLat.lng,event.lngLat.lat];drawPositions();onSelection({longitude:selectedPoint[0],latitude:selectedPoint[1]});
+        });
         map.on('webglcontextlost', fail);
         for (const name of ['dragstart', 'zoomstart', 'rotatestart', 'pitchstart']) map.on(name, event => { if (event.originalEvent) setRotating(false); });
       } catch { if (generation === attempt) fail(); }
@@ -388,11 +436,11 @@
     root.addEventListener('online', connectionChanged); root.addEventListener('offline', connectionChanged);
     return {
       get ready() { return ready; }, getFavorites:()=>[...favorites], setFavorites,setTerrain,saveStartup,setTrack,fitTrack,setReplayPosition,clearReplay,
-      setActive, setFlight, setTheme, setMode, setRotating, setRelief, fitRoute, setAirports, setFields, viewAirport,
+      setActive, setFlight, setTheme, setMode, setRotating, setRelief, fitRoute, setAirports, setFields, viewAirport, setDevicePosition, centerDevicePosition,
       retry() { if (active && failed && !destroyed) { failed=false; announce(); start(); } },
       destroy() { destroyed = true; stopAnimation(); replayMarker?.remove(); root.clearTimeout(timer); root.cancelAnimationFrame(styleFrame); resize.disconnect(); reducedMotion.removeEventListener('change', motionChanged); root.removeEventListener('online', connectionChanged); root.removeEventListener('offline', connectionChanged); map?.remove(); }
     };
   }
-  root.PilotMapGeometry = Object.freeze({ coordinates, routeCoordinates, flightGeometry });
+  root.PilotMapGeometry = Object.freeze({ coordinates, routeCoordinates, flightGeometry, deviceGeometry });
   root.createPilotMapView = createPilotMapView;
 })(window);

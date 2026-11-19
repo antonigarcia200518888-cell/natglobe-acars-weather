@@ -18,7 +18,7 @@ test('long dispatch reports preview every PDF page, with all lines inside the sh
 });
 
 function readerFixture(fetch){
-  const nodes=new Map(), revoked=[], routes=[];
+  const nodes=new Map(), revoked=[], routes=[], timeouts=[];
   const make=()=>({children:[],listeners:{},attrs:{},hidden:false,focus(){this.focused=true;},
     append(...kids){this.children.push(...kids)},replaceChildren(...kids){this.children=kids;},
     setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k];},
@@ -27,9 +27,10 @@ function readerFixture(fetch){
   const modal=Object.assign(make(),{querySelector:by,showModal(){this.open=true},close(){this.open=false;this.listeners.close()}});
   const context={window:{},document:{createElement:make,createElementNS:make,createDocumentFragment:make},navigator:{},URLSearchParams,
     URL:{createObjectURL:()=>'blob:local',revokeObjectURL:s=>revoked.push(s)},AbortController,File,atob,
+    setTimeout:fn=>{timeouts.push(fn);return fn;},clearTimeout:()=>{},
     fetch:(url,options)=>{routes.push({url,options});return fetch(url,options)}};
   vm.runInNewContext(read('public/pilot-weather-viewer.js'),context);
-  return {reader:context.window.createWeatherReader(modal),modal,by,revoked,routes,opener:make()};
+  return {reader:context.window.createWeatherReader(modal),modal,by,revoked,routes,timeouts,opener:make()};
 }
 const ready=()=>({ok:true,json:async()=>({pageWidth:595.28,pageHeight:841.89,pages:[[{text:'<METAR>',size:10,x:20,y:30,ink:[0,0,0]}]],pdf:Buffer.from('%PDF-1.7').toString('base64')})});
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
@@ -60,4 +61,11 @@ test('weather entry has no mock airport codes; install artwork is local, square 
     const png=readFileSync(new URL('../public'+src,import.meta.url));
     assert.equal(png.readUInt32BE(16)+'x'+png.readUInt32BE(20),sizes); assert.ok(read('public/pilot-sw.js').includes(src));
   }
+});
+
+test('weather PDF timeout exposes retry and leaves Back available',async()=>{
+  const {reader,modal,by,timeouts,opener}=readerFixture((url,{signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new Error('aborted')))));
+  reader.open('dep=EFHK&arr=EFTP',opener);timeouts[0]();await tick();
+  assert.match(by('#wxReaderStatus').textContent,/timed out/);assert.equal(by('#wxReaderRetry').hidden,false);
+  by('#wxReaderBack').click();assert.equal(modal.open,false);assert.equal(opener.focused,true);
 });

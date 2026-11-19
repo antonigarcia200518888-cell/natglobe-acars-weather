@@ -4,7 +4,9 @@
 .shell { grid-template-columns:184px minmax(0,1fr); }
 .ofp-task-rail { margin:10px 0 10px 10px; border:1px solid var(--line); border-radius:18px; background:var(--ofp-glass); -webkit-backdrop-filter:var(--ofp-blur); backdrop-filter:var(--ofp-blur); }
 .ofp-task-rail::before { color:var(--muted); border-color:var(--line); height:48px; padding:12px 16px; }
-.ofp-workspace-button { min-height:62px; padding:12px 16px 12px 24px; border-bottom-color:var(--line); }
+.ofp-workspace-button { min-height:68px; padding:12px 12px 12px 36px; border-bottom-color:var(--line); }
+.ofp-workspace-button::before { content:attr(data-step); width:20px; height:20px; top:14px; left:8px; background:transparent; color:var(--muted); font:600 12px/20px var(--mono); text-align:center; }
+.ofp-workspace-button[data-state=complete]::before { background:var(--green-soft); color:var(--green); }
 .ofp-workspace-button .task-title { color:var(--ink); font-size:14px; font-weight:600; }
 .ofp-workspace-button .workspace-state { color:var(--muted); font-size:11px; }
 .ofp-workspace-button:hover { background:var(--soft); }
@@ -22,8 +24,36 @@
 /* The section rail already provides navigation while editing. */
 .shell:not([data-workspace=SUMMARY]) .ofp-planning-segments { display:none; }
 [data-workspace=ROUTE] [data-planning-target=taskTabRoute],[data-workspace=LOAD] [data-planning-target=taskTabLoad] { background:var(--surface); color:var(--blue); }
-.editor { max-width:1200px; margin-inline:auto; padding:22px; }
-.editor > :is(section,details):not([hidden]) { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:22px; }
+.editor { max-width:1360px; margin-inline:auto; padding:16px; }
+.editor > :is(section,details):not([hidden]) { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:18px; margin-bottom:16px; min-width:0; }
+.editor :is(section,div,details,figure,article) { min-width:0; }
+.editor :is(strong,small,p,span,label) { overflow-wrap:break-word; }
+.ofp-card-head { margin-bottom:18px; }
+.ofp-card-head strong { font-size:20px; }
+.ofp-card-head p { display:block; max-width:52ch; font-size:12px; margin:0; }
+.flight-route-point { grid-template-columns:minmax(0,1fr) 88px; }
+.flight-route-strip > .alternate-point {grid-template-columns:100px minmax(0,1fr);grid-column:1/-1;}
+.alternate-point > label {display:block;width:100%;min-width:0;}
+.alternate-input-row {display:grid;grid-template-columns:minmax(100px,1fr) auto;gap:8px;}
+.alternate-input-row button {max-width:170px;white-space:normal;overflow-wrap:normal;}
+.flight-identity-grid { gap:16px; }
+.fuel-ladder,.load-margin-strip,.folder-duration-grid { grid-template-columns:repeat(auto-fit,minmax(125px,1fr)); gap:1px; border-radius:12px; overflow:hidden; }
+.fuel-ladder > div,.load-margin-strip > div { border:0; background:var(--soft); }
+.fuel-ladder strong,.load-margin-strip strong { overflow-wrap:anywhere; }
+.schedule-edit-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:16px 0 24px; }
+.schedule-edit-grid :is(.time-conversion-panel,.ofp-schedule-card) { grid-column:1/-1; margin:0; }
+.schedule-edit-grid .ofp-schedule-card { border:1px solid var(--line); border-radius:12px; padding:16px; }
+.overview-snapshot { margin-top:24px; }
+.overview-snapshot > summary,.duration-disclosure > summary { min-height:48px; font-weight:600; }
+.overview-snapshot > .folder-summary { padding-block:12px; }
+.movement-actions { display:grid; grid-template-columns:minmax(0,1fr) auto; }
+.movement-actions input { width:100%; font-size:15px !important; padding:10px !important; }
+.movement-card { border-radius:12px; }
+.folder-page-intro {margin-bottom:8px;}
+.folder-table th,.folder-table td {padding:12px 8px;}
+.folder-document-list > article:first-child { display:none; } /* Reader already owns preview and export. */
+.ofp-command-bar { flex-wrap:wrap; }
+.ofp-command-bar .btn { white-space:normal; }
 input:not([type=checkbox]):not([type=hidden]),textarea { min-height:52px; border-radius:10px; padding:12px; font-size:18px; }
 label { font-size:13px; line-height:1.6; }
 button,.btn { min-height:48px; border-radius:10px; }
@@ -53,16 +83,25 @@ button,.btn { min-height:48px; border-radius:10px; }
   .editor > :is(section,details):not([hidden]) { padding:16px; }
   .folder-toolbar { padding-inline:12px; gap:8px; }
   .folder-toolbar h2 { font-size:20px; }
+  .ofp-card-head { display:block; }
+  .ofp-card-head p { margin-top:6px; }
   .flight-route-point { grid-template-columns:minmax(0,1fr); }
   .alternate-point { grid-template-columns:100px minmax(0,1fr); }
 }
 @container (max-width:460px) {
-  .grid,.grid.two,.route-procedures,.time-support,.flight-identity-grid,.schedule-primary-grid { grid-template-columns:minmax(0,1fr); }
+  .grid,.grid.two,.route-procedures,.time-support,.flight-identity-grid,.schedule-primary-grid,.schedule-edit-grid,.movement-grid { grid-template-columns:minmax(0,1fr); }
   .folder-toolbar { flex-wrap:wrap; }
   .folder-toolbar > div:first-of-type { flex-basis:calc(100% - 64px); }
   .ofp-toolbar-actions { margin-left:auto; }
   .ofp-planning-segments { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .editor > :is(section,details):not([hidden]) { padding:12px; }
+}
+@container (min-width:850px) {
+  #timeSummarySection:not([hidden]) {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start;}
+  #timeSummarySection > :is(.folder-page-intro,.folder-duration-grid,.folder-note,button) {grid-column:1/-1;}
+  #timeSummarySection > .schedule-edit-grid {margin:0;}
+  #timeSummarySection > .folder-sheet {margin:0;}
+  #timeSummarySection .time-zone-chip {flex-basis:100%;}
 }
 @media(max-height:600px) {
   .folder-toolbar { padding-block:6px; }

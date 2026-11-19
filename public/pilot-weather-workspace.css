@@ -1,0 +1,103 @@
+/* One weather layout owns the five panels; no inherited named-grid collisions. */
+html body.pilot-ops-v2 #weatherOpsPane .weather-console {display:grid;grid-template-columns:260px minmax(0,1fr);grid-template-areas:none;gap:16px;padding:16px;max-width:1600px;margin:auto;min-width:0;align-items:start;}
+.wx-sidebar,.wx-main {min-width:0;display:flex;flex-direction:column;gap:12px;}
+.wx-sidebar {position:sticky;top:0;}
+html body.pilot-ops-v2 #weatherOpsPane .wx-sidebar {gap:10px;}
+html body.pilot-ops-v2 #weatherOpsPane .wx-sidebar :is(.wx-review,.weather-report-options) summary {padding:8px 10px;min-height:48px;}
+html body.pilot-ops-v2 #weatherOpsPane .weather-route {padding:0 0 8px;border:0;border-bottom:1px solid var(--efb-line);border-radius:0;}
+html body.pilot-ops-v2 #weatherOpsPane .weather-route > span {display:none;}
+html body.pilot-ops-v2 #weatherOpsPane .weather-route strong {font:500 14px/1.4 var(--efb-mono);}
+html body.pilot-ops-v2 #weatherOpsPane #wxCodeHint {font:12px/1.4 var(--efb-font);}
+html body.pilot-ops-v2 #weatherOpsPane .wx-sidebar > *,html body.pilot-ops-v2 #weatherOpsPane .wx-main > * {grid-area:auto;margin:0;width:100%;max-width:none;min-width:0;}
+html body.pilot-ops-v2 #weatherOpsPane .acars-console-head {padding:0 4px 10px;background:none;border:0;}
+html body.pilot-ops-v2 #weatherOpsPane .acars-console-head strong {font:600 22px var(--efb-font);color:var(--efb-text);}
+html body.pilot-ops-v2 #weatherOpsPane .weather-console > * {grid-area:auto;min-width:0;max-width:100%;}
+html body.pilot-ops-v2 #weatherOpsPane .workspace-segments {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:0;padding:4px;background:var(--efb-soft);border:1px solid var(--efb-line);border-radius:16px;}
+html body.pilot-ops-v2 #weatherOpsPane .workspace-segments button {min-width:0;min-height:48px;white-space:normal;line-height:1.3;padding:8px;font-size:14px;}
+html body.pilot-ops-v2 #weatherOpsPane [role=tabpanel] {width:100%;margin:0;padding:18px;border:1px solid var(--efb-line);border-radius:20px;background:var(--efb-card);}
+html body.pilot-ops-v2 #weatherOpsPane [hidden] {display:none!important;}
+html body.pilot-ops-v2 #weatherOpsPane :is(h2,h3,p,small) {overflow-wrap:break-word;}
+html body.pilot-ops-v2 #weatherOpsPane h2 {margin:0;font:600 22px/1.3 var(--efb-font);color:var(--efb-text);}
+html body.pilot-ops-v2 #weatherOpsPane :is(p,small) {line-height:1.6;color:var(--efb-secondary);}
+html body.pilot-ops-v2 #weatherOpsPane .weather-toolbar {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:end;padding:12px;}
+html body.pilot-ops-v2 #weatherOpsPane .weather-toolbar > label:nth-of-type(3),html body.pilot-ops-v2 #weatherOpsPane .weather-toolbar .efb-action {grid-column:auto;width:auto;}
+html body.pilot-ops-v2 #weatherOpsPane .weather-toolbar input {width:100%;min-width:0;min-height:48px;font:600 20px var(--efb-mono);}
+html body.pilot-ops-v2 #weatherOpsPane :is(.wx-panel-heading,.wx-mode-control,.radar-layer-controls,.wx-generate) {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+html body.pilot-ops-v2 #weatherOpsPane .wx-panel-heading {justify-content:space-between;}
+html body.pilot-ops-v2 #weatherOpsPane button {min-width:48px;min-height:48px;touch-action:manipulation;border:1px solid var(--efb-line);border-radius:12px;background:var(--efb-soft);color:var(--efb-text);font:500 14px/1.4 var(--efb-font);padding:10px 12px;white-space:normal!important;overflow-wrap:break-word;}
+html body.pilot-ops-v2 #weatherOpsPane .workspace-segments button[aria-selected=true] {background:var(--efb-active);color:var(--efb-on-active);}
+html body.pilot-ops-v2 #weatherOpsPane button[aria-pressed=true] {background:var(--efb-active);color:var(--efb-on-active);border-color:transparent;}
+html body.pilot-ops-v2 #weatherOpsPane .wx-generate {position:static;display:grid;grid-template-columns:1fr 1fr;margin:0;padding:8px;border:1px solid var(--efb-line);border-radius:18px;background:var(--efb-card);box-shadow:none;}
+html body.pilot-ops-v2 #weatherOpsPane #openWeatherPdfBtn {grid-column:1/-1;}
+html body.pilot-ops-v2 #weatherOpsPane .wx-generate .primary {background:var(--efb-active);color:var(--efb-on-active);}
+html body.pilot-ops-v2 #weatherAirportGrid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card {min-width:0;padding:16px;border:1px solid var(--efb-line);border-radius:16px;}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card-head {display:block;}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card-head h3 {font:600 19px/1.4 var(--efb-font);color:var(--efb-text);}
+html body.pilot-ops-v2 #weatherAirportGrid :is(.weather-card-head span,.weather-source,.weather-card-category span,.weather-report span,.weather-report small) {font:500 12px/1.5 var(--efb-font);letter-spacing:normal;color:var(--efb-secondary);}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card-category {padding:12px;gap:10px;}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card-category strong {font:700 16px var(--efb-mono);}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card-category.vfr strong {color:var(--efb-vfr);}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card-category.mvfr strong {color:var(--efb-mvfr);}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card-category.ifr strong {color:var(--efb-ifr);}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-card-category.lifr strong {color:var(--efb-lifr);}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-metric span {font:400 13px var(--efb-font);}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-metric strong {font:600 16px/1.4 var(--efb-mono);white-space:normal;}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-report {padding:12px;}
+html body.pilot-ops-v2 #weatherAirportGrid .weather-metrics {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+html body.pilot-ops-v2 #weatherAirportGrid[data-format=raw] :is(.weather-metrics,.weather-report p) {display:none;}
+html body.pilot-ops-v2 #weatherAirportGrid[data-format=decoded] .weather-report code {display:none;}
+html body.pilot-ops-v2 #weatherOpsPane :is(pre,code) {font:15px/1.65 "Courier New",monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;}
+html body.pilot-ops-v2 #weatherRouteComparison {display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.wx-route-summary,.wx-message {padding:16px;border:1px solid var(--efb-line);border-radius:16px;background:var(--efb-soft);min-width:0;}
+.wx-request-inbox {display:grid;gap:12px;margin-block:16px;}
+html body.pilot-ops-v2 #weatherOpsPane .wx-request-form {display:flex;gap:12px;flex-wrap:wrap;align-items:end;}
+.wx-request-form > label {flex:0 1 140px;}
+.wx-request-form input:not([type=radio]) {min-height:48px;width:100%;font:600 20px var(--efb-mono);}
+.wx-request-form fieldset {display:flex;gap:12px;border:1px solid var(--efb-line);border-radius:12px;padding:0 12px;}
+.wx-request-form fieldset label,.radar-layer-controls label {display:flex;gap:8px;align-items:center;min-height:48px;}
+.wx-request-form input[type=radio],.radar-layer-controls input[type=checkbox] {width:22px;height:22px;min-height:22px;accent-color:var(--efb-active);}
+.wx-message small {display:block;}
+.wx-message-body {padding:12px;border:1px solid var(--efb-line);border-radius:10px;background:var(--efb-card);}
+html body.pilot-ops-v2 #weatherOpsPane .weather-radar-map-wrap {height:clamp(300px,48dvh,560px);min-height:0;border-radius:14px;overflow:hidden;isolation:isolate;}
+html body.pilot-ops-v2 #weatherRadarMap {height:100%;min-height:0;filter:none;}
+html body.pilot-ops-v2 #weatherRadarTime {color:var(--efb-text);}
+html body.pilot-ops-v2 #weatherOpsPane .weather-radar-controls {display:flex;gap:8px;flex-wrap:wrap;padding-block:12px;}
+html body.pilot-ops-v2 #weatherRadarTimeline {flex:1 1 180px;width:auto;min-height:48px;}
+html body.pilot-ops-v2 #weatherOpsPane input[type=range] {accent-color:var(--efb-active);}
+.radar-layer-controls details {margin-left:auto;position:relative;}
+.radar-layer-controls summary {min-height:48px;align-content:center;cursor:pointer;}
+#weatherRadarLegend {max-height:300px;width:auto;background:#fff;padding:8px;border-radius:8px;}
+.radar-source-note {font-size:12px;}
+@media (orientation:landscape) and (min-width:901px) {
+  html body.pilot-ops-v2 #weatherRadarPanel {padding:12px;}
+  html body.pilot-ops-v2 #weatherOpsPane .weather-radar-map-wrap {height:clamp(220px,32dvh,330px);}
+  html body.pilot-ops-v2 #weatherOpsPane .weather-radar-head {padding:0 4px 8px;display:flex;gap:12px;align-items:center;}
+  html body.pilot-ops-v2 #weatherOpsPane .weather-radar-head :is(p,span) {display:none;}
+  html body.pilot-ops-v2 #weatherOpsPane .weather-radar-head h2 {font-size:18px;}
+  html body.pilot-ops-v2 #weatherRadarTime {font:500 12px/1.4 var(--efb-mono);white-space:normal;}
+  html body.pilot-ops-v2 #weatherOpsPane .weather-radar-controls {gap:6px;padding-block:8px;}
+  html body.pilot-ops-v2 #weatherOpsPane .weather-radar-controls button {padding:8px;}
+  html body.pilot-ops-v2 #weatherOpsPane .radar-source-note {margin:8px 0 0;line-height:1.4;}
+}
+/* Integrated aircraft profile: the supplied aircraft image in a bright hangar,
+   not an interactive 3D model or an invented aircraft configuration. */
+html body.pilot-ops-v2 :is(.efb-aircraft-stage,#aircraftOpsPane .aircraft-hero-visual,#performanceOpsPane .performance-aircraft-visual) {
+  background:radial-gradient(ellipse at 50% 82%,#aeb7c355,transparent 45%),linear-gradient(175deg,#fff 55%,#edf0f4 56%,#f9fafc 100%)!important;
+  border:1px solid #dce3ed!important;border-radius:18px;overflow:hidden;isolation:isolate;opacity:1!important;filter:none!important;
+}
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-fleet-hero {grid-template-columns:minmax(0,1fr) minmax(240px,40%);}
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-visual {width:100%;max-width:100%;height:220px;}
+html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-visual > img {height:200px;max-height:200px;}
+html body.pilot-ops-v2 :is(.efb-aircraft-stage,#aircraftOpsPane .aircraft-hero-visual,#performanceOpsPane .performance-aircraft-visual) img {filter:drop-shadow(0 14px 8px #32445b22)!important;opacity:1!important;mix-blend-mode:normal!important;object-fit:contain;transform:none!important;}
+.position-source-key {display:flex;flex-wrap:wrap;gap:8px 16px;font:12px/1.5 var(--efb-font);color:var(--efb-secondary);}
+.position-source-key span::before {content:'';display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#278ff2;}
+.position-source-key span:nth-child(2)::before {background:#ffc96b;}
+.position-source-key span:nth-child(3)::before {background:#5edec3;}
+html body.pilot-ops-v2 #cockpitLocationDialog .shell-dialog-head > div > span {display:block;font-size:12px;color:var(--efb-secondary);margin-bottom:4px;}
+html body.pilot-ops-v2 #cockpitLocationDialog .cockpit-location-body > button {margin:4px;}
+html body.pilot-ops-v2 .queue-import-drawer {margin:0 8px;padding:0;border-bottom:1px solid var(--efb-line);}
+html body.pilot-ops-v2 .queue-import-drawer > summary {min-height:48px;padding:10px;cursor:pointer;}
+html body.pilot-ops-v2 #queueFilters :is(.management-scopes,#flightKindHint) {grid-column:1/-1;}
+@media(max-width:900px) {html body.pilot-ops-v2 #weatherOpsPane .weather-console {grid-template-columns:minmax(0,1fr);}.wx-sidebar{position:static;}html body.pilot-ops-v2 #weatherOpsPane .weather-toolbar {grid-template-columns:repeat(3,minmax(0,1fr));}html body.pilot-ops-v2 #weatherOpsPane .weather-route{grid-column:1/-1;}html body.pilot-ops-v2 #weatherOpsPane .wx-generate{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:620px) {html body.pilot-ops-v2 #weatherOpsPane .workspace-segments{grid-template-columns:repeat(3,minmax(0,1fr));}html body.pilot-ops-v2 #weatherOpsPane [role=tabpanel]{padding:12px;}html body.pilot-ops-v2 #aircraftOpsPane .aircraft-hero-visual{display:block;width:100%;}}

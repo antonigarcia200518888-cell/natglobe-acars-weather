@@ -10,6 +10,11 @@ vm.runInContext(helperSource, context);
 const checks = context.window.pilotOFPChecks;
 const complete = {setupReady:true,routeReady:true,loadReady:true,reviewReady:true,performanceReady:true};
 
+test('time warnings follow the moved schedule controls',()=>{
+  for(const warning of ['Enter local departure date.','Enter local departure time.','Departure time occurs twice.','Enter elapsed flight time.'])assert.equal(checks.describeWarning(warning).workspace,'TIME',warning);
+  assert.equal(checks.serverAction('COMPLETE FLIGHT REFERENCE AND SCHEDULE').workspace,'TIME');
+});
+
 test('runway and alternate checks point to setup, not the route page', () => {
   const runway = checks.describeWarning('Enter valid departure and arrival runway identifiers (01–36, optional L/C/R).');
   assert.equal(runway.workspace, 'SETUP');
