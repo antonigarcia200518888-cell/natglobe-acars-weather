@@ -58,6 +58,15 @@ html body.pilot-ops-v2 #weatherOpsPane .wx-request-form {display:flex;gap:12px;f
 .wx-request-form fieldset label,.radar-layer-controls label {display:flex;gap:8px;align-items:center;min-height:48px;}
 .wx-request-form input[type=radio],.radar-layer-controls input[type=checkbox] {width:22px;height:22px;min-height:22px;accent-color:var(--efb-active);}
 .wx-message small {display:block;}
+.wx-local-airfield {padding:12px 16px;border:1px solid var(--efb-line);border-radius:16px;background:var(--efb-card);color:var(--efb-text);}
+.wx-local-airfield header {display:flex;flex-wrap:wrap;gap:0 12px;align-items:center;justify-content:space-between;}
+.wx-local-airfield h3 {margin:0;font:600 17px/1.4 var(--efb-font);}
+.wx-local-airfield header a {display:inline-flex;align-items:center;min-height:48px;color:var(--efb-link);}
+.wx-local-airfield p {margin:0 0 6px;}
+.wx-local-airfield summary {min-height:48px;align-content:center;cursor:pointer;}
+.wx-local-airfield img {display:block;max-width:100%;max-height:240px;width:auto;height:auto;}
+.wx-message .wx-local-airfield {margin-block:12px;}
+#weatherOpsPane:is([data-weather-view=radar],[data-weather-view=requests]) #efhvWeatherPanel {display:none;}
 .wx-message-body {padding:12px;border:1px solid var(--efb-line);border-radius:10px;background:var(--efb-card);}
 html body.pilot-ops-v2 #weatherOpsPane .weather-radar-map-wrap {height:clamp(300px,48dvh,560px);min-height:0;border-radius:14px;overflow:hidden;isolation:isolate;}
 html body.pilot-ops-v2 #weatherRadarMap {height:100%;min-height:0;filter:none;}

@@ -20,6 +20,8 @@ window.createPilotWeatherWorkspace = function ({getRoute}) {
     card.append(text('p',`Requested ${utc(data.requestedAt)} · ${(data.elapsedMs/1000).toFixed(2)} s · cache ${cache}`));
     const age=text('p','');age.dataset.wxObservation=data.observation?.observedAt || '';card.append(age);
     for(const report of data.reports) card.append(text('small',`${report.product.toUpperCase()} · ${report.source} · retrieved ${utc(report.retrievedAt)} · ${report.status}`));
+    const local=window.PilotWx.localAirfield(data.efhvLocal);
+    if(local)card.append(local);
     const controls=document.createElement('div');controls.className='wx-mode-control';
     const output=document.createElement('pre');output.className='wx-message-body';
     const raw=data.reports.map(r=>`${r.product.toUpperCase()} ${r.icao}\n${r.raw || r.error || 'NOT AVAILABLE — no station report returned.'}`).join('\n\n');

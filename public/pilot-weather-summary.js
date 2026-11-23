@@ -30,5 +30,43 @@
     }
     return lines.join(' · ') || 'See raw forecast for conditions and validity.';
   }
-  root.PilotWx={forecast};
+  const utc = value => new Date(value).toISOString().slice(0,16).replace('T',' ')+' UTC';
+  function updateLocalAges(container) {
+    const now=Date.now();
+    for(const label of container.querySelectorAll('[data-efhv-measured]')) {
+      const measured=Date.parse(label.dataset.efhvMeasured), age=Math.max(0,Math.floor((now-measured)/60000));
+      const unverified=measured>now+60000, stale=now-measured>15*60000;
+      label.textContent=`Sensor timestamp: ${utc(measured)} · ${unverified?'Check device clock':`${age} min old${stale?' · Stale':''}`}`;
+      const chart=label.parentElement.querySelector('.efhv-wind-chart');
+      if(chart) chart.hidden=stale||unverified;
+      label.parentElement.querySelector('.efhv-wind-unavailable').hidden=Boolean(chart&&!chart.hidden);
+    }
+  }
+
+  function localAirfield(data) {
+    if(!data) return null;
+    const node=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;return el;};
+    const section=node('section','');section.className='wx-local-airfield';
+    const heading=node('h3','EFHV · Hyvinkää local weather');
+    const link=node('a','Open efhv.fi');link.href='https://efhv.fi/';link.target='_blank';link.rel='noopener noreferrer';
+    const header=node('header','');header.append(heading,link);section.append(header);
+    const status=node('p',data.unavailable?'Source temporarily unavailable.':'Sensor timestamp could not be verified.');
+    if(data.observedAt)status.dataset.efhvMeasured=data.observedAt;
+    section.append(status);
+    const unavailable=node('p','No fresh wind graphic verified.');unavailable.className='efhv-wind-unavailable';section.append(unavailable);
+    if(data.windChart) {
+      const chart=node('details','');chart.className='efhv-wind-chart';
+      const img=node('img','');img.loading='lazy';img.alt='Wind graphic published by the independent EFHV weather site';
+      img.src='data:image/png;base64,'+data.windChart.png;
+      img.addEventListener('error',()=>{chart.remove();unavailable.hidden=false;});
+      chart.append(node('summary','View local wind graphic'),img,node('small','Graphic updated '+utc(data.windChart.updatedAt)));section.append(chart);
+    }
+    if(data.forecast) {
+      const f=data.forecast;
+      section.append(node('p',`FMI forecast for ${utc(f.validAt)} · ${f.temperatureC} °C · Wind ${String(f.direction).padStart(3,'0')}° / ${f.speedKt} kt${f.gustKt!==null?' (gust '+f.gustKt+' kt)':''}`));
+    } else section.append(node('p','No upcoming forecast slot verified.'));
+    section.append(node('small','Independent efhv.fi sensor and FMI forecast as published by efhv.fi. Not METAR or TAF. Nearby official reports are listed separately.'));
+    updateLocalAges(section);return section;
+  }
+  root.PilotWx={forecast,localAirfield,updateLocalAges};
 })(globalThis);

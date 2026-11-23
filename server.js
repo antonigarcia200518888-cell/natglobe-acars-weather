@@ -19,9 +19,11 @@ import { capturePdfPage, journeyLogLines } from './lib/flight-document-preview.j
 import { parseMovementUtc, movementOrderError } from './lib/flight-movement-time.js';
 import { createWeatherService } from './lib/weather-service.js';
 import { createRadarService } from './lib/fmi-radar.js';
+import { createEfhvWeather } from './lib/efhv-weather.js';
 
 const stationWeather = createWeatherService();
 const radarWeather = createRadarService();
+const efhvWeather = createEfhvWeather();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -7794,13 +7796,16 @@ app.get('/api/booking-ops/weather-report', requirePilotAccess, async (req, res) 
   const product = String(req.query.product || 'summary');
   if (!/^[A-Z]{4}$/.test(icao) || !['metar','taf','summary'].includes(product)) return res.status(400).json({error:'Use a four-letter ICAO and METAR, TAF or summary.'});
   const started = Date.now();
-  const reports = await Promise.all((product === 'summary' ? ['metar','taf'] : [product]).map(type => stationWeather.get(type, icao)));
+  const [reports, efhvLocal] = await Promise.all([
+    Promise.all((product === 'summary' ? ['metar','taf'] : [product]).map(type => stationWeather.get(type, icao))),
+    icao==='EFHV' && product==='summary' ? efhvWeather() : null
+  ]);
   const metar = reports.find(report => report.product === 'metar');
   const raw = metar?.raw || '';
   const observation = getMetarObservationData(raw);
   res.setHeader('Cache-Control', 'no-store');
   res.status(reports.every(report => report.status === 'error') ? 503 : 200).json({
-    icao, product, reports, requestedAt:new Date(started).toISOString(), elapsedMs:Date.now()-started,
+    icao, product, reports, efhvLocal, requestedAt:new Date(started).toISOString(), elapsedMs:Date.now()-started,
     observation:raw ? {...observation, wind:parseWindDetailed(raw), visibilityM:parseVisibility(raw),
       ceilingFt:parseMetarCeilingFt(raw), oatC:parseTemperatureC(raw), dewpointC:parseDewpointC(raw),
       qnhHpa:parseQnhHpa(raw), category:getMetarFlightCategory(raw)} : null
@@ -7822,7 +7827,7 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
     const altn = altnInput.value;
     const reportOption = (name, fallback = true) => req.query[name] === undefined ? fallback : parseBoolean(req.query[name]);
 
-    const [depWx, arrWx, altnWx, depAirport, arrAirport, altnAirport, depWinds, arrWinds] = await Promise.all([
+    const [depWx, arrWx, altnWx, depAirport, arrAirport, altnAirport, depWinds, arrWinds, efhvLocal] = await Promise.all([
       getAirportWeather(dep),
       getAirportWeather(arr),
       altn ? getAirportWeather(altn) : null,
@@ -7830,7 +7835,8 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
       findAirportByIcao(arr),
       altn ? findAirportByIcao(altn) : null,
       reportOption('includeWindsAloft', false) ? getWindsAloftForAirport(dep) : null,
-      reportOption('includeWindsAloft', false) ? getWindsAloftForAirport(arr) : null
+      reportOption('includeWindsAloft', false) ? getWindsAloftForAirport(arr) : null,
+      [dep,arr,altn].includes('EFHV') ? efhvWeather() : null
     ]);
 
     const summarize = (icao, airport, wx) => {
@@ -7895,6 +7901,7 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
       departure: summarize(dep, depAirport, depWx),
       arrival: summarize(arr, arrAirport, arrWx),
       alternate: summarize(altn, altnAirport, altnWx),
+      efhvLocal,
       windsAloft: { departure: depWinds, arrival: arrWinds },
       reportText: buildDispatchText(dispatchData),
       operational: {

@@ -46,7 +46,14 @@ try {
   await page.keyboard.press('Escape');assert.equal(await frame.locator('.flight-document-dialog[open]').count(),0);
   await frame.locator('[data-close]').click();assert.equal(await frame.locator('.shell').getAttribute('data-workspace'),'SETUP');
   await page.locator('#pilotWorkspaceNav [data-suite-view="weather"]').click();
+  await page.locator('#gatherWeatherBtn').click();
+  await page.locator('#efhvWeatherPanel .wx-local-airfield').waitFor({timeout:30000});
+  await overflow();
+  assert.match(await page.locator('#efhvWeatherPanel').innerText(),/FMI forecast for .* UTC/);
+  assert.match(await page.locator('#efhvWeatherPanel').innerText(),/Not METAR or TAF/);
+  await shot('weather-efhv-landscape');
   await page.locator('#weatherDep').fill('EFHK');await page.locator('#weatherArr').fill('EFTP');
+  assert.equal(await page.locator('#efhvWeatherPanel').isVisible(),false);
   await page.locator('#gatherWeatherBtn').click();
   await page.waitForFunction(()=>document.getElementById('weatherCategoryStrip').children.length>0,{},{timeout:35000});
   assert.equal(await page.locator('#activeFlightWeather').innerText(),'NOT BRIEFED','manual-airport weather must not be attached to a different selected flight');

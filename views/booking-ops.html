@@ -12,8 +12,8 @@
   <link rel="apple-touch-icon" href="/pilot-natglobe-180.png" />
   <link rel="icon" type="image/png" href="/pilot-natglobe-192.png" />
   <title>NGA Pilot Operations Centre</title>
-  <link rel="stylesheet" href="/pilot-session-lock.css?v=2026-11-19-1" />
-  <script src="/pilot-session-lock.js?v=2026-11-19-1"></script>
+  <link rel="stylesheet" href="/pilot-session-lock.css?v=2026-11-23-1" />
+  <script src="/pilot-session-lock.js?v=2026-11-23-1"></script>
   <script>
     (() => {
       const theme = (() => {
@@ -2947,23 +2947,23 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-19-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-23-1" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-19-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-23-1" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-19-1" />
-  <link rel="stylesheet" href="/pilot-weather-workspace.css?v=2026-11-19-1" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-weather-workspace.css?v=2026-11-23-1" />
 </head>
 <body class="pilot-ops-v2 efb-ui">
   <main class="frame">
@@ -3159,6 +3159,7 @@
             <button id="weatherRequestsTab" type="button" role="tab" aria-selected="false" aria-controls="weatherRequestsPanel" tabindex="-1" data-weather-view="requests">Requests</button>
           </div>
           <div id="weatherStatus" class="weather-status" role="status">Enter airports or select a flight, then gather weather.</div>
+          <div id="efhvWeatherPanel" hidden></div>
           <section id="weatherRadarPanel" class="weather-radar-card" role="tabpanel" aria-labelledby="weatherRadarTab" hidden>
             <header class="weather-radar-head"><div><span>Finland · observed reflectivity</span><h2 id="weatherRadarTitle">Weather radar</h2><p>Situational awareness only. Use approved aviation weather for flight decisions.</p></div><strong id="weatherRadarTime" aria-live="polite">RADAR STANDBY</strong></header>
             <div class="weather-radar-map-wrap"><div id="weatherRadarMap" role="region" aria-label="Interactive weather radar map"></div><div id="weatherRadarUnavailable" class="weather-radar-unavailable" role="status" hidden></div></div>
@@ -3967,23 +3968,23 @@ END OF MESSAGE</pre>
     <dl class="desk-instruments"><div><dt>Zulu time</dt><dd id="deskZulu">—</dd></div><div><dt>Connection</dt><dd id="deskNetwork">—</dd></div></dl>
     <div class="desk-actions"><button id="deskMap" type="button">Open map <span aria-hidden="true">↗</span></button><button id="deskFlightAction" type="button">Select flight</button><button id="deskWeather" type="button">Brief weather</button></div>
   </dialog>
-  <script src="/pilot-weather-viewer.js?v=2026-11-19-1"></script>
-  <script src="/pilot-file-tools.js?v=2026-11-19-1"></script>
-  <script src="/pilot-weather-summary.js?v=2026-11-19-1"></script>
-  <script src="/pilot-cockpit.js?v=2026-11-19-1"></script>
-  <script src="/pilot-weather-radar.js?v=2026-11-19-1"></script>
-  <script src="/pilot-weather-workspace.js?v=2026-11-19-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-19-1"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-19-1"></script>
-  <script src="/pilot-flight-context.js?v=2026-11-19-1"></script>
-  <script src="/pilot-imports.js?v=2026-11-19-1"></script>
-  <script src="/pilot-replay.js?v=2026-11-19-1"></script>
-  <script src="/pilot-airfields.js?v=2026-11-19-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-19-1"></script>
-  <script src="/pilot-map-view.js?v=2026-11-19-1"></script>
-  <script src="/pilot-display.js?v=2026-11-19-1"></script>
-  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-19-1"></script>
-  <script defer src="/pilot-glass.js?v=2026-11-19-1"></script>
+  <script src="/pilot-weather-viewer.js?v=2026-11-23-1"></script>
+  <script src="/pilot-file-tools.js?v=2026-11-23-1"></script>
+  <script src="/pilot-weather-summary.js?v=2026-11-23-1"></script>
+  <script src="/pilot-cockpit.js?v=2026-11-23-1"></script>
+  <script src="/pilot-weather-radar.js?v=2026-11-23-1"></script>
+  <script src="/pilot-weather-workspace.js?v=2026-11-23-1"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-23-1"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-23-1"></script>
+  <script src="/pilot-flight-context.js?v=2026-11-23-1"></script>
+  <script src="/pilot-imports.js?v=2026-11-23-1"></script>
+  <script src="/pilot-replay.js?v=2026-11-23-1"></script>
+  <script src="/pilot-airfields.js?v=2026-11-23-1"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-23-1"></script>
+  <script src="/pilot-map-view.js?v=2026-11-23-1"></script>
+  <script src="/pilot-display.js?v=2026-11-23-1"></script>
+  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-23-1"></script>
+  <script defer src="/pilot-glass.js?v=2026-11-23-1"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -5155,6 +5156,7 @@ END OF MESSAGE</pre>
         weatherAltn.value = weatherIcao(req?.operationalFlightPlan?.alternate);
         latestWeatherData = null;
         weatherDataKey = '';
+        renderEfhvWeather(null);
       }
       updateWeatherRouteLabel();
       updateWeatherRadarRoute(false);
@@ -5538,8 +5540,15 @@ END OF MESSAGE</pre>
         .join('\n');
     }
 
+    function renderEfhvWeather(data) {
+      const panel=el('efhvWeatherPanel'), local=window.PilotWx.localAirfield(data);
+      panel.replaceChildren(...(local?[local]:[]));
+      panel.hidden=!local;
+    }
+
     function renderWeatherBriefing(data, generatedReport=false) {
       latestWeatherData = data;
+      renderEfhvWeather(data.efhvLocal);
       requestWorkspace.compare(data);
       weatherAcarsReport.innerHTML = weatherReportMarkup(data.reportText || 'ACARS WEATHER REPORT\n--------------------\nNO REPORT DATA.');
       const departureCategory = weatherCategory(data.departure);
@@ -5555,7 +5564,7 @@ END OF MESSAGE</pre>
       renderWeatherCategoryStrip(data);
       renderWindsAloft(data); weatherWinds.hidden=!el('wxWinds').checked;
       const incomplete=[data.departure,data.arrival].some(wx=>!wx || !wx.metarObservedAt || wx.metarFallback || wx.metarAgeMinutes>75);
-      const alternateMessage = incomplete ? '<strong>Local observation missing, nearby or stale. Verify independently.</strong>' : data.operational?.arrivalNeedsAlternate
+      const alternateMessage = incomplete ? '<strong>On-airport METAR missing or stale. Nearby reports are reference only; verify independently.</strong>' : data.operational?.arrivalNeedsAlternate
         ? `<strong>ARRIVAL WEATHER TRIGGERS ALTERNATE REVIEW.</strong>${data.operational?.suggestedAlternate ? ` Suggested: ${escapeHtml(data.operational.suggestedAlternate.airport)} / ${escapeHtml(data.operational.suggestedAlternate.distanceNm)} NM.` : ' Select and verify a suitable alternate.'}`
         : '<strong class="weather-ok">NO AUTOMATED ALTERNATE TRIGGER.</strong> Continue normal pilot review.';
       weatherDecision.innerHTML = `<p>${alternateMessage}</p><p><span>Automated watch:</span> ${escapeHtml(data.operational?.remarks || 'NO AUTOMATED WEATHER REMARKS')}</p><p class="weather-caution">Pilot must verify report validity, forecast timing, runway state, NOTAMs, minima, and the complete operational picture before release.</p>`;
@@ -5596,6 +5605,7 @@ END OF MESSAGE</pre>
       const arr = weatherIcao(weatherArr.value);
       if (![weatherDep, weatherArr, weatherAltn].every(input=>input.validity.valid)) {
         weatherLoadGeneration++; refreshWeatherBtn.disabled = false;openWeatherPdfBtn.disabled=true;latestWeatherData=null;weatherDataKey='';
+        renderEfhvWeather(null);
         weatherStatus.textContent = 'Departure and arrival need four letters each. Complete the alternate or leave it blank.';
         weatherAirportGrid.innerHTML = '';
         weatherCategoryStrip.innerHTML = '';
@@ -5615,6 +5625,7 @@ END OF MESSAGE</pre>
       const timeout = setTimeout(()=>controller.abort(),25000);
       const generation = ++weatherLoadGeneration;
       weatherDataKey = context;
+      renderEfhvWeather(null);
       openWeatherPdfBtn.disabled=true;latestWeatherData=null; weatherAirportGrid.replaceChildren();weatherDecision.replaceChildren();weatherWinds.replaceChildren();weatherCategoryStrip.replaceChildren();weatherAcarsReport.textContent='Retrieving reports…';weatherReportMode.textContent='LOADING';
       refreshWeatherBtn.disabled = true;
       weatherStatus.textContent = `LOADING RAW METAR / TAF / ${dep}-${arr}`;
@@ -8597,6 +8608,7 @@ END OF MESSAGE</pre>
       weatherAcarsReport.textContent='No briefing for the edited route.';
       latestWeatherData = null;
       weatherDataKey = '';
+      renderEfhvWeather(null);
       el('weatherRouteComparison').textContent='Airports changed. Gather weather again.';
       renderActiveFlightStrip(selected);
       updateWeatherRouteLabel();
@@ -9281,7 +9293,7 @@ const flightImports=window.createPilotImports({context:window.PilotFlights,ensur
       }).catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', showAppUpdate);
     }
-    window.createPilotCockpit({ onMinute:()=>{renderLiveTiming();updateDesk();requestWorkspace.updateAges();radarWorkspace.refreshAge();}, onPosition:fix=>opsVectorMap?.setDevicePosition(fix), onCenter:()=>{switchOpsWorkspace('dashboard');return opsVectorMap?.centerDevicePosition() || false;} });
+    window.createPilotCockpit({ onMinute:()=>{renderLiveTiming();updateDesk();requestWorkspace.updateAges();window.PilotWx.updateLocalAges(weatherOpsPane);radarWorkspace.refreshAge();}, onPosition:fix=>opsVectorMap?.setDevicePosition(fix), onCenter:()=>{switchOpsWorkspace('dashboard');return opsVectorMap?.centerDevicePosition() || false;} });
     setInterval(autoSyncOps, 30000);
     window.addEventListener('nga-pilot-unlocked', () => loadPilotSession().catch(() => {}));
     Promise.resolve(window.NGAPilotLock?.ready).then(() => Promise.all([
