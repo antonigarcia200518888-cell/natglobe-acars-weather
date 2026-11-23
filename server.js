@@ -20,10 +20,12 @@ import { parseMovementUtc, movementOrderError } from './lib/flight-movement-time
 import { createWeatherService } from './lib/weather-service.js';
 import { createRadarService } from './lib/fmi-radar.js';
 import { createEfhvWeather } from './lib/efhv-weather.js';
+import { createAirportSources } from './lib/airport-sources.js';
 
 const stationWeather = createWeatherService();
 const radarWeather = createRadarService();
 const efhvWeather = createEfhvWeather();
+const airportSources = createAirportSources();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -7791,21 +7793,44 @@ app.get('/api/booking-ops/weather-radar', requirePilotAccess, async (req, res) =
   }
 });
 
+app.get('/api/booking-ops/airport-catalogue', requirePilotAccess, async (req,res) => {
+  try {
+    const airports=(await loadAirportDatabase()).filter(a=>a.type!=='closed').map(a=>({icao:a.icao,name:a.name,city:a.municipality,lat:a.lat,lon:a.lon,elevationFt:a.elevationFt}));
+    res.setHeader('Cache-Control','private, max-age=900');res.json({airports});
+  } catch {res.status(503).json({error:'Airport catalogue temporarily unavailable.'});}
+});
+
+app.get('/api/booking-ops/airport-reference', requirePilotAccess, async (req,res) => {
+  const icao=String(req.query.icao||'').trim().toUpperCase();
+  if(!/^[A-Z]{4}$/.test(icao))return res.status(400).json({error:'Enter a four-letter ICAO code.'});
+  res.setHeader('Cache-Control','no-store');
+  try {
+    if(req.query.section==='fuel')return res.json(await airportSources.fuelFor(icao));
+    const [airport,runways,directory,fuel]=await Promise.all([findAirportByIcao(icao),getAirportRunways(icao),airportSources.directoryFor(icao),airportSources.fuelFor(icao)]);
+    if(!airport && !directory?.page && !directory?.comMhz?.length && !fuel.prices.length)return res.status(404).json({error:'Airport not found in the reference catalogues.'});
+    res.json({icao,airport:airport?{name:airport.name,city:airport.municipality,lat:airport.lat,lon:airport.lon,elevationFt:airport.elevationFt}:null,runways,directory,fuel});
+  } catch (error) {
+    console.error('AIRPORT REFERENCE:',error.message);
+    res.status(503).json({error:'Airport reference temporarily unavailable.'});
+  }
+});
+
 app.get('/api/booking-ops/weather-report', requirePilotAccess, async (req, res) => {
   const icao = String(req.query.icao || '').trim().toUpperCase();
   const product = String(req.query.product || 'summary');
   if (!/^[A-Z]{4}$/.test(icao) || !['metar','taf','summary'].includes(product)) return res.status(400).json({error:'Use a four-letter ICAO and METAR, TAF or summary.'});
   const started = Date.now();
-  const [reports, efhvLocal] = await Promise.all([
+  const [reports, efhvLocal, efnuLocal] = await Promise.all([
     Promise.all((product === 'summary' ? ['metar','taf'] : [product]).map(type => stationWeather.get(type, icao))),
-    icao==='EFHV' && product==='summary' ? efhvWeather() : null
+    icao==='EFHV' && product==='summary' ? efhvWeather() : null,
+    icao==='EFNU' && product==='summary' ? airportSources.efnu() : null
   ]);
   const metar = reports.find(report => report.product === 'metar');
   const raw = metar?.raw || '';
   const observation = getMetarObservationData(raw);
   res.setHeader('Cache-Control', 'no-store');
   res.status(reports.every(report => report.status === 'error') ? 503 : 200).json({
-    icao, product, reports, efhvLocal, requestedAt:new Date(started).toISOString(), elapsedMs:Date.now()-started,
+    icao, product, reports, efhvLocal, efnuLocal, requestedAt:new Date(started).toISOString(), elapsedMs:Date.now()-started,
     observation:raw ? {...observation, wind:parseWindDetailed(raw), visibilityM:parseVisibility(raw),
       ceilingFt:parseMetarCeilingFt(raw), oatC:parseTemperatureC(raw), dewpointC:parseDewpointC(raw),
       qnhHpa:parseQnhHpa(raw), category:getMetarFlightCategory(raw)} : null
@@ -7827,7 +7852,7 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
     const altn = altnInput.value;
     const reportOption = (name, fallback = true) => req.query[name] === undefined ? fallback : parseBoolean(req.query[name]);
 
-    const [depWx, arrWx, altnWx, depAirport, arrAirport, altnAirport, depWinds, arrWinds, efhvLocal] = await Promise.all([
+    const [depWx, arrWx, altnWx, depAirport, arrAirport, altnAirport, depWinds, arrWinds, efhvLocal, efnuLocal] = await Promise.all([
       getAirportWeather(dep),
       getAirportWeather(arr),
       altn ? getAirportWeather(altn) : null,
@@ -7836,7 +7861,8 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
       altn ? findAirportByIcao(altn) : null,
       reportOption('includeWindsAloft', false) ? getWindsAloftForAirport(dep) : null,
       reportOption('includeWindsAloft', false) ? getWindsAloftForAirport(arr) : null,
-      [dep,arr,altn].includes('EFHV') ? efhvWeather() : null
+      [dep,arr,altn].includes('EFHV') ? efhvWeather() : null,
+      [dep,arr,altn].includes('EFNU') ? airportSources.efnu() : null
     ]);
 
     const summarize = (icao, airport, wx) => {
@@ -7901,7 +7927,7 @@ app.get('/api/booking-ops/weather', requirePilotAccess, async (req, res) => {
       departure: summarize(dep, depAirport, depWx),
       arrival: summarize(arr, arrAirport, arrWx),
       alternate: summarize(altn, altnAirport, altnWx),
-      efhvLocal,
+      efhvLocal, efnuLocal,
       windsAloft: { departure: depWinds, arrival: arrWinds },
       reportText: buildDispatchText(dispatchData),
       operational: {

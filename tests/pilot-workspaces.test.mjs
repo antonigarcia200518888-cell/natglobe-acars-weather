@@ -29,11 +29,11 @@ test('manifest shortcut selects the visible passenger view; pilot-only and empty
   assert.deepEqual(actions,['flights','passengers','scroll']);
 });
 test('radar opens on demand and stops playback when the briefing is selected', () => {
-  let loads=0, stops=0;
-  const nodes={}, tabs=['briefing','radar','airports','route','requests'].map(view=>({dataset:{weatherView:view},setAttribute(k,v){this[k]=v;},getAttribute(){return {briefing:'weatherBriefingPanel',radar:'weatherRadarPanel',airports:'weatherAirportsPanel',route:'weatherRoutePanel',requests:'weatherRequestsPanel'}[view];}}));
+  let loads=0, stops=0, pauses=0;
+  const nodes={efnuWeatherPanel:{querySelector:()=>({pause(){pauses++;}})}}, tabs=['briefing','radar','airports','route','requests'].map(view=>({dataset:{weatherView:view},setAttribute(k,v){this[k]=v;},getAttribute(){return {briefing:'weatherBriefingPanel',radar:'weatherRadarPanel',airports:'weatherAirportsPanel',route:'weatherRoutePanel',requests:'weatherRequestsPanel'}[view];}}));
   const mocks={weatherOpsPane:{dataset:{}},document:{querySelectorAll:()=>tabs},el:id=>nodes[id]??={},activeWorkspace:'weather',window:{requestAnimationFrame:fn=>fn()},radarWorkspace:{resize(){}},loadWeatherRadar:async()=>{loads++;},setWeatherRadarPlayback:()=>{stops++;}};
   run('setWeatherView',mocks,'radar');
-  assert.equal(loads,1); assert.equal(nodes.weatherRadarPanel.hidden,false); assert.equal(tabs[1].tabIndex,0);
+  assert.equal(loads,1); assert.equal(pauses,1); assert.equal(nodes.weatherRadarPanel.hidden,false); assert.equal(tabs[1].tabIndex,0);
   run('setWeatherView',mocks,'briefing');
   assert.equal(stops,1); assert.equal(nodes.weatherBriefingPanel.hidden,false); assert.equal(nodes.weatherRadarPanel.hidden,true); assert.equal(tabs[0]['aria-selected'],'true');
 });

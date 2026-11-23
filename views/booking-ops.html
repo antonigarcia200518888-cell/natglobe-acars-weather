@@ -12,8 +12,8 @@
   <link rel="apple-touch-icon" href="/pilot-natglobe-180.png" />
   <link rel="icon" type="image/png" href="/pilot-natglobe-192.png" />
   <title>NGA Pilot Operations Centre</title>
-  <link rel="stylesheet" href="/pilot-session-lock.css?v=2026-11-23-1" />
-  <script src="/pilot-session-lock.js?v=2026-11-23-1"></script>
+  <link rel="stylesheet" href="/pilot-session-lock.css?v=2026-11-23-2" />
+  <script src="/pilot-session-lock.js?v=2026-11-23-2"></script>
   <script>
     (() => {
       const theme = (() => {
@@ -2947,23 +2947,24 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-efb.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-app-reference.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-tools-reference.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-secondary-reference.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-logbook.css?v=2026-11-23-2" />
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-rebuild.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-app-shell.css?v=2026-11-23-2" />
   <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css?v=5.24.0" />
-  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-23-1" />
-  <link rel="stylesheet" href="/pilot-weather-workspace.css?v=2026-11-23-1" />
+  <link rel="stylesheet" href="/pilot-premium.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-touch.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-observatory.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-workspaces.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/design-tokens.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-command-deck.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-expedition.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-weather-workspace.css?v=2026-11-23-2" />
+  <link rel="stylesheet" href="/pilot-airport-workspace.css?v=2026-11-23-2" />
 </head>
 <body class="pilot-ops-v2 efb-ui">
   <main class="frame">
@@ -3011,6 +3012,7 @@
       <button class="suite-tab" type="button" data-suite-view="flights" aria-label="Open flight control" title="Flight control"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="3"></rect><path d="M7 2.5V6M17 2.5V6M2.5 8.5h19"></path><path d="m7 15 10-3-3.25 3L17 18l-10-3Z"></path></svg></span><strong>Flights</strong></button>
       <button class="suite-tab" type="button" data-suite-view="flight-plan" aria-label="Open operational flight plan" title="Operational flight plan"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-11Z"></path><path d="M14 2.5v6h6"></path><circle cx="8" cy="16" r="1.25"></circle><circle cx="16" cy="12" r="1.25"></circle><path d="M9.25 15.45 14.75 12.6"></path></svg></span><strong>Plan</strong></button>
       <button class="suite-tab" type="button" data-suite-view="weather" aria-label="Open weather dispatch" title="Weather dispatch"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M8 2.5v1M3.5 3.5l.8.8M2.5 8h1"></path><path d="M17.5 20H7a4.5 4.5 0 1 1 1.4-8.78A5.5 5.5 0 0 1 19 13a3.5 3.5 0 0 1-1.5 7Z"></path></svg></span><strong>Weather</strong></button>
+      <button class="suite-tab" type="button" data-suite-view="airports"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 9.5c0 4.5-7 10.5-7 10.5S5 14 5 9.5a7 7 0 0 1 14 0Z"></path><circle cx="12" cy="9.5" r="2.3"></circle></svg></span><strong>Airports</strong></button>
       <button class="suite-tab" type="button" data-suite-view="performance" aria-label="Open aircraft performance" title="Aircraft performance"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"></path><path d="M6.5 18h11M12 8v2M6.35 12.3l1.4.8M17.65 12.3l-1.4.8M12 18l4-5"></path><circle cx="12" cy="18" r="1"></circle></svg></span><strong>Perf</strong></button>
       <button class="suite-tab" type="button" data-suite-view="aircraft" aria-label="Open aircraft status" title="Aircraft status"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10.75 2.5c-.8 0-1.3.7-1.3 1.5v5.1L3 12.5v2l6.45-1.7v4.35L7 19v1l3.75-.9"></path><path d="M13.5 10.3V4c0-.8-.5-1.5-1.3-1.5"></path><circle cx="17" cy="17" r="4"></circle><path d="m15.2 17 1.2 1.2 2.5-2.7"></path></svg></span><strong>Aircraft</strong></button>
       <button id="logbookNavBtn" class="suite-tab" type="button" data-suite-view="logbook" aria-label="Open crew logbook" title="Crew logbook"><span class="suite-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 21.5Z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H15a2 2 0 0 0-2 2v16a2 2 0 0 1 2-2h2.5a2.5 2.5 0 0 1 2.5 2.5Z"></path><path d="M7 8h3M7 12h3M16 8h1.5M16 12h1.5"></path></svg></span><strong>Logbook</strong></button>
@@ -3159,7 +3161,7 @@
             <button id="weatherRequestsTab" type="button" role="tab" aria-selected="false" aria-controls="weatherRequestsPanel" tabindex="-1" data-weather-view="requests">Requests</button>
           </div>
           <div id="weatherStatus" class="weather-status" role="status">Enter airports or select a flight, then gather weather.</div>
-          <div id="efhvWeatherPanel" hidden></div>
+          <div id="efhvWeatherPanel" hidden></div><div id="efnuWeatherPanel" hidden></div>
           <section id="weatherRadarPanel" class="weather-radar-card" role="tabpanel" aria-labelledby="weatherRadarTab" hidden>
             <header class="weather-radar-head"><div><span>Finland · observed reflectivity</span><h2 id="weatherRadarTitle">Weather radar</h2><p>Situational awareness only. Use approved aviation weather for flight decisions.</p></div><strong id="weatherRadarTime" aria-live="polite">RADAR STANDBY</strong></header>
             <div class="weather-radar-map-wrap"><div id="weatherRadarMap" role="region" aria-label="Interactive weather radar map"></div><div id="weatherRadarUnavailable" class="weather-radar-unavailable" role="status" hidden></div></div>
@@ -3407,6 +3409,22 @@ LOAD DATA TO CALCULATE.</pre></details>
           <div class="performance-footer-actions"><button id="applyPerformanceToOfpBtn" class="efb-action primary" type="button">Apply snapshot to OFP</button><button id="openPerformanceOfpBtn" class="efb-action" type="button">Open flight plan</button></div>
         </div>
       </div>
+      <section id="airportsOpsPane" class="ops-tool-pane" aria-label="Airport directory" hidden>
+        <div class="airport-workbench">
+          <aside class="airport-browser" aria-label="Find airports">
+            <h2>Airports</h2><form id="airportFindForm"><label for="airportFind">ICAO, airport or city</label><input id="airportFind" type="search" autocomplete="off" placeholder="Search airports" maxlength="70" /></form>
+            <div class="airport-tabs" aria-label="Airport list" role="group"><button type="button" data-airport-list="recent" aria-pressed="true">Recent</button><button type="button" data-airport-list="favorites" aria-pressed="false">Favorites</button><button type="button" data-airport-list="catalogue" aria-pressed="false">Directory</button></div>
+            <div id="airportResults" class="airport-results"></div><p id="airportSearchStatus" role="status"></p>
+          </aside>
+          <article class="airport-file" aria-label="Selected airport">
+            <header class="airport-file-header"><div><span id="airportFileCode" class="airport-designator">AIRPORT REFERENCE</span><h2 id="airportFileTitle">Select an airport</h2><p id="airportFilePosition">Find an airport by ICAO or name.</p></div><button id="airportFavoriteBtn" type="button" aria-pressed="false" disabled>Favorite</button></header>
+            <div id="airportFileActions" class="airport-actions" hidden><button id="airportMapBtn" type="button">Show on map</button><button type="button" data-airport-assign="departure">Set departure</button><button type="button" data-airport-assign="destination">Set destination</button><button type="button" data-airport-assign="alternate">Set alternate</button></div>
+            <div id="airportFileTabs" class="airport-tabs" aria-label="Airport detail" role="group" hidden><button type="button" data-airport-view="info" aria-pressed="true">Info</button><button type="button" data-airport-view="runways" aria-pressed="false">Runways</button><button type="button" data-airport-view="weather" aria-pressed="false">Weather &amp; ATIS</button><button type="button" data-airport-view="fuel" aria-pressed="false">Fuel</button></div>
+            <div id="airportFileContent" class="airport-details" aria-live="polite"><p>Search the airport catalogue, or open a recent airport.</p></div>
+            <p class="airport-caution">Planning reference only. Verify current AIP, charts, NOTAMs, weather, and airport requirements before flight.</p>
+          </article>
+        </div>
+      </section>
       <div id="aircraftOpsPane" class="ops-tool-pane" hidden>
         <div id="aircraftConsole" class="aircraft-console aircraft-app" data-state="loading">
           <section class="aircraft-reference-scene" aria-label="Aircraft health overview">
@@ -3433,6 +3451,29 @@ LOAD DATA TO CALCULATE.</pre></details>
             <div id="aircraftHealthSync" data-state="pending"><i aria-hidden="true"></i><span><strong>Record sync</strong><small>Connecting to aircraft file</small></span></div>
           </section>
           </section>
+          <details id="fuelCalculator" class="aircraft-panel fuel-calculator">
+            <summary><strong>Fuel calculator</strong><span>Units, fuel mass and uplift cost</span></summary>
+            <div class="fuel-calculator-body">
+              <div class="fuel-calculator-grid">
+                <section><h3>Convert fuel</h3><div class="fuel-fields">
+                  <label>Quantity<input id="fuelCalcAmount" type="text" inputmode="decimal" autocomplete="off" maxlength="14" placeholder="0.0" /></label>
+                  <label>From unit<select id="fuelCalcUnit"><option value="l">Litres</option><option value="usg">US gallons</option><option value="imp">Imperial gallons</option><option value="kg">Kilograms</option><option value="lb">Pounds</option><option value="t">Metric tonnes</option></select></label>
+                  <label>Fuel grade<select id="fuelCalcGrade"><option>AVGAS 100LL</option><option>JET A-1</option><option>JET B</option><option>MOGAS</option><option>Other</option></select></label>
+                  <label>Supplier density (kg/L)<input id="fuelCalcDensity" inputmode="decimal" maxlength="10" placeholder="Enter verified density" /></label>
+                </div><label class="fuel-check"><input id="fuelCalcCorrect" type="checkbox" /> Adjust density for fuel temperature</label>
+                <div id="fuelCalcTemperature" class="fuel-fields" hidden>
+                  <label>Measured fuel temp (°C)<input id="fuelCalcTemp" inputmode="decimal" maxlength="8" /></label><label>Density reference temp (°C)<input id="fuelCalcRefTemp" inputmode="decimal" maxlength="8" /></label><label>Supplier expansion coefficient (per °C)<input id="fuelCalcBeta" inputmode="decimal" maxlength="12" /></label>
+                </div><p id="fuelCalcHint"></p></section>
+                <section><h3>Airport cost estimate</h3><div class="fuel-fields">
+                  <label>Airport ICAO<input id="fuelCalcAirport" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="e.g. EFHV" /></label><button id="fuelCalcLookup" type="button">Find airport prices</button>
+                  <label>Published grade &amp; price<select id="fuelCalcPublished" aria-describedby="fuelCalcLookupStatus"></select></label><button id="fuelCalcApply" type="button" disabled>Use published price</button>
+                  <label>Price (€/L)<input id="fuelCalcPrice" inputmode="decimal" maxlength="10" placeholder="Enter a supplier quote" /></label><div class="fuel-cost"><span>Estimated uplift cost</span><output id="fuelCalcCost">—</output></div>
+                </div><p id="fuelCalcLookupStatus" role="status"></p><p id="fuelCalcSource">Manual price · EUR per litre</p></section>
+              </div>
+              <div class="fuel-results" aria-label="Fuel conversion results"><div><span>Litres</span><output id="fuelCalcOut-l">—</output></div><div><span>US gallons</span><output id="fuelCalcOut-usg">—</output></div><div><span>Imperial gallons</span><output id="fuelCalcOut-imp">—</output></div><div><span>Kilograms</span><output id="fuelCalcOut-kg">—</output></div><div><span>Pounds</span><output id="fuelCalcOut-lb">—</output></div><div><span>Metric tonnes</span><output id="fuelCalcOut-t">—</output></div></div>
+              <p class="airport-caution">Planning estimates only. Use supplier fuel density and aircraft-approved values for loading. Use fuel temperature, not outside air temperature. Nothing here changes the aircraft record, fuel log or flight plan.</p>
+            </div>
+          </details>
           <div class="aircraft-panel-grid">
             <details id="aircraftRecordPanel" class="aircraft-panel aircraft-record-panel aircraft-record-drawer" data-state="loading">
               <summary class="aircraft-record-drawer-summary"><span><strong>Update aircraft record</strong><small>Serviceability, fuel, oil and technical details</small></span><em>Open sheet</em></summary>
@@ -3968,23 +4009,25 @@ END OF MESSAGE</pre>
     <dl class="desk-instruments"><div><dt>Zulu time</dt><dd id="deskZulu">—</dd></div><div><dt>Connection</dt><dd id="deskNetwork">—</dd></div></dl>
     <div class="desk-actions"><button id="deskMap" type="button">Open map <span aria-hidden="true">↗</span></button><button id="deskFlightAction" type="button">Select flight</button><button id="deskWeather" type="button">Brief weather</button></div>
   </dialog>
-  <script src="/pilot-weather-viewer.js?v=2026-11-23-1"></script>
-  <script src="/pilot-file-tools.js?v=2026-11-23-1"></script>
-  <script src="/pilot-weather-summary.js?v=2026-11-23-1"></script>
-  <script src="/pilot-cockpit.js?v=2026-11-23-1"></script>
-  <script src="/pilot-weather-radar.js?v=2026-11-23-1"></script>
-  <script src="/pilot-weather-workspace.js?v=2026-11-23-1"></script>
-  <script src="/pilot-touch-controls.js?v=2026-11-23-1"></script>
-  <script src="/pilot-flight-deck.js?v=2026-11-23-1"></script>
-  <script src="/pilot-flight-context.js?v=2026-11-23-1"></script>
-  <script src="/pilot-imports.js?v=2026-11-23-1"></script>
-  <script src="/pilot-replay.js?v=2026-11-23-1"></script>
-  <script src="/pilot-airfields.js?v=2026-11-23-1"></script>
-  <script src="/pilot-app-shell.js?v=2026-11-23-1"></script>
-  <script src="/pilot-map-view.js?v=2026-11-23-1"></script>
-  <script src="/pilot-display.js?v=2026-11-23-1"></script>
-  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-23-1"></script>
-  <script defer src="/pilot-glass.js?v=2026-11-23-1"></script>
+  <script src="/pilot-weather-viewer.js?v=2026-11-23-2"></script>
+  <script src="/pilot-file-tools.js?v=2026-11-23-2"></script>
+  <script src="/pilot-weather-summary.js?v=2026-11-23-2"></script>
+  <script src="/pilot-cockpit.js?v=2026-11-23-2"></script>
+  <script src="/pilot-weather-radar.js?v=2026-11-23-2"></script>
+  <script src="/pilot-weather-workspace.js?v=2026-11-23-2"></script>
+  <script src="/pilot-touch-controls.js?v=2026-11-23-2"></script>
+  <script src="/pilot-flight-deck.js?v=2026-11-23-2"></script>
+  <script src="/pilot-flight-context.js?v=2026-11-23-2"></script>
+  <script src="/pilot-imports.js?v=2026-11-23-2"></script>
+  <script src="/pilot-replay.js?v=2026-11-23-2"></script>
+  <script src="/pilot-airfields.js?v=2026-11-23-2"></script>
+  <script src="/pilot-airport-workspace.js?v=2026-11-23-2"></script>
+  <script src="/pilot-fuel-calculator.js?v=2026-11-23-2"></script>
+  <script src="/pilot-app-shell.js?v=2026-11-23-2"></script>
+  <script src="/pilot-map-view.js?v=2026-11-23-2"></script>
+  <script src="/pilot-display.js?v=2026-11-23-2"></script>
+  <script defer src="/vendor/liquid-glass/glass.js?v=2026-11-23-2"></script>
+  <script defer src="/pilot-glass.js?v=2026-11-23-2"></script>
   <script src="/vendor/simplewebauthn-browser.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script>
@@ -4325,6 +4368,7 @@ END OF MESSAGE</pre>
     let globeAnimationFrame = 0;
     let globeLastFrameAt = 0;
     let activeWorkspace = location.hash.replace('#', '') || storedOpsWorkspace() || 'dashboard';
+    let airportsWorkspace, airportMapIntent, pilotDirectoryCatalogue, airportCatalogueJob;
     let pilotSession = null;
     let pilotCapabilities = {};
     let pilotSessionExpiresAt = '';
@@ -4361,8 +4405,9 @@ END OF MESSAGE</pre>
       { view:'flights', label:'Flights', detail:'Booking queue, crew, decisions, passenger files, and timeline', keywords:'booking passenger commander pilot crew request schedule' },
       { view:'flight-plan', label:'Operational flight plan', detail:'Route, fuel, load, release, and movement log', keywords:'plan ofp eobt utc local direct dct route release block fuel payload out off on in' },
       { view:'weather', label:'Weather dispatch', detail:'Raw METAR, TAF, flight category, and dispatch PDF', keywords:'metar taf winds clouds visibility briefing forecast wx' },
+      { view:'airports', label:'Airports', detail:'Airfield directory, runway reference, weather, ATIS and fuel prices', keywords:'airport aerodrome EFHV EFNU frequency avgas jet-a1 mogas' },
       { view:'performance', label:'Aircraft performance', detail:'Takeoff, landing, runway, wind, and density altitude', keywords:'perf calculate ground roll obstacle accelerate stop weight oat qnh headwind tailwind' },
-      { view:'aircraft', label:'Aircraft status', detail:'Serviceability, fuel, oil, hours, and maintenance', keywords:'technical ready defect tach inspection onboard profile pa28 oh-pmk' },
+      { view:'aircraft', label:'Aircraft status', detail:'Serviceability, fuel calculator, oil, hours, and maintenance', keywords:'technical ready defect tach inspection onboard profile pa28 oh-pmk litres gallons' },
       { view:'logbook', label:'Crew logbook', detail:'Pilot flight records, credited time, recent activity, and CSV export', keywords:'log book hours pic sic night instrument landing duty record currency experience' },
       { view:'documents', label:'Flight files', detail:'OFP, agreements, statement, and operations documents', keywords:'pdf file signature signed contract boarding pass download' }
     ];
@@ -4422,7 +4467,7 @@ END OF MESSAGE</pre>
       const normalized = String(query || '').trim().toUpperCase();
       const tokens = pilotAssistantTokens(normalized);
       const toolsOnly = commandDialog.dataset.mode === 'tools';
-      const hiddenMobileTools = new Set(['performance', 'aircraft', 'logbook', 'documents']);
+      const hiddenMobileTools = new Set(['performance', 'aircraft', 'logbook', 'documents', ...(window.innerWidth<=350?['airports']:[])]);
       const modules = workspaceCommands.filter(command => (!toolsOnly || hiddenMobileTools.has(command.view)) && pilotAssistantMatches(`${command.label} ${command.detail} ${command.keywords || ''}`, tokens));
       const flights = toolsOnly ? [] : sortQueue(requests.filter(req => !tokens.length || pilotAssistantMatches(requestSearchText(req), tokens))).slice(0, 8);
       const moduleMarkup = modules.map(command => `
@@ -5294,9 +5339,25 @@ END OF MESSAGE</pre>
       } catch (_) {
         weatherAirportCatalog = [];
       }
-      opsVectorMap?.setAirports(weatherAirportCatalog);
+      syncPilotMapAirports();
+      if(opsVectorMap?.getFavorites().some(code=>!weatherAirportCatalog.some(airport=>airport.icao===code)))void loadPilotAirportCatalogue();
+      airportsWorkspace?.refreshCatalogue();
       updateOpsGlobeContext();
       updateWeatherRadarRoute(false);
+    }
+
+    function syncPilotMapAirports(focus, fallback) {
+      const extra=new Set([...(opsVectorMap?.getFavorites()||[]),focus].filter(Boolean));
+      opsVectorMap?.setAirports([...weatherAirportCatalog,...(pilotDirectoryCatalogue||[]).filter(airport=>extra.has(airport.icao)),...(fallback?[{...fallback,icao:focus}]:[])]);
+    }
+
+    async function loadPilotAirportCatalogue() {
+      if(pilotDirectoryCatalogue)return;
+      airportCatalogueJob??=fetch('/api/booking-ops/airport-catalogue',{signal:AbortSignal.timeout(12000)})
+        .then(response=>{if(!response.ok)throw new Error('Airport catalogue unavailable');return response.json();})
+        .then(data=>{if(Array.isArray(data.airports)){pilotDirectoryCatalogue=data.airports;syncPilotMapAirports(airportMapIntent);airportsWorkspace?.refreshCatalogue();}})
+        .catch(()=>{}).finally(()=>{airportCatalogueJob=null;});
+      await airportCatalogueJob;
     }
 
     function airportCoordinates(icao) {
@@ -5540,15 +5601,15 @@ END OF MESSAGE</pre>
         .join('\n');
     }
 
-    function renderEfhvWeather(data) {
-      const panel=el('efhvWeatherPanel'), local=window.PilotWx.localAirfield(data);
-      panel.replaceChildren(...(local?[local]:[]));
-      panel.hidden=!local;
+    function renderEfhvWeather(data, efnu=null) {
+      for(const [id,local] of [['efhvWeatherPanel',window.PilotWx.localAirfield(data)],['efnuWeatherPanel',window.PilotAirportData.efnuCard(efnu)]]){
+        const panel=el(id);panel.replaceChildren(...(local?[local]:[]));panel.hidden=!local;
+      }
     }
 
     function renderWeatherBriefing(data, generatedReport=false) {
       latestWeatherData = data;
-      renderEfhvWeather(data.efhvLocal);
+      renderEfhvWeather(data.efhvLocal,data.efnuLocal);
       requestWorkspace.compare(data);
       weatherAcarsReport.innerHTML = weatherReportMarkup(data.reportText || 'ACARS WEATHER REPORT\n--------------------\nNO REPORT DATA.');
       const departureCategory = weatherCategory(data.departure);
@@ -5880,6 +5941,7 @@ END OF MESSAGE</pre>
 
     function setWeatherView(view) {
       const next = ['briefing','airports','radar','route','requests'].includes(view) ? view : 'briefing';
+      if(next==='radar'||next==='requests')el('efnuWeatherPanel').querySelector('audio')?.pause();
       weatherOpsPane.dataset.weatherView = next;
       document.querySelectorAll('button[data-weather-view]').forEach(button => {
         const active = button.dataset.weatherView === next;
@@ -5927,10 +5989,12 @@ END OF MESSAGE</pre>
     }
 
     function switchOpsWorkspace(view, options = {}) {
-      const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'aircraft', 'logbook', 'documents']);
+      const allowedViews = new Set(['dashboard', 'flights', 'flight-plan', 'weather', 'performance', 'aircraft', 'logbook', 'documents', 'airports']);
       if (!allowedViews.has(view)) view = 'dashboard';
       appShell?.leave(view);
-      if (view !== 'weather') setWeatherRadarPlayback(false);
+      if (view !== 'weather') { setWeatherRadarPlayback(false);el('efnuWeatherPanel').querySelector('audio')?.pause(); }
+      if (view !== 'airports') el('airportsOpsPane').querySelector('audio')?.pause();
+      if (view !== 'dashboard') airportMapIntent=null;
       activeWorkspace = view;
       syncOpsGlobeAnimation();
       rememberOpsWorkspace(view);
@@ -5950,6 +6014,7 @@ END OF MESSAGE</pre>
       weatherOpsPane.hidden = view !== 'weather';
       performanceOpsPane.hidden = view !== 'performance';
       aircraftOpsPane.hidden = view !== 'aircraft';
+      el('airportsOpsPane').hidden = view !== 'airports';
       logbookOpsPane.hidden = view !== 'logbook';
       documentsOpsPane.hidden = view !== 'documents';
       if (dashboardActive) window.requestAnimationFrame(drawOpsGlobe);
@@ -5993,6 +6058,11 @@ END OF MESSAGE</pre>
         toolWorkspaceKicker.textContent = '06 / Aircraft control';
         toolWorkspaceTitle.textContent = 'Aircraft Status';
         renderAircraftStatus();
+      } else if (view === 'airports') {
+        toolWorkspaceKicker.textContent = 'Airport references';
+        toolWorkspaceTitle.textContent = 'Airports';
+        airportsWorkspace?.open();
+        void loadPilotAirportCatalogue();
       } else if (view === 'logbook') {
         toolWorkspaceKicker.textContent = '07 / Crew records';
         toolWorkspaceTitle.textContent = 'Crew Logbook';
@@ -9219,7 +9289,7 @@ const flightImports=window.createPilotImports({context:window.PilotFlights,ensur
     renderReleasePanel();
     updateNetworkState();
     if (window.createPilotMapView) opsVectorMap = window.createPilotMapView({
-      container:el('opsVectorMap'), fallback:opsGlobeCanvas, status:el('opsMapStatus'),startupGlobe:true,onAirport:code=>window.PilotAirfields?.open(code),
+      container:el('opsVectorMap'), fallback:opsGlobeCanvas, status:el('opsMapStatus'),startupGlobe:true,onAirport:code=>{airportsWorkspace?.open(code);switchOpsWorkspace('airports');},
       onSelection:point=>{el('cockpitMapSelection').textContent=`Selected map point: ${point.latitude.toFixed(4)}°, ${point.longitude.toFixed(4)}° · not device position`;el('mapSearchResult').textContent=el('cockpitMapSelection').textContent;},
       getPadding() {
         // Folder and toolbar are outside the canvas. Only reserve space for
@@ -9245,19 +9315,33 @@ const flightImports=window.createPilotImports({context:window.PilotFlights,ensur
         opsGlobeRotateBtn.textContent = rotating ? 'Pause' : 'Rotate';
         opsGlobeResetBtn.textContent = ready && hasRoute ? 'Fit route' : ready && mode === 'map' ? 'Home area' : 'Reset view';
         if (ready) {
+          if (airportMapIntent) window.requestAnimationFrame(applyAirportMapIntent);
           opsGlobeView.textContent = `${mode === 'map' ? '2D VECTOR MAP' : '3D GLOBE'}${rotating ? ' / ROTATING' : ''}`;
           window.cancelAnimationFrame(globeAnimationFrame); globeAnimationFrame = 0;
         } else drawOpsGlobe();
       }
     });
     window.PilotReplay=window.createPilotReplay({map:opsVectorMap,container:document.querySelector('.ops-globe-card'),isVisible:()=>activeWorkspace==='dashboard',context:window.PilotFlights,onDraft:prepareTrackLogbook});
-    window.PilotAirfields=window.createPilotAirfields({map:opsVectorMap,getAirports:()=>weatherAirportCatalog,addAirport:async(code,field)=>{
+    async function assignAirportToPlan(code,field){
       if(!await flightDeck.ensureSaved())return;
       if(!selected){if(field==='alternate'){window.alert('Select or create a flight before assigning its alternate.');return;}await openManualFlightComposer();(field==='departure'?manualFlightDep:manualFlightArr).value=code;return;}
       switchOpsWorkspace('flight-plan');
       const apply=()=>activePlanner()?.setAirport?.(field,code);
       if(activePlanner())await apply();else ofpOpsFrame.addEventListener('load',apply,{once:true});
-    }});
+    }
+    function applyAirportMapIntent(){
+      if(!airportMapIntent||activeWorkspace!=='dashboard'||!opsVectorMap?.ready)return;
+      const code=airportMapIntent;airportMapIntent=null;
+      el('mapSearchResult').textContent=opsVectorMap.viewAirport(code)?`Viewing ${code}. Flight plan unchanged.`:'Airport not found in the map catalogue.';
+    }
+    window.PilotAirfields=window.createPilotAirfields({map:opsVectorMap,getAirports:()=>weatherAirportCatalog,addAirport:assignAirportToPlan});
+    const fuelCalculator=window.createPilotFuelCalculator({lookupFuel:window.PilotAirportData.fuelFor});
+    airportsWorkspace=window.createPilotAirportWorkspace({getCatalogue:()=>pilotDirectoryCatalogue||weatherAirportCatalog,getFavorites:()=>opsVectorMap?.getFavorites()||[],
+      setFavorites:codes=>{opsVectorMap?.setFavorites(codes);syncPilotMapAirports();},getFlight:()=>selected,assign:assignAirportToPlan,
+      showOnMap:(code,airport)=>{syncPilotMapAirports(code,airport);airportMapIntent=code;switchOpsWorkspace('dashboard');applyAirportMapIntent();},
+      openCalculator:(code,price)=>{switchOpsWorkspace('aircraft');if(price)fuelCalculator.usePrice(code,price);else{fuelCalculator.setAirport(code);void fuelCalculator.load();}
+        el('fuelCalculator').open=true;window.requestAnimationFrame(()=>el('fuelCalculator').scrollIntoView({block:'start'}));}
+    });
     el('favoriteAirfieldsBtn').addEventListener('click',()=>window.PilotAirfields.open());
     document.querySelectorAll('[data-import-kind]').forEach(b=>b.addEventListener('click',()=>flightImports.open(b.dataset.importKind)));
     document.querySelectorAll('[data-import-files]').forEach(b=>b.addEventListener('click',()=>flightImports.files()));
@@ -9293,7 +9377,7 @@ const flightImports=window.createPilotImports({context:window.PilotFlights,ensur
       }).catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', showAppUpdate);
     }
-    window.createPilotCockpit({ onMinute:()=>{renderLiveTiming();updateDesk();requestWorkspace.updateAges();window.PilotWx.updateLocalAges(weatherOpsPane);radarWorkspace.refreshAge();}, onPosition:fix=>opsVectorMap?.setDevicePosition(fix), onCenter:()=>{switchOpsWorkspace('dashboard');return opsVectorMap?.centerDevicePosition() || false;} });
+    window.createPilotCockpit({ onMinute:()=>{renderLiveTiming();updateDesk();requestWorkspace.updateAges();window.PilotWx.updateLocalAges(opsToolWorkspace);window.PilotAirportData.updateEfnuAges(opsToolWorkspace);radarWorkspace.refreshAge();}, onPosition:fix=>opsVectorMap?.setDevicePosition(fix), onCenter:()=>{switchOpsWorkspace('dashboard');return opsVectorMap?.centerDevicePosition() || false;} });
     setInterval(autoSyncOps, 30000);
     window.addEventListener('nga-pilot-unlocked', () => loadPilotSession().catch(() => {}));
     Promise.resolve(window.NGAPilotLock?.ready).then(() => Promise.all([

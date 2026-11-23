@@ -1,0 +1,56 @@
+/* Airport index and fuel calculator share the existing EFB theme. */
+.airport-workbench,.fuel-calculator-grid {display:grid;align-items:start;gap:16px;min-width:0;}
+.airport-workbench {grid-template-columns:minmax(245px,.75fr) minmax(0,2fr);max-width:1480px;margin-inline:auto;padding:16px;}
+.airport-browser,.airport-file,.fuel-calculator-grid > section {min-width:0;padding:16px;border:1px solid var(--efb-line);border-radius:18px;background:var(--efb-card);color:var(--efb-text);}
+.airport-browser {position:sticky;top:0;}
+.airport-browser h2,.airport-file h2,.airport-details h3,.fuel-calculator h3 {margin:0 0 8px;letter-spacing:normal;text-transform:none;}
+.airport-browser form,.airport-details {display:grid;gap:12px;min-width:0;}
+.airport-browser form {gap:4px;}
+.airport-file-header,.airport-panel-heading {display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+.airport-file-header h2 {font:600 clamp(20px,3vw,28px)/1.25 var(--efb-font);overflow-wrap:anywhere;}
+.airport-designator {font:600 15px/1.4 var(--efb-mono);color:var(--efb-link);}
+.airport-tabs,.airport-actions {display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px;}
+.airport-tabs button {flex:1 1 auto;}
+.airport-results {display:grid;gap:5px;overflow:auto;max-height:46dvh;overscroll-behavior:contain;}
+.airport-results button {display:grid;grid-template-columns:5ch minmax(0,1fr);gap:10px;align-items:center;text-align:start;overflow-wrap:anywhere;}
+.airport-results strong,.airport-metrics dd,.airport-runway-list strong,.airport-fuel-row span,.fuel-results output,.fuel-cost output {font:600 16px/1.3 var(--efb-mono);font-variant-numeric:tabular-nums;}
+.airport-results span {font:400 14px/1.35 var(--efb-font);}
+.airport-details pre,.efnu-report-data pre {margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:15px/1.55 "Courier New",monospace;}
+.airport-report,.airport-runway-list article {display:grid;gap:6px;min-width:0;padding:12px 14px;border-radius:12px;background:var(--efb-soft);}
+.airport-runway-list,.airport-metrics {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));margin:0;gap:8px;min-width:0;}
+.airport-metrics > div,.fuel-results > div,.fuel-cost {min-width:0;display:grid;gap:5px;padding:12px;border:1px solid var(--efb-line);background:var(--efb-soft);border-radius:12px;overflow-wrap:anywhere;}
+.airport-metrics dd {margin:0;}
+.airport-fuel-row {display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--efb-line);border-radius:12px;}
+.airport-fuel-row span {margin-inline-end:auto;}
+.airport-file p,.airport-browser p,.fuel-calculator p {margin:0;color:var(--efb-secondary);font:400 14px/1.5 var(--efb-font);}
+.airport-file .airport-caution,.fuel-calculator .airport-caution {margin-top:14px;padding-top:12px;border-top:1px solid var(--efb-line);}
+.airport-file a,.fuel-calculator a {color:var(--efb-link);}
+html body.efb-ui :is(.airport-workbench,.fuel-calculator) :is(input:not([type=checkbox]),select,button,.airport-actions a) {box-sizing:border-box;min-height:48px;max-width:100%;border:1px solid var(--efb-line);border-radius:11px;padding:8px 12px;margin:0;background:var(--efb-soft);color:var(--efb-text);font:500 14px/1.3 var(--efb-font);white-space:normal;}
+.airport-actions a {display:inline-flex;align-items:center;text-decoration:none;}
+html body.efb-ui :is(.airport-workbench,.fuel-calculator) button[aria-pressed=true] {background:var(--efb-active);color:var(--efb-on-active);}
+html body.efb-ui :is(.airport-workbench,.fuel-calculator) button:disabled {opacity:.5;cursor:default;}
+.fuel-calculator {margin-block:12px;}
+.fuel-calculator summary {display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;min-height:48px;cursor:pointer;font:500 15px/1.4 var(--efb-font);}
+.fuel-calculator summary strong {color:var(--efb-text);font-size:17px;}
+.fuel-calculator summary span {color:var(--efb-secondary);}
+.fuel-calculator summary::before {content:'▸';}
+.fuel-calculator[open] summary::before {content:'▾';}
+.fuel-calculator-body {display:grid;gap:12px;padding-block:8px 4px;}
+.fuel-calculator-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+.fuel-fields,.fuel-results {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:end;}
+.fuel-fields label {display:grid;gap:4px;min-width:0;font:500 14px/1.5 var(--efb-font);}
+.fuel-fields :is(input,select),#airportFind {width:100%;min-width:0;}
+.fuel-check {display:flex;align-items:center;gap:8px;cursor:pointer;}
+.fuel-check input {width:20px;height:20px;}
+.fuel-calculator p:not(:empty) {margin-top:8px;}
+.fuel-results {grid-template-columns:repeat(auto-fit,minmax(min(100%,122px),1fr));align-items:stretch;}
+.fuel-results span,.airport-metrics dt,.fuel-cost span {font:500 13px/1.4 var(--efb-font);color:var(--efb-secondary);}
+.efnu-report-data .airport-metrics {margin:8px 0;}
+.efnu-report-data audio {width:min(100%,370px);margin-top:8px;}
+.efnu-report-data summary {min-height:48px;align-content:center;cursor:pointer;}
+#weatherOpsPane:is([data-weather-view=radar],[data-weather-view=requests]) #efnuWeatherPanel {display:none;}
+.wx-message .efnu-local {margin-block:12px;}
+@media(max-width:730px){.fuel-calculator-grid {grid-template-columns:minmax(0,1fr);}}
+@media(max-width:730px),(orientation:portrait) and (max-width:900px){.airport-workbench {grid-template-columns:minmax(0,1fr);}.airport-browser {position:static;}.airport-results {max-height:24dvh;}}
+@media(max-width:440px){.airport-workbench{padding:8px;gap:8px}.airport-file,.airport-browser{padding:12px}.fuel-fields{grid-template-columns:minmax(0,1fr);}}
+@media(max-width:350px){html:root body.efb-ui #pilotWorkspaceNav .suite-tab[data-suite-view=airports]:not([hidden]){display:none!important;}}
